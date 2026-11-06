@@ -6,3 +6,11 @@ node_modules/
 .pytest_cache
 
 .venv
+
+logs/
+
+
+data/
+
+chroma_langchain_db/
+*.db

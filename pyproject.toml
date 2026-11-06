@@ -20,6 +20,8 @@ dependencies = [
     "langchain-chroma>=1.1.0",
     "langchain-core>=1.7.6",
     "langchain-huggingface>=1.2.3",
+    "logfire[system-metrics]>=5.4.0",
+    "sentence-transformers>=6.2.0",
 ]
 
 [project.optional-dependencies]
@@ -30,16 +32,21 @@ dev = [
 ]
 
 [project.scripts]
-xbrl-autopilot = "src.main:run"
+start = "main:start"
+dev = "main:dev"
 
 [tool.uv]
 package = false
 
 [tool.pytest.ini_options]
-pythonpath = ["."]
+pythonpath = [".", "src"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 
 [build-system]
 requires = ["uv_build>=0.12.17,<0.13.0"]
 build-backend = "uv_build"
+
+
+
+

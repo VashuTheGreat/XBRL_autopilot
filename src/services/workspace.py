@@ -165,8 +165,8 @@ def save_to_workspace(
     if target_file.is_file():
         try:
             cur = json.loads(target_file.read_text(encoding="utf-8"))
-        except Exception:
-            pass
+        except (json.JSONDecodeError, OSError, UnicodeDecodeError):
+            cur = None
 
     if cur and not force:
         cur_saved = cur.get("meta", {}).get("lastSaved")
@@ -279,7 +279,7 @@ def list_workspace(root: Union[str, Path]) -> List[Dict[str, Any]]:
                             "lastSaved": meta.get("lastSaved"),
                             "key": filing_key(meta),
                         })
-                    except Exception:
+                    except (json.JSONDecodeError, OSError, UnicodeDecodeError):
                         pass
 
     filings.sort(key=lambda x: (x["company"], x["year"], x["file"]))

@@ -141,7 +141,7 @@ def decode_entities(s: str) -> str:
                 cp = int(e[2:], 16)
                 if cp <= 0x10FFFF:
                     return xml_safe(chr(cp))
-            except Exception:
+            except ValueError:
                 pass
             return m.group(0)
         if e.startswith("#"):
@@ -149,7 +149,7 @@ def decode_entities(s: str) -> str:
                 cp = int(e[1:], 10)
                 if cp <= 0x10FFFF:
                     return xml_safe(chr(cp))
-            except Exception:
+            except ValueError:
                 pass
             return m.group(0)
         low = e.lower()
