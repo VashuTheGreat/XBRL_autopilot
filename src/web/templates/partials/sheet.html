@@ -1,0 +1,23 @@
+<!-- ELR Sheet: Statement and Note line items -->
+<section id="pane-elr" class="sheet tab-pane" style="display:none;">
+  <header>
+    <h1><span class="code" id="elr-code"></span><span id="elr-title">Statement</span></h1>
+    <div class="actions">
+      <button class="btn" type="button" onclick="window.app.validateCurrentTab()">Validate Sheet</button>
+    </div>
+  </header>
+  <div class="reasons" id="elr-applicability-note"></div>
+
+  <div class="grid-wrap">
+    <table class="g" id="elr-grid">
+      <thead>
+        <tr>
+          <th style="width: 50%;">Line Item</th>
+          <th style="width: 25%;">Current Year (<span id="th-cy-year">CY</span>)</th>
+          <th style="width: 25%;">Previous Year (<span id="th-py-year">PY</span>)</th>
+        </tr>
+      </thead>
+      <tbody id="elr-grid-body"></tbody>
+    </table>
+  </div>
+</section>

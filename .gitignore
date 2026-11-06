@@ -1,3 +1,8 @@
 node_modules/
 
 .taxonomy
+
+.ruff_cache
+.pytest_cache
+
+.venv
