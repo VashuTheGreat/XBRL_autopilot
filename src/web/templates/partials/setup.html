@@ -1,0 +1,65 @@
+<!-- Company information & reporting periods setup -->
+<section id="pane-setup" class="sheet tab-pane active">
+  <header>
+    <h1>Company Information & Reporting Periods</h1>
+    <div class="actions">
+      <button class="btn primary" type="button" onclick="window.app.saveMeta()">Save Setup</button>
+    </div>
+  </header>
+  <p class="note">Set your company details, currency level of rounding, and financial year dates. These configure all statement and notes worksheets across the filing.</p>
+
+  <div class="grid-wrap" style="padding: 20px;">
+    <form id="meta-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+      <div>
+        <label style="display:block; font-weight:600; margin-bottom:4px;" for="f-name">Company Name</label>
+        <input type="text" id="f-name" class="cellin" value="{{ meta.name or '' }}" placeholder="e.g. Acme Corporation Limited">
+      </div>
+      <div>
+        <label style="display:block; font-weight:600; margin-bottom:4px;" for="f-cin">Corporate Identity Number (CIN)</label>
+        <input type="text" id="f-cin" class="cellin" value="{{ meta.cin or '' }}" placeholder="U12345MH2020PTC123456">
+      </div>
+      <div>
+        <label style="display:block; font-weight:600; margin-bottom:4px;" for="f-reportType">Nature of Report</label>
+        <select id="f-reportType" class="cellin">
+          <option value="Standalone" {% if meta.reportType == 'Standalone' %}selected{% endif %}>Standalone</option>
+          <option value="Consolidated" {% if meta.reportType == 'Consolidated' %}selected{% endif %}>Consolidated</option>
+        </select>
+      </div>
+      <div>
+        <label style="display:block; font-weight:600; margin-bottom:4px;" for="f-level">Level of Rounding</label>
+        <select id="f-level" class="cellin">
+          <option value="Actual" {% if meta.level == 'Actual' %}selected{% endif %}>Actual (Rupees)</option>
+          <option value="Thousands" {% if meta.level == 'Thousands' %}selected{% endif %}>Thousands</option>
+          <option value="Lakhs" {% if meta.level == 'Lakhs' %}selected{% endif %}>Lakhs</option>
+          <option value="Millions" {% if meta.level == 'Millions' %}selected{% endif %}>Millions</option>
+          <option value="Crores" {% if meta.level == 'Crores' %}selected{% endif %}>Crores</option>
+          <option value="Billions" {% if meta.level == 'Billions' %}selected{% endif %}>Billions</option>
+        </select>
+      </div>
+      <div>
+        <label style="display:block; font-weight:600; margin-bottom:4px;" for="f-displayPlaces">Decimal Places (Display)</label>
+        <input type="number" id="f-displayPlaces" class="cellin" value="{{ meta.displayPlaces or 0 }}" min="0" max="6">
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; margin-top: 24px;">
+        <input type="checkbox" id="f-firstFY" {% if meta.firstFinancialYear %}checked{% endif %}>
+        <label for="f-firstFY" style="font-weight:600;">First Financial Year (No comparative previous year)</label>
+      </div>
+      <div>
+        <label style="display:block; font-weight:600; margin-bottom:4px;">Current Year Period (Start to End)</label>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input type="date" id="f-cys" class="cellin" value="{{ meta.periods.cy.start or '' }}">
+          <span>to</span>
+          <input type="date" id="f-cye" class="cellin" value="{{ meta.periods.cy.end or '' }}">
+        </div>
+      </div>
+      <div>
+        <label style="display:block; font-weight:600; margin-bottom:4px;">Previous Year Period (Start to End)</label>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input type="date" id="f-pys" class="cellin" value="{{ meta.periods.py.start or '' }}">
+          <span>to</span>
+          <input type="date" id="f-pye" class="cellin" value="{{ meta.periods.py.end or '' }}">
+        </div>
+      </div>
+    </form>
+  </div>
+</section>

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ meta.name or 'Untitled Filing' }} — XBRL_autopilot
+{% endblock %}
+
+{% block body_content %}
+  <!-- Sidebar Navigation -->
+  {% include "partials/nav.html" %}
+
+  <!-- Main View Sheets -->
+  <main class="main" id="main" tabindex="-1">
+    {% include "partials/setup.html" %}
+    {% include "partials/sheet.html" %}
+    {% include "partials/table.html" %}
+    {% include "partials/validation.html" %}
+    {% include "partials/tools.html" %}
+  </main>
+{% endblock %}

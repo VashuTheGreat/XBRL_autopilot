@@ -1,0 +1,30 @@
+<!-- Validation & Gate Results -->
+<section id="pane-validation" class="sheet tab-pane" style="display:none;">
+  <header>
+    <h1>Validation & Business Rules</h1>
+    <div class="actions">
+      <button class="btn primary" type="button" onclick="window.app.runValidation()">Run Full Validation</button>
+    </div>
+  </header>
+  <p class="note">Checks internal XBRL consistency, arithmetic calculation linkbases, and MCA filing manual business rules.</p>
+
+  <div id="validation-summary" style="display: flex; gap: 12px; margin-bottom: 16px;"></div>
+
+  <div class="grid-wrap">
+    <table class="g" id="validation-table">
+      <thead>
+        <tr>
+          <th style="width: 15%;">Severity</th>
+          <th style="width: 15%;">Rule ID</th>
+          <th style="width: 55%;">Message</th>
+          <th style="width: 15%;">Action</th>
+        </tr>
+      </thead>
+      <tbody id="validation-issues">
+        <tr>
+          <td colspan="4" style="text-align: center; color: var(--muted); padding: 24px;">Click "Run Full Validation" to check the filing.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

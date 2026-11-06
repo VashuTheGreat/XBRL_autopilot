@@ -1,0 +1,30 @@
+<!-- Filing Tools: Health Check, MCA Explainer, Compare -->
+<section id="pane-tools" class="sheet tab-pane" style="display:none;">
+  <header>
+    <h1>Upkeep, Repair & Auxiliary Tools</h1>
+  </header>
+  <p class="note">Run automated consistency repairs, translate MCA validator error logs, or compare filing instances.</p>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-top: 16px;">
+    <!-- Health Check & Repair -->
+    <div class="grid-wrap" style="padding: 16px;">
+      <h2>Health Check & Auto-Repair</h2>
+      <p class="note">Re-derives parent calculated figures and cleans up unshown/obsolete dates into set-aside storage.</p>
+      <div style="margin-top: 12px;">
+        <button class="btn primary" type="button" onclick="window.app.runHealthCheck()">Run Health Check</button>
+      </div>
+      <div id="health-check-results" style="margin-top: 12px; font-size: 13px;"></div>
+    </div>
+
+    <!-- MCA Validator Error Explainer -->
+    <div class="grid-wrap" style="padding: 16px;">
+      <h2>MCA Validator Error Explainer</h2>
+      <p class="note">Paste raw Xerces or MCA XML validation error logs to translate them into clear instructions.</p>
+      <textarea id="mca-error-input" class="cellin" style="height: 100px; margin-top: 8px;" placeholder="Paste MCA error logs here..."></textarea>
+      <div style="margin-top: 8px;">
+        <button class="btn" type="button" onclick="window.app.explainMcaErrors()">Translate Error</button>
+      </div>
+      <div id="mca-error-output" style="margin-top: 12px; font-size: 13px;"></div>
+    </div>
+  </div>
+</section>

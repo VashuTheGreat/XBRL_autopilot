@@ -1,0 +1,31 @@
+<!-- Statements and notes sidebar navigation -->
+<nav class="nav" id="nav" aria-label="Statements and notes">
+  <div class="tools">
+    <h3>Filing Workflow</h3>
+    <a href="#setup" class="nav-link on" data-uri="setup" onclick="window.app.selectTab('setup'); return false;">
+      <span>Company & Periods</span>
+      <span class="dot"></span>
+    </a>
+    <a href="#validation" class="nav-link" data-uri="validation" onclick="window.app.selectTab('validation'); return false;">
+      <span>Validation & Rules</span>
+      <span class="dot err" id="sidebar-errors-dot" style="display:none;"></span>
+    </a>
+    <a href="#tools" class="nav-link" data-uri="tools" onclick="window.app.selectTab('tools'); return false;">
+      <span>Upkeep & Tools</span>
+      <span class="dot"></span>
+    </a>
+  </div>
+
+  {% for group_name, elrs in groups.items() %}
+  <div class="group-section">
+    <h3>{{ group_name }}</h3>
+    {% for elr in elrs %}
+    <a href="#{{ elr.code }}" class="nav-link" data-uri="{{ elr.uri }}" onclick="window.app.selectTab('{{ elr.uri }}'); return false;">
+      <span class="code">[{{ elr.code }}]</span>
+      <span class="title">{{ elr.title }}</span>
+      <span class="dot" id="dot-{{ elr.code }}"></span>
+    </a>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</nav>

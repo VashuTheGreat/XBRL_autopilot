@@ -1,0 +1,15 @@
+<!-- Dimensional Table View -->
+<section id="pane-table" class="sheet tab-pane" style="display:none;">
+  <header>
+    <h1><span class="code" id="table-code">Table</span><span id="table-title">Dimensional Breakdown</span></h1>
+    <div class="actions">
+      <button class="btn" type="button" onclick="window.app.fillTableTotals()">Fill Totals</button>
+      <button class="btn primary" type="button" onclick="window.app.addTableRowPrompt()">Add Row / Member</button>
+    </div>
+  </header>
+  <div class="table-container" id="dimensional-table-container">
+    <div class="grid-wrap" style="padding: 16px;">
+      <p id="table-info-msg">Loading dimensional table slices...</p>
+    </div>
+  </div>
+</section>
