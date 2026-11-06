@@ -14,3 +14,5 @@ data/
 
 chroma_langchain_db/
 *.db
+
+.env
