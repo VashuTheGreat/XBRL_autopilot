@@ -6,7 +6,26 @@ class XbrlApp {
   }
 
   init() {
+    this.setupFetchInterceptor();
     this.refreshSummary();
+  }
+
+  setupFetchInterceptor() {
+    const origFetch = window.fetch;
+    window.fetch = async (...args) => {
+      const res = await origFetch(...args);
+      const origJson = res.json.bind(res);
+      res.json = async () => {
+        const payload = await origJson();
+        if (payload && typeof payload === 'object' && 'success' in payload && 'data' in payload) {
+          if (res.ok && payload.data !== null && payload.data !== undefined) {
+            return payload.data;
+          }
+        }
+        return payload;
+      };
+      return res;
+    };
   }
 
   toast(msg) {

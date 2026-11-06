@@ -131,8 +131,8 @@ def import_instance(
 
     try:
         root = ET.fromstring(xml_text)
-    except Exception as e:
-        raise ValueError(f"Not well-formed XML: {e}")
+    except (ET.ParseError, ValueError, Exception) as e:
+        raise ValueError(f"Not well-formed XML: {e}") from e
 
     ns, local = split_tag(root.tag)
     if ns != NS["xbrli"] or local != "xbrl":

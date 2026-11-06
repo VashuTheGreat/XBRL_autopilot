@@ -2,31 +2,88 @@ from typing import List, Optional, Any
 from langchain_core.documents import Document
 from .base import BaseVectorDB
 from langchain_chroma import Chroma
-from constants import COLLECTION_NAME, VECTOR_DB_PATH
+from src.core.logger import logger
+from src.constants import  VECTOR_DB_PATH, IND_AS_TAXONOMY,CI_TAXONOMY,COSTING_TAXONOMY
+import os
+from typing import Literal
+
 
 class ChromaVectorDB(BaseVectorDB):
     def __init__(self, embedding_function: Optional[Any] = None, **kwargs):
         super().__init__()
-        self.vector_store = Chroma(
-            collection_name=COLLECTION_NAME,
-            persist_directory=VECTOR_DB_PATH,
-            embedding_function=embedding_function,
-            **kwargs
-        )
+        with logger.span("vectordb.init", collection_name=IND_AS_TAXONOMY, persist_directory=os.path.join(VECTOR_DB_PATH,IND_AS_TAXONOMY)):
+            self.vector_store_ind = Chroma(
+                collection_name=IND_AS_TAXONOMY,
+                persist_directory=os.path.join(VECTOR_DB_PATH,IND_AS_TAXONOMY),
+                embedding_function=embedding_function,
+                **kwargs
+            )
 
-    def add(self, documents: List[Document]) -> List[str]:
-        """Synchronously add documents to the vector database."""
-        return self.vector_store.add_documents(documents=documents)
+        with logger.span("vectordb.init", collection_name=CI_TAXONOMY, persist_directory=os.path.join(VECTOR_DB_PATH,CI_TAXONOMY)):
 
-    async def aadd(self, documents: List[Document]) -> List[str]:
-        """Asynchronously add documents to the vector database."""
-        return await self.vector_store.aadd_documents(documents=documents)
+            self.vector_store_ci = Chroma(
+                            collection_name=CI_TAXONOMY,
+                            persist_directory=os.path.join(VECTOR_DB_PATH,CI_TAXONOMY),
+                            embedding_function=embedding_function,
+                            **kwargs
+                        )
 
-    def search(self, query: str, k: int = 4) -> List[Document]:
-        """Synchronously search for similar documents."""
-        return self.vector_store.similarity_search(query=query, k=k)
+        with logger.span("vectordb.init", collection_name=COSTING_TAXONOMY, persist_directory=os.path.join(VECTOR_DB_PATH,COSTING_TAXONOMY)):
 
-    async def asearch(self, query: str, k: int = 4) -> List[Document]:
-        """Asynchronously search for similar documents using langchain's asimilarity_search."""
-        return await self.vector_store.asimilarity_search(query=query, k=k)
+            self.vector_store_cost = Chroma(
+                            collection_name=COSTING_TAXONOMY,
+                            persist_directory=os.path.join(VECTOR_DB_PATH,COSTING_TAXONOMY),
+                            embedding_function=embedding_function,
+                            **kwargs
+                        )
+
+    def add(self, documents: List[Document],collection:Literal[IND_AS_TAXONOMY,CI_TAXONOMY,COSTING_TAXONOMY]=IND_AS_TAXONOMY) -> List[str]:
+        with logger.span("vectordb.add", count=len(documents),collection=collection):
+            match collection:
+                case x if x==IND_AS_TAXONOMY:
+                    return self.vector_store_ind.add_documents(documents=documents)
+
+                case x if x==CI_TAXONOMY:
+                    return self.vector_store_ci.add_documents(documents=documents)
+
+                case x if x==COSTING_TAXONOMY:
+                    return self.vector_store_cost.add_documents(documents=documents)
+                
+    async def aadd(self, documents: List[Document],collection:Literal[IND_AS_TAXONOMY,CI_TAXONOMY,COSTING_TAXONOMY]=IND_AS_TAXONOMY) -> List[str]:
+        with logger.span("vectordb.aadd", count=len(documents),collection=collection):
+            match collection:
+                case x if x ==IND_AS_TAXONOMY:
+                    return await self.vector_store_ind.aadd_documents(documents=documents)
+
+                case x if x==CI_TAXONOMY:
+                    return await self.vector_store_ci.aadd_documents(documents=documents)
+
+                case x if x==COSTING_TAXONOMY:
+                    return await self.vector_store_cost.aadd_documents(documents=documents)
+                            
+    def search(self, query: str, k: int = 4,collection:Literal[IND_AS_TAXONOMY,CI_TAXONOMY,COSTING_TAXONOMY]=IND_AS_TAXONOMY) -> List[Document]:
+        with logger.span("vectordb.search", query=query, k=k,collection=collection):
+            match collection:
+                case x if x ==IND_AS_TAXONOMY:
+                    return self.vector_store_ind.similarity_search(query=query, k=k)
+
+                case x if x == CI_TAXONOMY:
+                    return self.vector_store_ci.similarity_search(query=query, k=k)
+
+                case x if x==COSTING_TAXONOMY:
+                    return self.vector_store_cost.similarity_search(query=query, k=k)
+                              
+
+    async def asearch(self, query: str, k: int = 4,collection:Literal[IND_AS_TAXONOMY,CI_TAXONOMY,COSTING_TAXONOMY]=IND_AS_TAXONOMY) -> List[Document]:
+        with logger.span("vectordb.asearch", query=query, k=k,collection=collection):
+            match collection:
+                case x if x ==IND_AS_TAXONOMY:
+                    return await self.vector_store_ind.asimilarity_search(query=query, k=k)
+
+                case x if x==CI_TAXONOMY:
+                    return await self.vector_store_ci.asimilarity_search(query=query, k=k)
+
+                case x if x==COSTING_TAXONOMY:
+                    return await self.vector_store_cost.asimilarity_search(query=query, k=k)
+                              
 
