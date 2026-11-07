@@ -169,6 +169,10 @@ def main():
     resources = scan_and_verify_data_sources()
     refresh_authority_knowledge_base(resources)
 
+    # Compile standardized knowledge base JSON artifacts for C&I, Costing, and Ind AS
+    from src.ingestion.compile_taxonomies import TaxonomyCompiler
+    TaxonomyCompiler().run_all()
+
     if not args.skip_chroma:
         wipe_chroma_vector_db()
         asyncio.run(run_taxonomy_ingestion())

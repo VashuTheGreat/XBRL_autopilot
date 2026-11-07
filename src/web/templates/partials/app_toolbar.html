@@ -1,0 +1,90 @@
+<!-- Professional Desktop Action Toolbar -->
+<div class="desktop-toolbar" id="desktop-toolbar">
+  <!-- Quick File Buttons -->
+  <div class="toolbar-group">
+    <button class="t-btn" type="button" onclick="window.app.openStartupModal('new')" title="New Filing (Ctrl+N)">
+      <span class="t-icon">✨</span><span class="t-text">New</span>
+    </button>
+    <button class="t-btn" type="button" onclick="window.app.openStartupModal('load')" title="Open Project (Ctrl+O)">
+      <span class="t-icon">📂</span><span class="t-text">Open</span>
+    </button>
+    <button class="t-btn primary-action" type="button" onclick="window.app.saveProject()" title="Save Progress (Ctrl+S)">
+      <span class="t-icon">💾</span><span class="t-text">Save</span>
+    </button>
+  </div>
+
+  <div class="toolbar-separator"></div>
+
+  <!-- Taxonomy Selector Badge -->
+  <div class="toolbar-group taxonomy-selector-group">
+    <label for="active-taxonomy-select" class="t-label">Taxonomy:</label>
+    <select id="active-taxonomy-select" class="t-select tax-badge-select" onchange="window.app.switchActiveTaxonomy(this.value)">
+      <option value="ci" selected>MCA C&I 2016 (AS)</option>
+      <option value="ind_as">MCA Ind AS V1.2</option>
+      <option value="costing">Costing 2019 (Cost Audit)</option>
+    </select>
+  </div>
+
+  <div class="toolbar-separator"></div>
+
+  <!-- Column & Rounding Controls -->
+  <div class="toolbar-group gap-settings-group">
+    <div class="t-field">
+      <label for="tb-label-col" title="Excel Column Number for Particulars/Headings">Label Col:</label>
+      <input type="number" id="tb-label-col" value="1" min="1" max="26" class="t-input-num" onchange="window.app.updateColumnSettingsFromToolbar()">
+    </div>
+    <div class="t-field">
+      <label for="tb-cy-col" title="Excel Column Number for Current Year Figures">CY Col:</label>
+      <input type="number" id="tb-cy-col" value="3" min="1" max="26" class="t-input-num" onchange="window.app.updateColumnSettingsFromToolbar()">
+    </div>
+    <div class="t-field">
+      <label for="tb-col-diff" title="Difference in columns between Current Year and Previous Year">Gap:</label>
+      <input type="number" id="tb-col-diff" value="1" min="1" max="10" class="t-input-num" onchange="window.app.updateColumnSettingsFromToolbar()">
+    </div>
+    <div class="t-field">
+      <label for="tb-rounding">Rounding:</label>
+      <select id="tb-rounding" class="t-select" onchange="window.app.updateColumnSettingsFromToolbar()">
+        <option value="Actual" selected>Actual</option>
+        <option value="Thousands">Thousands</option>
+        <option value="Lakhs">Lakhs</option>
+        <option value="Millions">Millions</option>
+        <option value="Crores">Crores</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="toolbar-separator"></div>
+
+  <!-- AI Auto-Tag Trigger -->
+  <div class="toolbar-group">
+    <button class="t-btn ai-btn" type="button" onclick="window.app.triggerAutoTag()" title="AI Suggested Taxonomy Mapping for Excel line items">
+      <span class="t-icon">✨</span><span class="t-text">AI Mapping</span>
+    </button>
+  </div>
+
+  <div class="toolbar-separator"></div>
+
+  <!-- Live Financial Differences -->
+  <div class="toolbar-group diff-monitor-group">
+    <div class="diff-badge" id="tb-bs-diff" title="Balance Sheet Difference = Total Assets - (Equity + Total Liabilities)">
+      <span class="diff-label">BS Diff:</span>
+      <span class="diff-val balanced">0</span>
+    </div>
+    <div class="diff-badge" id="tb-pl-diff" title="Profit & Loss Parity">
+      <span class="diff-label">PL Check:</span>
+      <span class="diff-val balanced">0</span>
+    </div>
+  </div>
+
+  <div class="toolbar-spacer"></div>
+
+  <!-- Auto-Save Status & Wizard Launch -->
+  <div class="toolbar-group">
+    <span class="autosave-indicator" id="tb-autosave-indicator" onclick="window.app.openSettingsModal()" title="Click to configure Auto-Save">
+      ⏱ Auto-Save: OFF
+    </span>
+    <button class="t-btn wizard-btn" type="button" onclick="window.app.openXmlWizard()" title="Step-by-step internal validation and MCA compliant XBRL XML export">
+      <span class="t-icon">⚡</span><span class="t-text">Generate XML</span>
+    </button>
+  </div>
+</div>

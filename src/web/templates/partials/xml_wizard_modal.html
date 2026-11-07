@@ -1,0 +1,104 @@
+<!-- Unified XML Generation & Validation Wizard Modal -->
+<div class="modal desktop-modal-wrapper" id="modal-xml-wizard" hidden style="display:none; z-index: 9998;">
+  <div class="modal-backdrop" onclick="window.app.closeXmlWizard()"></div>
+  <div class="modal-dialog-box" role="dialog" aria-modal="true" aria-labelledby="wizard-heading" style="max-width: 850px; width: 90vw;">
+    
+    <header class="modal-dialog-header" style="background: #1e293b; color: #fff;">
+      <div class="dialog-title-wrap">
+        <span class="dialog-icon" style="color: #38bdf8;">⚡</span>
+        <div>
+          <h3 id="wizard-heading" style="color: #fff; margin: 0; font-size: 16px;">Generate MCA XBRL Instance &amp; Validation Gate</h3>
+          <p style="margin: 0; font-size: 11px; color: #94a3b8;">4-Step Pre-Validation, Correction &amp; Compliant XML Generation</p>
+        </div>
+      </div>
+      <button type="button" class="dialog-close-btn" style="color: #cbd5e1;" onclick="window.app.closeXmlWizard()" aria-label="Close">×</button>
+    </header>
+
+    <div class="modal-dialog-body" style="padding: 20px; max-height: 70vh; overflow-y: auto;">
+      
+      <!-- Wizard Step Tracker -->
+      <div class="wizard-stepper" style="display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 14px;">
+        <div class="step-badge active" id="step-badge-1" style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #0284c7;">
+          <span class="step-num" style="width: 22px; height: 22px; border-radius: 50%; background: #0284c7; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 11px;">1</span>
+          <span>Pre-Validation Checks</span>
+        </div>
+        <div class="step-badge" id="step-badge-2" style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #64748b;">
+          <span class="step-num" style="width: 22px; height: 22px; border-radius: 50%; background: #cbd5e1; color: #475569; display: inline-flex; align-items: center; justify-content: center; font-size: 11px;">2</span>
+          <span>Review &amp; Corrections</span>
+        </div>
+        <div class="step-badge" id="step-badge-3" style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #64748b;">
+          <span class="step-num" style="width: 22px; height: 22px; border-radius: 50%; background: #cbd5e1; color: #475569; display: inline-flex; align-items: center; justify-content: center; font-size: 11px;">3</span>
+          <span>Generate XBRL XML</span>
+        </div>
+      </div>
+
+      <!-- Status Summary Card -->
+      <div id="wizard-summary-card" style="display: flex; gap: 16px; margin-bottom: 20px;">
+        <div style="flex: 1; padding: 14px; border-radius: 6px; background: #fff1f2; border: 1px solid #fecdd3; display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 24px;">🚫</span>
+          <div>
+            <div style="font-size: 20px; font-weight: 700; color: #be123c;" id="wizard-blocking-count">0</div>
+            <div style="font-size: 12px; color: #9f1239; font-weight: 600;">Blocking Errors (Must Fix)</div>
+          </div>
+        </div>
+        <div style="flex: 1; padding: 14px; border-radius: 6px; background: #fffbeb; border: 1px solid #fde68a; display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 24px;">⚠️</span>
+          <div>
+            <div style="font-size: 20px; font-weight: 700; color: #b45309;" id="wizard-warning-count">0</div>
+            <div style="font-size: 12px; color: #92400e; font-weight: 600;">Non-Blocking Warnings</div>
+          </div>
+        </div>
+        <div style="flex: 1; padding: 14px; border-radius: 6px; background: #f0fdf4; border: 1px solid #bbf7d0; display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 24px;">🏷️</span>
+          <div>
+            <div style="font-size: 14px; font-weight: 700; color: #15803d;" id="wizard-tax-name">MCA C&amp;I 2016</div>
+            <div style="font-size: 12px; color: #166534;" id="wizard-gate-status">Ready to evaluate</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Issues List Container -->
+      <div id="wizard-issues-container">
+        <h4 style="font-size: 14px; margin: 0 0 10px 0; color: #1e293b; display: flex; justify-content: space-between; align-items: center;">
+          <span>Detected Validation Discrepancies</span>
+          <button class="btn small" type="button" onclick="window.app.revalidateWizard()">🔄 Re-Validate</button>
+        </h4>
+        <div id="wizard-issues-list" style="max-height: 280px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px;">
+          <div style="padding: 20px; text-align: center; color: #64748b; font-size: 13px;">
+            Evaluating filing facts and business rules...
+          </div>
+        </div>
+      </div>
+
+      <!-- XML Generation Ready Panel (Shown when blocking == 0) -->
+      <div id="wizard-generation-panel" style="display: none; margin-top: 20px; padding: 16px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <h4 style="margin: 0; color: #166534; font-size: 15px;">✅ Pre-Validation Passed — Ready for XML Generation</h4>
+            <p style="margin: 4px 0 0 0; color: #15803d; font-size: 12px;">
+              Zero blocking errors found. All mandatory elements and required periods are valid.
+            </p>
+          </div>
+          <button type="button" class="btn primary" style="background: #15803d; border-color: #15803d; font-size: 14px; padding: 10px 18px;" onclick="window.app.downloadGeneratedXml()">
+            ⬇️ Download Official XBRL XML (.xml)
+          </button>
+        </div>
+      </div>
+
+      <!-- MCA Official Validator Separation Notice -->
+      <div class="mca-disclaimer" style="margin-top: 20px; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 11px; color: #64748b; line-height: 1.5;">
+        <strong>Regulatory Compliance Notice:</strong> This pre-validation is performed by WebXBRL internal rule engines. While internal checks enforce official MCA rules, before final filing on the MCA portal, verify your instance document using the official MCA Validation Tool.
+      </div>
+
+    </div>
+
+    <footer class="modal-dialog-footer" style="padding: 12px 20px; background: #f8fafc; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0;">
+      <span style="font-size: 12px; color: #64748b;" id="wizard-footer-msg">Review all blocking errors above before generating XML.</span>
+      <div style="display: flex; gap: 8px;">
+        <button type="button" class="btn" onclick="window.app.closeXmlWizard()">Close</button>
+        <button type="button" class="btn primary" id="wizard-recheck-btn" onclick="window.app.revalidateWizard()">Revalidate</button>
+      </div>
+    </footer>
+
+  </div>
+</div>

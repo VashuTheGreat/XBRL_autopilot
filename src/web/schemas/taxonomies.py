@@ -7,12 +7,12 @@ from src.constants import IND_AS_TAXONOMY,CI_TAXONOMY,COSTING_TAXONOMY
 
 class ADDTaxonomies(BaseModel):
     taxonomies: list[str]
-    collections: Literal[IND_AS_TAXONOMY,CI_TAXONOMY,COSTING_TAXONOMY]
+    collections: str = CI_TAXONOMY
 
 
 class RecommendTaxonomies(BaseModel):
     keys: list[str]
-    collection: Literal[IND_AS_TAXONOMY, CI_TAXONOMY, COSTING_TAXONOMY] = CI_TAXONOMY
+    collection: str = CI_TAXONOMY
 
 
 RecommentTaxonomies = RecommendTaxonomies
@@ -49,4 +49,12 @@ class SheetSettingsRequest(BaseModel):
     cyCol: int = 3
     colDiff: int = 1
     rounding: str = "Actual"
+
+
+class LinkScheduleRequest(BaseModel):
+    concept: str
+    scheduleSheet: str
+    rowIndices: list[int]
+    noteRef: str | None = None
+
 

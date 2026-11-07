@@ -40,34 +40,6 @@
     </div>
 
     <div class="tb-right">
-      <!-- Gap, Column & Rounding Selectors (User's Core Requirement) -->
-      <div class="gap-controls-cluster" title="Configure Excel column positions and gap">
-        <label class="gap-item">
-          <span>Label Col:</span>
-          <input type="number" id="tb-label-col" value="1" min="1" max="26" class="mini-num-input" title="Column number containing line item descriptions (1 = Col A)" onchange="window.app.onGapSettingChange()">
-        </label>
-        <label class="gap-item">
-          <span>CY Col:</span>
-          <input type="number" id="tb-cy-col" value="3" min="1" max="26" class="mini-num-input" title="Current Year Amount Column (3 = Col C)" onchange="window.app.onGapSettingChange()">
-        </label>
-        <label class="gap-item">
-          <span>Gap (Diff):</span>
-          <input type="number" id="tb-col-diff" value="1" min="1" max="10" class="mini-num-input" title="Difference in columns between Current & Previous Year (Default: 1)" onchange="window.app.onGapSettingChange()">
-        </label>
-        <label class="gap-item">
-          <span>Rounding:</span>
-          <select id="tb-rounding" class="mini-select" title="Filing Level of Rounding" onchange="window.app.onGapSettingChange()">
-            <option value="Actual" selected>Actual</option>
-            <option value="Thousands">Thousands</option>
-            <option value="Lacs">Lacs</option>
-            <option value="Crores">Crores</option>
-            <option value="Millions">Millions</option>
-            <option value="Billions">Billions</option>
-          </select>
-        </label>
-      </div>
-
-      <button type="button" class="btn secondary small btn-reset-setting" onclick="window.app.openResetSettingsModal()" title="Open Reset Setting Dialog">⚙️ Reset Setting</button>
       <label class="btn primary small file-btn" title="Open and upload an Excel workbook (.xlsx)">
         📂 Open Sheet
         <input type="file" id="excel-file-input" accept=".xlsx, .xls" style="display:none;" onchange="window.app.onUploadWorkbook(this)">

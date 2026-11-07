@@ -262,23 +262,51 @@ class Authority:
     memberChildren = member_children
 
 
-_AUTHORITY_INSTANCE: Optional[Authority] = None
+_AUTHORITY_REGISTRY: Dict[str, Authority] = {}
 
 
-def get_authority(path: Optional[Union[str, Path]] = None) -> Authority:
-    global _AUTHORITY_INSTANCE
-    if _AUTHORITY_INSTANCE is None:
+def get_authority(
+    taxonomy: str = "ci",
+    path: Optional[Union[str, Path]] = None,
+) -> Authority:
+    """Returns an Authority instance for the specified taxonomy ('ci', 'ind_as', 'costing').
+
+    Maintains backward compatibility when invoked with a path or no arguments.
+    """
+    global _AUTHORITY_REGISTRY
+    
+    # If path is provided directly as first arg
+    if isinstance(taxonomy, (Path, str)) and ("/" in str(taxonomy) or "\\" in str(taxonomy) or str(taxonomy).endswith(".json")):
+        path = taxonomy
+        tax_key = "custom"
+    else:
+        tax_key = (taxonomy or "ci").lower().replace("-", "_")
+
+    if tax_key not in _AUTHORITY_REGISTRY:
         if path:
             p = Path(path)
         else:
             root = Path(__file__).resolve().parents[2]
+            filename_map = {
+                "ci": "ci_knowledge_base.json",
+                "ind_as": "ind_as_knowledge_base.json",
+                "costing": "costing_knowledge_base.json",
+            }
+            fname = filename_map.get(tax_key, "ci_knowledge_base.json")
             candidates = [
-                root / "Knowlege_base" / "MCA_AUTHORITY.json",
-                root / "Knowledge_base" / "MCA_AUTHORITY.json",
-                root / "MCA_AUTHORITY.json",
+                root / "Knowlege_base" / fname,
+                root / "Knowledge_base" / fname,
             ]
+            if tax_key == "ci":
+                candidates.extend([
+                    root / "Knowlege_base" / "MCA_AUTHORITY.json",
+                    root / "Knowledge_base" / "MCA_AUTHORITY.json",
+                    root / "MCA_AUTHORITY.json",
+                ])
             p = next((c for c in candidates if c.exists()), candidates[0])
+
         with open(p, "r", encoding="utf-8") as f:
             data = json.load(f)
-        _AUTHORITY_INSTANCE = Authority(data)
-    return _AUTHORITY_INSTANCE
+        _AUTHORITY_REGISTRY[tax_key] = Authority(data)
+
+    return _AUTHORITY_REGISTRY[tax_key]

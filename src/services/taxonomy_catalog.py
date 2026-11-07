@@ -86,6 +86,28 @@ def get_taxonomy_tree(
 
                     has_value = bool(val_cy and val_cy.value) or bool(val_py and val_py.value)
 
+                    # Centralized status check
+                    from src.services.schedule_service import ScheduleService, STATUS_COMPLETE, STATUS_SCHEDULE_REQUIRED, STATUS_SCHEDULE_LINKED, STATUS_UNTAGGED
+                    sch_svc = ScheduleService(A)
+                    sch_req = sch_svc.get_schedule_requirement(concept)
+                    status_code = STATUS_UNTAGGED
+                    status_label = ""
+                    if has_value:
+                        if sch_req:
+                            # Check if schedule links exist in workbook session
+                            from src.services.spreadsheet_service import get_workbook_session
+                            wsess = get_workbook_session()
+                            links = [l for l in (getattr(wsess, "schedule_links", []) if wsess else []) if l.get("concept") == concept]
+                            if links:
+                                status_code = STATUS_SCHEDULE_LINKED
+                                status_label = f"Schedule Linked ({len(links)})"
+                            else:
+                                status_code = STATUS_SCHEDULE_REQUIRED
+                                status_label = f"Schedule Required: [{sch_req['elrCode']}]"
+                        else:
+                            status_code = STATUS_COMPLETE
+                            status_label = "Complete"
+
                     items.append({
                         "kind": "item",
                         "concept": concept,
@@ -98,6 +120,9 @@ def get_taxonomy_tree(
                         "py": s.display_of(val_py) if val_py else "",
                         "calculated": bool(calc_cy or calc_py),
                         "tagged": has_value,
+                        "status": status_code,
+                        "statusLabel": status_label,
+                        "scheduleRequired": sch_req is not None,
                     })
                 elif kind == "header":
                     items.append({

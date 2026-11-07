@@ -27,17 +27,33 @@ router = APIRouter()
 
 class SaveProjectRequest(BaseModel):
     name: Optional[str] = None
+    uiState: Optional[Dict[str, Any]] = None
+    scheduleLinks: Optional[List[Dict[str, Any]]] = None
+    autosaveSettings: Optional[Dict[str, Any]] = None
+
+
+class AutoSaveProjectRequest(BaseModel):
+    name: Optional[str] = None
+    uiState: Optional[Dict[str, Any]] = None
+    scheduleLinks: Optional[List[Dict[str, Any]]] = None
+    autosaveSettings: Optional[Dict[str, Any]] = None
+
+
+class DiscardRecoveryRequest(BaseModel):
+    projectId: Optional[str] = None
 
 
 class NewProjectRequest(BaseModel):
     name: str
     cin: str
+    taxonomy: str = "ci"
     startDate: str = "2024-04-01"
     endDate: str = "2025-03-31"
     level: str = "Actual"
     reportType: str = "Standalone"
 
 
+@router.get("")
 @router.get("/list")
 def get_project_list():
     """Lists all persistent saved projects in the repository."""
@@ -52,17 +68,70 @@ def save_current_project(payload: Optional[SaveProjectRequest] = None, session_i
     with logger.span("projects.save", session_id=session_id):
         s = get_session(session_id)
         custom_name = payload.name if payload else None
-        res = save_project(s, session_id=session_id, custom_name=custom_name)
+        ui_state = payload.uiState if payload else None
+        schedule_links = payload.scheduleLinks if payload else None
+        autosave_settings = payload.autosaveSettings if payload else None
+
+        res = save_project(
+            s,
+            session_id=session_id,
+            custom_name=custom_name,
+            is_recovery=False,
+            ui_state=ui_state,
+            schedule_links=schedule_links,
+            autosave_settings=autosave_settings,
+        )
         return success_response(data=res, message=f"Project '{res['projectId']}' saved successfully")
 
 
+@router.post("/autosave")
+def autosave_current_project(payload: Optional[AutoSaveProjectRequest] = None, session_id: str = "default"):
+    """Writes a temporary recovery snapshot without overwriting the user's primary project file."""
+    with logger.span("projects.autosave", session_id=session_id):
+        s = get_session(session_id)
+        custom_name = payload.name if payload else None
+        ui_state = payload.uiState if payload else None
+        schedule_links = payload.scheduleLinks if payload else None
+        autosave_settings = payload.autosaveSettings if payload else None
+
+        res = save_project(
+            s,
+            session_id=session_id,
+            custom_name=custom_name,
+            is_recovery=True,
+            ui_state=ui_state,
+            schedule_links=schedule_links,
+            autosave_settings=autosave_settings,
+        )
+        return success_response(data=res, message="Auto-save recovery snapshot created")
+
+
+@router.post("/discard-recovery")
+def discard_project_recovery(payload: Optional[DiscardRecoveryRequest] = None, session_id: str = "default"):
+    """Deletes the temporary local recovery cache when user discards or cleanly exits."""
+    pid = payload.projectId if payload and payload.projectId else None
+    if not pid:
+        s = get_session(session_id)
+        from src.services.project_service import compute_project_id
+        pid = compute_project_id(s)
+
+    with logger.span("projects.discard_recovery", project_id=pid):
+        from src.services.project_service import delete_recovery_cache
+        deleted = delete_recovery_cache(pid)
+        return success_response(data={"deleted": deleted}, message="Recovery cache cleaned up")
+
+
 @router.post("/load/{project_id}")
-def load_saved_project(project_id: str, session_id: str = "default"):
+def load_saved_project(
+    project_id: str,
+    from_recovery: bool = Query(False),
+    session_id: str = "default",
+):
     """Restores a saved project state from storage into the active session."""
-    with logger.span("projects.load", project_id=project_id, session_id=session_id):
+    with logger.span("projects.load", project_id=project_id, session_id=session_id, from_recovery=from_recovery):
         try:
             s = get_session(session_id)
-            res = load_project(s, project_id=project_id, session_id=session_id)
+            res = load_project(s, project_id=project_id, session_id=session_id, from_recovery=from_recovery)
             diffs = get_live_financial_differences(s)
             return success_response(
                 data={
@@ -123,6 +192,7 @@ async def upload_project_bundle(
 async def create_new_filing(
     name: str = Form(...),
     cin: str = Form(...),
+    taxonomy: str = Form("ci"),
     start_date: str = Form("2024-04-01"),
     end_date: str = Form("2025-03-31"),
     level: str = Form("Actual"),
@@ -131,17 +201,21 @@ async def create_new_filing(
     session_id: str = "default",
 ):
     """Initializes a new filing session with master details and optional Excel file."""
-    with logger.span("projects.create_new", name=name, cin=cin, session_id=session_id):
-        s = get_session(session_id)
-        
-        # Reset filing metadata
+    with logger.span("projects.create_new", name=name, cin=cin, taxonomy=taxonomy, session_id=session_id):
+        # Reset or switch session to the requested taxonomy
+        from src.web.state import reset_session
+        s = reset_session(session_id, taxonomy=taxonomy)
+
+        # Set filing metadata
         meta = {
             "name": name.strip(),
             "cin": cin.strip().upper(),
+            "taxonomyType": taxonomy.lower(),
             "reportType": report_type,
             "level": level,
             "periods": {
                 "currentYear": {"startDate": start_date, "endDate": end_date},
+                "cy": {"start": start_date, "end": end_date},
             },
         }
         s.set_meta(meta)
@@ -159,6 +233,7 @@ async def create_new_filing(
             data={
                 "projectId": saved_info["projectId"],
                 "meta": s.filing.meta,
+                "taxonomy": taxonomy,
                 "sheet": sheet_data,
             },
             message="New filing created successfully",

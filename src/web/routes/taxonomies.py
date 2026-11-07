@@ -15,6 +15,7 @@ from src.web.responses import error_response, success_response
 from src.web.schemas.taxonomies import (
     ADDTaxonomies,
     BatchApplyTagsRequest,
+    LinkScheduleRequest,
     RecommendTaxonomies,
     SheetSettingsRequest,
     TagRowDeleteRequest,
@@ -73,8 +74,12 @@ async def add_taxonomies(payload: ADDTaxonomies):
 async def recommend_taxonomies(payload: Annotated[RecommendTaxonomies, Query()]):
     with logger.span("taxonomies.recommend", keys_count=len(payload.keys)):
         try:
+            from src.constants import COLLECTION_MAP
             from src.pipeline.recom_taxonomies import RecommendTaxonomies as RunRecommend
-            raw_docs = await RunRecommend(keys=payload.keys, collection=payload.collection)
+            target_coll = COLLECTION_MAP.get(payload.collection, payload.collection)
+            if not target_coll.endswith("_taxonomy"):
+                target_coll = f"{target_coll}_taxonomy"
+            raw_docs = await RunRecommend(keys=payload.keys, collection=target_coll)
             formatted = _format_recommendations(payload.keys, raw_docs or [])
             return success_response(
                 data=formatted,
@@ -89,8 +94,12 @@ async def recommend_taxonomies(payload: Annotated[RecommendTaxonomies, Query()])
 async def recommend_taxonomies_post(payload: RecommendTaxonomies):
     with logger.span("taxonomies.recommend_post", keys_count=len(payload.keys)):
         try:
+            from src.constants import COLLECTION_MAP
             from src.pipeline.recom_taxonomies import RecommendTaxonomies as RunRecommend
-            raw_docs = await RunRecommend(keys=payload.keys, collection=payload.collection)
+            target_coll = COLLECTION_MAP.get(payload.collection, payload.collection)
+            if not target_coll.endswith("_taxonomy"):
+                target_coll = f"{target_coll}_taxonomy"
+            raw_docs = await RunRecommend(keys=payload.keys, collection=target_coll)
             formatted = _format_recommendations(payload.keys, raw_docs or [])
             return success_response(
                 data=formatted,
@@ -105,12 +114,52 @@ async def recommend_taxonomies_post(payload: RecommendTaxonomies):
 def get_tree(
     elr_uri: str | None = Query(None),
     q: str | None = Query(None),
+    taxonomy: str | None = Query(None),
     session_id: str = "default",
 ):
-    with logger.span("taxonomies.get_tree", elr_uri=elr_uri, q=q, session_id=session_id):
-        s = get_session(session_id)
+    with logger.span("taxonomies.get_tree", elr_uri=elr_uri, q=q, taxonomy=taxonomy, session_id=session_id):
+        s = get_session(session_id, taxonomy=taxonomy)
         data = get_taxonomy_tree(s, elr_uri=elr_uri, filter_query=q)
         return success_response(data=data, message="Taxonomy tree retrieved successfully")
+
+
+@router.get("/catalog")
+def get_taxonomy_catalog_api():
+    """Returns available MCA taxonomies and their metadata."""
+    taxonomies = [
+        {
+            "id": "ci",
+            "name": "MCA C&I Taxonomy (2016)",
+            "description": "Standard Commercial and Industrial Taxonomy for MCA XBRL Filings",
+            "year": "2016",
+            "isDefault": True,
+        },
+        {
+            "id": "ind_as",
+            "name": "MCA Ind AS Taxonomy (V1.2)",
+            "description": "Indian Accounting Standards Taxonomy for Ind AS compliant companies",
+            "year": "2017",
+            "isDefault": False,
+        },
+        {
+            "id": "costing",
+            "name": "MCA Costing Taxonomy (2019)",
+            "description": "Cost Audit and Compliance Report XBRL Taxonomy",
+            "year": "2019",
+            "isDefault": False,
+        },
+    ]
+    return success_response(data=taxonomies, message="Taxonomy catalog retrieved successfully")
+
+
+@router.post("/switch")
+def switch_taxonomy_api(payload: Dict[str, str], session_id: str = "default"):
+    tax_key = payload.get("taxonomy", "ci")
+    s = get_session(session_id, taxonomy=tax_key)
+    return success_response(
+        data={"taxonomy": tax_key, "elrs": len(s.A.elrs), "concepts": len(s.A.concepts)},
+        message=f"Switched taxonomy to {tax_key}",
+    )
 
 
 @router.get("/search")
@@ -194,6 +243,7 @@ def batch_apply_tags(payload: BatchApplyTagsRequest, session_id: str = "default"
                 )
                 applied_count += 1
             except Exception as e:
+                logger.warning("taxonomies.batch_apply_row_failed", row=row_idx, concept=concept, error=str(e))
                 errors.append(f"Row {row_idx}: {e}")
 
         diffs = get_live_financial_differences(s)
@@ -232,4 +282,25 @@ def save_settings(payload: SheetSettingsRequest, session_id: str = "default"):
         except Exception as e:
             logger.exception("taxonomies.save_settings_failed")
             return error_response(message=f"Failed to update settings: {e}", status_code=400)
+
+
+@router.post("/link-schedule")
+def link_concept_schedule(payload: LinkScheduleRequest, session_id: str = "default"):
+    with logger.span("taxonomies.link_schedule", concept=payload.concept, sheet=payload.scheduleSheet):
+        from src.services.spreadsheet_service import link_schedule_rows
+        try:
+            s = get_session(session_id)
+            res = link_schedule_rows(
+                session_id=session_id,
+                filing_session=s,
+                primary_concept=payload.concept,
+                schedule_sheet=payload.scheduleSheet,
+                row_indices=payload.rowIndices,
+                note_ref=payload.noteRef,
+            )
+            return success_response(data=res, message=f"Schedule linked to {payload.concept}")
+        except Exception as e:
+            logger.exception("taxonomies.link_schedule_failed")
+            return error_response(message=f"Failed to link schedule: {e}", status_code=400)
+
 

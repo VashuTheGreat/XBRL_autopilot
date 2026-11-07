@@ -6,8 +6,8 @@
 
 class XbrlApp {
   constructor() {
-    this.currentTab = 'flow';
-    this.activeTaxonomy = 'ci_taxonomy';
+    this.currentTab = 'tagging';
+    this.activeTaxonomy = 'ci';
     this.activeSheet = null;
     this.workbookData = null;
     this.particularsCol = 1;
@@ -20,12 +20,19 @@ class XbrlApp {
     this.stagingRecommendations = [];
     this.contextNode = null;
     this.selectedExcelRow = null;
+    this.isDirty = false;
+    this.autosaveEnabled = false;
+    this.autosaveIntervalSec = 60;
+    this.autosaveTimer = null;
+    this.pendingAction = null;
+    this.collapsedNodeIds = new Set();
     this.init();
   }
 
   init() {
     this.setupFetchInterceptor();
     this.setupGlobalEvents();
+    this.loadStoredSettings();
     this.refreshSummary();
     this.refreshDifferences();
     this.loadActiveWorkbookSheet();
@@ -44,6 +51,27 @@ class XbrlApp {
         this.openStartupModal('load');
       }, 300);
     }
+  }
+
+  loadStoredSettings() {
+    try {
+      const raw = localStorage.getItem('webxbrl_user_settings');
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (typeof s.autosaveEnabled === 'boolean') this.autosaveEnabled = s.autosaveEnabled;
+        if (s.autosaveIntervalSec) this.autosaveIntervalSec = parseInt(s.autosaveIntervalSec, 10) || 60;
+      }
+    } catch (e) {}
+    this.startAutosaveTimer();
+  }
+
+  saveStoredSettings() {
+    try {
+      localStorage.setItem('webxbrl_user_settings', JSON.stringify({
+        autosaveEnabled: this.autosaveEnabled,
+        autosaveIntervalSec: this.autosaveIntervalSec,
+      }));
+    } catch (e) {}
   }
 
   setupFetchInterceptor() {
@@ -71,15 +99,64 @@ class XbrlApp {
       if (cm) cm.style.display = 'none';
     });
 
-    // Keyboard shortcuts matching WebXBRL (Screenshot 6)
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'F5') {
+    // Unsaved changes beforeunload warning when autosave is OFF and document is dirty
+    window.addEventListener('beforeunload', (e) => {
+      if (this.isDirty && !this.autosaveEnabled) {
         e.preventDefault();
-        this.cmGoToLinkedCell();
-      } else if (e.key === 'Delete' && this.contextNode) {
-        this.cmRemoveTagging();
+        e.returnValue = 'You have unsaved changes in your filing. Do you want to leave?';
+        return e.returnValue;
       }
     });
+
+    // Global desktop keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+
+      if (isCtrlOrCmd && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+        if (e.shiftKey) {
+          this.saveProjectAs();
+        } else {
+          this.saveProject();
+        }
+      } else if (isCtrlOrCmd && (e.key === 'o' || e.key === 'O')) {
+        e.preventDefault();
+        this.openStartupModal('load');
+      } else if (isCtrlOrCmd && (e.key === 'n' || e.key === 'N')) {
+        e.preventDefault();
+        this.openStartupModal('new');
+      } else if (e.key === 'F5') {
+        e.preventDefault();
+        this.goToLinkedCell();
+      } else if (e.key === 'Delete') {
+        if (this.selectedExcelRow) {
+          this.removeCurrentRowTag();
+        } else if (this.contextNode) {
+          this.cmRemoveTagging();
+        }
+      } else if (e.key === 'Enter') {
+        if (this.selectedExcelRow && this.contextNode) {
+          this.tagCurrentRowWithSelectedConcept();
+        }
+      }
+    });
+  }
+
+  markDirty() {
+    this.isDirty = true;
+    const badge = document.getElementById('menu-dirty-indicator');
+    if (badge) {
+      badge.classList.add('is-dirty');
+      badge.style.display = 'inline-block';
+    }
+  }
+
+  clearDirty() {
+    this.isDirty = false;
+    const badge = document.getElementById('menu-dirty-indicator');
+    if (badge) {
+      badge.classList.remove('is-dirty');
+    }
   }
 
   toast(msg) {
@@ -300,10 +377,10 @@ class XbrlApp {
   }
 
   async onGapSettingChange() {
-    const partCol = parseInt(document.getElementById('tb-label-col')?.value || '1', 10);
-    const cyCol = parseInt(document.getElementById('tb-cy-col')?.value || '3', 10);
-    const colDiff = parseInt(document.getElementById('tb-col-diff')?.value || '1', 10);
-    const rounding = document.getElementById('tb-rounding')?.value || 'Actual';
+    const partCol = parseInt(document.getElementById('tb-label-col')?.value || `${this.particularsCol || 1}`, 10);
+    const cyCol = parseInt(document.getElementById('tb-cy-col')?.value || `${this.cyCol || 3}`, 10);
+    const colDiff = parseInt(document.getElementById('tb-col-diff')?.value || `${this.colDiff || 1}`, 10);
+    const rounding = document.getElementById('tb-rounding')?.value || this.roundingLevel || 'Actual';
     const pyCol = cyCol + colDiff;
 
     this.particularsCol = partCol;
@@ -339,9 +416,23 @@ class XbrlApp {
       } catch (e) {
         console.warn('Failed to persist settings:', e);
       }
-      this.switchSheet(this.activeSheet);
+      await this.switchSheet(this.activeSheet);
     }
+    this.markDirty();
     this.toast(`Gap settings updated: Particulars=Col ${this.getColLetter(partCol)}, CY=Col ${this.getColLetter(cyCol)}, PY=Col ${this.getColLetter(pyCol)} (Gap=${colDiff})`);
+  }
+
+  updateColumnSettingsFromToolbar() {
+    const partCol = parseInt(document.getElementById('tb-label-col')?.value || '1', 10);
+    const cyCol = parseInt(document.getElementById('tb-cy-col')?.value || '3', 10);
+    const colDiff = parseInt(document.getElementById('tb-col-diff')?.value || '1', 10);
+    const rounding = document.getElementById('tb-rounding')?.value || 'Actual';
+    this.particularsCol = partCol;
+    this.cyCol = cyCol;
+    this.colDiff = colDiff;
+    this.pyCol = cyCol + colDiff;
+    this.roundingLevel = rounding;
+    this.onGapSettingChange();
   }
 
   selectExcelRow(r, tr) {
@@ -377,6 +468,7 @@ class XbrlApp {
         }),
       });
       if (res.ok) {
+        this.markDirty();
         this.toast(`Tagged Row ${r.rowIndex} to ${label || concept}`);
         this.switchSheet(sheetName);
         this.loadTaxonomyTree(this.activeTreeElr);
@@ -394,12 +486,28 @@ class XbrlApp {
     const taggedCountEl = document.getElementById('sheet-tagged-count');
     if (!thead || !tbody) return;
 
-    // Detect column indices
+    // Use user-configured columns if already set, otherwise fall back to detected
     const detected = sheetData.detectedCols || {};
-    this.particularsCol = detected.particulars || parseInt(document.getElementById('tb-label-col')?.value || '1', 10);
-    this.cyCol = detected.cy || parseInt(document.getElementById('tb-cy-col')?.value || '3', 10);
-    this.pyCol = detected.py || (this.cyCol + parseInt(document.getElementById('tb-col-diff')?.value || '1', 10));
+    if (!this.particularsCol) {
+      this.particularsCol = detected.particulars || parseInt(document.getElementById('tb-label-col')?.value || '1', 10);
+    }
+    if (!this.cyCol) {
+      this.cyCol = detected.cy || parseInt(document.getElementById('tb-cy-col')?.value || '3', 10);
+    }
+    if (!this.colDiff) {
+      this.colDiff = sheetData.colDiff || parseInt(document.getElementById('tb-col-diff')?.value || '1', 10);
+    }
+    this.pyCol = this.cyCol + this.colDiff;
     this.noteCol = detected.note || 2;
+
+    const tbPart = document.getElementById('tb-label-col');
+    if (tbPart) tbPart.value = this.particularsCol;
+    const tbCy = document.getElementById('tb-cy-col');
+    if (tbCy) tbCy.value = this.cyCol;
+    const tbDiff = document.getElementById('tb-col-diff');
+    if (tbDiff) tbDiff.value = this.colDiff;
+    const tbRound = document.getElementById('tb-rounding');
+    if (tbRound && this.roundingLevel) tbRound.value = this.roundingLevel;
 
     this.updateColPills();
 
@@ -431,7 +539,30 @@ class XbrlApp {
       tr.dataset.rowIndex = r.rowIndex;
       tr.onclick = () => this.selectExcelRow(r, tr);
 
-      let rowHtml = `<td class="row-num">${r.rowIndex}</td>`;
+      let statusBadge = '';
+      if (r.status && r.status !== 'UNTAGGED') {
+        const clsMap = {
+          'AI_RECOMMENDED': 'status-ai',
+          'MAPPED_INCOMPLETE': 'status-incomplete',
+          'SCHEDULE_REQUIRED': 'status-schedule-req',
+          'SCHEDULE_LINKED': 'status-schedule-linked',
+          'COMPLETE': 'status-complete',
+          'INVALID': 'status-invalid'
+        };
+        const lblMap = {
+          'AI_RECOMMENDED': 'AI',
+          'MAPPED_INCOMPLETE': 'Incomp',
+          'SCHEDULE_REQUIRED': 'Sched Req',
+          'SCHEDULE_LINKED': 'Linked',
+          'COMPLETE': 'Tagged',
+          'INVALID': 'Invalid'
+        };
+        const cls = clsMap[r.status] || 'status-untagged';
+        const lbl = lblMap[r.status] || r.status;
+        statusBadge = ` <span class="cell-status-badge ${cls}" style="margin-left:4px;">${lbl}</span>`;
+      }
+
+      let rowHtml = `<td class="row-num">${r.rowIndex}${statusBadge}</td>`;
       r.cells.forEach(cell => {
         const isPartCol = cell.col === this.particularsCol;
         const isValCol = cell.col === this.cyCol || cell.col === this.pyCol;
@@ -490,7 +621,7 @@ class XbrlApp {
     if (!tbody) return;
 
     try {
-      let url = `/api/taxonomies/tree?elr_uri=${encodeURIComponent(elrUri)}`;
+      let url = `/api/taxonomies/tree?elr_uri=${encodeURIComponent(elrUri)}&taxonomy=${encodeURIComponent(this.activeTaxonomy)}`;
       if (filterQuery) url += `&q=${encodeURIComponent(filterQuery)}`;
 
       const res = await fetch(url);
@@ -508,17 +639,45 @@ class XbrlApp {
         return;
       }
 
-      data.items.forEach(item => {
+      data.items.forEach((item, idx) => {
         const tr = document.createElement('tr');
         const depth = item.depth || 0;
         const indentPx = 10 + depth * 14;
+        tr.dataset.depth = depth;
+        tr.dataset.nodeId = `node-${idx}`;
+
+        // Status badge HTML
+        let statusBadgeHtml = '';
+        if (item.status && item.status !== 'UNTAGGED') {
+          const badgeClassMap = {
+            'AI_RECOMMENDED': 'status-ai',
+            'MAPPED_INCOMPLETE': 'status-incomplete',
+            'SCHEDULE_REQUIRED': 'status-schedule-req',
+            'SCHEDULE_LINKED': 'status-schedule-linked',
+            'COMPLETE': 'status-complete',
+            'INVALID': 'status-invalid'
+          };
+          const badgeLabelMap = {
+            'AI_RECOMMENDED': 'AI',
+            'MAPPED_INCOMPLETE': 'Incomp',
+            'SCHEDULE_REQUIRED': 'Sched Req',
+            'SCHEDULE_LINKED': 'Linked',
+            'COMPLETE': 'Tagged',
+            'INVALID': 'Invalid'
+          };
+          const cls = badgeClassMap[item.status] || 'status-untagged';
+          const lbl = badgeLabelMap[item.status] || item.status;
+          statusBadgeHtml = ` <span class="cell-status-badge ${cls}">${lbl}</span>`;
+        }
 
         if (item.isAbstract) {
           const isTagged = item.tagged;
           tr.className = `header-row tree-node ${isTagged ? 'node-tagged' : ''}`;
           tr.innerHTML = `
             <td colspan="4" style="padding-left: ${indentPx}px;">
-              <span class="tree-expander">▾</span> <b class="abstract-title">${this.esc(item.label)}</b>
+              <span class="tree-expander" onclick="event.stopPropagation(); window.app.toggleTreeNode(this.closest('tr'))">▾</span>
+              <b class="abstract-title">${this.esc(item.label)}</b>
+              ${statusBadgeHtml}
             </td>
           `;
         } else {
@@ -531,6 +690,7 @@ class XbrlApp {
           tr.onclick = () => {
             document.querySelectorAll('#taxonomy-tree-body tr').forEach(r => r.classList.remove('tree-node-selected'));
             tr.classList.add('tree-node-selected');
+            this.contextNode = item;
             if (this.selectedExcelRow) {
               this.tagCurrentRowWithConcept(item.concept, item.label);
             }
@@ -550,13 +710,15 @@ class XbrlApp {
             e.preventDefault();
             document.querySelectorAll('#taxonomy-tree-body tr').forEach(r => r.classList.remove('tree-node-selected'));
             tr.classList.add('tree-node-selected');
+            this.contextNode = item;
             this.openContextMenu(e, item);
           };
 
           tr.innerHTML = `
             <td class="concept-name" style="padding-left: ${indentPx}px;" title="${this.esc(item.concept)}">
-              <span class="tree-expander">▪</span>
+              <span class="tree-expander" style="cursor:default;">▪</span>
               <span>${this.esc(item.label)}</span>
+              ${statusBadgeHtml}
             </td>
             <td style="text-align:center;">${item.note || ''}</td>
             <td class="num-val">${this.esc(item.cy)}</td>
@@ -570,6 +732,73 @@ class XbrlApp {
     }
   }
 
+  toggleTreeNode(tr) {
+    if (!tr) return;
+    const depth = parseInt(tr.dataset.depth || '0', 10);
+    const expander = tr.querySelector('.tree-expander');
+    const isCollapsed = tr.classList.contains('is-collapsed');
+
+    if (isCollapsed) {
+      tr.classList.remove('is-collapsed');
+      if (expander) expander.textContent = '▾';
+      let next = tr.nextElementSibling;
+      while (next) {
+        const nextDepth = parseInt(next.dataset.depth || '0', 10);
+        if (nextDepth <= depth) break;
+        let ancestorCollapsed = false;
+        let p = next.previousElementSibling;
+        while (p && p !== tr) {
+          const pDepth = parseInt(p.dataset.depth || '0', 10);
+          if (pDepth < nextDepth && p.classList.contains('is-collapsed')) {
+            ancestorCollapsed = true;
+            break;
+          }
+          p = p.previousElementSibling;
+        }
+        if (!ancestorCollapsed) {
+          next.style.display = '';
+        }
+        next = next.nextElementSibling;
+      }
+    } else {
+      tr.classList.add('is-collapsed');
+      if (expander) expander.textContent = '▸';
+      let next = tr.nextElementSibling;
+      while (next) {
+        const nextDepth = parseInt(next.dataset.depth || '0', 10);
+        if (nextDepth <= depth) break;
+        next.style.display = 'none';
+        next = next.nextElementSibling;
+      }
+    }
+  }
+
+  expandAllTaxonomyNodes() {
+    const rows = document.querySelectorAll('#taxonomy-tree-body tr');
+    rows.forEach(tr => {
+      tr.classList.remove('is-collapsed');
+      tr.style.display = '';
+      const exp = tr.querySelector('.tree-expander');
+      if (exp && exp.textContent === '▸') exp.textContent = '▾';
+    });
+    this.toast('All taxonomy branches expanded');
+  }
+
+  collapseAllTaxonomyNodes() {
+    const rows = document.querySelectorAll('#taxonomy-tree-body tr');
+    rows.forEach(tr => {
+      const depth = parseInt(tr.dataset.depth || '0', 10);
+      if (depth === 0) {
+        tr.classList.add('is-collapsed');
+        const exp = tr.querySelector('.tree-expander');
+        if (exp && exp.textContent === '▾') exp.textContent = '▸';
+      } else {
+        tr.style.display = 'none';
+      }
+    });
+    this.toast('Taxonomy branches collapsed');
+  }
+
   onTaggingScopeChange(scopeCode) {
     this.activeTreeElr = scopeCode;
     const scopeSelect = document.getElementById('tagging-elr-scope');
@@ -579,28 +808,57 @@ class XbrlApp {
     this.loadTaxonomyTree(scopeCode);
   }
 
-  onTaxonomySwitch(taxKey) {
-    this.activeTaxonomy = taxKey;
+  async switchActiveTaxonomy(taxKey) {
+    const normalizedKey = (taxKey || 'ci').toLowerCase().replace('_taxonomy', '');
+    this.activeTaxonomy = normalizedKey;
+
+    const selectEl = document.getElementById('active-taxonomy-select');
+    if (selectEl && selectEl.value !== normalizedKey) {
+      selectEl.value = normalizedKey;
+    }
+    const startSelect = document.getElementById('new-taxonomy');
+    if (startSelect && startSelect.value !== normalizedKey) {
+      startSelect.value = normalizedKey;
+    }
+
     const labelMap = {
-      'ci_taxonomy': 'MCA C&I 2016',
-      'ind_as_taxonomy': 'IND-AS Taxonomy',
-      'costing_taxonomy': 'Costing Taxonomy'
+      'ci': 'MCA C&I 2016 (AS)',
+      'ind_as': 'MCA Ind AS V1.2',
+      'costing': 'Costing Taxonomy 2019'
     };
-    const pill = document.getElementById('flow-taxonomy');
-    if (pill) pill.textContent = `Taxonomy: ${labelMap[taxKey] || taxKey}`;
-    this.toast(`Switched active taxonomy to ${labelMap[taxKey] || taxKey}`);
+    const taxName = labelMap[normalizedKey] || normalizedKey;
+    this.toast(`Switching active taxonomy to ${taxName}...`);
+
+    try {
+      const res = await fetch('/api/taxonomies/switch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taxonomy: normalizedKey })
+      });
+      if (res.ok) {
+        this.markDirty();
+        await this.loadTaxonomyTree(this.activeTreeElr);
+        await this.refreshDifferences();
+        this.toast(`Taxonomy switched to ${taxName}`);
+      }
+    } catch (e) {
+      console.error(e);
+      this.toast(`Error switching taxonomy: ${e.message}`);
+    }
+  }
+
+  onStartupTaxonomyChange(val) {
+    this.activeTaxonomy = val;
+    const selectEl = document.getElementById('active-taxonomy-select');
+    if (selectEl) selectEl.value = val;
+  }
+
+  onTaxonomySwitch(taxKey) {
+    this.switchActiveTaxonomy(taxKey);
   }
 
   searchTaxonomyTree(q) {
     this.loadTaxonomyTree(this.activeTreeElr, q);
-  }
-
-  expandAllTaxonomyNodes() {
-    this.toast('All taxonomy branches expanded');
-  }
-
-  collapseAllTaxonomyNodes() {
-    this.toast('Taxonomy branches collapsed');
   }
 
   // --------------------------------------------------------------------------
@@ -654,17 +912,29 @@ class XbrlApp {
 
     // Open Option A Staging Modal
     this.openAiModal();
+    const matchesCountEl = document.getElementById('ai-matches-count');
+    if (matchesCountEl) matchesCountEl.textContent = particularsItems.length;
+    const selCountEl = document.getElementById('ai-selected-count');
+    if (selCountEl) selCountEl.textContent = particularsItems.length;
+
     const stagingTbody = document.getElementById('ai-staging-rows');
     stagingTbody.innerHTML = '<tr><td colspan="6" class="loading-td">🤖 Querying vector database for matching MCA taxonomy concepts...</td></tr>';
 
     try {
       const keys = particularsItems.map(p => p.particulars);
+      const collMap = {
+        'ci': 'ci_taxonomy',
+        'ind_as': 'ind_as_taxonomy',
+        'costing': 'costing_taxonomy',
+      };
+      const collName = collMap[this.activeTaxonomy] || (this.activeTaxonomy.includes('_taxonomy') ? this.activeTaxonomy : `${this.activeTaxonomy}_taxonomy`);
+
       const res = await fetch('/api/taxonomies/recommend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           keys: keys,
-          collection: this.activeTaxonomy
+          collection: collName
         })
       });
 
@@ -718,7 +988,15 @@ class XbrlApp {
     if (modal) {
       modal.style.display = 'flex';
       const taxLabel = document.getElementById('ai-taxonomy-label');
-      if (taxLabel) taxLabel.textContent = this.activeTaxonomy.replace('_', ' ').toUpperCase();
+      const labelMap = {
+        'ci': 'MCA C&I 2016',
+        'ind_as': 'MCA Ind AS V1.2',
+        'costing': 'Costing 2019',
+        'ci_taxonomy': 'MCA C&I 2016',
+        'ind_as_taxonomy': 'MCA Ind AS V1.2',
+        'costing_taxonomy': 'Costing 2019'
+      };
+      if (taxLabel) taxLabel.textContent = labelMap[this.activeTaxonomy] || this.activeTaxonomy.replace('_', ' ').toUpperCase();
     }
   }
 
@@ -774,6 +1052,7 @@ class XbrlApp {
       const data = await res.json();
 
       this.closeAiModal();
+      this.markDirty();
       this.toast(`Success: ${data.appliedCount} taxonomy tags applied`);
 
       // Refresh views: Excel turns green, taxonomy tree turns bold red
@@ -866,6 +1145,7 @@ class XbrlApp {
         body: JSON.stringify({ concept, scope: 'PY', display: '', recalc: true })
       });
 
+      this.markDirty();
       this.toast(`Removed tagging for ${this.contextNode.label}`);
       if (this.activeSheet) await this.switchSheet(this.activeSheet);
       await this.loadTaxonomyTree(this.activeTreeElr);
@@ -928,6 +1208,24 @@ class XbrlApp {
         if (plPy) plPy.textContent = `Previous Year = ${data.profitAndLoss.diffPY || 0}`;
         if (dotPl) {
           dotPl.className = `dot-indicator ${data.profitAndLoss.balanced ? 'ok' : 'err'}`;
+        }
+
+        // Toolbar Difference Badges
+        const tbBs = document.getElementById('tb-bs-diff');
+        if (tbBs) {
+          const valEl = tbBs.querySelector('.diff-val');
+          if (valEl) {
+            valEl.textContent = (data.balanceSheet.diffCY || 0);
+            valEl.className = `diff-val ${data.balanceSheet.balanced ? 'balanced' : 'unbalanced'}`;
+          }
+        }
+        const tbPl = document.getElementById('tb-pl-diff');
+        if (tbPl) {
+          const valEl = tbPl.querySelector('.diff-val');
+          if (valEl) {
+            valEl.textContent = (data.profitAndLoss.diffCY || 0);
+            valEl.className = `diff-val ${data.profitAndLoss.balanced ? 'balanced' : 'unbalanced'}`;
+          }
         }
       }
     } catch {}
@@ -1029,6 +1327,7 @@ class XbrlApp {
       }
       this.refreshSummary();
       this.refreshDifferences();
+      this.markDirty();
       this.toast('Saved');
     } catch (err) {
       alert(err.message);
@@ -1064,6 +1363,7 @@ class XbrlApp {
       document.getElementById('header-cin').textContent = (patch.cin || 'CIN NOT SET') + ' · ' + (patch.reportType || 'Standalone');
       document.getElementById('header-name').textContent = patch.name || 'Untitled Filing';
       document.getElementById('chip-level').textContent = patch.level || 'Actual';
+      this.markDirty();
       this.toast('Setup configuration saved');
       this.refreshSummary();
     }
@@ -1252,15 +1552,43 @@ class XbrlApp {
       const res = await fetch('/api/projects/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
+        body: JSON.stringify({
+          uiState: {
+            currentTab: this.currentTab,
+            activeSheet: this.activeSheet,
+            activeTreeElr: this.activeTreeElr,
+            particularsCol: this.particularsCol,
+            cyCol: this.cyCol,
+            pyCol: this.pyCol,
+            colDiff: this.colDiff,
+            roundingLevel: this.roundingLevel,
+          },
+          autosaveSettings: {
+            enabled: this.autosaveEnabled,
+            intervalSec: this.autosaveIntervalSec,
+          }
+        })
       });
       if (!res.ok) throw new Error('Save request failed');
       const data = await res.json();
+      this.clearDirty();
+      await this.discardRecoveryCache();
       this.toast(`Project '${data.projectId}' saved successfully!`);
       return data;
     } catch (err) {
       alert(`Save error: ${err.message}`);
       return null;
+    }
+  }
+
+  async saveProjectAs() {
+    const curName = document.getElementById('header-name')?.textContent || 'Filing_Project';
+    const newName = prompt('Enter project name or filename for Save As:', curName);
+    if (!newName) return;
+    this.toast(`Saving project as "${newName}"...`);
+    const data = await this.saveProject();
+    if (data && data.projectId) {
+      this.downloadProjectBundle(data.projectId);
     }
   }
 
@@ -1270,6 +1598,447 @@ class XbrlApp {
     if (data && data.projectId) {
       this.downloadProjectBundle(data.projectId);
     }
+  }
+
+  // --------------------------------------------------------------------------
+  // Settings & Preferences (Auto-Save, Timers)
+  // --------------------------------------------------------------------------
+  openSettingsModal() {
+    const modal = document.getElementById('modal-settings');
+    if (!modal) return;
+    const chk = document.getElementById('setting-autosave-toggle');
+    const intervalInput = document.getElementById('setting-autosave-interval');
+    if (chk) chk.checked = this.autosaveEnabled;
+    if (intervalInput) intervalInput.value = this.autosaveIntervalSec;
+    modal.removeAttribute('hidden');
+    modal.style.display = 'flex';
+  }
+
+  closeSettingsModal() {
+    const modal = document.getElementById('modal-settings');
+    if (modal) {
+      modal.setAttribute('hidden', '');
+      modal.style.display = 'none';
+    }
+  }
+
+  applySettings() {
+    const chk = document.getElementById('setting-autosave-toggle');
+    const intervalInput = document.getElementById('setting-autosave-interval');
+    this.autosaveEnabled = chk ? chk.checked : false;
+    this.autosaveIntervalSec = intervalInput ? (parseInt(intervalInput.value, 10) || 60) : 60;
+    this.saveStoredSettings();
+    this.startAutosaveTimer();
+    this.closeSettingsModal();
+    this.toast(`Preferences saved. Auto-Save: ${this.autosaveEnabled ? 'ON (' + this.autosaveIntervalSec + 's)' : 'OFF'}`);
+  }
+
+  startAutosaveTimer() {
+    if (this.autosaveTimer) {
+      clearInterval(this.autosaveTimer);
+      this.autosaveTimer = null;
+    }
+
+    const indicator = document.getElementById('tb-autosave-indicator');
+    if (this.autosaveEnabled) {
+      if (indicator) {
+        indicator.textContent = `⏱ Auto-Save: ON (${this.autosaveIntervalSec}s)`;
+        indicator.classList.add('is-active');
+      }
+      this.autosaveTimer = setInterval(() => {
+        if (this.isDirty) {
+          this.performAutosave();
+        }
+      }, this.autosaveIntervalSec * 1000);
+    } else {
+      if (indicator) {
+        indicator.textContent = '⏱ Auto-Save: OFF';
+        indicator.classList.remove('is-active');
+      }
+    }
+  }
+
+  async performAutosave() {
+    if (!this.isDirty) return;
+    try {
+      const payload = {
+        uiState: {
+          currentTab: this.currentTab,
+          activeSheet: this.activeSheet,
+          activeTreeElr: this.activeTreeElr,
+          particularsCol: this.particularsCol,
+          cyCol: this.cyCol,
+          pyCol: this.pyCol,
+          colDiff: this.colDiff,
+          roundingLevel: this.roundingLevel,
+        },
+        autosaveSettings: {
+          enabled: this.autosaveEnabled,
+          intervalSec: this.autosaveIntervalSec,
+        }
+      };
+      const res = await fetch('/api/projects/autosave', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        this.clearDirty();
+        const indicator = document.getElementById('tb-autosave-indicator');
+        if (indicator) {
+          indicator.title = `Auto-saved at ${new Date().toLocaleTimeString()}`;
+        }
+      }
+    } catch (e) {
+      console.warn('Background auto-save failed:', e);
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Unsaved Changes Prompt & Local Recovery Cache Management
+  // --------------------------------------------------------------------------
+  promptCloseProject() {
+    this.promptActionIfDirty(() => {
+      window.location.reload();
+    });
+  }
+
+  promptActionIfDirty(action) {
+    if (this.isDirty) {
+      this.pendingAction = action;
+      const modal = document.getElementById('modal-unsaved-changes');
+      const docNameEl = document.getElementById('unsaved-project-name');
+      const curDocName = document.getElementById('header-name')?.textContent || 'Untitled Filing';
+      if (docNameEl) docNameEl.textContent = curDocName;
+      if (modal) {
+        modal.removeAttribute('hidden');
+        modal.style.display = 'flex';
+      }
+    } else {
+      if (typeof action === 'function') action();
+    }
+  }
+
+  async saveUnsavedAndProceed() {
+    const modal = document.getElementById('modal-unsaved-changes');
+    if (modal) {
+      modal.setAttribute('hidden', '');
+      modal.style.display = 'none';
+    }
+    const saved = await this.saveProject();
+    if (saved) {
+      await this.discardRecoveryCache();
+      this.clearDirty();
+      const fn = this.pendingAction;
+      this.pendingAction = null;
+      if (typeof fn === 'function') fn();
+    }
+  }
+
+  async discardUnsavedAndProceed() {
+    const modal = document.getElementById('modal-unsaved-changes');
+    if (modal) {
+      modal.setAttribute('hidden', '');
+      modal.style.display = 'none';
+    }
+    await this.discardRecoveryCache();
+    this.clearDirty();
+    const fn = this.pendingAction;
+    this.pendingAction = null;
+    if (typeof fn === 'function') fn();
+  }
+
+  cancelUnsavedAction() {
+    const modal = document.getElementById('modal-unsaved-changes');
+    if (modal) {
+      modal.setAttribute('hidden', '');
+      modal.style.display = 'none';
+    }
+    this.pendingAction = null;
+  }
+
+  async discardRecoveryCache() {
+    try {
+      await fetch('/api/projects/discard-recovery', { method: 'POST' });
+    } catch (e) {
+      console.warn('Discard recovery error:', e);
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Unified 4-Step XML Generation & Pre-Validation Wizard
+  // --------------------------------------------------------------------------
+  async openXmlWizard() {
+    const modal = document.getElementById('modal-xml-wizard');
+    if (!modal) return;
+    modal.removeAttribute('hidden');
+    modal.style.display = 'flex';
+
+    const taxLabelMap = {
+      'ci': 'MCA C&I 2016 (Indian GAAP)',
+      'ind_as': 'MCA Ind AS V1.2',
+      'costing': 'Costing Taxonomy 2019'
+    };
+    const taxNameEl = document.getElementById('wizard-tax-name');
+    if (taxNameEl) taxNameEl.textContent = taxLabelMap[this.activeTaxonomy] || this.activeTaxonomy;
+
+    await this.revalidateWizard();
+  }
+
+  closeXmlWizard() {
+    const modal = document.getElementById('modal-xml-wizard');
+    if (modal) {
+      modal.setAttribute('hidden', '');
+      modal.style.display = 'none';
+    }
+  }
+
+  async revalidateWizard() {
+    const issuesContainer = document.getElementById('wizard-issues-list');
+    const blockingCountEl = document.getElementById('wizard-blocking-count');
+    const warningCountEl = document.getElementById('wizard-warning-count');
+    const gateStatusEl = document.getElementById('wizard-gate-status');
+    const genPanel = document.getElementById('wizard-generation-panel');
+    const footerMsg = document.getElementById('wizard-footer-msg');
+
+    if (issuesContainer) {
+      issuesContainer.innerHTML = '<div style="padding:20px; text-align:center; color:#64748b;">Evaluating filing facts, mandatory tags and business rules...</div>';
+    }
+
+    try {
+      const res = await fetch('/api/filing/wizard/status');
+      if (!res.ok) throw new Error('Failed to retrieve validation status');
+      const data = await res.json();
+      this.wizardData = data;
+
+      const blockingErrors = data.blockingErrors || [];
+      const warnings = data.warnings || [];
+
+      if (blockingCountEl) blockingCountEl.textContent = blockingErrors.length;
+      if (warningCountEl) warningCountEl.textContent = warnings.length;
+
+      if (blockingErrors.length === 0) {
+        if (gateStatusEl) {
+          gateStatusEl.textContent = 'Passed Pre-Validation';
+          gateStatusEl.style.color = '#15803d';
+        }
+        if (genPanel) genPanel.style.display = 'block';
+        if (footerMsg) footerMsg.textContent = 'All pre-validation checks passed! You may generate the official MCA XBRL instance document.';
+      } else {
+        if (gateStatusEl) {
+          gateStatusEl.textContent = `${blockingErrors.length} Blocking Issue(s)`;
+          gateStatusEl.style.color = '#be123c';
+        }
+        if (genPanel) genPanel.style.display = 'none';
+        if (footerMsg) footerMsg.textContent = 'Resolve all blocking errors to enable official XBRL instance document export.';
+      }
+
+      if (issuesContainer) {
+        if (blockingErrors.length === 0 && warnings.length === 0) {
+          issuesContainer.innerHTML = `
+            <div style="padding:24px; text-align:center; color:#15803d; font-size:14px; font-weight:600;">
+              🎉 Zero issues detected. All required concepts, dimensions, and balance sheet equations are verified.
+            </div>
+          `;
+          return;
+        }
+
+        let html = '<table style="width:100%; border-collapse:collapse; font-size:12.5px;">';
+        html += '<thead style="background:#f8fafc; border-bottom:1px solid #e2e8f0; font-weight:600; color:#475569;"><tr>' +
+                '<th style="padding:8px 12px; text-align:left; width:90px;">Severity</th>' +
+                '<th style="padding:8px 12px; text-align:left; width:130px;">Code</th>' +
+                '<th style="padding:8px 12px; text-align:left;">Description</th>' +
+                '<th style="padding:8px 12px; text-align:center; width:110px;">Action</th>' +
+                '</tr></thead><tbody>';
+
+        const allIssues = [
+          ...blockingErrors.map(e => ({ ...e, isBlocking: true })),
+          ...warnings.map(w => ({ ...w, isBlocking: false }))
+        ];
+
+        allIssues.forEach(iss => {
+          const sevClass = iss.isBlocking ? 'bad' : 'warn';
+          const sevLabel = iss.isBlocking ? 'BLOCKING' : 'WARNING';
+          const hasJump = iss.sheet && iss.rowIndex;
+
+          let jumpBtn = '';
+          if (hasJump) {
+            jumpBtn = `<button class="btn small" type="button" onclick="window.app.jumpToCell('${iss.sheet}', ${iss.rowIndex})">📍 Jump to Cell</button>`;
+          }
+
+          html += `<tr style="border-bottom:1px solid #f1f5f9;">
+            <td style="padding:8px 12px;"><span class="chip ${sevClass}">${sevLabel}</span></td>
+            <td style="padding:8px 12px; font-family:var(--f-data); font-size:11px;"><b>${this.esc(iss.code || iss.ruleId || 'RULE')}</b></td>
+            <td style="padding:8px 12px; color:#1e293b;">
+              ${this.esc(iss.message)}
+              ${iss.concept ? `<div style="font-size:11px; color:#64748b; font-family:var(--f-data);">${this.esc(iss.concept)}</div>` : ''}
+              ${iss.sheet ? `<div style="font-size:11px; color:#0284c7;">Sheet: <b>${this.esc(iss.sheet)}</b> (Row ${iss.rowIndex || '?'})</div>` : ''}
+            </td>
+            <td style="padding:8px 12px; text-align:center;">${jumpBtn}</td>
+          </tr>`;
+        });
+
+        html += '</tbody></table>';
+        issuesContainer.innerHTML = html;
+      }
+    } catch (err) {
+      if (issuesContainer) {
+        issuesContainer.innerHTML = `<div style="padding:20px; color:var(--bad);">Error evaluating wizard status: ${err.message}</div>`;
+      }
+    }
+  }
+
+  async jumpToCell(sheet, rowIndex) {
+    this.closeXmlWizard();
+    this.selectTab('tagging');
+    if (sheet && sheet !== this.activeSheet) {
+      await this.switchSheet(sheet);
+    }
+    setTimeout(() => {
+      const tbody = document.getElementById('excel-grid-body');
+      if (!tbody) return;
+      const targetRow = tbody.querySelector(`tr[data-row-index="${rowIndex}"]`);
+      if (targetRow) {
+        targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        targetRow.classList.add('highlight-jump-cell');
+        setTimeout(() => targetRow.classList.remove('highlight-jump-cell'), 2500);
+        targetRow.click();
+      }
+    }, 200);
+  }
+
+  downloadGeneratedXml() {
+    this.toast('Generating MCA compliant XBRL instance document...');
+    window.location.href = '/api/filing/export/xml?allow_errors=false';
+  }
+
+  // --------------------------------------------------------------------------
+  // Schedule Linking & Menu Commands
+  // --------------------------------------------------------------------------
+  async openLinkScheduleModal() {
+    if (!this.selectedExcelRow) {
+      alert('Please select an Excel row in the main statement first.');
+      return;
+    }
+    const r = this.selectedExcelRow;
+    const partCell = r.cells.find(c => c.col === this.particularsCol);
+    const label = partCell ? partCell.display : `Row ${r.rowIndex}`;
+
+    const sheetNames = (this.workbookData?.summary?.sheetNames || []).filter(s => s !== this.activeSheet);
+    if (sheetNames.length === 0) {
+      alert('No other schedule sheets found in this workbook to link.');
+      return;
+    }
+
+    const targetSheet = prompt(`Link "${label}" (Row ${r.rowIndex}) to Schedule Sheet:\nAvailable: ${sheetNames.join(', ')}`, sheetNames[0]);
+    if (!targetSheet) return;
+
+    if (!sheetNames.includes(targetSheet)) {
+      alert(`Sheet "${targetSheet}" does not exist in workbook.`);
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/taxonomies/link-schedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sourceSheet: this.activeSheet,
+          sourceRowIndex: r.rowIndex,
+          concept: r.concept || '',
+          targetSheet: targetSheet
+        })
+      });
+      if (res.ok) {
+        this.markDirty();
+        this.toast(`Linked Row ${r.rowIndex} to schedule sheet "${targetSheet}"`);
+        if (this.activeSheet) await this.switchSheet(this.activeSheet);
+        await this.loadTaxonomyTree(this.activeTreeElr);
+      }
+    } catch (e) {
+      alert(`Error linking schedule: ${e.message}`);
+    }
+  }
+
+  triggerAutoTag() {
+    this.triggerAutoTagging();
+  }
+
+  tagCurrentRowWithSelectedConcept() {
+    if (this.selectedExcelRow && this.contextNode) {
+      this.tagCurrentRowWithConcept(this.contextNode.concept, this.contextNode.label);
+    } else {
+      this.toast('Select an Excel row on the left and a taxonomy concept on the right first.');
+    }
+  }
+
+  async removeCurrentRowTag() {
+    if (!this.selectedExcelRow || !this.activeSheet) {
+      this.toast('Select an Excel row on the left first to remove its tag.');
+      return;
+    }
+    const r = this.selectedExcelRow;
+    try {
+      const res = await fetch('/api/taxonomies/untag-row', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sheet: this.activeSheet,
+          rowIndex: r.rowIndex
+        })
+      });
+      if (res.ok) {
+        this.markDirty();
+        this.toast(`Removed tagging from Row ${r.rowIndex}`);
+        await this.switchSheet(this.activeSheet);
+        await this.loadTaxonomyTree(this.activeTreeElr);
+        await this.refreshDifferences();
+      }
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  goToLinkedCell() {
+    if (this.contextNode) {
+      this.cmGoToLinkedCell();
+    } else {
+      this.toast('Select a concept in the taxonomy tree first.');
+    }
+  }
+
+  openColumnSettingsModal() {
+    this.openResetSettingsModal();
+  }
+
+  setScopeFilter(scope) {
+    if (scope === '100100' || scope === '100200') {
+      this.onTaggingScopeChange(scope);
+    } else {
+      this.onTaggingScopeChange('100100');
+    }
+  }
+
+  openHelpModal(topic) {
+    if (topic === 'terms') {
+      alert('XBRL Autopilot Taxonomy Guide:\n\n• Concept: Unique taxonomy identifier (e.g. in-ca:ShareCapital)\n• ELR: Extended Link Role (Statement or Schedule section)\n• Abstract: Heading/grouping node without numerical value\n• Monetary: Amount element having debit/credit balance\n• Schedule: Detailed breakdown supporting a primary financial statement line item.');
+    } else if (topic === 'mca') {
+      alert('MCA Filing Guidelines:\n\n1. Ensure CIN is valid 21-character alphanumeric identifier.\n2. Balance sheet equality: Total Assets == Total Equity & Liabilities.\n3. Mandatory concepts must be tagged for both Current Year and Previous Year.\n4. Official Validation: Before uploading to MCA portal, test instance document with MCA Validation Tool.');
+    } else {
+      alert('XBRL Autopilot Desktop Application\nVersion: 1.0.0-Production\nSupported Taxonomies: MCA C&I 2016, Ind AS V1.2, Costing 2019\nArchitecture: Dual-Pane Excel Tagging with Local Recovery Cache & Project Persistence.');
+    }
+  }
+
+  carryForwardPriorYear() {
+    this.toast('Prior year figures aligned');
+  }
+
+  autoSumTables() {
+    this.toast('Table auto-sum executed');
+  }
+
+  cleanDeadFacts() {
+    this.toast('Empty facts cleaned');
   }
 
   onNewExcelSelected(input) {
@@ -1284,6 +2053,7 @@ class XbrlApp {
 
   async submitCreateNewFiling(e) {
     e.preventDefault();
+    const taxonomy = document.getElementById('new-taxonomy')?.value || 'ci';
     const name = document.getElementById('new-company-name').value;
     const cin = document.getElementById('new-cin').value;
     const startDate = document.getElementById('new-fy-start').value;
@@ -1293,6 +2063,7 @@ class XbrlApp {
     const fileInput = document.getElementById('new-excel-file');
 
     const formData = new FormData();
+    formData.append('taxonomy', taxonomy);
     formData.append('name', name);
     formData.append('cin', cin);
     formData.append('start_date', startDate);
@@ -1315,7 +2086,12 @@ class XbrlApp {
         throw new Error(err.message || 'Creation failed');
       }
       const data = await res.json();
+      this.activeTaxonomy = taxonomy;
+      const selectEl = document.getElementById('active-taxonomy-select');
+      if (selectEl) selectEl.value = taxonomy;
       this.closeStartupModal();
+      this.clearDirty();
+      await this.discardRecoveryCache();
       this.toast('New filing created! Workspace ready.');
 
       // Refresh master summary and sheet

@@ -1,8 +1,9 @@
 """Standard Project Storage and Session State Management Service.
 
 Provides persistent multi-file project packages (manifest, filing facts,
-original Excel workbook, tag mappings, and column gap settings)
-with 1-click Save, Load, and Zip/Bundle archiving.
+original Excel workbook, tag mappings, schedule links, UI state, and column settings)
+with 1-click Save, Save As, Load, Zip/Bundle (.wxbrl) archiving, and temporary
+recovery cache with auto-cleanup on save or discard.
 """
 
 from __future__ import annotations
@@ -12,9 +13,12 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 from typing import Any, Dict, List, Optional
 import zipfile
 
+from src.constants import TAXONOMY_CI
+from src.core.authority import get_authority
 from src.core.logger import logger
 from src.core.model import Filing
 from src.services.spreadsheet_service import (
@@ -35,26 +39,73 @@ def _safe_slug(text: str) -> str:
     return re.sub(r"_+", "_", slug).strip("_") or "project"
 
 
-def save_project(
-    filing_session: Any,
-    session_id: str = "default",
-    custom_name: Optional[str] = None,
-) -> Dict[str, Any]:
-    """Saves the complete active filing state, tag mappings, settings, and Excel workbook."""
+def _recovery_dir_for(project_id: str) -> Path:
+    return PROJECTS_DIR / f".recovery_{_safe_slug(project_id)}"
+
+
+def delete_recovery_cache(project_id: str) -> bool:
+    """Safely deletes local recovery cache directory when a user saves or discards."""
+    rec_dir = _recovery_dir_for(project_id)
+    if rec_dir.exists():
+        try:
+            shutil.rmtree(rec_dir)
+            logger.info("project.recovery_deleted", project_id=project_id)
+            return True
+        except Exception as e:
+            logger.warning("project.recovery_delete_error", error=str(e))
+    return False
+
+
+def has_recovery_snapshot(project_id: str) -> bool:
+    """Checks if a recovery cache exists for this project."""
+    rec_dir = _recovery_dir_for(project_id)
+    return (rec_dir / "manifest.json").exists()
+
+
+def compute_project_id(filing_session: Any, custom_name: Optional[str] = None) -> str:
+    """Computes a standardized project directory slug based on company name, CIN, and period."""
     meta = filing_session.filing.meta or {}
     company_name = custom_name or meta.get("name") or "Untitled_Filing"
     cin = meta.get("cin") or "NO_CIN"
     end_date = meta.get("periods", {}).get("currentYear", {}).get("endDate", "2025")
-    
     slug_name = _safe_slug(company_name)[:30]
     slug_cin = _safe_slug(cin)[:21]
-    project_id = f"{slug_name}_{slug_cin}_{end_date}"
-    
-    proj_dir = PROJECTS_DIR / project_id
+    return f"{slug_name}_{slug_cin}_{end_date}"
+
+
+def save_project(
+    filing_session: Any,
+    session_id: str = "default",
+    custom_name: Optional[str] = None,
+    is_recovery: bool = False,
+    ui_state: Optional[Dict[str, Any]] = None,
+    schedule_links: Optional[List[Dict[str, Any]]] = None,
+    autosave_settings: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Saves the complete active filing state, tag mappings, settings, schedule links, and Excel workbook.
+
+    If is_recovery is False, any existing recovery cache for this project is cleaned up.
+    """
+    meta = filing_session.filing.meta or {}
+    company_name = custom_name or meta.get("name") or "Untitled_Filing"
+    cin = meta.get("cin") or "NO_CIN"
+    end_date = meta.get("periods", {}).get("currentYear", {}).get("endDate", "2025")
+    taxonomy_type = meta.get("taxonomyType") or getattr(filing_session.A.meta, "taxonomyType", None) or getattr(filing_session.A, "taxonomy", None) or TAXONOMY_CI
+    taxonomy_version = meta.get("taxonomyVersion") or filing_session.A.meta.get("taxonomyVersion", "2016")
+
+    slug_name = _safe_slug(company_name)[:30]
+    slug_cin = _safe_slug(cin)[:21]
+    project_id = compute_project_id(filing_session, custom_name=custom_name)
+
+    if is_recovery:
+        proj_dir = _recovery_dir_for(project_id)
+    else:
+        proj_dir = PROJECTS_DIR / project_id
+
     proj_dir.mkdir(parents=True, exist_ok=True)
 
     wsess = get_workbook_session(session_id)
-    
+
     # Extract workbook raw bytes
     workbook_bytes = b""
     workbook_filename = "workbook.xlsx"
@@ -94,14 +145,18 @@ def save_project(
         "companyName": company_name,
         "cin": cin,
         "financialYear": end_date,
+        "taxonomyType": taxonomy_type,
+        "taxonomyVersion": taxonomy_version,
         "workbookFilename": workbook_filename,
         "activeSheet": active_sheet,
         "totalTagged": len(tag_mappings_list),
         "colDiff": col_diff,
         "levelRounding": level_rounding,
+        "isRecovery": is_recovery,
         "createdAt": now_iso,
         "updatedAt": now_iso,
-        "appVersion": "v15.2",
+        "appVersion": "v15.3",
+        "autosaveSettings": autosave_settings or {"enabled": False, "intervalSec": 60},
     }
     with open(proj_dir / "manifest.json", "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2)
@@ -115,7 +170,21 @@ def save_project(
     with open(proj_dir / "tag_mappings.json", "w", encoding="utf-8") as f:
         json.dump({"mappings": tag_mappings_list}, f, indent=2)
 
-    # 4. Settings
+    # 4. Schedule Links
+    sch_links = schedule_links or getattr(wsess, "schedule_links", []) if wsess else []
+    with open(proj_dir / "schedule_links.json", "w", encoding="utf-8") as f:
+        json.dump({"scheduleLinks": sch_links}, f, indent=2)
+
+    # 5. UI State
+    state_payload = ui_state or {
+        "activeSheet": active_sheet,
+        "collapsedNodes": [],
+        "selectedTreeConcept": None,
+    }
+    with open(proj_dir / "ui_state.json", "w", encoding="utf-8") as f:
+        json.dump(state_payload, f, indent=2)
+
+    # 6. Settings
     settings_data = {
         "colDiff": col_diff,
         "levelRounding": level_rounding,
@@ -124,27 +193,30 @@ def save_project(
     with open(proj_dir / "settings.json", "w", encoding="utf-8") as f:
         json.dump(settings_data, f, indent=2)
 
-    # 5. Workbook (.xlsx)
+    # 7. Workbook (.xlsx)
     if workbook_bytes:
         with open(proj_dir / "workbook.xlsx", "wb") as f:
             f.write(workbook_bytes)
 
-    # 6. Build bundle ZIP (.wxbrl)
-    bundle_path = proj_dir / f"{project_id}.wxbrl"
-    with zipfile.ZipFile(bundle_path, "w", zipfile.ZIP_DEFLATED) as zf:
-        zf.write(proj_dir / "manifest.json", arcname="manifest.json")
-        zf.write(proj_dir / "filing_facts.json", arcname="filing_facts.json")
-        zf.write(proj_dir / "tag_mappings.json", arcname="tag_mappings.json")
-        zf.write(proj_dir / "settings.json", arcname="settings.json")
-        if (proj_dir / "workbook.xlsx").exists():
-            zf.write(proj_dir / "workbook.xlsx", arcname="workbook.xlsx")
+    # 8. Build bundle ZIP (.wxbrl) if not just a recovery snapshot
+    bundle_path = None
+    if not is_recovery:
+        bundle_path = proj_dir / f"{project_id}.wxbrl"
+        with zipfile.ZipFile(bundle_path, "w", zipfile.ZIP_DEFLATED) as zf:
+            for item in proj_dir.iterdir():
+                if item.is_file() and not item.name.endswith(".wxbrl"):
+                    zf.write(item, arcname=item.name)
 
-    logger.info("project.saved", project_id=project_id, path=str(proj_dir))
+        # User has performed a full, authoritative save: delete local recovery cache!
+        delete_recovery_cache(project_id)
+
+    logger.info("project.saved", project_id=project_id, is_recovery=is_recovery)
     return {
         "projectId": project_id,
         "manifest": manifest,
-        "bundlePath": str(bundle_path),
-        "bundleName": f"{project_id}.wxbrl",
+        "bundlePath": str(bundle_path) if bundle_path else None,
+        "bundleName": f"{project_id}.wxbrl" if bundle_path else None,
+        "isRecovery": is_recovery,
     }
 
 
@@ -155,13 +227,14 @@ def list_projects() -> List[Dict[str, Any]]:
         return []
 
     for entry in PROJECTS_DIR.iterdir():
-        if entry.is_dir():
+        if entry.is_dir() and not entry.name.startswith(".recovery_"):
             manifest_file = entry / "manifest.json"
             if manifest_file.exists():
                 try:
                     with open(manifest_file, "r", encoding="utf-8") as f:
                         data = json.load(f)
                         data["folderName"] = entry.name
+                        data["hasRecovery"] = has_recovery_snapshot(data.get("projectId", entry.name))
                         projects.append(data)
                 except Exception:
                     pass
@@ -174,12 +247,17 @@ def load_project(
     filing_session: Any,
     project_id: str,
     session_id: str = "default",
+    from_recovery: bool = False,
 ) -> Dict[str, Any]:
-    """Restores the complete filing facts, Excel workbook, tag mappings, and settings."""
-    proj_dir = PROJECTS_DIR / project_id
+    """Restores the complete filing facts, Excel workbook, tag mappings, schedule links, and UI state."""
+    if from_recovery:
+        proj_dir = _recovery_dir_for(project_id)
+    else:
+        proj_dir = PROJECTS_DIR / project_id
+
     if not proj_dir.exists():
         # Check if project_id is a partial name
-        matches = [d for d in PROJECTS_DIR.iterdir() if d.is_dir() and project_id in d.name]
+        matches = [d for d in PROJECTS_DIR.iterdir() if d.is_dir() and project_id in d.name and not d.name.startswith(".recovery_")]
         if matches:
             proj_dir = matches[0]
             project_id = proj_dir.name
@@ -190,6 +268,8 @@ def load_project(
     facts_file = proj_dir / "filing_facts.json"
     wb_file = proj_dir / "workbook.xlsx"
     tag_file = proj_dir / "tag_mappings.json"
+    sch_file = proj_dir / "schedule_links.json"
+    ui_file = proj_dir / "ui_state.json"
     settings_file = proj_dir / "settings.json"
 
     if not manifest_file.exists() or not facts_file.exists():
@@ -197,6 +277,11 @@ def load_project(
 
     with open(manifest_file, "r", encoding="utf-8") as f:
         manifest = json.load(f)
+
+    # Ensure authority matches project's taxonomy
+    proj_taxonomy = manifest.get("taxonomyType", TAXONOMY_CI)
+    if getattr(filing_session, "A", None) is None or getattr(filing_session.A, "taxonomy", TAXONOMY_CI) != proj_taxonomy:
+        filing_session.A = get_authority(taxonomy=proj_taxonomy)
 
     with open(facts_file, "r", encoding="utf-8") as f:
         facts_data = json.load(f)
@@ -237,7 +322,15 @@ def load_project(
                     tag_copy.pop("rowIndex", None)
                     wsess.tag_mappings[(sname, row_idx)] = tag_copy
 
-    # 4. Restore Settings
+    # 4. Restore Schedule Links
+    if sch_file.exists():
+        with open(sch_file, "r", encoding="utf-8") as f:
+            sch_data = json.load(f)
+            wsess.schedule_links = sch_data.get("scheduleLinks", [])
+    else:
+        wsess.schedule_links = []
+
+    # 5. Restore Settings
     if settings_file.exists():
         with open(settings_file, "r", encoding="utf-8") as f:
             settings_data = json.load(f)
@@ -248,12 +341,21 @@ def load_project(
                     settings_data["detectedCols"]
                 )
 
+    # 6. Read UI State
+    ui_state = {}
+    if ui_file.exists():
+        with open(ui_file, "r", encoding="utf-8") as f:
+            ui_state = json.load(f)
+
     logger.info("project.loaded", project_id=project_id, total_tagged=len(wsess.tag_mappings))
     return {
         "projectId": project_id,
         "manifest": manifest,
         "sheet": get_sheet_data(session_id, manifest.get("activeSheet")),
         "factsCount": len(filing_session.filing.all()),
+        "uiState": ui_state,
+        "scheduleLinks": getattr(wsess, "schedule_links", []),
+        "hasRecovery": has_recovery_snapshot(project_id),
     }
 
 
@@ -289,7 +391,7 @@ def import_bundle(
 
         manifest_data = json.loads(zf.read("manifest.json").decode("utf-8"))
         project_id = manifest_data.get("projectId") or f"imported_{int(datetime.datetime.now().timestamp())}"
-        
+
         proj_dir = PROJECTS_DIR / project_id
         proj_dir.mkdir(parents=True, exist_ok=True)
 
@@ -297,3 +399,4 @@ def import_bundle(
             zf.extract(name, proj_dir)
 
     return load_project(filing_session, project_id, session_id=session_id)
+

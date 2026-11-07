@@ -143,6 +143,73 @@ async def import_xml_upload(
         )
 
 
+@router.get("/wizard/status")
+def get_wizard_validation_status(session_id: str = "default"):
+    """Runs internal pre-validation and groups issues for the unified XML generation wizard."""
+    with logger.span("filing.wizard_status", session_id=session_id):
+        s = get_session(session_id)
+        val_res = dict(s.validate())
+        issues = val_res.get("issues", [])
+
+        from src.services.spreadsheet_service import get_workbook_session
+        wsess = get_workbook_session(session_id)
+        tag_map = getattr(wsess, "tag_mappings", {}) if wsess else {}
+
+        # Concept to sheet & row index lookup
+        concept_locs: Dict[str, Dict[str, Any]] = {}
+        for (sheet_name, row_idx), tag in tag_map.items():
+            c = tag.get("concept")
+            if c and c not in concept_locs:
+                concept_locs[c] = {"sheet": sheet_name, "rowIndex": row_idx, "label": tag.get("label")}
+
+        blocking_errors = []
+        warnings = []
+
+        for idx, iss in enumerate(issues):
+            sev = iss.get("severity", "ERROR")
+            c = iss.get("concept")
+            loc = concept_locs.get(c, {}) if c else {}
+
+            structured_issue = {
+                "id": f"ISSUE-{idx + 1}",
+                "severity": sev,
+                "code": iss.get("code", "GENERAL"),
+                "message": iss.get("message", "Validation discrepancy observed"),
+                "concept": c,
+                "sheet": loc.get("sheet") or iss.get("sheet"),
+                "rowIndex": loc.get("rowIndex") or iss.get("rowIndex"),
+                "cellLabel": loc.get("label"),
+                "ruleId": iss.get("ruleId"),
+                "canAutoFix": iss.get("code") in ("schemaRef", "periods", "rounding"),
+                "suggestedFix": (
+                    "Click 'Jump to Cell' to navigate directly to the Excel line item."
+                    if loc.get("sheet")
+                    else "Review filing metadata or required disclosures in the active taxonomy."
+                ),
+            }
+
+            if sev == "ERROR":
+                blocking_errors.append(structured_issue)
+            else:
+                warnings.append(structured_issue)
+
+        can_generate = len(blocking_errors) == 0
+        taxonomy = getattr(s.A.meta, "taxonomyType", "ci") or "ci"
+
+        return success_response(
+            data={
+                "canGenerate": can_generate,
+                "blockingErrors": blocking_errors,
+                "warnings": warnings,
+                "totalBlocking": len(blocking_errors),
+                "totalWarnings": len(warnings),
+                "taxonomy": taxonomy,
+                "disclaimer": "Internal application pre-validation completed. Final filing verification may be tested against the official MCA Validation Tool.",
+            },
+            message="Unified validation completed",
+        )
+
+
 @router.get("/export/xml")
 def export_xml_file(allow_errors: bool = Query(True), session_id: str = "default"):
     with logger.span("filing.export_xml", session_id=session_id, allow_errors=allow_errors):

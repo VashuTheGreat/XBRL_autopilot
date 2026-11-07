@@ -59,6 +59,18 @@
           </div>
 
           <form id="form-create-filing" onsubmit="window.app.submitCreateNewFiling(event)">
+            <!-- Taxonomy & Standard Selection -->
+            <div class="form-group" style="margin-bottom: 14px;">
+              <label for="new-taxonomy" style="font-weight: 700; color: #0f172a; display: block; margin-bottom: 6px;">
+                Applicable Taxonomy &amp; Accounting Framework *
+              </label>
+              <select id="new-taxonomy" class="input-select" style="font-weight: 600; background: #f8fafc;" onchange="window.app.onStartupTaxonomyChange(this.value)">
+                <option value="ci" selected>🏢 MCA C&amp;I 2016 (Indian GAAP / Accounting Standards) - Default</option>
+                <option value="ind_as">🌐 MCA Ind AS V1.2 (Indian Accounting Standards Framework)</option>
+                <option value="costing">📋 Costing Taxonomy 2019 (Cost Audit &amp; Cost Records)</option>
+              </select>
+            </div>
+
             <div class="form-row-dual">
               <div class="form-group flex-2">
                 <label for="new-company-name">Company Name *</label>

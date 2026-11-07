@@ -63,7 +63,10 @@ def default_meta() -> Dict[str, Any]:
         "cin": "",
         "reportType": "Standalone",
         "firstFinancialYear": False,
-        "periods": {"cy": {"start": "", "end": ""}, "py": {"start": "", "end": ""}},
+        "periods": {
+            "cy": {"start": "2024-04-01", "end": "2025-03-31"},
+            "py": {"start": "2023-04-01", "end": "2024-03-31"},
+        },
         "level": "Actual",
         "displayPlaces": 0,
         "statementPlaces": None,

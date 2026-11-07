@@ -1,0 +1,167 @@
+<!-- Professional Desktop Application Menu Bar (Microsoft Office Style) -->
+<div class="desktop-menu-bar" id="desktop-menu-bar" role="menubar">
+  <div class="menu-brand">
+    <span class="app-icon">📘</span>
+    <span class="app-title">XBRL Autopilot</span>
+  </div>
+
+  <!-- 1. FILE MENU -->
+  <div class="menu-item" tabindex="0">
+    <span class="menu-label">File</span>
+    <div class="menu-dropdown">
+      <div class="dropdown-item" onclick="window.app.openStartupModal('new')">
+        <span class="item-icon">✨</span>
+        <span class="item-text">New Filing...</span>
+        <span class="item-shortcut">Ctrl+N</span>
+      </div>
+      <div class="dropdown-item" onclick="window.app.openStartupModal('load')">
+        <span class="item-icon">📂</span>
+        <span class="item-text">Open Project...</span>
+        <span class="item-shortcut">Ctrl+O</span>
+      </div>
+      <div class="dropdown-divider"></div>
+      <div class="dropdown-item" onclick="window.app.saveProject()">
+        <span class="item-icon">💾</span>
+        <span class="item-text">Save</span>
+        <span class="item-shortcut">Ctrl+S</span>
+      </div>
+      <div class="dropdown-item" onclick="window.app.saveProjectAs()">
+        <span class="item-icon">💾</span>
+        <span class="item-text">Save As...</span>
+        <span class="item-shortcut">Ctrl+Shift+S</span>
+      </div>
+      <div class="dropdown-item" onclick="window.app.saveProjectToPc()">
+        <span class="item-icon">⬇️</span>
+        <span class="item-text">Save to PC (.wxbrl bundle)</span>
+      </div>
+      <div class="dropdown-divider"></div>
+      <div class="dropdown-item" onclick="window.app.openSettingsModal()">
+        <span class="item-icon">⚙️</span>
+        <span class="item-text">Settings (Auto-Save, Timers)...</span>
+      </div>
+      <div class="dropdown-divider"></div>
+      <div class="dropdown-item" onclick="window.app.promptCloseProject()">
+        <span class="item-icon">❌</span>
+        <span class="item-text">Close Document / Exit</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. TAGGING MENU -->
+  <div class="menu-item" tabindex="0">
+    <span class="menu-label">Tagging</span>
+    <div class="menu-dropdown">
+      <div class="dropdown-item" onclick="window.app.triggerAutoTag()">
+        <span class="item-icon">✨</span>
+        <span class="item-text">AI Tag Recommendations (Auto-Tag)...</span>
+      </div>
+      <div class="dropdown-item" onclick="window.app.tagCurrentRowWithSelectedConcept()">
+        <span class="item-icon">🏷️</span>
+        <span class="item-text">Tag Selected Excel Row</span>
+        <span class="item-shortcut">Enter</span>
+      </div>
+      <div class="dropdown-item" onclick="window.app.removeCurrentRowTag()">
+        <span class="item-icon">🗑️</span>
+        <span class="item-text">Remove Tagging</span>
+        <span class="item-shortcut">Del</span>
+      </div>
+      <div class="dropdown-item" onclick="window.app.goToLinkedCell()">
+        <span class="item-icon">🎯</span>
+        <span class="item-text">Go to Linked Cell</span>
+        <span class="item-shortcut">F5</span>
+      </div>
+      <div class="dropdown-divider"></div>
+      <div class="dropdown-item" onclick="window.app.openLinkScheduleModal()">
+        <span class="item-icon">🔗</span>
+        <span class="item-text">Link Schedule Sheet to Tag...</span>
+      </div>
+      <div class="dropdown-item" onclick="window.app.openColumnSettingsModal()">
+        <span class="item-icon">📐</span>
+        <span class="item-text">Reset Column & Rounding Settings...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. VIEW MENU -->
+  <div class="menu-item" tabindex="0">
+    <span class="menu-label">View</span>
+    <div class="menu-dropdown">
+      <div class="dropdown-item" onclick="window.app.setScopeFilter('100100')">
+        <span class="item-icon">📊</span>
+        <span class="item-text">Balance Sheet</span>
+      </div>
+      <div class="dropdown-item" onclick="window.app.setScopeFilter('100200')">
+        <span class="item-icon">📈</span>
+        <span class="item-text">Profit & Loss Statement</span>
+      </div>
+      <div class="dropdown-item" onclick="window.app.setScopeFilter('both')">
+        <span class="item-icon">📑</span>
+        <span class="item-text">Both (BS & PL)</span>
+      </div>
+      <div class="dropdown-divider"></div>
+      <div class="dropdown-item" onclick="window.app.expandAllTaxonomyNodes()">
+        <span class="item-icon">➕</span>
+        <span class="item-text">Expand All Taxonomy Branches</span>
+      </div>
+      <div class="dropdown-item" onclick="window.app.collapseAllTaxonomyNodes()">
+        <span class="item-icon">➖</span>
+        <span class="item-text">Collapse All Taxonomy Branches</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. TOOLS MENU -->
+  <div class="menu-item" tabindex="0">
+    <span class="menu-label">Tools</span>
+    <div class="menu-dropdown">
+      <div class="dropdown-item" onclick="window.app.carryForwardPriorYear()">
+        <span class="item-icon">⏩</span>
+        <span class="item-text">Carry Forward Prior Year Figures</span>
+      </div>
+      <div class="dropdown-item" onclick="window.app.autoSumTables()">
+        <span class="item-icon">∑</span>
+        <span class="item-text">Auto-Sum Dimensional Table Rows</span>
+      </div>
+      <div class="dropdown-item" onclick="window.app.cleanDeadFacts()">
+        <span class="item-icon">🧹</span>
+        <span class="item-text">Clean Empty / Dead Facts</span>
+      </div>
+      <div class="dropdown-divider"></div>
+      <div class="dropdown-item" onclick="window.app.openPreview()">
+        <span class="item-icon">📄</span>
+        <span class="item-text">Printable Balance Sheet & PL Preview</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. GENERATE XML -->
+  <div class="menu-item" tabindex="0">
+    <span class="menu-label highlight-menu" onclick="window.app.openXmlWizard()">⚡ Generate XML</span>
+  </div>
+
+  <!-- 6. HELP MENU -->
+  <div class="menu-item" tabindex="0">
+    <span class="menu-label">Help</span>
+    <div class="menu-dropdown">
+      <div class="dropdown-item" onclick="window.app.openHelpModal('terms')">
+        <span class="item-icon">📖</span>
+        <span class="item-text">XBRL Terms & Concept Guide</span>
+      </div>
+      <div class="dropdown-item" onclick="window.app.openHelpModal('mca')">
+        <span class="item-icon">🏛️</span>
+        <span class="item-text">MCA XBRL Filing Rules & Guidelines</span>
+      </div>
+      <div class="dropdown-divider"></div>
+      <div class="dropdown-item" onclick="window.app.openHelpModal('about')">
+        <span class="item-icon">ℹ️</span>
+        <span class="item-text">About XBRL Autopilot</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Window Controls / Doc Name -->
+  <div class="menu-doc-status">
+    <span class="doc-badge" id="menu-doc-name">Untitled Filing</span>
+    <span class="dirty-badge" id="menu-dirty-indicator" title="Unsaved changes present">●</span>
+  </div>
+</div>

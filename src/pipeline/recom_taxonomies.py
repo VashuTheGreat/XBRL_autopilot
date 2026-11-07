@@ -19,8 +19,10 @@ async def RecommendTaxonomies(keys: list[str],collection:Literal[IND_AS_TAXONOMY
         db = get_vector_db()
         ans = []
         for key in keys:
-            documents = await db.asearch(query=key,collection=collection)
+            documents = await db.asearch(query=key, collection=collection)
             if documents:
                 ans.append(documents[0])
+            else:
+                ans.append(None)
         logger.info("pipeline.recommend_taxonomies.completed", results_count=len(ans))
         return ans

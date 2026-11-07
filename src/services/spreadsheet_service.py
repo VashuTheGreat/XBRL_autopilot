@@ -16,6 +16,7 @@ import os
 from src.core.logger import logger
 from src.core.scaling import to_canonical, to_display
 from src.services.excel_import import normalize_excel_label, parse_excel_amount
+from src.services.schedule_service import ScheduleService
 
 
 class WorkbookSession:
@@ -26,8 +27,9 @@ class WorkbookSession:
         self.file_bytes: bytes = b""
         self.sheets: Dict[str, Dict[str, Any]] = {}
         self.sheet_names: List[str] = []
-        # Key: (sheet_name, row_idx) -> {concept, qname, label, cy_col, py_col, note}
+        # Key: (sheet_name, row_idx) -> {concept, qname, label, cy_col, py_col, note, status, ...}
         self.tag_mappings: Dict[Tuple[str, int], Dict[str, Any]] = {}
+        self.schedule_links: List[Dict[str, Any]] = []
         self.col_diff: int = 1
         self.level_rounding: str = "Actual"
 
@@ -36,6 +38,7 @@ class WorkbookSession:
             "filename": self.filename,
             "sheetNames": self.sheet_names,
             "totalTagged": len(self.tag_mappings),
+            "totalScheduleLinks": len(self.schedule_links),
             "colDiff": self.col_diff,
             "levelRounding": self.level_rounding,
         }
@@ -210,6 +213,11 @@ def get_sheet_data(
             "cells": row,
             "tagged": tag_info is not None,
             "tagInfo": tag_info,
+            "status": tag_info.get("status", "UNTAGGED") if tag_info else "UNTAGGED",
+            "statusLabel": tag_info.get("statusLabel", "Untagged") if tag_info else "Untagged",
+            "statusColor": tag_info.get("statusColor", "") if tag_info else "",
+            "statusIcon": tag_info.get("statusIcon", "⚪") if tag_info else "⚪",
+            "isComplete": tag_info.get("isComplete", False) if tag_info else False,
         })
 
     return {
@@ -294,15 +302,30 @@ def map_row_tag(
     A = filing_session.A
     filing_level = filing_session.filing.meta.get("level", "Actual")
 
-    # Sync CY into filing facts
+    # Sync CY into filing facts (graceful if periods not configured yet)
     if cy_amt is not None:
-        scaled_cy = to_display(to_canonical(cy_amt, rounding), filing_level) if A.is_monetary(concept) else cy_amt
-        filing_session.set_value(concept, "CY", scaled_cy, recalc=True)
+        try:
+            scaled_cy = to_display(to_canonical(cy_amt, rounding), filing_level) if A.is_monetary(concept) else cy_amt
+            filing_session.set_value(concept, "CY", scaled_cy, recalc=True)
+        except Exception as e:
+            logger.warning("spreadsheet.sync_cy_deferred", concept=concept, error=str(e))
 
-    # Sync PY into filing facts
+    # Sync PY into filing facts (graceful if periods not configured yet)
     if py_amt is not None and not filing_session.filing.meta.get("firstFinancialYear"):
-        scaled_py = to_display(to_canonical(py_amt, rounding), filing_level) if A.is_monetary(concept) else py_amt
-        filing_session.set_value(concept, "PY", scaled_py, recalc=True)
+        try:
+            scaled_py = to_display(to_canonical(py_amt, rounding), filing_level) if A.is_monetary(concept) else py_amt
+            filing_session.set_value(concept, "PY", scaled_py, recalc=True)
+        except Exception as e:
+            logger.warning("spreadsheet.sync_py_deferred", concept=concept, error=str(e))
+
+    # Evaluate centralized tagging status (Complete, Schedule Required, etc.)
+    sch_svc = ScheduleService(A)
+    status_eval = sch_svc.evaluate_tag_status(
+        concept=concept,
+        cy_val=cy_amt,
+        py_val=py_amt,
+        schedule_links=getattr(wsess, "schedule_links", []),
+    )
 
     tag_record = {
         "concept": concept,
@@ -314,6 +337,12 @@ def map_row_tag(
         "py_val": py_amt,
         "note": note_val,
         "rounding": rounding,
+        "status": status_eval["status"],
+        "statusLabel": status_eval["label"],
+        "statusColor": status_eval["color"],
+        "statusIcon": status_eval["icon"],
+        "isComplete": status_eval["isComplete"],
+        "scheduleInfo": status_eval.get("scheduleInfo"),
     }
     wsess.tag_mappings[(sheet_name, row_index)] = tag_record
 
@@ -322,10 +351,56 @@ def map_row_tag(
         sheet=sheet_name,
         row=row_index,
         concept=concept,
+        status=status_eval["status"],
         cy=cy_amt,
         py=py_amt,
     )
     return tag_record
+
+
+def link_schedule_rows(
+    session_id: str,
+    filing_session: Any,
+    primary_concept: str,
+    schedule_sheet: str,
+    row_indices: List[int],
+    note_ref: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Links schedule sheet line items to a parent financial statement concept."""
+    wsess = get_workbook_session(session_id)
+    if not wsess:
+        raise ValueError("No active workbook session")
+
+    link_entry = {
+        "concept": primary_concept,
+        "scheduleSheet": schedule_sheet,
+        "rowIndices": row_indices,
+        "noteRef": note_ref,
+    }
+    if not hasattr(wsess, "schedule_links"):
+        wsess.schedule_links = []
+    wsess.schedule_links = [l for l in wsess.schedule_links if l.get("concept") != primary_concept]
+    wsess.schedule_links.append(link_entry)
+
+    # Re-evaluate statuses of mapped rows
+    sch_svc = ScheduleService(filing_session.A)
+    for (sname, r_idx), tag in wsess.tag_mappings.items():
+        if tag.get("concept") == primary_concept:
+            status_eval = sch_svc.evaluate_tag_status(
+                concept=primary_concept,
+                cy_val=tag.get("cy_val"),
+                py_val=tag.get("py_val"),
+                schedule_links=wsess.schedule_links,
+            )
+            tag["status"] = status_eval["status"]
+            tag["statusLabel"] = status_eval["label"]
+            tag["statusColor"] = status_eval["color"]
+            tag["statusIcon"] = status_eval["icon"]
+            tag["isComplete"] = status_eval["isComplete"]
+            tag["scheduleInfo"] = status_eval.get("scheduleInfo")
+
+    logger.info("spreadsheet.schedule_linked", concept=primary_concept, sheet=schedule_sheet, rows=row_indices)
+    return link_entry
 
 
 def remove_row_tag(
