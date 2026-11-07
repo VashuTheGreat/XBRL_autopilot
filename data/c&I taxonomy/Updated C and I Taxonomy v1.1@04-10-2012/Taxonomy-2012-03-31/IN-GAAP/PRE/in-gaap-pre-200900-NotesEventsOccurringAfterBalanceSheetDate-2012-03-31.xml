@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesEventsOccurringAfterBalanceSheetDate" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-200900"/>
+  <presentationLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesEventsOccurringAfterBalanceSheetDate">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfEventsOccurringAfterBalanceSheetDateExplanatoryTextBlock" xlink:label="DisclosureOfEventsOccurringAfterBalanceSheetDateExplanatoryTextBlock"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DescriptionOfNatureOfEventAfterBalanceSheetDate" xlink:label="DescriptionOfNatureOfEventAfterBalanceSheetDate"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfEventsOccurringAfterBalanceSheetDateExplanatoryTextBlock" xlink:to="DescriptionOfNatureOfEventAfterBalanceSheetDate" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EstimateOfFinancialEffectOfEventAfterBalanceSheetDate" xlink:label="EstimateOfFinancialEffectOfEventAfterBalanceSheetDate"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfEventsOccurringAfterBalanceSheetDateExplanatoryTextBlock" xlink:to="EstimateOfFinancialEffectOfEventAfterBalanceSheetDate" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DescriptionOfStatementOfFactThatEstimateOfFinancialEffectOfEventAfterBalanceSheetDateCouldNotBeMade" xlink:label="DescriptionOfStatementOfFactThatEstimateOfFinancialEffectOfEventAfterBalanceSheetDateCouldNotBeMade"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfEventsOccurringAfterBalanceSheetDateExplanatoryTextBlock" xlink:to="DescriptionOfStatementOfFactThatEstimateOfFinancialEffectOfEventAfterBalanceSheetDateCouldNotBeMade" priority="0" order="3.0"/>
+  </presentationLink>
+</linkbase>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesIncomeTaxes" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-201900"/>
+  <presentationLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesIncomeTaxes">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfNotesOnIncomeTaxesExplanatoryTextBlock" xlink:label="DisclosureOfNotesOnIncomeTaxesExplanatoryTextBlock"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfBreakupOfDeferredTaxAssetsAndDeferredTaxLiabilitiesAbstract" xlink:label="DisclosureOfBreakupOfDeferredTaxAssetsAndDeferredTaxLiabilitiesAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfNotesOnIncomeTaxesExplanatoryTextBlock" xlink:to="DisclosureOfBreakupOfDeferredTaxAssetsAndDeferredTaxLiabilitiesAbstract" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ComponentsOfDeferredTaxAssetsAbstract" xlink:label="ComponentsOfDeferredTaxAssetsAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfBreakupOfDeferredTaxAssetsAndDeferredTaxLiabilitiesAbstract" xlink:to="ComponentsOfDeferredTaxAssetsAbstract" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxAssetEmployeeBenefits" xlink:label="DeferredTaxAssetEmployeeBenefits"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ComponentsOfDeferredTaxAssetsAbstract" xlink:to="DeferredTaxAssetEmployeeBenefits" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxAssetExpenditureDisallowances" xlink:label="DeferredTaxAssetExpenditureDisallowances"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ComponentsOfDeferredTaxAssetsAbstract" xlink:to="DeferredTaxAssetExpenditureDisallowances" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxAssetFixedAssets" xlink:label="DeferredTaxAssetFixedAssets"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ComponentsOfDeferredTaxAssetsAbstract" xlink:to="DeferredTaxAssetFixedAssets" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxAssetProvisionDoubtfulDebts" xlink:label="DeferredTaxAssetProvisionDoubtfulDebts"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ComponentsOfDeferredTaxAssetsAbstract" xlink:to="DeferredTaxAssetProvisionDoubtfulDebts" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxAssetSundryDebtors" xlink:label="DeferredTaxAssetSundryDebtors"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ComponentsOfDeferredTaxAssetsAbstract" xlink:to="DeferredTaxAssetSundryDebtors" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxAssetUnabsorbedDepreciation" xlink:label="DeferredTaxAssetUnabsorbedDepreciation"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ComponentsOfDeferredTaxAssetsAbstract" xlink:to="DeferredTaxAssetUnabsorbedDepreciation" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxAssetUnrealisedCarriedForwardLosses" xlink:label="DeferredTaxAssetUnrealisedCarriedForwardLosses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ComponentsOfDeferredTaxAssetsAbstract" xlink:to="DeferredTaxAssetUnrealisedCarriedForwardLosses" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxAssetVRSPayment" xlink:label="DeferredTaxAssetVRSPayment"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ComponentsOfDeferredTaxAssetsAbstract" xlink:to="DeferredTaxAssetVRSPayment" priority="0" order="8.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxInRespectOfBusinessCombinations" xlink:label="DeferredTaxInRespectOfBusinessCombinations"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ComponentsOfDeferredTaxAssetsAbstract" xlink:to="DeferredTaxInRespectOfBusinessCombinations" priority="0" order="9.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxAssetOther" xlink:label="DeferredTaxAssetOther"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ComponentsOfDeferredTaxAssetsAbstract" xlink:to="DeferredTaxAssetOther" priority="0" order="10.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxAssets" xlink:label="DeferredTaxAssets"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ComponentsOfDeferredTaxAssetsAbstract" xlink:to="DeferredTaxAssets" priority="0" order="11.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ComponentsOfDeferredTaxLiabilitiesAbstract" xlink:label="ComponentsOfDeferredTaxLiabilitiesAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfBreakupOfDeferredTaxAssetsAndDeferredTaxLiabilitiesAbstract" xlink:to="ComponentsOfDeferredTaxLiabilitiesAbstract" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxLiabilityDepreciation" xlink:label="DeferredTaxLiabilityDepreciation"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ComponentsOfDeferredTaxLiabilitiesAbstract" xlink:to="DeferredTaxLiabilityDepreciation" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxLiabilityExportIncentives" xlink:label="DeferredTaxLiabilityExportIncentives"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ComponentsOfDeferredTaxLiabilitiesAbstract" xlink:to="DeferredTaxLiabilityExportIncentives" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxLiabilityInvestments" xlink:label="DeferredTaxLiabilityInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ComponentsOfDeferredTaxLiabilitiesAbstract" xlink:to="DeferredTaxLiabilityInvestments" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxLiabilityProvisionDoubtfulDebts" xlink:label="DeferredTaxLiabilityProvisionDoubtfulDebts"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ComponentsOfDeferredTaxLiabilitiesAbstract" xlink:to="DeferredTaxLiabilityProvisionDoubtfulDebts" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxLiabilityProvisionEmployeeBenefits" xlink:label="DeferredTaxLiabilityProvisionEmployeeBenefits"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ComponentsOfDeferredTaxLiabilitiesAbstract" xlink:to="DeferredTaxLiabilityProvisionEmployeeBenefits" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxLiabilityProvisionExpenses" xlink:label="DeferredTaxLiabilityProvisionExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ComponentsOfDeferredTaxLiabilitiesAbstract" xlink:to="DeferredTaxLiabilityProvisionExpenses" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxLiabilityTechnicalKnowhowFees" xlink:label="DeferredTaxLiabilityTechnicalKnowhowFees"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ComponentsOfDeferredTaxLiabilitiesAbstract" xlink:to="DeferredTaxLiabilityTechnicalKnowhowFees" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxLiabilityOther" xlink:label="DeferredTaxLiabilityOther"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ComponentsOfDeferredTaxLiabilitiesAbstract" xlink:to="DeferredTaxLiabilityOther" priority="0" order="8.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxLiabilities" xlink:label="DeferredTaxLiabilities"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ComponentsOfDeferredTaxLiabilitiesAbstract" xlink:to="DeferredTaxLiabilities" priority="0" order="9.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DescriptionOfNatureOfEvidenceSupportingRecognitionOfDeferredTaxAssetsWhenEntityHasUnabsorbedDepreciationOrCarryForwardOfLosses" xlink:label="DescriptionOfNatureOfEvidenceSupportingRecognitionOfDeferredTaxAssetsWhenEntityHasUnabsorbedDepreciationOrCarryForwardOfLosses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfNotesOnIncomeTaxesExplanatoryTextBlock" xlink:to="DescriptionOfNatureOfEvidenceSupportingRecognitionOfDeferredTaxAssetsWhenEntityHasUnabsorbedDepreciationOrCarryForwardOfLosses" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfAdjustmentsOfDeferredTaxAssetAbstract" xlink:label="DetailsOfAdjustmentsOfDeferredTaxAssetAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfNotesOnIncomeTaxesExplanatoryTextBlock" xlink:to="DetailsOfAdjustmentsOfDeferredTaxAssetAbstract" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AdjustmentsOfDeferredTaxAssetAgainstGeneralReserveWhereApprovedByCourt" xlink:label="AdjustmentsOfDeferredTaxAssetAgainstGeneralReserveWhereApprovedByCourt"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfAdjustmentsOfDeferredTaxAssetAbstract" xlink:to="AdjustmentsOfDeferredTaxAssetAgainstGeneralReserveWhereApprovedByCourt" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AdjustmentsOfDeferredTaxAssetAgainstSecuritiesPremiumWhereApprovedByCourt" xlink:label="AdjustmentsOfDeferredTaxAssetAgainstSecuritiesPremiumWhereApprovedByCourt"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfAdjustmentsOfDeferredTaxAssetAbstract" xlink:to="AdjustmentsOfDeferredTaxAssetAgainstSecuritiesPremiumWhereApprovedByCourt" priority="0" order="2.0"/>
+  </presentationLink>
+</linkbase>

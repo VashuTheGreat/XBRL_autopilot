@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created by IRIS Business Services Ltd -->
+<!--                     
+            *************** Entry-point for Compliance Report : 2012-09-07*************
+                      
+       
+ -->
+<xsd:schema targetNamespace="http://www.icwai.org/in/xbrl/2012-09-07/company-ent" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:company-ent="http://www.icwai.org/in/xbrl/2012-09-07/company-ent" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:xl="http://www.xbrl.org/2003/XLink" xmlns:in-cost-aud="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:in-cost-com="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-com" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <xsd:import namespace="http://xbrl.org/2005/xbrldt" schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd"/>
+  <xsd:import namespace="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud" schemaLocation="in-cost-aud-2012-09-07.xsd"/>
+  <xsd:import namespace="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-com" schemaLocation="in-cost-com-2012-09-07.xsd"/>
+</xsd:schema>

@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesImpairment/not-all" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-201501"/>
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesImpairment" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-201500"/>
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesImpairment1" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-201500a"/>
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesImpairment2" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-201500b"/>
+  <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/all" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"/>
+  <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain"/>
+  <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"/>
+  <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"/>
+  <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/notAll" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#notAll"/>
+  <definitionLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesImpairment">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfImpairmentLossAndReversalOfImpairmentLossAbstract" xlink:label="DisclosureOfImpairmentLossAndReversalOfImpairmentLossAbstract"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfImpairmentLossAndReversalOfImpairmentLossTable" xlink:label="DisclosureOfImpairmentLossAndReversalOfImpairmentLossTable"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="DisclosureOfImpairmentLossAndReversalOfImpairmentLossAbstract" xlink:to="DisclosureOfImpairmentLossAndReversalOfImpairmentLossTable" priority="0" order="1.0" xbrldt:contextElement="scenario" xbrldt:closed="true"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ClassesOfAssetsAxis" xlink:label="ClassesOfAssetsAxis"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="DisclosureOfImpairmentLossAndReversalOfImpairmentLossTable" xlink:to="ClassesOfAssetsAxis" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ClassesOfAssetsMember" xlink:label="ClassesOfAssetsMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="ClassesOfAssetsAxis" xlink:to="ClassesOfAssetsMember" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_TangibleAssetsMember" xlink:label="TangibleAssetsMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="ClassesOfAssetsMember" xlink:to="TangibleAssetsMember" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_IntangibleAssetsMember" xlink:label="IntangibleAssetsMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="ClassesOfAssetsMember" xlink:to="IntangibleAssetsMember" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfImpairmentLossAndReversalOfImpairmentLossLineItems" xlink:label="DisclosureOfImpairmentLossAndReversalOfImpairmentLossLineItems"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfImpairmentLossAndReversalOfImpairmentLossAbstract" xlink:to="DisclosureOfImpairmentLossAndReversalOfImpairmentLossLineItems" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ImpairmentLossRecognisedInProfitOrLoss" xlink:label="ImpairmentLossRecognisedInProfitOrLoss"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfImpairmentLossAndReversalOfImpairmentLossLineItems" xlink:to="ImpairmentLossRecognisedInProfitOrLoss" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_LineItemInStatementOfProfitOrLossWhereImpairmentLossIsRecognised" xlink:label="LineItemInStatementOfProfitOrLossWhereImpairmentLossIsRecognised"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfImpairmentLossAndReversalOfImpairmentLossLineItems" xlink:to="LineItemInStatementOfProfitOrLossWhereImpairmentLossIsRecognised" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfImpairmentLossAndReversalOfImpairmentLossTableNotAll" xlink:label="DisclosureOfImpairmentLossAndReversalOfImpairmentLossTableNotAll"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/notAll" xlink:from="LineItemInStatementOfProfitOrLossWhereImpairmentLossIsRecognised" xlink:to="DisclosureOfImpairmentLossAndReversalOfImpairmentLossTableNotAll" priority="0" order="1.0" xbrldt:targetRole="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesImpairment/not-all" xbrldt:contextElement="scenario"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ReversalOfImpairmentLossRecognisedInProfitOrLoss" xlink:label="ReversalOfImpairmentLossRecognisedInProfitOrLoss"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfImpairmentLossAndReversalOfImpairmentLossLineItems" xlink:to="ReversalOfImpairmentLossRecognisedInProfitOrLoss" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_LineItemInStatementOfProfitOrLossWhereReversalOfImpairmentLossIsRecognised" xlink:label="LineItemInStatementOfProfitOrLossWhereReversalOfImpairmentLossIsRecognised"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfImpairmentLossAndReversalOfImpairmentLossLineItems" xlink:to="LineItemInStatementOfProfitOrLossWhereReversalOfImpairmentLossIsRecognised" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfImpairmentLossAndReversalOfImpairmentLossTableNotAll" xlink:label="DisclosureOfImpairmentLossAndReversalOfImpairmentLossTableNotAll_2"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/notAll" xlink:from="LineItemInStatementOfProfitOrLossWhereReversalOfImpairmentLossIsRecognised" xlink:to="DisclosureOfImpairmentLossAndReversalOfImpairmentLossTableNotAll_2" priority="0" order="1.0" xbrldt:targetRole="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesImpairment/not-all" xbrldt:contextElement="scenario"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ImpairmentLossDirectlyRecognisedInRevaluationSurplus" xlink:label="ImpairmentLossDirectlyRecognisedInRevaluationSurplus"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfImpairmentLossAndReversalOfImpairmentLossLineItems" xlink:to="ImpairmentLossDirectlyRecognisedInRevaluationSurplus" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ReversalOfImpairmentLossDirectlyRecognisedInRevaluationSurplus" xlink:label="ReversalOfImpairmentLossDirectlyRecognisedInRevaluationSurplus"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfImpairmentLossAndReversalOfImpairmentLossLineItems" xlink:to="ReversalOfImpairmentLossDirectlyRecognisedInRevaluationSurplus" priority="0" order="6.0"/>
+  </definitionLink>
+  <definitionLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesImpairment1">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegmentsMember" xlink:label="PrimaryReportableSegmentsMember"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments1Member" xlink:label="PrimaryReportableSegments1Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments1Member" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments2Member" xlink:label="PrimaryReportableSegments2Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments2Member" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments3Member" xlink:label="PrimaryReportableSegments3Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments3Member" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments4Member" xlink:label="PrimaryReportableSegments4Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments4Member" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments5Member" xlink:label="PrimaryReportableSegments5Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments5Member" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments6Member" xlink:label="PrimaryReportableSegments6Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments6Member" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments7Member" xlink:label="PrimaryReportableSegments7Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments7Member" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments8Member" xlink:label="PrimaryReportableSegments8Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments8Member" priority="0" order="8.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments9Member" xlink:label="PrimaryReportableSegments9Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments9Member" priority="0" order="9.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments10Member" xlink:label="PrimaryReportableSegments10Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments10Member" priority="0" order="10.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments11Member" xlink:label="PrimaryReportableSegments11Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments11Member" priority="0" order="11.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments12Member" xlink:label="PrimaryReportableSegments12Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments12Member" priority="0" order="12.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments13Member" xlink:label="PrimaryReportableSegments13Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments13Member" priority="0" order="13.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments14Member" xlink:label="PrimaryReportableSegments14Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments14Member" priority="0" order="14.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments15Member" xlink:label="PrimaryReportableSegments15Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments15Member" priority="0" order="15.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments16Member" xlink:label="PrimaryReportableSegments16Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments16Member" priority="0" order="16.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments17Member" xlink:label="PrimaryReportableSegments17Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments17Member" priority="0" order="17.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments18Member" xlink:label="PrimaryReportableSegments18Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments18Member" priority="0" order="18.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments19Member" xlink:label="PrimaryReportableSegments19Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments19Member" priority="0" order="19.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments20Member" xlink:label="PrimaryReportableSegments20Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments20Member" priority="0" order="20.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfImpairmentOfAssetsInPrimarySegmentDisclosureFormatAbstract" xlink:label="DisclosureOfImpairmentOfAssetsInPrimarySegmentDisclosureFormatAbstract"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfImpairmentOfAssetsInPrimarySegmentDisclosureFormatTable" xlink:label="DisclosureOfImpairmentOfAssetsInPrimarySegmentDisclosureFormatTable"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="DisclosureOfImpairmentOfAssetsInPrimarySegmentDisclosureFormatAbstract" xlink:to="DisclosureOfImpairmentOfAssetsInPrimarySegmentDisclosureFormatTable" priority="0" order="1.0" xbrldt:contextElement="scenario" xbrldt:closed="true"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegmentsAxis" xlink:label="PrimaryReportableSegmentsAxis"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="DisclosureOfImpairmentOfAssetsInPrimarySegmentDisclosureFormatTable" xlink:to="PrimaryReportableSegmentsAxis" priority="0" order="1.0"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="PrimaryReportableSegmentsAxis" xlink:to="PrimaryReportableSegmentsMember" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfImpairmentOfAssetsInPrimarySegmentDisclosureFormatLineItems" xlink:label="DisclosureOfImpairmentOfAssetsInPrimarySegmentDisclosureFormatLineItems"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfImpairmentOfAssetsInPrimarySegmentDisclosureFormatAbstract" xlink:to="DisclosureOfImpairmentOfAssetsInPrimarySegmentDisclosureFormatLineItems" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ImpairmentLossRecognisedInProfitOrLoss" xlink:label="ImpairmentLossRecognisedInProfitOrLoss"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfImpairmentOfAssetsInPrimarySegmentDisclosureFormatLineItems" xlink:to="ImpairmentLossRecognisedInProfitOrLoss" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ImpairmentLossDirectlyRecognisedInRevaluationSurplus" xlink:label="ImpairmentLossDirectlyRecognisedInRevaluationSurplus"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfImpairmentOfAssetsInPrimarySegmentDisclosureFormatLineItems" xlink:to="ImpairmentLossDirectlyRecognisedInRevaluationSurplus" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ReversalOfImpairmentLossRecognisedInProfitOrLoss" xlink:label="ReversalOfImpairmentLossRecognisedInProfitOrLoss"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfImpairmentOfAssetsInPrimarySegmentDisclosureFormatLineItems" xlink:to="ReversalOfImpairmentLossRecognisedInProfitOrLoss" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ReversalOfImpairmentLossDirectlyRecognisedInRevaluationSurplus" xlink:label="ReversalOfImpairmentLossDirectlyRecognisedInRevaluationSurplus"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfImpairmentOfAssetsInPrimarySegmentDisclosureFormatLineItems" xlink:to="ReversalOfImpairmentLossDirectlyRecognisedInRevaluationSurplus" priority="0" order="4.0"/>
+  </definitionLink>
+  <definitionLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesImpairment2">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegmentsMember" xlink:label="PrimaryReportableSegmentsMember"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments1Member" xlink:label="PrimaryReportableSegments1Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments1Member" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments2Member" xlink:label="PrimaryReportableSegments2Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments2Member" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments3Member" xlink:label="PrimaryReportableSegments3Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments3Member" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments4Member" xlink:label="PrimaryReportableSegments4Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments4Member" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments5Member" xlink:label="PrimaryReportableSegments5Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments5Member" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments6Member" xlink:label="PrimaryReportableSegments6Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments6Member" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments7Member" xlink:label="PrimaryReportableSegments7Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments7Member" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments8Member" xlink:label="PrimaryReportableSegments8Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments8Member" priority="0" order="8.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments9Member" xlink:label="PrimaryReportableSegments9Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments9Member" priority="0" order="9.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments10Member" xlink:label="PrimaryReportableSegments10Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments10Member" priority="0" order="10.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments11Member" xlink:label="PrimaryReportableSegments11Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments11Member" priority="0" order="11.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments12Member" xlink:label="PrimaryReportableSegments12Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments12Member" priority="0" order="12.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments13Member" xlink:label="PrimaryReportableSegments13Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments13Member" priority="0" order="13.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments14Member" xlink:label="PrimaryReportableSegments14Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments14Member" priority="0" order="14.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments15Member" xlink:label="PrimaryReportableSegments15Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments15Member" priority="0" order="15.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments16Member" xlink:label="PrimaryReportableSegments16Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments16Member" priority="0" order="16.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments17Member" xlink:label="PrimaryReportableSegments17Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments17Member" priority="0" order="17.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments18Member" xlink:label="PrimaryReportableSegments18Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments18Member" priority="0" order="18.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments19Member" xlink:label="PrimaryReportableSegments19Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments19Member" priority="0" order="19.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegments20Member" xlink:label="PrimaryReportableSegments20Member"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="PrimaryReportableSegmentsMember" xlink:to="PrimaryReportableSegments20Member" priority="0" order="20.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ClassesOfAssetsAxis" xlink:label="ClassesOfAssetsAxis"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ClassesOfAssetsMember" xlink:label="ClassesOfAssetsMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="ClassesOfAssetsAxis" xlink:to="ClassesOfAssetsMember" priority="0" order="1.0" xbrldt:usable="false"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_TangibleAssetsMember" xlink:label="TangibleAssetsMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="ClassesOfAssetsMember" xlink:to="TangibleAssetsMember" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_IntangibleAssetsMember" xlink:label="IntangibleAssetsMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="ClassesOfAssetsMember" xlink:to="IntangibleAssetsMember" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrimaryReportableSegmentsAxis" xlink:label="PrimaryReportableSegmentsAxis"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="PrimaryReportableSegmentsAxis" xlink:to="PrimaryReportableSegmentsMember" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfImpairmentLossRecognisedOrReversedAbstract" xlink:label="DisclosureOfImpairmentLossRecognisedOrReversedAbstract"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfImpairmentLossRecognisedOrReversedTable" xlink:label="DisclosureOfImpairmentLossRecognisedOrReversedTable"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="DisclosureOfImpairmentLossRecognisedOrReversedAbstract" xlink:to="DisclosureOfImpairmentLossRecognisedOrReversedTable" priority="0" order="1.0" xbrldt:contextElement="scenario" xbrldt:closed="true"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_IndividualAssetsOrCashGeneratingUnitsAxis" xlink:label="IndividualAssetsOrCashGeneratingUnitsAxis"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="DisclosureOfImpairmentLossRecognisedOrReversedTable" xlink:to="IndividualAssetsOrCashGeneratingUnitsAxis" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_TotalForIndividualAssetsOrCashGeneratingUnitsMember" xlink:label="TotalForIndividualAssetsOrCashGeneratingUnitsMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="IndividualAssetsOrCashGeneratingUnitsAxis" xlink:to="TotalForIndividualAssetsOrCashGeneratingUnitsMember" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_IndividualAssetsMember" xlink:label="IndividualAssetsMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="TotalForIndividualAssetsOrCashGeneratingUnitsMember" xlink:to="IndividualAssetsMember" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CashGeneratingUnitsMember" xlink:label="CashGeneratingUnitsMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="TotalForIndividualAssetsOrCashGeneratingUnitsMember" xlink:to="CashGeneratingUnitsMember" priority="0" order="2.0"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="DisclosureOfImpairmentLossRecognisedOrReversedTable" xlink:to="ClassesOfAssetsAxis" priority="0" order="2.0"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="DisclosureOfImpairmentLossRecognisedOrReversedTable" xlink:to="PrimaryReportableSegmentsAxis" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfImpairmentLossRecognisedOrReversedLineItems" xlink:label="DisclosureOfImpairmentLossRecognisedOrReversedLineItems"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfImpairmentLossRecognisedOrReversedAbstract" xlink:to="DisclosureOfImpairmentLossRecognisedOrReversedLineItems" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ExplanationOfMainEventsAndCircumstancesThatLedToRecognitionOfImpairmentLossesAndReversalsOfImpairmentLosses" xlink:label="ExplanationOfMainEventsAndCircumstancesThatLedToRecognitionOfImpairmentLossesAndReversalsOfImpairmentLosses"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfImpairmentLossRecognisedOrReversedLineItems" xlink:to="ExplanationOfMainEventsAndCircumstancesThatLedToRecognitionOfImpairmentLossesAndReversalsOfImpairmentLosses" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ImpairmentLoss" xlink:label="ImpairmentLoss"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfImpairmentLossRecognisedOrReversedLineItems" xlink:to="ImpairmentLoss" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ReversalOfImpairmentLoss" xlink:label="ReversalOfImpairmentLoss"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfImpairmentLossRecognisedOrReversedLineItems" xlink:to="ReversalOfImpairmentLoss" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NatureOfAsset" xlink:label="NatureOfAsset"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfImpairmentLossRecognisedOrReversedLineItems" xlink:to="NatureOfAsset" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DescriptionOfCashGeneratingUnit" xlink:label="DescriptionOfCashGeneratingUnit"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfImpairmentLossRecognisedOrReversedLineItems" xlink:to="DescriptionOfCashGeneratingUnit" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DescriptionOfCurrentAndFormerWayOfAggregatingAssetsWhereThereHasBeenChangeFromPreviousYearAndAlsoReasonsForChangeTextBlock" xlink:label="DescriptionOfCurrentAndFormerWayOfAggregatingAssetsWhereThereHasBeenChangeFromPreviousYearAndAlsoReasonsForChangeTextBlock"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfImpairmentLossRecognisedOrReversedLineItems" xlink:to="DescriptionOfCurrentAndFormerWayOfAggregatingAssetsWhereThereHasBeenChangeFromPreviousYearAndAlsoReasonsForChangeTextBlock" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfWhetherRecoverableAmountOfAssetIsNetSellingPriceOrItsValueInUse" xlink:label="DisclosureOfWhetherRecoverableAmountOfAssetIsNetSellingPriceOrItsValueInUse"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfImpairmentLossRecognisedOrReversedLineItems" xlink:to="DisclosureOfWhetherRecoverableAmountOfAssetIsNetSellingPriceOrItsValueInUse" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfBasisUsedToDetermineNetSellingPriceIfRecoverableAmountIsNetSellingPrice" xlink:label="DisclosureOfBasisUsedToDetermineNetSellingPriceIfRecoverableAmountIsNetSellingPrice"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfImpairmentLossRecognisedOrReversedLineItems" xlink:to="DisclosureOfBasisUsedToDetermineNetSellingPriceIfRecoverableAmountIsNetSellingPrice" priority="0" order="8.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfDiscountRateIfRecoverableAmountIsValueInUseAbstract" xlink:label="DisclosureOfDiscountRateIfRecoverableAmountIsValueInUseAbstract"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfImpairmentLossRecognisedOrReversedLineItems" xlink:to="DisclosureOfDiscountRateIfRecoverableAmountIsValueInUseAbstract" priority="0" order="9.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DiscountRateInCurrentEstimateOfValueInUse" xlink:label="DiscountRateInCurrentEstimateOfValueInUse"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfDiscountRateIfRecoverableAmountIsValueInUseAbstract" xlink:to="DiscountRateInCurrentEstimateOfValueInUse" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DiscountRateInPreviousEstimateOfValueInUse" xlink:label="DiscountRateInPreviousEstimateOfValueInUse"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfDiscountRateIfRecoverableAmountIsValueInUseAbstract" xlink:to="DiscountRateInPreviousEstimateOfValueInUse" priority="0" order="2.0"/>
+  </definitionLink>
+  <definitionLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesImpairment/not-all">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ClassesOfAssetsAxis" xlink:label="ClassesOfAssetsAxis"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ClassesOfAssetsMember" xlink:label="ClassesOfAssetsMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="ClassesOfAssetsAxis" xlink:to="ClassesOfAssetsMember" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfImpairmentLossAndReversalOfImpairmentLossTableNotAll" xlink:label="DisclosureOfImpairmentLossAndReversalOfImpairmentLossTableNotAll"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="DisclosureOfImpairmentLossAndReversalOfImpairmentLossTableNotAll" xlink:to="ClassesOfAssetsAxis" priority="0" order="1.0"/>
+  </definitionLink>
+</linkbase>

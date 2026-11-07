@@ -1,0 +1,16 @@
+About this Release :
+========================
+# Tool Release for INDAS and CNI Taxonomies.
+# CNI 2016 Taxonomy has been revised for adding linking to 
+ Note: Share Capital element values
+WhetherCompanyIsSubsidiaryCompany . This field is mandatory.
+WhetherCompanyHasSubsidiaryCompanies  . This field is mandatory.
+
+
+Recommended System Requirements:
+===============================
+
+Operating System 	: Windows 10 or Windows 11
+Memory 				: Minimum 4 GB of RAM  & Minimum 512 MB free space
+Processor Speed 	: 2.0GHz
+Java Environment 	: JRE version 1.8 and above

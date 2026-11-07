@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesConstructionContracts" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-300200"/>
+  <presentationLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesConstructionContracts">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfRecognisedRevenueFromConstructionContractsExplanatoryTextBlock" xlink:label="DisclosureOfRecognisedRevenueFromConstructionContractsExplanatoryTextBlock"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueFromConstructionContracts" xlink:label="RevenueFromConstructionContracts"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfRecognisedRevenueFromConstructionContractsExplanatoryTextBlock" xlink:to="RevenueFromConstructionContracts" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_MethodsUsedToDetermineConstructionContractRevenueRecognised" xlink:label="MethodsUsedToDetermineConstructionContractRevenueRecognised"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfRecognisedRevenueFromConstructionContractsExplanatoryTextBlock" xlink:to="MethodsUsedToDetermineConstructionContractRevenueRecognised" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_MethodsUsedToDetermineStageOfCompletionOfConstructionInProgress" xlink:label="MethodsUsedToDetermineStageOfCompletionOfConstructionInProgress"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfRecognisedRevenueFromConstructionContractsExplanatoryTextBlock" xlink:to="MethodsUsedToDetermineStageOfCompletionOfConstructionInProgress" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosuresInRespectOfContractsInProgressAbstract" xlink:label="DisclosuresInRespectOfContractsInProgressAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfRecognisedRevenueFromConstructionContractsExplanatoryTextBlock" xlink:to="DisclosuresInRespectOfContractsInProgressAbstract" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostsIncurredAndRecognisedProfitsLessRecognisedLosses" xlink:label="CostsIncurredAndRecognisedProfitsLessRecognisedLosses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosuresInRespectOfContractsInProgressAbstract" xlink:to="CostsIncurredAndRecognisedProfitsLessRecognisedLosses" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AdvancesReceivedForContractsInProgress" xlink:label="AdvancesReceivedForContractsInProgress"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosuresInRespectOfContractsInProgressAbstract" xlink:to="AdvancesReceivedForContractsInProgress" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RetentionForContractsInProgress" xlink:label="RetentionForContractsInProgress"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosuresInRespectOfContractsInProgressAbstract" xlink:to="RetentionForContractsInProgress" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DescriptionOfWarrantyCostsPenaltiesOrPossibleLossesOfConstructionContractsContingentLiability" xlink:label="DescriptionOfWarrantyCostsPenaltiesOrPossibleLossesOfConstructionContractsContingentLiability"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfRecognisedRevenueFromConstructionContractsExplanatoryTextBlock" xlink:to="DescriptionOfWarrantyCostsPenaltiesOrPossibleLossesOfConstructionContractsContingentLiability" priority="0" order="5.0"/>
+  </presentationLink>
+</linkbase>

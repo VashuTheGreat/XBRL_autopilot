@@ -1,0 +1,161 @@
+<!-- Process Flow Dashboard inspired by WebXBRL -->
+<section id="pane-flow" class="flow-dashboard tab-pane active">
+  <div class="flow-header">
+    <div class="flow-title">
+      <h2>Process Flow of WEB - XBRL</h2>
+      <p class="subtitle">Complete MCA XBRL Filing Lifecycle & Workflows</p>
+    </div>
+    <div class="flow-meta-pill">
+      <span class="pill-cin" id="flow-cin">CIN: Loading...</span>
+      <span class="pill-fy" id="flow-fy">FY: Loading...</span>
+      <span class="pill-tax" id="flow-taxonomy">Taxonomy: MCA C&amp;I 2016</span>
+    </div>
+  </div>
+
+  <div class="flow-container">
+    <!-- Left Sidebar: Master Setup -->
+    <div class="flow-sidebar">
+      <div class="flow-sidebar-header">
+        <span class="step-num">01</span>
+        <h3>Create Masters</h3>
+        <p class="desc">Company, Director &amp; Auditor Master Information</p>
+      </div>
+      <div class="flow-sidebar-items">
+        <button type="button" class="flow-card master-card" onclick="window.app.selectTab('setup')">
+          <span class="icon">🏢</span>
+          <div class="info">
+            <b>Company Information</b>
+            <small>CIN, Registered Office, Capital</small>
+          </div>
+        </button>
+        <button type="button" class="flow-card master-card" onclick="window.app.openDirectorsMaster()">
+          <span class="icon">👥</span>
+          <div class="info">
+            <b>Directors &amp; Signatories</b>
+            <small>DIN, Designations, Signatures</small>
+          </div>
+        </button>
+        <button type="button" class="flow-card master-card" onclick="window.app.openAuditorsMaster()">
+          <span class="icon">📑</span>
+          <div class="info">
+            <b>Auditor Information</b>
+            <small>SRN, Firm Reg, Partner Details</small>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Center Flow: Tagging Streams -->
+    <div class="flow-main-streams">
+      <div class="streams-grid">
+        <!-- Stream 1: Financial Tagging -->
+        <div class="stream-column">
+          <div class="stream-header financial">
+            <span class="stream-badge">Stream A</span>
+            <h4>Financial Tagging</h4>
+          </div>
+          <div class="stream-cards">
+            <div class="branch-card" onclick="window.app.openFinancialTagging('BS')">
+              <span class="action-tag">Import &amp; Tag</span>
+              <b>Balance Sheet</b>
+              <small>Import Excel &bull; Auto Tag &bull; Schedules</small>
+            </div>
+            <div class="flow-arrow-down">↓</div>
+            <div class="branch-card" onclick="window.app.openFinancialTagging('PL')">
+              <span class="action-tag">Import &amp; Tag</span>
+              <b>Profit &amp; Loss A/C</b>
+              <small>Income, Expenses &bull; Notes &bull; Tax</small>
+            </div>
+            <div class="flow-arrow-down">↓</div>
+            <div class="branch-card" onclick="window.app.openFinancialTagging('CF')">
+              <span class="action-tag">Statement</span>
+              <b>Cash Flow Statement</b>
+              <small>Direct / Indirect Method &bull; Reconciliation</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stream 2: Fixed Assets Tagging -->
+        <div class="stream-column">
+          <div class="stream-header fixed-assets">
+            <span class="stream-badge">Stream B</span>
+            <h4>Fixed Assets Tagging</h4>
+          </div>
+          <div class="stream-cards">
+            <div class="branch-card" onclick="window.app.openFixedAssetsTab()">
+              <span class="action-tag">Template</span>
+              <b>Arrange FA Data</b>
+              <small>Gross Block, Depreciation, Net Block</small>
+            </div>
+            <div class="flow-arrow-down">↓</div>
+            <div class="branch-card" onclick="window.app.openFixedAssetsTab()">
+              <span class="action-tag">Grouping</span>
+              <b>Tag as Per Grouping</b>
+              <small>Tangible, Intangible &bull; CWIP</small>
+            </div>
+            <div class="flow-arrow-down">↓</div>
+            <div class="branch-card" onclick="window.app.openPreview()">
+              <span class="action-tag">Report</span>
+              <b>View Print Report</b>
+              <small>Preview PDF Schedule &bull; Print</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stream 3: Non-Financial Tagging -->
+        <div class="stream-column">
+          <div class="stream-header non-financial">
+            <span class="stream-badge">Stream C</span>
+            <h4>Non Financial Tagging</h4>
+          </div>
+          <div class="stream-cards">
+            <div class="branch-card" onclick="window.app.openElrByCode('400400')">
+              <span class="action-tag">Text Block</span>
+              <b>Director's Report</b>
+              <small>Import Word / Rich Text &bull; Disclosures</small>
+            </div>
+            <div class="flow-arrow-down">↓</div>
+            <div class="branch-card" onclick="window.app.openElrByCode('400200')">
+              <span class="action-tag">Audit</span>
+              <b>Auditor's Report</b>
+              <small>CARO &bull; Secretarial Audit &bull; Notes</small>
+            </div>
+            <div class="flow-arrow-down">↓</div>
+            <div class="branch-card" onclick="window.app.openElrByCode('202800')">
+              <span class="action-tag">Disclosures</span>
+              <b>Related Parties &amp; Subsidiaries</b>
+              <small>Parties, Remuneration &bull; General Info</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Pipeline: Generate -> Validate -> Upload -->
+  <div class="flow-bottom-pipeline">
+    <div class="pipeline-step" onclick="window.app.exportXml()">
+      <div class="step-icon">⚡</div>
+      <div class="step-info">
+        <b>Generate Instance Document</b>
+        <small>Compile Facts &bull; Create XBRL XML</small>
+      </div>
+    </div>
+    <div class="pipeline-arrow">➔</div>
+    <div class="pipeline-step" onclick="window.app.selectTab('validation')">
+      <div class="step-icon">🛡️</div>
+      <div class="step-info">
+        <b>Validate Instance Document</b>
+        <small>Run MCA Business Rules &bull; Fix Errors</small>
+      </div>
+    </div>
+    <div class="pipeline-arrow">➔</div>
+    <div class="pipeline-step upload-step" onclick="window.app.openUploadModal()">
+      <div class="step-icon">📤</div>
+      <div class="step-info">
+        <b>Upload / File to MCA V3</b>
+        <small>Sign &bull; MCA XBRL Validation Tool V5.1</small>
+      </div>
+    </div>
+  </div>
+</section>

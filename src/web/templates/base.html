@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -14,7 +14,6 @@
   <div class="app">
     <!-- Top Action Bar -->
     <header class="bar">
-      <button class="btn small navtoggle" id="navtoggle" type="button">Sheets</button>
       <div class="brand">XBRL Autopilot<small>MCA · TAXONOMY 2016</small></div>
       <div class="who" id="bar-who">
         <b id="header-name">{{ meta.name or 'Untitled Filing' }}</b>
@@ -25,15 +24,14 @@
       </div>
       <div class="spacer"></div>
       <div class="actions">
-        <button class="btn" type="button" onclick="window.app.newFiling()">New filing</button>
-        <button class="btn" type="button" onclick="window.app.loadExample()">Load Sample</button>
-        <button class="btn" type="button" onclick="document.getElementById('file-xml').click()">Import XML</button>
-        <button class="btn" type="button" onclick="document.getElementById('file-excel').click()">Import Excel</button>
-        <button class="btn" type="button" onclick="document.getElementById('file-json').click()">Open project</button>
-        <button class="btn" type="button" onclick="window.app.exportJson()" title="Download a project file.">Save project</button>
-        <button class="btn" type="button" onclick="window.app.selectTab('validation')" title="Validate filing">Validate</button>
-        <button class="btn primary" type="button" onclick="window.app.exportXml()">Generate XML</button>
-        <button class="btn" type="button" onclick="window.app.openPreview()">Preview / PDF</button>
+        <button class="btn" type="button" onclick="window.app.openStartupModal('new')" title="Start a fresh filing with Excel workbook">✨ New Filing</button>
+        <button class="btn" type="button" onclick="window.app.openStartupModal('load')" title="Open saved project or resume work">📂 Load Project</button>
+        <button class="btn" type="button" onclick="window.app.saveProject()" title="Save current progress to server">💾 Save</button>
+        <button class="btn" type="button" onclick="window.app.saveProjectToPc()" title="Save progress and download .wxbrl project bundle to your computer">⬇️ Save to PC</button>
+        <button class="btn" type="button" onclick="window.app.loadExample()" title="For testing purposes only">🧪 Load Sample</button>
+        <button class="btn" type="button" onclick="window.app.selectTab('validation')" title="Validate filing against MCA Business Rules">🛡️ Validate</button>
+        <button class="btn" type="button" onclick="window.app.openPreview()" title="Preview full balance sheet & P&L">📄 Preview / PDF</button>
+        <button class="btn primary" type="button" onclick="window.app.exportXml()" title="Export MCA compliant XBRL XML">⚡ Generate XML</button>
       </div>
       <!-- Hidden File Inputs -->
       <input type="file" id="file-xml" class="hidden-file" style="display:none;" accept=".xml,application/xml,text/xml" onchange="window.app.onXmlChosen(this)">

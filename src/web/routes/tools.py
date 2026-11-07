@@ -15,6 +15,11 @@ from src.services.excel_import import (
 )
 from src.services.importer import import_instance
 from src.services.pdf_preview import build_preview_html
+from src.services.spreadsheet_service import (
+    get_sheet_data,
+    get_workbook_session,
+    parse_and_store_workbook,
+)
 from src.services.totals_fill import fill_totals, fill_totals_plan
 from src.services.upkeep import (
     delete_set_aside,
@@ -187,3 +192,35 @@ def render_pdf_preview(session_id: str = "default"):
         s = get_session(session_id)
         html_content = build_preview_html(s)
         return HTMLResponse(content=html_content)
+
+
+@router.post("/workbook/upload")
+async def upload_workbook(file: UploadFile = File(...), session_id: str = "default"):
+    with logger.span("tools.upload_workbook", filename=file.filename, session_id=session_id):
+        data = await file.read()
+        wsess = parse_and_store_workbook(data, file.filename or "workbook.xlsx", session_id=session_id)
+        summary = wsess.to_summary()
+        first_sheet = get_sheet_data(session_id, wsess.sheet_names[0] if wsess.sheet_names else None)
+        return success_response(
+            data={"summary": summary, "sheet": first_sheet},
+            message="Workbook uploaded and parsed successfully",
+        )
+
+
+@router.get("/workbook/sheet")
+def get_workbook_sheet(sheet: str | None = Query(None), session_id: str = "default"):
+    with logger.span("tools.get_workbook_sheet", sheet=sheet, session_id=session_id):
+        data = get_sheet_data(session_id, sheet_name=sheet)
+        if not data:
+            return success_response(data=None, message="No workbook loaded in active session")
+        return success_response(data=data, message="Sheet data retrieved successfully")
+
+
+@router.get("/workbook/summary")
+def get_workbook_overview(session_id: str = "default"):
+    with logger.span("tools.get_workbook_summary", session_id=session_id):
+        wsess = get_workbook_session(session_id)
+        if not wsess:
+            return success_response(data=None, message="No workbook loaded")
+        return success_response(data=wsess.to_summary(), message="Workbook overview retrieved")
+

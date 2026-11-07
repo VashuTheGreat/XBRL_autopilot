@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<xsd:schema targetNamespace="http://www.icai.org/xbrl/taxonomy/2012-03-31/in-ca-types" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:in-ca-types="http://www.icai.org/xbrl/taxonomy/2012-03-31/in-ca-types" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <xsd:complexType name="CINNumber">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:stringItemType">
+        <xsd:length fixed="true" value="21"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="MethodOfAccountingUsed">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Equity method"/>
+        <xsd:enumeration value="Other"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="FormOfJointVenture">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Jointly controlled assets"/>
+        <xsd:enumeration value="Jointly controlled operations"/>
+        <xsd:enumeration value="Jointly controlled entities"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="CategoryOfAuditor">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Individual"/>
+        <xsd:enumeration value="Auditors firm"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="PANNumber">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:stringItemType">
+        <xsd:length fixed="true" value="10"/>
+        <xsd:pattern value="[A-Z][A-Z][A-Z][A-Z][A-Z][0-9][0-9][0-9][0-9][A-Z]"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="ContentOfReport">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Balance Sheet"/>
+        <xsd:enumeration value="Statement of Profit &amp; Loss"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="NatureOfReport">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Standalone"/>
+        <xsd:enumeration value="Consolidated"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="TypeOfCashFlowStatement">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Direct Method"/>
+        <xsd:enumeration value="Indirect Method"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="ComplianceReportStatus">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Yes"/>
+        <xsd:enumeration value="No"/>
+        <xsd:enumeration value="Not Applicable"/>
+        <xsd:enumeration value="Yet to be filed"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="CostAuditReportStatus">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Yes"/>
+        <xsd:enumeration value="No"/>
+        <xsd:enumeration value="Yet to be filed"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="IndustryType">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Commercial and Industrial"/>
+        <xsd:enumeration value="Bank"/>
+        <xsd:enumeration value="NBFC"/>
+        <xsd:enumeration value="Power"/>
+        <xsd:enumeration value="Insurance"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="LevelOfRounding">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Actual"/>
+        <xsd:enumeration value="Thousands"/>
+        <xsd:enumeration value="Lakhs"/>
+        <xsd:enumeration value="Millions"/>
+        <xsd:enumeration value="Crores"/>
+        <xsd:enumeration value="Billions"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="DINNumber">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:stringItemType">
+        <xsd:length fixed="true" value="8"/>
+        <xsd:pattern value="[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="ITCNumber8Digits">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:stringItemType">
+        <xsd:length fixed="true" value="8"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="ITCNumber4Digits">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:stringItemType">
+        <xsd:length fixed="true" value="4"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="WhetherBondsOrDebentures">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Bond"/>
+        <xsd:enumeration value="Debenture"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="NatureOfBondOrDebenture">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Fully convertible"/>
+        <xsd:enumeration value="Partly convertible"/>
+        <xsd:enumeration value="Non-convertible"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="HolderOfBondOrDebenture">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Banks"/>
+        <xsd:enumeration value="Government semi government"/>
+        <xsd:enumeration value="Intercorporate"/>
+        <xsd:enumeration value="Others"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="TypeOfNonCurrentInvestments">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Investment in public sector equity instruments"/>
+        <xsd:enumeration value="Investment in subsidiaries equity instruments"/>
+        <xsd:enumeration value="Investment in other Indian companies equity instruments"/>
+        <xsd:enumeration value="Investment in public sector preference shares"/>
+        <xsd:enumeration value="Investment in subsidiaries preference shares"/>
+        <xsd:enumeration value="Investment in other Indian companies preference shares"/>
+        <xsd:enumeration value="Investments in government or trust securities"/>
+        <xsd:enumeration value="Investments in debentures or bonds"/>
+        <xsd:enumeration value="Investments in mutual funds"/>
+        <xsd:enumeration value="Investments in partnership firms"/>
+        <xsd:enumeration value="Investment property"/>
+        <xsd:enumeration value="Investment in foreign sources"/>
+        <xsd:enumeration value="Other non-current investments"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="TypeOfCurrentInvestments">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Investment in public sector equity instruments"/>
+        <xsd:enumeration value="Investment in subsidiaries equity instruments"/>
+        <xsd:enumeration value="Investment in other Indian companies equity instruments"/>
+        <xsd:enumeration value="Investment in public sector preference shares"/>
+        <xsd:enumeration value="Investment in subsidiaries preference shares"/>
+        <xsd:enumeration value="Investment in other Indian companies preference shares"/>
+        <xsd:enumeration value="Investments in government or trust securities"/>
+        <xsd:enumeration value="Investments in debentures or bonds"/>
+        <xsd:enumeration value="Investments in mutual funds"/>
+        <xsd:enumeration value="Investments in partnership firms"/>
+        <xsd:enumeration value="Investment property"/>
+        <xsd:enumeration value="Investment in foreign sources"/>
+        <xsd:enumeration value="Other current investments"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="ClassOfNonCurrentInvestments">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Trade investments"/>
+        <xsd:enumeration value="Other investments"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="ClassOfCurrentInvestments">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Current investments"/>
+        <xsd:enumeration value="Current portion of long-term investments"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="SRNNumber">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:stringItemType">
+        <xsd:length fixed="true" value="9"/>
+        <xsd:pattern value="[A-Z][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="TypeOfSubsidiary">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Section 4(1)(a)"/>
+        <xsd:enumeration value="Section 4(1)(b)"/>
+        <xsd:enumeration value="Section 4(1)(c)"/>
+        <xsd:enumeration value="Section 4(6)"/>
+        <xsd:enumeration value="Section 4(7)"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="NatureOfRelatedParty">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Holding company"/>
+        <xsd:enumeration value="Ultimate Holding company"/>
+        <xsd:enumeration value="Subsidiary company"/>
+        <xsd:enumeration value="Fellow Subsidiary company"/>
+        <xsd:enumeration value="Associate"/>
+        <xsd:enumeration value="Joint venture"/>
+        <xsd:enumeration value="Key Management Personnel"/>
+        <xsd:enumeration value="Relatives of Key management personnel"/>
+        <xsd:enumeration value="Enterprises which are owned, or have significant influence of or are partners with Key management personnel and their relatives"/>
+        <xsd:enumeration value="Others"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+</xsd:schema>

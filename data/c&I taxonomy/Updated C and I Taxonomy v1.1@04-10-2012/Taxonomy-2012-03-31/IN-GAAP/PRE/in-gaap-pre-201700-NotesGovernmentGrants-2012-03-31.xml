@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesGovernmentGrants" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-201700"/>
+  <presentationLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesGovernmentGrants">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfNotesOnGovernmentGrantsExplanatoryTextBlock" xlink:label="DisclosureOfNotesOnGovernmentGrantsExplanatoryTextBlock"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AccountingPolicyAdoptedForGovernmentGrantsTextBlock" xlink:label="AccountingPolicyAdoptedForGovernmentGrantsTextBlock"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfNotesOnGovernmentGrantsExplanatoryTextBlock" xlink:to="AccountingPolicyAdoptedForGovernmentGrantsTextBlock" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NatureAndExtentOfGovernmentGrantsRecognisedInFinancialStatements" xlink:label="NatureAndExtentOfGovernmentGrantsRecognisedInFinancialStatements"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfNotesOnGovernmentGrantsExplanatoryTextBlock" xlink:to="NatureAndExtentOfGovernmentGrantsRecognisedInFinancialStatements" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfGrantsOfNonMonetaryAssetsGivenAtConcessionalRateOrFreeOfCost" xlink:label="DetailsOfGrantsOfNonMonetaryAssetsGivenAtConcessionalRateOrFreeOfCost"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfNotesOnGovernmentGrantsExplanatoryTextBlock" xlink:to="DetailsOfGrantsOfNonMonetaryAssetsGivenAtConcessionalRateOrFreeOfCost" priority="0" order="3.0"/>
+  </presentationLink>
+</linkbase>

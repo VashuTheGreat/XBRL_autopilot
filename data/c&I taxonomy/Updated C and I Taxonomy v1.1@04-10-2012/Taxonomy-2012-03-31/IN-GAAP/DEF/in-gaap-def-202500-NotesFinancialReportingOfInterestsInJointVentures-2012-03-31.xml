@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesFinancialReportingOfInterestsInJointVentures" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-202500"/>
+  <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/all" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"/>
+  <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"/>
+  <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"/>
+  <definitionLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesFinancialReportingOfInterestsInJointVentures">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfInterestsInSignificantJointVenturesAbstract" xlink:label="DisclosureOfInterestsInSignificantJointVenturesAbstract"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfInterestsInSignificantJointVenturesTable" xlink:label="DisclosureOfInterestsInSignificantJointVenturesTable"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="DisclosureOfInterestsInSignificantJointVenturesAbstract" xlink:to="DisclosureOfInterestsInSignificantJointVenturesTable" priority="0" order="1.0" xbrldt:contextElement="scenario" xbrldt:closed="true"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestsInSignificantJointVenturesAxis" xlink:label="InterestsInSignificantJointVenturesAxis"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="DisclosureOfInterestsInSignificantJointVenturesTable" xlink:to="InterestsInSignificantJointVenturesAxis" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfInterestsInSignificantJointVenturesLineItems" xlink:label="DisclosureOfInterestsInSignificantJointVenturesLineItems"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfInterestsInSignificantJointVenturesAbstract" xlink:to="DisclosureOfInterestsInSignificantJointVenturesLineItems" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_FormOfJointVenture" xlink:label="FormOfJointVenture"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfInterestsInSignificantJointVenturesLineItems" xlink:to="FormOfJointVenture" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DescriptionOfInterestInSignificantJointVenture" xlink:label="DescriptionOfInterestInSignificantJointVenture"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfInterestsInSignificantJointVenturesLineItems" xlink:to="DescriptionOfInterestInSignificantJointVenture" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ProportionOfOwnershipInterestInJointlyControlledEntity" xlink:label="ProportionOfOwnershipInterestInJointlyControlledEntity"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfInterestsInSignificantJointVenturesLineItems" xlink:to="ProportionOfOwnershipInterestInJointlyControlledEntity" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NameOfJointlyControlledEntity" xlink:label="NameOfJointlyControlledEntity"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfInterestsInSignificantJointVenturesLineItems" xlink:to="NameOfJointlyControlledEntity" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CountryOfIncorporationOrResidenceOfJointlyControlledEntity" xlink:label="CountryOfIncorporationOrResidenceOfJointlyControlledEntity"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfInterestsInSignificantJointVenturesLineItems" xlink:to="CountryOfIncorporationOrResidenceOfJointlyControlledEntity" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_CINOfJointVenturer" xlink:label="CINOfJointVenturer"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfInterestsInSignificantJointVenturesLineItems" xlink:to="CINOfJointVenturer" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_PANOfJointVenturer" xlink:label="PANOfJointVenturer"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfInterestsInSignificantJointVenturesLineItems" xlink:to="PANOfJointVenturer" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_CINOfJointVenturerWhoseReportingDateIsDifferent" xlink:label="CINOfJointVenturerWhoseReportingDateIsDifferent"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfInterestsInSignificantJointVenturesLineItems" xlink:to="CINOfJointVenturerWhoseReportingDateIsDifferent" priority="0" order="8.0"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_PANOfJointVenturerWhoseReportingDateIsDifferent" xlink:label="PANOfJointVenturerWhoseReportingDateIsDifferent"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfInterestsInSignificantJointVenturesLineItems" xlink:to="PANOfJointVenturerWhoseReportingDateIsDifferent" priority="0" order="9.0"/>
+  </definitionLink>
+</linkbase>

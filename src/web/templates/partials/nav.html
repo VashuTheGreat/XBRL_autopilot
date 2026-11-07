@@ -1,26 +1,41 @@
 <!-- Statements and notes sidebar navigation -->
 <nav class="nav" id="nav" aria-label="Statements and notes">
   <div class="tools">
-    <h3>Filing Workflow</h3>
-    <a href="#setup" class="nav-link on" data-uri="setup" onclick="window.app.selectTab('setup'); return false;">
+    <h3>Workflow Navigation</h3>
+    <a href="#tagging" class="nav-link on" data-uri="tagging" onclick="window.app.selectTab('tagging'); return false;">
+      <span class="icon">⚡</span>
+      <span>Financial Tagging (Excel)</span>
+      <span class="dot ok" id="nav-tagging-dot"></span>
+    </a>
+    <a href="#flow" class="nav-link" data-uri="flow" onclick="window.app.selectTab('flow'); return false;">
+      <span class="icon">🧭</span>
+      <span>Process Flow Dashboard</span>
+      <span class="dot"></span>
+    </a>
+    <a href="#setup" class="nav-link" data-uri="setup" onclick="window.app.selectTab('setup'); return false;">
+      <span class="icon">🏢</span>
       <span>Company & Periods</span>
       <span class="dot"></span>
     </a>
     <a href="#validation" class="nav-link" data-uri="validation" onclick="window.app.selectTab('validation'); return false;">
-      <span>Validation & Rules</span>
+      <span class="icon">🛡️</span>
+      <span>Validation &amp; Business Rules</span>
       <span class="dot err" id="sidebar-errors-dot" style="display:none;"></span>
     </a>
     <a href="#tools" class="nav-link" data-uri="tools" onclick="window.app.selectTab('tools'); return false;">
-      <span>Upkeep & Tools</span>
+      <span class="icon">🛠️</span>
+      <span>Filing Tools &amp; Upkeep</span>
       <span class="dot"></span>
     </a>
   </div>
 
+  <div class="group-section elr-statements-nav">
+    <h3>Taxonomy Statements &amp; Notes</h3>
   {% for group_name, elrs in groups.items() %}
-  <div class="group-section">
-    <h3>{{ group_name }}</h3>
+  <div class="group-subsection">
+    <div class="group-subheading">{{ group_name }}</div>
     {% for elr in elrs %}
-    <a href="#{{ elr.code }}" class="nav-link" data-uri="{{ elr.uri }}" onclick="window.app.selectTab('{{ elr.uri }}'); return false;">
+    <a href="#{{ elr.code }}" class="nav-link elr-link" data-uri="{{ elr.uri }}" onclick="window.app.openFinancialTaggingForElr('{{ elr.code }}'); return false;">
       <span class="code">[{{ elr.code }}]</span>
       <span class="title">{{ elr.title }}</span>
       <span class="dot" id="dot-{{ elr.code }}"></span>
@@ -28,4 +43,6 @@
     {% endfor %}
   </div>
   {% endfor %}
+  </div>
 </nav>
+

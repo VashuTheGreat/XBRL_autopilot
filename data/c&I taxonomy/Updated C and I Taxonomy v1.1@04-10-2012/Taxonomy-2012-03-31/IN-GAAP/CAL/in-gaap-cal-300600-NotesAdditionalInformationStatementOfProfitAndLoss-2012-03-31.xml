@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesAdditionalInformationStatementOfProfitAndLoss" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-300600"/>
+  <calculationLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesAdditionalInformationStatementOfProfitAndLoss">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueFromSaleOfProducts" xlink:label="RevenueFromSaleOfProducts"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_DomesticTurnoverGoodsGross" xlink:label="DomesticTurnoverGoodsGross"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfProducts" xlink:to="DomesticTurnoverGoodsGross" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_DomesticSaleManufacturedGoods" xlink:label="DomesticSaleManufacturedGoods"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DomesticTurnoverGoodsGross" xlink:to="DomesticSaleManufacturedGoods" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_DomesticSaleTradedGoods" xlink:label="DomesticSaleTradedGoods"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DomesticTurnoverGoodsGross" xlink:to="DomesticSaleTradedGoods" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_ExportTurnoverGoodsGross" xlink:label="ExportTurnoverGoodsGross"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfProducts" xlink:to="ExportTurnoverGoodsGross" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_ExportSaleManufacturedGoods" xlink:label="ExportSaleManufacturedGoods"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ExportTurnoverGoodsGross" xlink:to="ExportSaleManufacturedGoods" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_ExportSaleTradedGoods" xlink:label="ExportSaleTradedGoods"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ExportTurnoverGoodsGross" xlink:to="ExportSaleTradedGoods" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueFromSaleOfServicesGross" xlink:label="RevenueFromSaleOfServicesGross"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueCommunicationServices" xlink:label="RevenueCommunicationServices"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueCommunicationServices" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueRoadwayOperations" xlink:label="RevenueRoadwayOperations"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueRoadwayOperations" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueWaterwayOperations" xlink:label="RevenueWaterwayOperations"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueWaterwayOperations" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueAirwayOperations" xlink:label="RevenueAirwayOperations"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueAirwayOperations" priority="0" order="4.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueLogisticsTransportServices" xlink:label="RevenueLogisticsTransportServices"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueLogisticsTransportServices" priority="0" order="5.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueCourierServices" xlink:label="RevenueCourierServices"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueCourierServices" priority="0" order="6.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueInfrastructureServices" xlink:label="RevenueInfrastructureServices"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueInfrastructureServices" priority="0" order="7.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueSoftwareDevelopment" xlink:label="RevenueSoftwareDevelopment"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueSoftwareDevelopment" priority="0" order="8.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueHardwareMaintenance" xlink:label="RevenueHardwareMaintenance"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueHardwareMaintenance" priority="0" order="9.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueInformationTechnologyConsultancy" xlink:label="RevenueInformationTechnologyConsultancy"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueInformationTechnologyConsultancy" priority="0" order="10.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueInformationTechnologyServices" xlink:label="RevenueInformationTechnologyServices"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueInformationTechnologyServices" priority="0" order="11.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueHotels" xlink:label="RevenueHotels"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueHotels" priority="0" order="12.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueHospitalsHealthcareClinics" xlink:label="RevenueHospitalsHealthcareClinics"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueHospitalsHealthcareClinics" priority="0" order="13.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueEntertainment" xlink:label="RevenueEntertainment"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueEntertainment" priority="0" order="14.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueRepairsMaintenance" xlink:label="RevenueRepairsMaintenance"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueRepairsMaintenance" priority="0" order="15.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueEducationalActivities" xlink:label="RevenueEducationalActivities"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueEducationalActivities" priority="0" order="16.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueMembershipSubscriptionsFees" xlink:label="RevenueMembershipSubscriptionsFees"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueMembershipSubscriptionsFees" priority="0" order="17.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueAdmissionFees" xlink:label="RevenueAdmissionFees"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueAdmissionFees" priority="0" order="18.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueErectioningCommissioning" xlink:label="RevenueErectioningCommissioning"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueErectioningCommissioning" priority="0" order="19.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueAgencies" xlink:label="RevenueAgencies"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueAgencies" priority="0" order="20.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueAdvertisingPublicity" xlink:label="RevenueAdvertisingPublicity"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueAdvertisingPublicity" priority="0" order="21.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueValueAddedServices" xlink:label="RevenueValueAddedServices"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueValueAddedServices" priority="0" order="22.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueRealEstatePropertyDevelopment" xlink:label="RevenueRealEstatePropertyDevelopment"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueRealEstatePropertyDevelopment" priority="0" order="23.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueOtherServices" xlink:label="RevenueOtherServices"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueOtherServices" priority="0" order="24.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueLeaseRentals" xlink:label="RevenueLeaseRentals"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueLeaseRentals" priority="0" order="25.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueHireCharges" xlink:label="RevenueHireCharges"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueHireCharges" priority="0" order="26.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueJobWork" xlink:label="RevenueJobWork"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueJobWork" priority="0" order="27.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueContracts" xlink:label="RevenueContracts"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueContracts" priority="0" order="28.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_RevenueDomesticContracts" xlink:label="RevenueDomesticContracts"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueContracts" xlink:to="RevenueDomesticContracts" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_RevenueForeignContracts" xlink:label="RevenueForeignContracts"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueContracts" xlink:to="RevenueForeignContracts" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueRoyalties" xlink:label="RevenueRoyalties"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueRoyalties" priority="0" order="29.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueTechnicalKnowhow" xlink:label="RevenueTechnicalKnowhow"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueTechnicalKnowhow" priority="0" order="30.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueFranchise" xlink:label="RevenueFranchise"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueFranchise" priority="0" order="31.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueLicenses" xlink:label="RevenueLicenses"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueLicenses" priority="0" order="32.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueIntangibleAssets" xlink:label="RevenueIntangibleAssets"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServicesGross" xlink:to="RevenueIntangibleAssets" priority="0" order="33.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueFromSaleOfServices" xlink:label="RevenueFromSaleOfServices"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_DomesticRevenueServices" xlink:label="DomesticRevenueServices"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServices" xlink:to="DomesticRevenueServices" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_ExportRevenueServices" xlink:label="ExportRevenueServices"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RevenueFromSaleOfServices" xlink:to="ExportRevenueServices" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ChangesInInventoriesOfFinishedGoodsWorkInProgressAndStockInTrade" xlink:label="ChangesInInventoriesOfFinishedGoodsWorkInProgressAndStockInTrade"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ChangesInInventoriesOfFinishedGoods" xlink:label="ChangesInInventoriesOfFinishedGoods"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ChangesInInventoriesOfFinishedGoodsWorkInProgressAndStockInTrade" xlink:to="ChangesInInventoriesOfFinishedGoods" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ChangesInInventoriesOfWorkInProgress" xlink:label="ChangesInInventoriesOfWorkInProgress"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ChangesInInventoriesOfFinishedGoodsWorkInProgressAndStockInTrade" xlink:to="ChangesInInventoriesOfWorkInProgress" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ChangesInInventoriesOfStockInTrade" xlink:label="ChangesInInventoriesOfStockInTrade"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ChangesInInventoriesOfFinishedGoodsWorkInProgressAndStockInTrade" xlink:to="ChangesInInventoriesOfStockInTrade" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ChangesInOtherInventories" xlink:label="ChangesInOtherInventories"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ChangesInInventoriesOfFinishedGoodsWorkInProgressAndStockInTrade" xlink:to="ChangesInOtherInventories" priority="0" order="4.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PriorPeriodItemsBeforeTax" xlink:label="PriorPeriodItemsBeforeTax"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PriorPeriodIncomeBeforeTax" xlink:label="PriorPeriodIncomeBeforeTax"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="PriorPeriodItemsBeforeTax" xlink:to="PriorPeriodIncomeBeforeTax" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PriorPeriodExpenseBeforeTax" xlink:label="PriorPeriodExpenseBeforeTax"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="PriorPeriodItemsBeforeTax" xlink:to="PriorPeriodExpenseBeforeTax" priority="0" order="2.0" weight="-1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ExtraordinaryItemsBeforeTax" xlink:label="ExtraordinaryItemsBeforeTax"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AttachmentOfPropertyOfEnterprise" xlink:label="AttachmentOfPropertyOfEnterprise"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ExtraordinaryItemsBeforeTax" xlink:to="AttachmentOfPropertyOfEnterprise" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_Earthquake" xlink:label="Earthquake"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ExtraordinaryItemsBeforeTax" xlink:to="Earthquake" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherItemsExtraordinary" xlink:label="OtherItemsExtraordinary"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ExtraordinaryItemsBeforeTax" xlink:to="OtherItemsExtraordinary" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ExceptionalAndExtraordinaryItems" xlink:label="ExceptionalAndExtraordinaryItems"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ExceptionalItems" xlink:label="ExceptionalItems"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ExceptionalAndExtraordinaryItems" xlink:to="ExceptionalItems" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ExceptionalItemsBeforeTax" xlink:label="ExceptionalItemsBeforeTax"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ExceptionalItems" xlink:to="ExceptionalItemsBeforeTax" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_TaxEffectOfExceptionalItems" xlink:label="TaxEffectOfExceptionalItems"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ExceptionalItems" xlink:to="TaxEffectOfExceptionalItems" priority="0" order="2.0" weight="-1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ExtraordinaryItems" xlink:label="ExtraordinaryItems"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ExceptionalAndExtraordinaryItems" xlink:to="ExtraordinaryItems" priority="0" order="2.0" weight="1"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ExtraordinaryItems" xlink:to="ExtraordinaryItemsBeforeTax" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_TaxEffectOfExtraordinaryItems" xlink:label="TaxEffectOfExtraordinaryItems"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ExtraordinaryItems" xlink:to="TaxEffectOfExtraordinaryItems" priority="0" order="2.0" weight="-1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PriorPeriodItemsAfterTax" xlink:label="PriorPeriodItemsAfterTax"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="PriorPeriodItemsAfterTax" xlink:to="PriorPeriodItemsBeforeTax" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_TaxEffectOnPriorPeriodItems" xlink:label="TaxEffectOnPriorPeriodItems"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="PriorPeriodItemsAfterTax" xlink:to="TaxEffectOnPriorPeriodItems" priority="0" order="2.0" weight="-1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ValueOfImportsCalculatedOnCIFBasis" xlink:label="ValueOfImportsCalculatedOnCIFBasis"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ValueOfImportsOfRawMaterials" xlink:label="ValueOfImportsOfRawMaterials"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ValueOfImportsCalculatedOnCIFBasis" xlink:to="ValueOfImportsOfRawMaterials" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ValueOfImportsOfComponentsAndSpareParts" xlink:label="ValueOfImportsOfComponentsAndSpareParts"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ValueOfImportsCalculatedOnCIFBasis" xlink:to="ValueOfImportsOfComponentsAndSpareParts" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ValueOfImportsOfCapitalGoods" xlink:label="ValueOfImportsOfCapitalGoods"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ValueOfImportsCalculatedOnCIFBasis" xlink:to="ValueOfImportsOfCapitalGoods" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ExpenditureInForeignCurrency" xlink:label="ExpenditureInForeignCurrency"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ExpenditureOnRoyalty" xlink:label="ExpenditureOnRoyalty"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ExpenditureInForeignCurrency" xlink:to="ExpenditureOnRoyalty" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ExpenditureOnKnowhow" xlink:label="ExpenditureOnKnowhow"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ExpenditureInForeignCurrency" xlink:to="ExpenditureOnKnowhow" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ExpenditureOnProfessionalAndConsultationFees" xlink:label="ExpenditureOnProfessionalAndConsultationFees"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ExpenditureInForeignCurrency" xlink:to="ExpenditureOnProfessionalAndConsultationFees" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ExpenditureOnInterest" xlink:label="ExpenditureOnInterest"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ExpenditureInForeignCurrency" xlink:to="ExpenditureOnInterest" priority="0" order="4.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ExpenditureOnOtherMatters" xlink:label="ExpenditureOnOtherMatters"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ExpenditureInForeignCurrency" xlink:to="ExpenditureOnOtherMatters" priority="0" order="5.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AmountOfDividendRemittedInForeignCurrency" xlink:label="AmountOfDividendRemittedInForeignCurrency"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_FinalDividendRemittedInForeignCurrency" xlink:label="FinalDividendRemittedInForeignCurrency"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="AmountOfDividendRemittedInForeignCurrency" xlink:to="FinalDividendRemittedInForeignCurrency" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterimDividendRemittedInForeignCurrency" xlink:label="InterimDividendRemittedInForeignCurrency"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="AmountOfDividendRemittedInForeignCurrency" xlink:to="InterimDividendRemittedInForeignCurrency" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_SpecialDividendRemittedInForeignCurrency" xlink:label="SpecialDividendRemittedInForeignCurrency"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="AmountOfDividendRemittedInForeignCurrency" xlink:to="SpecialDividendRemittedInForeignCurrency" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EarningsInForeignCurrency" xlink:label="EarningsInForeignCurrency"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EarningsOnExportOfGoodsCalculatedOnFOBBasis" xlink:label="EarningsOnExportOfGoodsCalculatedOnFOBBasis"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="EarningsInForeignCurrency" xlink:to="EarningsOnExportOfGoodsCalculatedOnFOBBasis" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_FOBValueOfManufacturedGoodsExported" xlink:label="FOBValueOfManufacturedGoodsExported"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="EarningsOnExportOfGoodsCalculatedOnFOBBasis" xlink:to="FOBValueOfManufacturedGoodsExported" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_FOBValueOfTradedGoodsExported" xlink:label="FOBValueOfTradedGoodsExported"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="EarningsOnExportOfGoodsCalculatedOnFOBBasis" xlink:to="FOBValueOfTradedGoodsExported" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EarningsOnRoyaltyKnowhowProfessionalAndConsultationFees" xlink:label="EarningsOnRoyaltyKnowhowProfessionalAndConsultationFees"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="EarningsInForeignCurrency" xlink:to="EarningsOnRoyaltyKnowhowProfessionalAndConsultationFees" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EarningsOnRoyalty" xlink:label="EarningsOnRoyalty"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="EarningsOnRoyaltyKnowhowProfessionalAndConsultationFees" xlink:to="EarningsOnRoyalty" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EarningsOnKnowhow" xlink:label="EarningsOnKnowhow"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="EarningsOnRoyaltyKnowhowProfessionalAndConsultationFees" xlink:to="EarningsOnKnowhow" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EarningsOnProfessionalAndConsultationFees" xlink:label="EarningsOnProfessionalAndConsultationFees"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="EarningsOnRoyaltyKnowhowProfessionalAndConsultationFees" xlink:to="EarningsOnProfessionalAndConsultationFees" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EarningsOnInterestAndDividend" xlink:label="EarningsOnInterestAndDividend"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="EarningsInForeignCurrency" xlink:to="EarningsOnInterestAndDividend" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EarningsOnInterest" xlink:label="EarningsOnInterest"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="EarningsOnInterestAndDividend" xlink:to="EarningsOnInterest" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EarningsOnDividend" xlink:label="EarningsOnDividend"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="EarningsOnInterestAndDividend" xlink:to="EarningsOnDividend" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EarningsOnOtherIncome" xlink:label="EarningsOnOtherIncome"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="EarningsInForeignCurrency" xlink:to="EarningsOnOtherIncome" priority="0" order="4.0" weight="1"/>
+  </calculationLink>
+</linkbase>

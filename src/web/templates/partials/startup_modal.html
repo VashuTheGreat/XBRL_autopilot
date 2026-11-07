@@ -1,0 +1,135 @@
+<!-- Startup Screen Modal: Load vs Create New Filing -->
+<div class="modal startup-modal-wrapper" id="modal-startup" style="display:none;">
+  <div class="startup-modal-backdrop" onclick="window.app.closeStartupModal()"></div>
+  <div class="startup-dialog" role="dialog" aria-modal="true" aria-labelledby="startup-heading">
+    
+    <header class="startup-header">
+      <div class="startup-brand">
+        <div class="brand-badge">MCA XBRL V15.2</div>
+        <h2 id="startup-heading">XBRL Autopilot Filing Hub</h2>
+        <p class="subtitle">AI-Powered Commercial Financial Filing & Taxonomy Auto-Tagging System</p>
+      </div>
+      <button type="button" class="startup-close-btn" onclick="window.app.closeStartupModal()" aria-label="Close" title="Close and return to workspace">×</button>
+    </header>
+
+    <div class="startup-body">
+      <div class="startup-cards-grid">
+        
+        <!-- CARD 1: LOAD EXISTING PROJECT -->
+        <div class="startup-card card-load" id="card-load-section">
+          <div class="card-icon-header">
+            <span class="card-icon">📂</span>
+            <div>
+              <h3>Load Saved Project</h3>
+              <p>Resume previous tagging, mappings, Excel workbook & filing facts</p>
+            </div>
+          </div>
+
+          <div class="saved-projects-container">
+            <div class="saved-projects-header">
+              <span>Saved Filings On Server</span>
+              <button class="btn small" type="button" onclick="window.app.fetchSavedProjects()">🔄 Refresh</button>
+            </div>
+
+            <div class="saved-projects-list" id="saved-projects-list">
+              <div class="empty-list-notice">Loading saved filings...</div>
+            </div>
+          </div>
+
+          <div class="divider-text"><span>OR OPEN FILE BUNDLE</span></div>
+
+          <div class="bundle-dropzone" onclick="document.getElementById('bundle-file-input').click()">
+            <span class="dropzone-icon">📦</span>
+            <div>
+              <strong>Upload Project Archive (.wxbrl / .zip)</strong>
+              <small>Click to browse saved project file</small>
+            </div>
+            <input type="file" id="bundle-file-input" style="display:none;" accept=".wxbrl,.zip" onchange="window.app.onProjectBundleUpload(this)">
+          </div>
+        </div>
+
+        <!-- CARD 2: CREATE NEW FILING -->
+        <div class="startup-card card-new" id="card-new-section">
+          <div class="card-icon-header">
+            <span class="card-icon">✨</span>
+            <div>
+              <h3>Create New Filing</h3>
+              <p>Initialize master company metadata and upload financial Excel</p>
+            </div>
+          </div>
+
+          <form id="form-create-filing" onsubmit="window.app.submitCreateNewFiling(event)">
+            <div class="form-row-dual">
+              <div class="form-group flex-2">
+                <label for="new-company-name">Company Name *</label>
+                <input type="text" id="new-company-name" required placeholder="e.g., RELIANCE INDUSTRIES LIMITED" class="input-text">
+              </div>
+              <div class="form-group flex-1">
+                <label for="new-cin">CIN (Corporate ID) *</label>
+                <input type="text" id="new-cin" required placeholder="L17110MH1973PLC019786" maxlength="21" class="input-text cin-input">
+              </div>
+            </div>
+
+            <div class="form-row-dual">
+              <div class="form-group">
+                <label for="new-fy-start">Financial Year From *</label>
+                <input type="date" id="new-fy-start" required value="2024-04-01" class="input-text">
+              </div>
+              <div class="form-group">
+                <label for="new-fy-end">Financial Year To *</label>
+                <input type="date" id="new-fy-end" required value="2025-03-31" class="input-text">
+              </div>
+            </div>
+
+            <div class="form-row-dual">
+              <div class="form-group">
+                <label for="new-rounding">Level of Rounding</label>
+                <select id="new-rounding" class="input-select">
+                  <option value="Actual">Actuals (Exact Figures)</option>
+                  <option value="Thousands">Thousands</option>
+                  <option value="Lakhs" selected>Lakhs</option>
+                  <option value="Millions">Millions</option>
+                  <option value="Crores">Crores</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="new-report-type">Report Nature</label>
+                <select id="new-report-type" class="input-select">
+                  <option value="Standalone" selected>Standalone</option>
+                  <option value="Consolidated">Consolidated</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="new-excel-file">Financial Statements Workbook (.xlsx, .xls) *</label>
+              <div class="excel-upload-box" onclick="document.getElementById('new-excel-file').click()">
+                <span class="excel-icon">📊</span>
+                <div class="excel-upload-details">
+                  <span id="new-excel-label">Choose financial Excel file to auto-tag...</span>
+                  <small id="new-excel-sublabel">Contains BS, PL, and Notes / Schedules</small>
+                </div>
+                <button type="button" class="btn small">Browse</button>
+                <input type="file" id="new-excel-file" style="display:none;" accept=".xlsx,.xls,.xlsm" onchange="window.app.onNewExcelSelected(this)">
+              </div>
+            </div>
+
+            <button type="submit" class="btn primary btn-submit-startup">
+              🚀 Start Filing & Open Financial Workspace
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- Quick Demo Option for testing -->
+      <div class="startup-footer-demo">
+        <span>Need a test run?</span>
+        <button type="button" class="btn link-btn" onclick="window.app.loadExampleAndDismiss()">
+          🧪 Quick Demo: Load Pre-populated Sample (XBRL Ltd BS/PL/Schedules)
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

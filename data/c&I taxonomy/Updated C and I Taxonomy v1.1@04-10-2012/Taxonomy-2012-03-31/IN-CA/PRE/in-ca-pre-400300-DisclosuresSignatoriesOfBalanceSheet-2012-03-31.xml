@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-ca/DisclosuresSignatoriesOfBalanceSheet" xlink:type="simple" xlink:href="../in-ca-roles-2012-03-31.xsd#in-ca-rol-400300"/>
+  <presentationLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-ca/DisclosuresSignatoriesOfBalanceSheet">
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfSignatoriesOfBalanceSheetAbstract" xlink:label="DetailsOfSignatoriesOfBalanceSheetAbstract"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfDirectorsSigningBalanceSheetAbstract" xlink:label="DetailsOfDirectorsSigningBalanceSheetAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSignatoriesOfBalanceSheetAbstract" xlink:to="DetailsOfDirectorsSigningBalanceSheetAbstract" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfDirectorsSigningBalanceSheetTable" xlink:label="DetailsOfDirectorsSigningBalanceSheetTable"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfDirectorsSigningBalanceSheetAbstract" xlink:to="DetailsOfDirectorsSigningBalanceSheetTable" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DirectorsSigningBalanceSheetAxis" xlink:label="DirectorsSigningBalanceSheetAxis"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfDirectorsSigningBalanceSheetTable" xlink:to="DirectorsSigningBalanceSheetAxis" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfDirectorsSigningBalanceSheetLineItems" xlink:label="DetailsOfDirectorsSigningBalanceSheetLineItems"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfDirectorsSigningBalanceSheetAbstract" xlink:to="DetailsOfDirectorsSigningBalanceSheetLineItems" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_NameOfDirectorSigningBalanceSheetAbstract" xlink:label="NameOfDirectorSigningBalanceSheetAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfDirectorsSigningBalanceSheetLineItems" xlink:to="NameOfDirectorSigningBalanceSheetAbstract" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_FirstNameOfDirector" xlink:label="FirstNameOfDirector"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="NameOfDirectorSigningBalanceSheetAbstract" xlink:to="FirstNameOfDirector" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_MiddleNameOfDirector" xlink:label="MiddleNameOfDirector"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="NameOfDirectorSigningBalanceSheetAbstract" xlink:to="MiddleNameOfDirector" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_LastNameOfDirector" xlink:label="LastNameOfDirector"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="NameOfDirectorSigningBalanceSheetAbstract" xlink:to="LastNameOfDirector" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DesignationOfDirector" xlink:label="DesignationOfDirector"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfDirectorsSigningBalanceSheetLineItems" xlink:to="DesignationOfDirector" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DirectorIdentificationNumberOfDirector" xlink:label="DirectorIdentificationNumberOfDirector"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfDirectorsSigningBalanceSheetLineItems" xlink:to="DirectorIdentificationNumberOfDirector" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DateOfSigningOfBalanceSheetByDirector" xlink:label="DateOfSigningOfBalanceSheetByDirector"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfDirectorsSigningBalanceSheetLineItems" xlink:to="DateOfSigningOfBalanceSheetByDirector" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfCompanySecretarySigningBalanceSheetAbstract" xlink:label="DetailsOfCompanySecretarySigningBalanceSheetAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSignatoriesOfBalanceSheetAbstract" xlink:to="DetailsOfCompanySecretarySigningBalanceSheetAbstract" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_NameOfCompanySecretary" xlink:label="NameOfCompanySecretary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfCompanySecretarySigningBalanceSheetAbstract" xlink:to="NameOfCompanySecretary" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_PermanentAccountNumberOfCompanySecretary" xlink:label="PermanentAccountNumberOfCompanySecretary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfCompanySecretarySigningBalanceSheetAbstract" xlink:to="PermanentAccountNumberOfCompanySecretary" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DateOfSigningOfBalanceSheetByCompanySecretary" xlink:label="DateOfSigningOfBalanceSheetByCompanySecretary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfCompanySecretarySigningBalanceSheetAbstract" xlink:to="DateOfSigningOfBalanceSheetByCompanySecretary" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfManagerSigningBalanceSheetAbstract" xlink:label="DetailsOfManagerSigningBalanceSheetAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSignatoriesOfBalanceSheetAbstract" xlink:to="DetailsOfManagerSigningBalanceSheetAbstract" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfManagerSigningBalanceSheetTable" xlink:label="DetailsOfManagerSigningBalanceSheetTable"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfManagerSigningBalanceSheetAbstract" xlink:to="DetailsOfManagerSigningBalanceSheetTable" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ManagerSigningBalanceSheetAxis" xlink:label="ManagerSigningBalanceSheetAxis"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfManagerSigningBalanceSheetTable" xlink:to="ManagerSigningBalanceSheetAxis" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfManagerSigningBalanceSheetLineItems" xlink:label="DetailsOfManagerSigningBalanceSheetLineItems"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfManagerSigningBalanceSheetAbstract" xlink:to="DetailsOfManagerSigningBalanceSheetLineItems" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_NameOfManagerAbstract" xlink:label="NameOfManagerAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfManagerSigningBalanceSheetLineItems" xlink:to="NameOfManagerAbstract" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_FirstNameOfManager" xlink:label="FirstNameOfManager"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="NameOfManagerAbstract" xlink:to="FirstNameOfManager" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_SecondNameOfManager" xlink:label="SecondNameOfManager"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="NameOfManagerAbstract" xlink:to="SecondNameOfManager" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_LastNameOfManager" xlink:label="LastNameOfManager"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="NameOfManagerAbstract" xlink:to="LastNameOfManager" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_PermanentAccountNumberOfManager" xlink:label="PermanentAccountNumberOfManager"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfManagerSigningBalanceSheetLineItems" xlink:to="PermanentAccountNumberOfManager" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DateOfSigningOfBalanceSheetByManager" xlink:label="DateOfSigningOfBalanceSheetByManager"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfManagerSigningBalanceSheetLineItems" xlink:to="DateOfSigningOfBalanceSheetByManager" priority="0" order="3.0"/>
+  </presentationLink>
+</linkbase>

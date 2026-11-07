@@ -1,0 +1,291 @@
+<!-- Financial Tagging Dual-Pane Workspace inspired by WebXBRL -->
+<section id="pane-tagging" class="tagging-workspace tab-pane light-theme-enforced" style="display:none;">
+  <!-- Top Control Bar (WebXBRL Screenshot 11-01-58 & 11-01-06) -->
+  <div class="tagging-toolbar">
+    <div class="tb-left">
+      <label class="autotag-toggle">
+        <input type="checkbox" id="chk-enable-autotag" checked onchange="window.app.toggleAutoTagMode(this.checked)">
+        <span class="autotag-label">Tick the check box to enable the Auto Tag Option</span>
+      </label>
+      <div class="tagging-brand">FINANCIAL TAGGING</div>
+      <div class="scope-selector-wrap">
+        <select id="tagging-elr-scope" class="form-select scope-select" onchange="window.app.onTaggingScopeChange(this.value)">
+          <option value="100100" selected>Balance Sheet</option>
+          <option value="both">Both (BS &amp; PL)</option>
+          <option value="100200">Statement of profit and loss</option>
+          <option value="100400">Cash flow statement, indirect</option>
+          <option value="100300">Cash flow statement, direct</option>
+          <optgroup label="Notes &amp; Schedules">
+            <option value="200100">Notes - Share capital</option>
+            <option value="200200">Notes - Reserves and surplus</option>
+            <option value="200300">Notes - Borrowings</option>
+            <option value="200400">Notes - Non-current investments</option>
+            <option value="200500">Notes - Current investments</option>
+            <option value="200600">Notes - Subclassification and notes on liabilities and assets</option>
+            <option value="200700">Notes - Additional disclosures on balance sheet</option>
+            <option value="200800">Notes - Disclosure of accounting policies</option>
+            <option value="200900">Notes - Events occurring after balance sheet date</option>
+            <option value="201000">Notes - Tangible assets</option>
+            <option value="201100">Notes - Intangible assets</option>
+            <option value="201400">Notes - Trade receivables</option>
+            <option value="201500">Notes - Cash and bank balances</option>
+            <option value="201600">Notes - Loans and advances</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="search-group">
+        <input type="text" id="taxonomy-search-input" class="form-input" placeholder="Search Element" onkeydown="if(event.key==='Enter') window.app.searchTaxonomyTree(this.value)">
+        <button type="button" class="btn primary small btn-search" onclick="window.app.searchTaxonomyTree(document.getElementById('taxonomy-search-input').value)">Search</button>
+      </div>
+    </div>
+
+    <div class="tb-right">
+      <!-- Gap, Column & Rounding Selectors (User's Core Requirement) -->
+      <div class="gap-controls-cluster" title="Configure Excel column positions and gap">
+        <label class="gap-item">
+          <span>Label Col:</span>
+          <input type="number" id="tb-label-col" value="1" min="1" max="26" class="mini-num-input" title="Column number containing line item descriptions (1 = Col A)" onchange="window.app.onGapSettingChange()">
+        </label>
+        <label class="gap-item">
+          <span>CY Col:</span>
+          <input type="number" id="tb-cy-col" value="3" min="1" max="26" class="mini-num-input" title="Current Year Amount Column (3 = Col C)" onchange="window.app.onGapSettingChange()">
+        </label>
+        <label class="gap-item">
+          <span>Gap (Diff):</span>
+          <input type="number" id="tb-col-diff" value="1" min="1" max="10" class="mini-num-input" title="Difference in columns between Current & Previous Year (Default: 1)" onchange="window.app.onGapSettingChange()">
+        </label>
+        <label class="gap-item">
+          <span>Rounding:</span>
+          <select id="tb-rounding" class="mini-select" title="Filing Level of Rounding" onchange="window.app.onGapSettingChange()">
+            <option value="Actual" selected>Actual</option>
+            <option value="Thousands">Thousands</option>
+            <option value="Lacs">Lacs</option>
+            <option value="Crores">Crores</option>
+            <option value="Millions">Millions</option>
+            <option value="Billions">Billions</option>
+          </select>
+        </label>
+      </div>
+
+      <button type="button" class="btn secondary small btn-reset-setting" onclick="window.app.openResetSettingsModal()" title="Open Reset Setting Dialog">⚙️ Reset Setting</button>
+      <label class="btn primary small file-btn" title="Open and upload an Excel workbook (.xlsx)">
+        📂 Open Sheet
+        <input type="file" id="excel-file-input" accept=".xlsx, .xls" style="display:none;" onchange="window.app.onUploadWorkbook(this)">
+      </label>
+      <button type="button" class="btn accent small btn-autotag-top" id="btn-trigger-autotag" onclick="window.app.triggerAutoTagging()" title="AI Auto Tag selected sheet">⚡ Auto Tag</button>
+    </div>
+  </div>
+
+  <!-- Dual-Pane Workspace Container -->
+  <div class="dual-pane-container">
+    <!-- Left Pane: Excel Sheet Viewer -->
+    <div class="pane left-pane" id="pane-excel">
+      <div class="pane-header">
+        <div class="sheet-tabs-bar" id="excel-sheet-tabs">
+          <span class="no-sheet-msg">No Excel workbook uploaded. Click "Upload Excel" to start.</span>
+        </div>
+        <div class="sheet-col-helpers">
+          <span class="col-pill" id="pill-part-col">Particulars Col: <b>A</b></span>
+          <span class="col-pill" id="pill-cy-col">CY Col: <b>C</b></span>
+          <span class="col-pill" id="pill-py-col">PY Col: <b>D</b></span>
+          <button type="button" class="btn accent small" id="btn-trigger-autotag" onclick="window.app.triggerAutoTagging()">⚡ Auto Tag</button>
+        </div>
+      </div>
+
+      <div class="grid-table-container" id="excel-grid-wrapper">
+        <table class="excel-grid" id="excel-spreadsheet-table">
+          <thead id="excel-grid-head"></thead>
+          <tbody id="excel-grid-body">
+            <tr>
+              <td colspan="10" class="empty-sheet-callout">
+                <div class="empty-state-box">
+                  <span class="empty-icon">📊</span>
+                  <h3>No Financial Excel File Loaded</h3>
+                  <p>Upload a company balance sheet, P&amp;L, or trial balance workbook to begin AI tagging.</p>
+                  <button type="button" class="btn primary" onclick="document.getElementById('excel-file-input').click()">Choose Excel Workbook (.xlsx)</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Sheet Footer Navigation -->
+      <div class="sheet-footer-bar">
+        <div class="footer-left">
+          <label for="excel-sheet-dropdown">Active Sheet:</label>
+          <select id="excel-sheet-dropdown" class="form-select small" onchange="window.app.switchSheet(this.value)">
+            <option value="">(No workbook)</option>
+          </select>
+        </div>
+        <div class="footer-right">
+          <span class="sheet-stats" id="sheet-tagged-count">Tagged: <b>0</b> rows</span>
+          <button type="button" class="btn small" onclick="window.app.highlightAllTaggedCells()">Highlight Tagged</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resizer Divider -->
+    <div class="pane-resizer" id="pane-divider"></div>
+
+    <!-- Right Pane: Taxonomy Tree Structure & Tagging Table -->
+    <div class="pane right-pane" id="pane-taxonomy">
+      <div class="pane-header">
+        <div class="taxonomy-title">
+          <span id="tax-tree-code">[100100]</span>
+          <span id="tax-tree-title">Balance sheet</span>
+        </div>
+        <div class="tax-tree-actions">
+          <button type="button" class="btn small" onclick="window.app.expandAllTaxonomyNodes()">Expand All</button>
+          <button type="button" class="btn small" onclick="window.app.collapseAllTaxonomyNodes()">Collapse All</button>
+          <button type="button" class="btn small primary" onclick="window.app.syncFilingCalculations()">Sync Tree</button>
+        </div>
+      </div>
+
+      <div class="taxonomy-table-container">
+        <table class="taxonomy-tree-table" id="taxonomy-tree-table">
+          <thead>
+            <tr>
+              <th style="width: 48%;">Name</th>
+              <th style="width: 12%;">Notes</th>
+              <th style="width: 20%;">Current Year</th>
+              <th style="width: 20%;">Previous Year</th>
+            </tr>
+          </thead>
+          <tbody id="taxonomy-tree-body">
+            <tr><td colspan="4" class="loading-td">Loading taxonomy presentation hierarchy...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Difference & Status Bar -->
+  <div class="tagging-bottom-bar">
+    <div class="diff-indicators">
+      <div class="diff-chip" id="diff-bs-chip">
+        <span class="dot-indicator ok" id="dot-bs">●</span>
+        <span class="label">Difference in Balance Sheet:</span>
+        <span class="val" id="val-diff-bs-cy">Current Year = 0</span>,
+        <span class="val" id="val-diff-bs-py">Previous Year = 0</span>
+      </div>
+      <div class="diff-chip" id="diff-pl-chip">
+        <span class="dot-indicator ok" id="dot-pl">●</span>
+        <span class="label">Net Profit or Loss:</span>
+        <span class="val" id="val-diff-pl-cy">Current Year = 0</span>,
+        <span class="val" id="val-diff-pl-py">Previous Year = 0</span>
+      </div>
+    </div>
+
+    <div class="bottom-actions">
+      <button type="button" class="btn secondary" onclick="window.app.syncFilingCalculations()">Sync</button>
+      <button type="button" class="btn secondary" onclick="window.app.selectTab('flow')">Close</button>
+      <button type="button" class="btn primary" onclick="window.app.selectTab('validation')">Validate Filing</button>
+      <button type="button" class="btn accent" onclick="window.app.exportXml()">Generate XML</button>
+    </div>
+  </div>
+</section>
+
+<!-- Settings Modal: "WXBRL - Reset Setting" (WebXBRL Screenshot 3) -->
+<div id="modal-reset-settings" class="modal-backdrop" style="display:none;">
+  <div class="modal-window wxbrl-dialog">
+    <div class="modal-header">
+      <div class="dialog-icon">⚙️</div>
+      <h3>WXBRL - Reset Setting</h3>
+      <button type="button" class="close-x" onclick="window.app.closeResetSettingsModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="setting-row">
+        <label for="cfg-label-col">Label's Column No.</label>
+        <div class="field-wrap">
+          <input type="number" id="cfg-label-col" min="1" max="26" value="1" class="form-input num-field">
+          <p class="field-help">(Enter no. of column on which names of various Assets, Liabilities, Expenses, Income appear in excel sheet. If they appear on first column, it should be 1.)</p>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <label for="cfg-col-diff">Column Difference between the years</label>
+        <div class="field-wrap">
+          <input type="number" id="cfg-col-diff" min="1" max="10" value="1" class="form-input num-field">
+          <p class="field-help">(It is the difference in column of figures of current &amp; previous year. If figures are in consecutive columns, difference would be 1.)</p>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <label for="cfg-level-rounding">Level Of Rounding</label>
+        <div class="field-wrap">
+          <select id="cfg-level-rounding" class="form-select">
+            <option value="Actual" selected>Actual</option>
+            <option value="Thousands">Thousands</option>
+            <option value="Lakhs">Lacs</option>
+            <option value="Crores">Crores</option>
+            <option value="Millions">Millions</option>
+            <option value="Billions">Billions</option>
+          </select>
+          <p class="field-help">(Figures may be in Actuals, Thousands, Lacs, Crores, Millions, Billions etc. Select the correct option.)</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn primary" onclick="window.app.saveResetSettings()">💾 Save</button>
+      <button type="button" class="btn secondary" onclick="window.app.closeResetSettingsModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Option A: AI Recommendations Staging Drawer / Modal -->
+<div id="modal-ai-recommendations" class="modal-backdrop" style="display:none;">
+  <div class="modal-window ai-staging-dialog">
+    <div class="modal-header ai-header">
+      <div class="ai-badge">🤖 AI Auto-Tagging Assistant</div>
+      <h3>Review AI Recommended MCA Taxonomy Tags</h3>
+      <button type="button" class="close-x" onclick="window.app.closeAiModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="ai-banner">
+        <span>The AI recommendation engine matched <b><span id="ai-matches-count">0</span></b> line items from your spreadsheet against the <b><span id="ai-taxonomy-label">MCA C&amp;I</span></b> taxonomy. Review recommendations below before applying to your filing facts.</span>
+      </div>
+
+      <div class="staging-table-wrap">
+        <table class="staging-table">
+          <thead>
+            <tr>
+              <th style="width: 4%;"><input type="checkbox" id="chk-staging-select-all" checked onchange="window.app.toggleSelectAllAi(this.checked)"></th>
+              <th style="width: 6%;">Row</th>
+              <th style="width: 25%;">Excel Particulars</th>
+              <th style="width: 35%;">AI Recommended Taxonomy Concept</th>
+              <th style="width: 15%;">Match Confidence</th>
+              <th style="width: 15%;">Values (CY / PY)</th>
+            </tr>
+          </thead>
+          <tbody id="ai-staging-rows">
+            <tr><td colspan="6" class="loading-td">Analyzing selected column...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div class="footer-left">
+        <span class="selected-summary">Selected: <b><span id="ai-selected-count">0</span></b> tags</span>
+      </div>
+      <div class="footer-right">
+        <button type="button" class="btn secondary" onclick="window.app.closeAiModal()">Cancel</button>
+        <button type="button" class="btn accent" onclick="window.app.applyAiRecommendations()">✨ Apply Recommended Tags</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Right-Click Context Menu for Tagged Taxonomy Nodes (Screenshot 6) -->
+<div id="taxonomy-context-menu" class="context-menu" style="display:none;">
+  <div class="cm-item" onclick="window.app.cmTagSelectedRow()"><span class="icon">🏷️</span> Tag Selected Excel Row</div>
+  <div class="cm-divider"></div>
+  <div class="cm-item" onclick="window.app.cmRemoveTagging()"><span class="icon">🗑️</span> Remove Tagging <kbd>Del</kbd></div>
+  <div class="cm-item" onclick="window.app.cmGoToLinkedCell()"><span class="icon">📍</span> Go to Linked Cell <kbd>F5</kbd></div>
+  <div class="cm-divider"></div>
+  <div class="cm-item" onclick="window.app.cmAddFootnote()"><span class="icon">📝</span> Foot Note</div>
+  <div class="cm-item" onclick="window.app.cmChangeSign()"><span class="icon">➕/➖</span> Change Sign <kbd>Ctrl -</kbd></div>
+  <div class="cm-divider"></div>
+  <div class="cm-item" onclick="window.app.cmProperties()"><span class="icon">ℹ️</span> Properties <kbd>F6</kbd></div>
+  <div class="cm-item" onclick="window.app.expandAllTaxonomyNodes()"><span class="icon">📂</span> Expand All</div>
+</div>

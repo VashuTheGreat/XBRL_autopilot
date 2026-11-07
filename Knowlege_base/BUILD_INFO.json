@@ -1,9 +1,0 @@
-{
-  "file": "mca-ci-xbrl.html",
-  "sha256": "a0423af7d968915e83192fd006dedbc0dabe651a84453273ca988836eaaaf232",
-  "bytes": 6659843,
-  "authorityHash": "3710578616512e4e180d7d7d0c3d39241504854a7db2a4b4f8c81c6d3de60512",
-  "buildId": "c55a7f9dd3",
-  "builtWith": "esbuild",
-  "node": "v22.23.3"
-}

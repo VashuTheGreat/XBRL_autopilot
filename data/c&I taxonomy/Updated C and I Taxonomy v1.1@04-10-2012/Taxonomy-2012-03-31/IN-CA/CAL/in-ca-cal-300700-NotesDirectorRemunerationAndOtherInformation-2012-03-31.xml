@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-ca/NotesDirectorRemunerationAndOtherInformation" xlink:type="simple" xlink:href="../in-ca-roles-2012-03-31.xsd#in-ca-rol-300700"/>
+  <calculationLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-ca/NotesDirectorRemunerationAndOtherInformation">
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DirectorRemuneration" xlink:label="DirectorRemuneration"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_SalaryToDirector" xlink:label="SalaryToDirector"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DirectorRemuneration" xlink:to="SalaryToDirector" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_BasicPayDirector" xlink:label="BasicPayDirector"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="SalaryToDirector" xlink:to="BasicPayDirector" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_AllowancesDirector" xlink:label="AllowancesDirector"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="SalaryToDirector" xlink:to="AllowancesDirector" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_PerquisitesDirector" xlink:label="PerquisitesDirector"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="SalaryToDirector" xlink:to="PerquisitesDirector" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_CommissionDirector" xlink:label="CommissionDirector"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="SalaryToDirector" xlink:to="CommissionDirector" priority="0" order="4.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_SittingFeesDirector" xlink:label="SittingFeesDirector"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DirectorRemuneration" xlink:to="SittingFeesDirector" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_StockCompensationDirector" xlink:label="StockCompensationDirector"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DirectorRemuneration" xlink:to="StockCompensationDirector" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_PostretirementBenefitsDirector" xlink:label="PostretirementBenefitsDirector"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DirectorRemuneration" xlink:to="PostretirementBenefitsDirector" priority="0" order="4.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_OtherCompensationDirector" xlink:label="OtherCompensationDirector"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DirectorRemuneration" xlink:to="OtherCompensationDirector" priority="0" order="5.0" weight="1"/>
+  </calculationLink>
+</linkbase>

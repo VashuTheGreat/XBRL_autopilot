@@ -18,6 +18,7 @@ from src.web.middlewares.correlation_id import CorrelationIdMiddleware
 from src.web.responses import error_response
 from src.web.routes.facts import router as facts_router
 from src.web.routes.filing import router as filing_router
+from src.web.routes.projects import router as projects_router
 from src.web.routes.taxonomies import router as taxonomies_router
 from src.web.routes.tools import router as tools_router
 from src.web.routes.validation import router as validation_router
@@ -101,6 +102,7 @@ app.include_router(facts_router)
 app.include_router(validation_router)
 app.include_router(tools_router)
 app.include_router(taxonomies_router, prefix="/api/taxonomies", tags=["taxonomies"])
+app.include_router(projects_router, prefix="/api/projects", tags=["projects"])
 
 
 @app.get("/", response_class=HTMLResponse)

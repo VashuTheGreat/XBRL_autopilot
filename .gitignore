@@ -9,10 +9,17 @@ node_modules/
 
 logs/
 
-
-data/
+webXBRL_app/
 chroma_langchain_db/
 
 *.db
-
 .env
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Saved project instances (user data & test artifacts)
+saved_projects/*
+!saved_projects/.gitkeep

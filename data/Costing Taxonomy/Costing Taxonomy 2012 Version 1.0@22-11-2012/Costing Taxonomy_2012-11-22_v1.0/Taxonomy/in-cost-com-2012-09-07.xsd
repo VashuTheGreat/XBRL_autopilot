@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created by IRIS Business Services Ltd -->
+<!--                     
+            *************** Entry-point for Compliance Report :2012-09-07*************
+                      
+       
+ -->
+<xsd:schema targetNamespace="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-com" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:in-cost-com="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-com" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:in-ca-types="http://www.xbrl.org/in/2011-03-31/in-ca-types" xmlns:ref="http://www.xbrl.org/2006/ref" xmlns:in-cost-type="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-type" xmlns:num="http://www.xbrl.org/dtr/type/numeric" xmlns:nonnum="http://www.xbrl.org/dtr/type/non-numeric" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:xl="http://www.xbrl.org/2003/XLink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <xsd:annotation>
+    <xsd:appinfo>
+      <link:linkbaseRef xlink:type="simple" xlink:href="reports/in-cost-com/in-cost-com-2012-09-07-pre.xml" xlink:role="http://www.xbrl.org/2003/role/presentationLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+      <link:linkbaseRef xlink:type="simple" xlink:href="reports/in-cost-com/in-cost-com-2012-09-07-cal.xml" xlink:role="http://www.xbrl.org/2003/role/calculationLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+      <link:linkbaseRef xlink:type="simple" xlink:href="reports/in-cost-com/in-cost-com-2012-09-07-def.xml" xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+      <link:linkbaseRef xlink:type="simple" xlink:href="elts/in-cost/in-cost-2012-09-07-lab-en.xml" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+      <link:linkbaseRef xlink:type="simple" xlink:href="elts/in-cost/in-cost-2012-09-07-lab-hi.xml" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+    </xsd:appinfo>
+  </xsd:annotation>
+  <xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <xsd:import namespace="http://xbrl.org/2005/xbrldt" schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd"/>
+  <xsd:import namespace="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-com-role" schemaLocation="reports/in-cost-com/in-cost-com-role-2012-09-07.xsd"/>
+  <xsd:import namespace="http://www.icwai.org/in/xbrl/2012-09-07/in-cost" schemaLocation="elts/in-cost/in-cost-2012-09-07.xsd"/>
+</xsd:schema>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesIntangibleAssets" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-201100"/>
+  <calculationLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesIntangibleAssets">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ChangesInIntangibleAssets" xlink:label="ChangesInIntangibleAssets"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AdditionsToIntangibleAssets" xlink:label="AdditionsToIntangibleAssets"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ChangesInIntangibleAssets" xlink:to="AdditionsToIntangibleAssets" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AdditionsThroughInternalDevelopment" xlink:label="AdditionsThroughInternalDevelopment"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="AdditionsToIntangibleAssets" xlink:to="AdditionsThroughInternalDevelopment" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AdditionsOtherThanThroughBusinessCombinationsIntangibleAssets" xlink:label="AdditionsOtherThanThroughBusinessCombinationsIntangibleAssets"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="AdditionsToIntangibleAssets" xlink:to="AdditionsOtherThanThroughBusinessCombinationsIntangibleAssets" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AcquisitionsThroughBusinessCombinationsIntangibleAssets" xlink:label="AcquisitionsThroughBusinessCombinationsIntangibleAssets"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="AdditionsToIntangibleAssets" xlink:to="AcquisitionsThroughBusinessCombinationsIntangibleAssets" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AmortizationIntangibleAssets" xlink:label="AmortizationIntangibleAssets"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ChangesInIntangibleAssets" xlink:to="AmortizationIntangibleAssets" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ImpairmentLossRecognisedInProfitOrLossIntangibleAssets" xlink:label="ImpairmentLossRecognisedInProfitOrLossIntangibleAssets"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ChangesInIntangibleAssets" xlink:to="ImpairmentLossRecognisedInProfitOrLossIntangibleAssets" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ReversalOfImpairmentLossRecognisedInProfitOrLossIntangibleAssets" xlink:label="ReversalOfImpairmentLossRecognisedInProfitOrLossIntangibleAssets"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ChangesInIntangibleAssets" xlink:to="ReversalOfImpairmentLossRecognisedInProfitOrLossIntangibleAssets" priority="0" order="4.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevaluationIncreaseDecreaseIntangibleAssets" xlink:label="RevaluationIncreaseDecreaseIntangibleAssets"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ChangesInIntangibleAssets" xlink:to="RevaluationIncreaseDecreaseIntangibleAssets" priority="0" order="5.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisposalsIntangibleAssets" xlink:label="DisposalsIntangibleAssets"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ChangesInIntangibleAssets" xlink:to="DisposalsIntangibleAssets" priority="0" order="6.0" weight="-1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisposalsIntangibleAssetsThroughDemergers" xlink:label="DisposalsIntangibleAssetsThroughDemergers"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DisposalsIntangibleAssets" xlink:to="DisposalsIntangibleAssetsThroughDemergers" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisposalsIntangibleAssetsOthers" xlink:label="DisposalsIntangibleAssetsOthers"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DisposalsIntangibleAssets" xlink:to="DisposalsIntangibleAssetsOthers" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RetirementsOfIntangibleAssets" xlink:label="RetirementsOfIntangibleAssets"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ChangesInIntangibleAssets" xlink:to="RetirementsOfIntangibleAssets" priority="0" order="7.0" weight="-1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherAdjustmentsIntangibleAssets" xlink:label="OtherAdjustmentsIntangibleAssets"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ChangesInIntangibleAssets" xlink:to="OtherAdjustmentsIntangibleAssets" priority="0" order="8.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_IncreaseDecreaseThroughNetExchangeDifferencesIntangibleAssets" xlink:label="IncreaseDecreaseThroughNetExchangeDifferencesIntangibleAssets"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="OtherAdjustmentsIntangibleAssets" xlink:to="IncreaseDecreaseThroughNetExchangeDifferencesIntangibleAssets" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherAdjustmentsIntangibleAssetsOthers" xlink:label="OtherAdjustmentsIntangibleAssetsOthers"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="OtherAdjustmentsIntangibleAssets" xlink:to="OtherAdjustmentsIntangibleAssetsOthers" priority="0" order="2.0" weight="1"/>
+  </calculationLink>
+</linkbase>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-ca/NotesSubsidiaryInformation" xlink:type="simple" xlink:href="../in-ca-roles-2012-03-31.xsd#in-ca-rol-202800"/>
+  <calculationLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-ca/NotesSubsidiaryInformation">
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ShareCapitalOfSubsidiary" xlink:label="ShareCapitalOfSubsidiary"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_PreferenceShareCapitalOfSubsidiary" xlink:label="PreferenceShareCapitalOfSubsidiary"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ShareCapitalOfSubsidiary" xlink:to="PreferenceShareCapitalOfSubsidiary" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_EquityShareCapitalOfSubsidiary" xlink:label="EquityShareCapitalOfSubsidiary"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ShareCapitalOfSubsidiary" xlink:to="EquityShareCapitalOfSubsidiary" priority="0" order="2.0" weight="1"/>
+  </calculationLink>
+</linkbase>

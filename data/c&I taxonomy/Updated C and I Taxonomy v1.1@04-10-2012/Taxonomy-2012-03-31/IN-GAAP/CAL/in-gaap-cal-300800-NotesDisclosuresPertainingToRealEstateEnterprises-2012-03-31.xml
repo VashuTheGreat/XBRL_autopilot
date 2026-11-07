@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesDisclosuresPertainingToRealEstateEnterprises" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-300800"/>
+  <calculationLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesDisclosuresPertainingToRealEstateEnterprises">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RealEstateProjectRevenues" xlink:label="RealEstateProjectRevenues"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_SaleOfPlotsOfLand" xlink:label="SaleOfPlotsOfLand"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RealEstateProjectRevenues" xlink:to="SaleOfPlotsOfLand" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_SaleOfDevelopedPlotsOfLand" xlink:label="SaleOfDevelopedPlotsOfLand"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RealEstateProjectRevenues" xlink:to="SaleOfDevelopedPlotsOfLand" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_SaleOfDevelopedPlotsOfLandLongTermSaleTypeLeases" xlink:label="SaleOfDevelopedPlotsOfLandLongTermSaleTypeLeases"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RealEstateProjectRevenues" xlink:to="SaleOfDevelopedPlotsOfLandLongTermSaleTypeLeases" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_SaleOfSemiFinishedStructures" xlink:label="SaleOfSemiFinishedStructures"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RealEstateProjectRevenues" xlink:to="SaleOfSemiFinishedStructures" priority="0" order="4.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_SaleOfFinishedStructures" xlink:label="SaleOfFinishedStructures"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RealEstateProjectRevenues" xlink:to="SaleOfFinishedStructures" priority="0" order="5.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ConsiderationForConstruction" xlink:label="ConsiderationForConstruction"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RealEstateProjectRevenues" xlink:to="ConsiderationForConstruction" priority="0" order="6.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ConsiderationForContract" xlink:label="ConsiderationForContract"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RealEstateProjectRevenues" xlink:to="ConsiderationForContract" priority="0" order="7.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PropertyManagementServiceFees" xlink:label="PropertyManagementServiceFees"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConsiderationForContract" xlink:to="PropertyManagementServiceFees" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_SaleOfDecorativeFittingsExcludingFittingsWhichAreIntegralPartOfUnitsToBeDelivered" xlink:label="SaleOfDecorativeFittingsExcludingFittingsWhichAreIntegralPartOfUnitsToBeDelivered"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConsiderationForContract" xlink:to="SaleOfDecorativeFittingsExcludingFittingsWhichAreIntegralPartOfUnitsToBeDelivered" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RentalInLieuOfUnoccupiedPremises" xlink:label="RentalInLieuOfUnoccupiedPremises"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConsiderationForContract" xlink:to="RentalInLieuOfUnoccupiedPremises" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ConsiderationForContractOthers" xlink:label="ConsiderationForContractOthers"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConsiderationForContract" xlink:to="ConsiderationForContractOthers" priority="0" order="4.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ConsiderationForAmenities" xlink:label="ConsiderationForAmenities"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RealEstateProjectRevenues" xlink:to="ConsiderationForAmenities" priority="0" order="8.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ConsiderationForInteriors" xlink:label="ConsiderationForInteriors"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RealEstateProjectRevenues" xlink:to="ConsiderationForInteriors" priority="0" order="9.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ConsiderationForParkingSpaces" xlink:label="ConsiderationForParkingSpaces"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RealEstateProjectRevenues" xlink:to="ConsiderationForParkingSpaces" priority="0" order="10.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_SaleOfDevelopmentRights" xlink:label="SaleOfDevelopmentRights"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RealEstateProjectRevenues" xlink:to="SaleOfDevelopmentRights" priority="0" order="11.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherRealEstateProjectRevenues" xlink:label="OtherRealEstateProjectRevenues"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="RealEstateProjectRevenues" xlink:to="OtherRealEstateProjectRevenues" priority="0" order="12.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ProjectCost" xlink:label="ProjectCost"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostOfLandAndDevelopmentRights" xlink:label="CostOfLandAndDevelopmentRights"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ProjectCost" xlink:to="CostOfLandAndDevelopmentRights" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostOfAcquisitionOfLand" xlink:label="CostOfAcquisitionOfLand"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="CostOfLandAndDevelopmentRights" xlink:to="CostOfAcquisitionOfLand" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DevelopmentRightsInLandOrPropertyIncludingCostOfLand" xlink:label="DevelopmentRightsInLandOrPropertyIncludingCostOfLand"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="CostOfLandAndDevelopmentRights" xlink:to="DevelopmentRightsInLandOrPropertyIncludingCostOfLand" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostOfDevelopmentRights" xlink:label="CostOfDevelopmentRights"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="CostOfLandAndDevelopmentRights" xlink:to="CostOfDevelopmentRights" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RehabilitationCosts" xlink:label="RehabilitationCosts"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="CostOfLandAndDevelopmentRights" xlink:to="RehabilitationCosts" priority="0" order="4.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RegistrationCharges" xlink:label="RegistrationCharges"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="CostOfLandAndDevelopmentRights" xlink:to="RegistrationCharges" priority="0" order="5.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_StampDuty" xlink:label="StampDuty"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="CostOfLandAndDevelopmentRights" xlink:to="StampDuty" priority="0" order="6.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_BrokerageCost" xlink:label="BrokerageCost"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="CostOfLandAndDevelopmentRights" xlink:to="BrokerageCost" priority="0" order="7.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherIncidentalExpensesForLandPurchasedForDevelopment" xlink:label="OtherIncidentalExpensesForLandPurchasedForDevelopment"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="CostOfLandAndDevelopmentRights" xlink:to="OtherIncidentalExpensesForLandPurchasedForDevelopment" priority="0" order="8.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_BorrowingCostsOnRealEstateProjects" xlink:label="BorrowingCostsOnRealEstateProjects"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ProjectCost" xlink:to="BorrowingCostsOnRealEstateProjects" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_BorrowingCostsIncurredDirectlyInRelationToProject" xlink:label="BorrowingCostsIncurredDirectlyInRelationToProject"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="BorrowingCostsOnRealEstateProjects" xlink:to="BorrowingCostsIncurredDirectlyInRelationToProject" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_BorrowingCostsApportionedToRealEstateProject" xlink:label="BorrowingCostsApportionedToRealEstateProject"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="BorrowingCostsOnRealEstateProjects" xlink:to="BorrowingCostsApportionedToRealEstateProject" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ConstructionAndDevelopmentCost" xlink:label="ConstructionAndDevelopmentCost"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ProjectCost" xlink:to="ConstructionAndDevelopmentCost" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ConstructionAndDevelopmentCostIncurredDirectlyInRelationToProject" xlink:label="ConstructionAndDevelopmentCostIncurredDirectlyInRelationToProject"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConstructionAndDevelopmentCost" xlink:to="ConstructionAndDevelopmentCostIncurredDirectlyInRelationToProject" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_LandConversionCost" xlink:label="LandConversionCost"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConstructionAndDevelopmentCostIncurredDirectlyInRelationToProject" xlink:to="LandConversionCost" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_BettermentCharges" xlink:label="BettermentCharges"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConstructionAndDevelopmentCostIncurredDirectlyInRelationToProject" xlink:to="BettermentCharges" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_MunicipalSanctionFee" xlink:label="MunicipalSanctionFee"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConstructionAndDevelopmentCostIncurredDirectlyInRelationToProject" xlink:to="MunicipalSanctionFee" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherChargesForObtainingBuildingPermission" xlink:label="OtherChargesForObtainingBuildingPermission"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConstructionAndDevelopmentCostIncurredDirectlyInRelationToProject" xlink:to="OtherChargesForObtainingBuildingPermission" priority="0" order="4.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_SiteLabourCostIncludingSiteSupervision" xlink:label="SiteLabourCostIncludingSiteSupervision"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConstructionAndDevelopmentCostIncurredDirectlyInRelationToProject" xlink:to="SiteLabourCostIncludingSiteSupervision" priority="0" order="5.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostOfMaterialsUsedInConstructionOrDevelopmentOfProperty" xlink:label="CostOfMaterialsUsedInConstructionOrDevelopmentOfProperty"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConstructionAndDevelopmentCostIncurredDirectlyInRelationToProject" xlink:to="CostOfMaterialsUsedInConstructionOrDevelopmentOfProperty" priority="0" order="6.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DepreciationOfPlantAndEquipmentUsedInConstructionUsedForProject" xlink:label="DepreciationOfPlantAndEquipmentUsedInConstructionUsedForProject"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConstructionAndDevelopmentCostIncurredDirectlyInRelationToProject" xlink:to="DepreciationOfPlantAndEquipmentUsedInConstructionUsedForProject" priority="0" order="7.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostOfMovingPlantEquipmentAndMaterialsFromOrToProjectSite" xlink:label="CostOfMovingPlantEquipmentAndMaterialsFromOrToProjectSite"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConstructionAndDevelopmentCostIncurredDirectlyInRelationToProject" xlink:to="CostOfMovingPlantEquipmentAndMaterialsFromOrToProjectSite" priority="0" order="8.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostOfHiringPlantAndEquipment" xlink:label="CostOfHiringPlantAndEquipment"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConstructionAndDevelopmentCostIncurredDirectlyInRelationToProject" xlink:to="CostOfHiringPlantAndEquipment" priority="0" order="9.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostsOfDesignAndTechnicalAssistanceThatIsDirectlyRelatedToProject" xlink:label="CostsOfDesignAndTechnicalAssistanceThatIsDirectlyRelatedToProject"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConstructionAndDevelopmentCostIncurredDirectlyInRelationToProject" xlink:to="CostsOfDesignAndTechnicalAssistanceThatIsDirectlyRelatedToProject" priority="0" order="10.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EstimatedCostsOfRectificationAndGuaranteeWorkIncludingExpectedWarrantyCosts" xlink:label="EstimatedCostsOfRectificationAndGuaranteeWorkIncludingExpectedWarrantyCosts"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConstructionAndDevelopmentCostIncurredDirectlyInRelationToProject" xlink:to="EstimatedCostsOfRectificationAndGuaranteeWorkIncludingExpectedWarrantyCosts" priority="0" order="11.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ClaimsFromThirdParties" xlink:label="ClaimsFromThirdParties"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConstructionAndDevelopmentCostIncurredDirectlyInRelationToProject" xlink:to="ClaimsFromThirdParties" priority="0" order="12.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherCostIncurredDirectlyInRelationToProject" xlink:label="OtherCostIncurredDirectlyInRelationToProject"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConstructionAndDevelopmentCostIncurredDirectlyInRelationToProject" xlink:to="OtherCostIncurredDirectlyInRelationToProject" priority="0" order="13.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ConstructionAndDevelopmentCostApportionedToProject" xlink:label="ConstructionAndDevelopmentCostApportionedToProject"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConstructionAndDevelopmentCost" xlink:to="ConstructionAndDevelopmentCostApportionedToProject" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InsuranceCostApportionedToProject" xlink:label="InsuranceCostApportionedToProject"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConstructionAndDevelopmentCostApportionedToProject" xlink:to="InsuranceCostApportionedToProject" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostsOfDesignAndTechnicalAssistanceThatIsNotDirectlyRelatedToProject" xlink:label="CostsOfDesignAndTechnicalAssistanceThatIsNotDirectlyRelatedToProject"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConstructionAndDevelopmentCostApportionedToProject" xlink:to="CostsOfDesignAndTechnicalAssistanceThatIsNotDirectlyRelatedToProject" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ConstructionOrDevelopmentOverheads" xlink:label="ConstructionOrDevelopmentOverheads"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConstructionAndDevelopmentCostApportionedToProject" xlink:to="ConstructionOrDevelopmentOverheads" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_BorrowingCostsApportionedToProject" xlink:label="BorrowingCostsApportionedToProject"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConstructionAndDevelopmentCostApportionedToProject" xlink:to="BorrowingCostsApportionedToProject" priority="0" order="4.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherConstructionAndDevelopmentCostApportionedToProject" xlink:label="OtherConstructionAndDevelopmentCostApportionedToProject"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ConstructionAndDevelopmentCostApportionedToProject" xlink:to="OtherConstructionAndDevelopmentCostApportionedToProject" priority="0" order="5.0" weight="1"/>
+  </calculationLink>
+</linkbase>

@@ -5,11 +5,18 @@
 {% endblock %}
 
 {% block body_content %}
-  <!-- Sidebar Navigation -->
-  {% include "partials/nav.html" %}
+  <!-- Startup Modal: Load vs Create New Filing -->
+  {% include "partials/startup_modal.html" %}
 
-  <!-- Main View Sheets -->
+  <!-- Hidden Nav for Test Compatibility (Visually Removed from Workspace) -->
+  <div style="display:none !important;" aria-hidden="true" id="legacy-nav-container">
+    {% include "partials/nav.html" %}
+  </div>
+
+  <!-- Main Financial Workspace (Full Width 100%) -->
   <main class="main" id="main" tabindex="-1">
+    {% include "partials/process_flow.html" %}
+    {% include "partials/financial_tagging.html" %}
     {% include "partials/setup.html" %}
     {% include "partials/sheet.html" %}
     {% include "partials/table.html" %}

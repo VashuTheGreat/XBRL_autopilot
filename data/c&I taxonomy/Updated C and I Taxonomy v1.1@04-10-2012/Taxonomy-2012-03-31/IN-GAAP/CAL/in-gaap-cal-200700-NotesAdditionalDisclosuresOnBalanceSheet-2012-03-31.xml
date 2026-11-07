@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesAdditionalDisclosuresOnBalanceSheet" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-200700"/>
+  <calculationLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesAdditionalDisclosuresOnBalanceSheet">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ContingentLiabilitiesAndCommitments" xlink:label="ContingentLiabilitiesAndCommitments"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ContingentLiabilities" xlink:label="ContingentLiabilities"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ContingentLiabilitiesAndCommitments" xlink:to="ContingentLiabilities" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ClaimsAgainstCompanyNotAcknowledgedAsDebt" xlink:label="ClaimsAgainstCompanyNotAcknowledgedAsDebt"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ContingentLiabilities" xlink:to="ClaimsAgainstCompanyNotAcknowledgedAsDebt" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_Guarantees" xlink:label="Guarantees"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ContingentLiabilities" xlink:to="Guarantees" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherMoneyForWhichCompanyIsContingentlyLiable" xlink:label="OtherMoneyForWhichCompanyIsContingentlyLiable"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ContingentLiabilities" xlink:to="OtherMoneyForWhichCompanyIsContingentlyLiable" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_Commitments" xlink:label="Commitments"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ContingentLiabilitiesAndCommitments" xlink:to="Commitments" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EstimatedAmountOfContractsRemainingToBeExecutedOnCapitalAccountAndNotProvidedFor" xlink:label="EstimatedAmountOfContractsRemainingToBeExecutedOnCapitalAccountAndNotProvidedFor"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="Commitments" xlink:to="EstimatedAmountOfContractsRemainingToBeExecutedOnCapitalAccountAndNotProvidedFor" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_UncalledLiabilityOnSharesAndOtherInvestmentsPartlyPaid" xlink:label="UncalledLiabilityOnSharesAndOtherInvestmentsPartlyPaid"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="Commitments" xlink:to="UncalledLiabilityOnSharesAndOtherInvestmentsPartlyPaid" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherCommitments" xlink:label="OtherCommitments"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="Commitments" xlink:to="OtherCommitments" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrincipalAndInterestDueRemainingUnpaid" xlink:label="PrincipalAndInterestDueRemainingUnpaid"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrincipalDueRemainingUnpaid" xlink:label="PrincipalDueRemainingUnpaid"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="PrincipalAndInterestDueRemainingUnpaid" xlink:to="PrincipalDueRemainingUnpaid" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestDueRemainingUnpaid" xlink:label="InterestDueRemainingUnpaid"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="PrincipalAndInterestDueRemainingUnpaid" xlink:to="InterestDueRemainingUnpaid" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ChangesInEquityShareWarrantsDuringPeriod" xlink:label="ChangesInEquityShareWarrantsDuringPeriod"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AdditionsToEquityShareWarrantsDuringPeriod" xlink:label="AdditionsToEquityShareWarrantsDuringPeriod"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ChangesInEquityShareWarrantsDuringPeriod" xlink:to="AdditionsToEquityShareWarrantsDuringPeriod" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeductionsInEquityShareWarrantsDuringPeriod" xlink:label="DeductionsInEquityShareWarrantsDuringPeriod"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ChangesInEquityShareWarrantsDuringPeriod" xlink:to="DeductionsInEquityShareWarrantsDuringPeriod" priority="0" order="2.0" weight="-1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EquityShareWarrants" xlink:label="EquityShareWarrants"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_EquityShareWarrantsForExistingMembers" xlink:label="EquityShareWarrantsForExistingMembers"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="EquityShareWarrants" xlink:to="EquityShareWarrantsForExistingMembers" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_EquityShareWarrantsForOthers" xlink:label="EquityShareWarrantsForOthers"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="EquityShareWarrants" xlink:to="EquityShareWarrantsForOthers" priority="0" order="2.0" weight="1"/>
+  </calculationLink>
+</linkbase>

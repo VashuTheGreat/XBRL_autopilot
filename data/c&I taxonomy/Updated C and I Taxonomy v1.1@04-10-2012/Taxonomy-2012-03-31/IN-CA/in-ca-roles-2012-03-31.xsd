@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<schema targetNamespace="http://www.icai.org/xbrl/taxonomy/2012-03-31/in-ca-roles" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:in-ca-roles="http://www.icai.org/xbrl/taxonomy/2012-03-31/in-ca-roles" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <annotation>
+    <appinfo>
+      <link:roleType roleURI="http://www.icai.org/xbrl/taxonomy/role/in-ca/NotesSubsidiaryInformation" id="in-ca-rol-202800">
+        <link:definition>[202800] Notes - Subsidiary information</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType roleURI="http://www.icai.org/xbrl/taxonomy/role/in-ca/NotesDirectorRemunerationAndOtherInformation" id="in-ca-rol-300700">
+        <link:definition>[300700] Notes - Director remuneration and other information</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType roleURI="http://www.icai.org/xbrl/taxonomy/role/in-ca/DisclosureOfGeneralInformationAboutCompany" id="in-ca-rol-400100">
+        <link:definition>[400100] Disclosure of general information about company</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType roleURI="http://www.icai.org/xbrl/taxonomy/role/in-ca/DisclosuresAuditorsReport" id="in-ca-rol-400200">
+        <link:definition>[400200] Disclosures - Auditors report</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType roleURI="http://www.icai.org/xbrl/taxonomy/role/in-ca/DisclosuresAuditorsReport1" id="in-ca-rol-400200a">
+        <link:definition>[400200a] Disclosures - Auditors report</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType roleURI="http://www.icai.org/xbrl/taxonomy/role/in-ca/DisclosuresSignatoriesOfBalanceSheet" id="in-ca-rol-400300">
+        <link:definition>[400300] Disclosures - Signatories of balance sheet</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType roleURI="http://www.icai.org/xbrl/taxonomy/role/in-ca/DisclosuresSignatoriesOfBalanceSheet1" id="in-ca-rol-400300a">
+        <link:definition>[400300a] Disclosures - Signatories of balance sheet</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType roleURI="http://www.icai.org/xbrl/taxonomy/role/in-ca/DisclosuresDirectorsReport" id="in-ca-rol-400400">
+        <link:definition>[400400] Disclosures - Directors report</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType roleURI="http://www.icai.org/xbrl/taxonomy/role/in-ca/DisclosuresDirectorsReport1" id="in-ca-rol-400400a">
+        <link:definition>[400400a] Disclosures - Directors report</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType roleURI="http://www.icai.org/xbrl/taxonomy/role/in-ca/DisclosuresDirectorsReport2" id="in-ca-rol-400400b">
+        <link:definition>[400400b] Disclosures - Directors report</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+    </appinfo>
+  </annotation>
+</schema>
