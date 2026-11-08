@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Created by IRIS Business Services Ltd -->
+
+<!--                     
+            *************** Data types : 2012-09-07*************
+                      
+       
+ -->
+<xsd:schema targetNamespace="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-type" 
+attributeFormDefault="unqualified" 
+elementFormDefault="qualified" 
+xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+xmlns:in-cost-type="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-type" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <xsd:complexType name="CategoryOfCostAccountant">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Firm"/>
+        <xsd:enumeration value="Sole Proprietor"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="NatureOfEmploymentOfCostAccountant">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="In Employment"/>
+        <xsd:enumeration value="In Practice"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+    <xsd:complexType name="BasisAdoptedToDetermineNormalPriceOfRelatedPartyTransactions">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Comparable uncontrolled price method"/>
+        <xsd:enumeration value="Resale price method"/>
+	    <xsd:enumeration value="Cost plus method"/>
+	    <xsd:enumeration value="Profit split method"/>
+		<xsd:enumeration value="Transactional net margin method"/>
+	    <xsd:enumeration value="Such other method as may be prescribed by the Board"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+    <xsd:complexType name="LevelOfRounding">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Actual"/>
+        <xsd:enumeration value="Thousands"/>
+		<xsd:enumeration value="Lakhs"/>
+        <xsd:enumeration value="Millions"/>
+		<xsd:enumeration value="Crores"/>
+        <xsd:enumeration value="Billions"/>	
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+   <xsd:complexType name="NatureOfMaterialConsumed">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:tokenItemType">
+        <xsd:enumeration value="Indigenous purchased"/>
+        <xsd:enumeration value="Imported"/>
+		<xsd:enumeration value="Self-manufactured or produced"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="CINNumberItemType">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:stringItemType">
+        <xsd:length fixed="true" value="21" />
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="SRNNumber">
+    <xsd:simpleContent>
+		<xsd:restriction base="xbrli:stringItemType">
+			<xsd:length fixed="true" value="9"/>
+			<xsd:pattern value="[A-Z][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]"/>
+		</xsd:restriction>
+	</xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="PermanentAccountNumber">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:stringItemType">
+        <xsd:length fixed="true" value="10"/>
+        <xsd:pattern value="[A-Z][A-Z][A-Z][A-Z][A-Z][0-9][0-9][0-9][0-9][A-Z]"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+   <xsd:complexType name="ProductGroupCode">
+     <xsd:simpleContent>
+      <xsd:restriction base="xbrli:stringItemType">
+		<xsd:length fixed="true" value="4"/>
+        <xsd:pattern value="[0-9][0-9][0-9][0-9]"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="ProductCode">
+    <xsd:simpleContent>
+      <xsd:restriction base="xbrli:stringItemType">
+       <xsd:length fixed="true" value="4"/>
+       <xsd:pattern value="[0-9][0-9][0-9][0-9]"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+ </xsd:complexType>
+ <xsd:complexType name="ProductOrActivityEightDigitCode">
+     <xsd:simpleContent>
+      <xsd:restriction base="xbrli:stringItemType">
+		<xsd:length fixed="true" value="8"/>
+        <xsd:pattern value="[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]"/>
+      </xsd:restriction>
+    </xsd:simpleContent>
+  </xsd:complexType>
+</xsd:schema>

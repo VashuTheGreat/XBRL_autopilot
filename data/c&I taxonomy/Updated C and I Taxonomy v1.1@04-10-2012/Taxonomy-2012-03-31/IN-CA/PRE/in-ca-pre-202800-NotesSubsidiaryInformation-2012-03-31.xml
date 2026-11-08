@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-ca/NotesSubsidiaryInformation" xlink:type="simple" xlink:href="../in-ca-roles-2012-03-31.xsd#in-ca-rol-202800"/>
+  <presentationLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-ca/NotesSubsidiaryInformation">
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DisclosureOfSubsidiaryInformationExplanatoryTextBlock" xlink:label="DisclosureOfSubsidiaryInformationExplanatoryTextBlock"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_WhetherCompanyHasSubsidiaryCompanies" xlink:label="WhetherCompanyHasSubsidiaryCompanies"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfSubsidiaryInformationExplanatoryTextBlock" xlink:to="WhetherCompanyHasSubsidiaryCompanies" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfSubsidiariesAbstract" xlink:label="DetailsOfSubsidiariesAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfSubsidiaryInformationExplanatoryTextBlock" xlink:to="DetailsOfSubsidiariesAbstract" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfSubsidiariesTable" xlink:label="DetailsOfSubsidiariesTable"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesAbstract" xlink:to="DetailsOfSubsidiariesTable" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../../IN-GAAP/in-gaap-2012-03-31.xsd#in-gaap_SubsidiariesAxis" xlink:label="SubsidiariesAxis"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesTable" xlink:to="SubsidiariesAxis" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfSubsidiariesLineItems" xlink:label="DetailsOfSubsidiariesLineItems"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesAbstract" xlink:to="DetailsOfSubsidiariesLineItems" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../../IN-GAAP/in-gaap-2012-03-31.xsd#in-gaap_NameOfSubsidiary" xlink:label="NameOfSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="NameOfSubsidiary" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../../IN-GAAP/in-gaap-2012-03-31.xsd#in-gaap_CountryOfIncorporationOrResidenceOfSubsidiary" xlink:label="CountryOfIncorporationOrResidenceOfSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="CountryOfIncorporationOrResidenceOfSubsidiary" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_CINOfSubsidiaryCompany" xlink:label="CINOfSubsidiaryCompany"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="CINOfSubsidiaryCompany" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_PANOfSubsidiaryCompany" xlink:label="PANOfSubsidiaryCompany"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="PANOfSubsidiaryCompany" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_SectionUnderWhichCompanyBecameSubsidiary" xlink:label="SectionUnderWhichCompanyBecameSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="SectionUnderWhichCompanyBecameSubsidiary" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_WhetherSubsidiaryHasFiledBalanceSheet" xlink:label="WhetherSubsidiaryHasFiledBalanceSheet"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="WhetherSubsidiaryHasFiledBalanceSheet" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_SRNOfFilingOfBalanceSheetBySubsidiary" xlink:label="SRNOfFilingOfBalanceSheetBySubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="SRNOfFilingOfBalanceSheetBySubsidiary" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ReasonIfNoFilingHasBeenMadeBySubsidiary" xlink:label="ReasonIfNoFilingHasBeenMadeBySubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="ReasonIfNoFilingHasBeenMadeBySubsidiary" priority="0" order="8.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_WhetherFinancialYearOfSubsidiaryCoincidesWithFinancialYearOfHoldingCompany" xlink:label="WhetherFinancialYearOfSubsidiaryCoincidesWithFinancialYearOfHoldingCompany"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="WhetherFinancialYearOfSubsidiaryCoincidesWithFinancialYearOfHoldingCompany" priority="0" order="9.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_FinancialYearOfSubsidiaryAbstract" xlink:label="FinancialYearOfSubsidiaryAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="FinancialYearOfSubsidiaryAbstract" priority="0" order="10.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_StartDateOfAccountingPeriodOfSubsidiary" xlink:label="StartDateOfAccountingPeriodOfSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="FinancialYearOfSubsidiaryAbstract" xlink:to="StartDateOfAccountingPeriodOfSubsidiary" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_EndDateOfAccountingPeriodOfSubsidiary" xlink:label="EndDateOfAccountingPeriodOfSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="FinancialYearOfSubsidiaryAbstract" xlink:to="EndDateOfAccountingPeriodOfSubsidiary" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DateOfBecomingSubsidiary" xlink:label="DateOfBecomingSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="DateOfBecomingSubsidiary" priority="0" order="11.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DateOfCeasingToBeSubsidiary" xlink:label="DateOfCeasingToBeSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="DateOfCeasingToBeSubsidiary" priority="0" order="12.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_NumberOfSharesHeldOfSubsidiary" xlink:label="NumberOfSharesHeldOfSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="NumberOfSharesHeldOfSubsidiary" priority="0" order="13.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_FaceValueOfSharesOfSubsidiary" xlink:label="FaceValueOfSharesOfSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="FaceValueOfSharesOfSubsidiary" priority="0" order="14.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_PaidUpValueOfSharesHeldOfSubsidiary" xlink:label="PaidUpValueOfSharesHeldOfSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="PaidUpValueOfSharesHeldOfSubsidiary" priority="0" order="15.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_PercentageOfShareholdingInSubsidiary" xlink:label="PercentageOfShareholdingInSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="PercentageOfShareholdingInSubsidiary" priority="0" order="16.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ProportionOfVotingPowerInSubsidiary" xlink:label="ProportionOfVotingPowerInSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="ProportionOfVotingPowerInSubsidiary" priority="0" order="17.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_KeyInformationAboutSubsidiaryAbstract" xlink:label="KeyInformationAboutSubsidiaryAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="KeyInformationAboutSubsidiaryAbstract" priority="0" order="18.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ReportingCurrencyOfSubsidiary" xlink:label="ReportingCurrencyOfSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="ReportingCurrencyOfSubsidiary" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ExchangeRateAsApplicableForSubsidiary" xlink:label="ExchangeRateAsApplicableForSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="ExchangeRateAsApplicableForSubsidiary" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ShareCapitalOfSubsidiaryAbstract" xlink:label="ShareCapitalOfSubsidiaryAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="ShareCapitalOfSubsidiaryAbstract" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_EquityShareCapitalOfSubsidiary" xlink:label="EquityShareCapitalOfSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ShareCapitalOfSubsidiaryAbstract" xlink:to="EquityShareCapitalOfSubsidiary" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_PreferenceShareCapitalOfSubsidiary" xlink:label="PreferenceShareCapitalOfSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ShareCapitalOfSubsidiaryAbstract" xlink:to="PreferenceShareCapitalOfSubsidiary" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ShareCapitalOfSubsidiary" xlink:label="ShareCapitalOfSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ShareCapitalOfSubsidiaryAbstract" xlink:to="ShareCapitalOfSubsidiary" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ReservesAndSurplusOfSubsidiary" xlink:label="ReservesAndSurplusOfSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="ReservesAndSurplusOfSubsidiary" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_TotalAssetsOfSubsidiary" xlink:label="TotalAssetsOfSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="TotalAssetsOfSubsidiary" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_TotalLiabilitiesOfSubsidiary" xlink:label="TotalLiabilitiesOfSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="TotalLiabilitiesOfSubsidiary" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_InvestmentOfSubsidiary" xlink:label="InvestmentOfSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="InvestmentOfSubsidiary" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_TotalIncomeOfSubsidiary" xlink:label="TotalIncomeOfSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="TotalIncomeOfSubsidiary" priority="0" order="8.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ProfitBeforeTaxOfSubsidiary" xlink:label="ProfitBeforeTaxOfSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="ProfitBeforeTaxOfSubsidiary" priority="0" order="9.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ProvisionForTaxOfSubsidiary" xlink:label="ProvisionForTaxOfSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="ProvisionForTaxOfSubsidiary" priority="0" order="10.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ProfitAfterTaxOfSubsidiary" xlink:label="ProfitAfterTaxOfSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="ProfitAfterTaxOfSubsidiary" priority="0" order="11.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ProposedDividendOfSubsidiary" xlink:label="ProposedDividendOfSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="ProposedDividendOfSubsidiary" priority="0" order="12.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_GuaranteeGivenForLoansBorrowedBySubsidiary" xlink:label="GuaranteeGivenForLoansBorrowedBySubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="GuaranteeGivenForLoansBorrowedBySubsidiary" priority="0" order="19.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_NameOfGuaranteedPartyOnLoansBorrowedBySubsidiary" xlink:label="NameOfGuaranteedPartyOnLoansBorrowedBySubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="GuaranteeGivenForLoansBorrowedBySubsidiary" xlink:to="NameOfGuaranteedPartyOnLoansBorrowedBySubsidiary" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_CINOfGuaranteedPartyOnLoansBorrowedBySubsidiary" xlink:label="CINOfGuaranteedPartyOnLoansBorrowedBySubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="GuaranteeGivenForLoansBorrowedBySubsidiary" xlink:to="CINOfGuaranteedPartyOnLoansBorrowedBySubsidiary" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_AmountGuaranteedOnLoansBorrowedBySubsidiary" xlink:label="AmountGuaranteedOnLoansBorrowedBySubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="GuaranteeGivenForLoansBorrowedBySubsidiary" xlink:to="AmountGuaranteedOnLoansBorrowedBySubsidiary" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_GuaranteeBySubsidiaryForLoansBorrowedByCompany" xlink:label="GuaranteeBySubsidiaryForLoansBorrowedByCompany"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="GuaranteeBySubsidiaryForLoansBorrowedByCompany" priority="0" order="20.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_NameOfGuaranteedPartyOnLoansBorrowedByCompany" xlink:label="NameOfGuaranteedPartyOnLoansBorrowedByCompany"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="GuaranteeBySubsidiaryForLoansBorrowedByCompany" xlink:to="NameOfGuaranteedPartyOnLoansBorrowedByCompany" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_CINOfGuaranteedPartyOnLoansBorrowedByCompany" xlink:label="CINOfGuaranteedPartyOnLoansBorrowedByCompany"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="GuaranteeBySubsidiaryForLoansBorrowedByCompany" xlink:to="CINOfGuaranteedPartyOnLoansBorrowedByCompany" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_AmountGuaranteedOnLoansBorrowedByCompany" xlink:label="AmountGuaranteedOnLoansBorrowedByCompany"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="GuaranteeBySubsidiaryForLoansBorrowedByCompany" xlink:to="AmountGuaranteedOnLoansBorrowedByCompany" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_AggregateAmountOfProfitLossOfSubsidiaryForPreviousYearsSinceItBecameSubsidiary" xlink:label="AggregateAmountOfProfitLossOfSubsidiaryForPreviousYearsSinceItBecameSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="AggregateAmountOfProfitLossOfSubsidiaryForPreviousYearsSinceItBecameSubsidiary" priority="0" order="21.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfAggregateAmountNotIncludedByParentCompany" xlink:label="DetailsOfAggregateAmountNotIncludedByParentCompany"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="DetailsOfAggregateAmountNotIncludedByParentCompany" priority="0" order="22.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_AggregateAmountOfSubsidiaryNotAccountedForCurrentYear" xlink:label="AggregateAmountOfSubsidiaryNotAccountedForCurrentYear"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfAggregateAmountNotIncludedByParentCompany" xlink:to="AggregateAmountOfSubsidiaryNotAccountedForCurrentYear" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_AggregateAmountOfSubsidiaryNotAccountedForPreviousYearsSinceItBecameSubsidiary" xlink:label="AggregateAmountOfSubsidiaryNotAccountedForPreviousYearsSinceItBecameSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfAggregateAmountNotIncludedByParentCompany" xlink:to="AggregateAmountOfSubsidiaryNotAccountedForPreviousYearsSinceItBecameSubsidiary" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfAggregateAmountsDealtByParentCompany" xlink:label="DetailsOfAggregateAmountsDealtByParentCompany"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="DetailsOfAggregateAmountsDealtByParentCompany" priority="0" order="23.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_AggregateAmountOfSubsidiaryAccountedForPeriod" xlink:label="AggregateAmountOfSubsidiaryAccountedForPeriod"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfAggregateAmountsDealtByParentCompany" xlink:to="AggregateAmountOfSubsidiaryAccountedForPeriod" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_AggregateAmountOfSubsidiaryAccountedForPreviousYearsSinceItBecameSubsidiary" xlink:label="AggregateAmountOfSubsidiaryAccountedForPreviousYearsSinceItBecameSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfAggregateAmountsDealtByParentCompany" xlink:to="AggregateAmountOfSubsidiaryAccountedForPreviousYearsSinceItBecameSubsidiary" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfAssetsLiabilitiesOfSubsidiaryIncludedInConsolidatedStatements" xlink:label="DetailsOfAssetsLiabilitiesOfSubsidiaryIncludedInConsolidatedStatements"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="DetailsOfAssetsLiabilitiesOfSubsidiaryIncludedInConsolidatedStatements" priority="0" order="24.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfParticipatingInterestsThroughSubsidiary" xlink:label="DetailsOfParticipatingInterestsThroughSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="DetailsOfParticipatingInterestsThroughSubsidiary" priority="0" order="25.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_NatureOfRelationshipWithSubsidiaryWhereParentHasDirectlyOrIndirectlyLessThanHalfOfVotingPower" xlink:label="NatureOfRelationshipWithSubsidiaryWhereParentHasDirectlyOrIndirectlyLessThanHalfOfVotingPower"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="NatureOfRelationshipWithSubsidiaryWhereParentHasDirectlyOrIndirectlyLessThanHalfOfVotingPower" priority="0" order="26.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfJointlyControlledAssetsWithSubsidiary" xlink:label="DetailsOfJointlyControlledAssetsWithSubsidiary"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="DetailsOfJointlyControlledAssetsWithSubsidiary" priority="0" order="27.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsIfExemptionIsGrantedForStatementUnderSection212" xlink:label="DetailsIfExemptionIsGrantedForStatementUnderSection212"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfSubsidiaryInformationExplanatoryTextBlock" xlink:to="DetailsIfExemptionIsGrantedForStatementUnderSection212" priority="0" order="3.0"/>
+  </presentationLink>
+</linkbase>

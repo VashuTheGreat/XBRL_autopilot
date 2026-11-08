@@ -1,0 +1,588 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesSubclassificationAndNotesOnIncomeAndExpenses" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-300500"/>
+  <presentationLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesSubclassificationAndNotesOnIncomeAndExpenses">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_SubclassificationAndNotesOnIncomeAndExpenseExplanatoryTextBlock" xlink:label="SubclassificationAndNotesOnIncomeAndExpenseExplanatoryTextBlock"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfRevenueFromSaleOfProductsAbstract" xlink:label="DisclosureOfRevenueFromSaleOfProductsAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="SubclassificationAndNotesOnIncomeAndExpenseExplanatoryTextBlock" xlink:to="DisclosureOfRevenueFromSaleOfProductsAbstract" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfRevenueFromSaleOfProductsExplanatoryTextBlock" xlink:label="DisclosureOfRevenueFromSaleOfProductsExplanatoryTextBlock"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfRevenueFromSaleOfProductsAbstract" xlink:to="DisclosureOfRevenueFromSaleOfProductsExplanatoryTextBlock" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueFromSaleOfProductsAbstract" xlink:label="RevenueFromSaleOfProductsAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfRevenueFromSaleOfProductsAbstract" xlink:to="RevenueFromSaleOfProductsAbstract" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueFromSaleOfProductsGross" xlink:label="RevenueFromSaleOfProductsGross"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RevenueFromSaleOfProductsAbstract" xlink:to="RevenueFromSaleOfProductsGross" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_BrokerageDiscountsRebatesOnRevenueFromSaleOfProducts" xlink:label="BrokerageDiscountsRebatesOnRevenueFromSaleOfProducts"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RevenueFromSaleOfProductsAbstract" xlink:to="BrokerageDiscountsRebatesOnRevenueFromSaleOfProducts" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ReturnsOnRevenueFromSaleOfProducts" xlink:label="ReturnsOnRevenueFromSaleOfProducts"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RevenueFromSaleOfProductsAbstract" xlink:to="ReturnsOnRevenueFromSaleOfProducts" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherAllowancesDeductionsOnRevenueFromSaleOfProducts" xlink:label="OtherAllowancesDeductionsOnRevenueFromSaleOfProducts"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RevenueFromSaleOfProductsAbstract" xlink:to="OtherAllowancesDeductionsOnRevenueFromSaleOfProducts" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueFromSaleOfProducts" xlink:label="RevenueFromSaleOfProducts"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RevenueFromSaleOfProductsAbstract" xlink:to="RevenueFromSaleOfProducts" priority="0" order="5.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfRevenueFromSaleOfServicesAbstract" xlink:label="DisclosureOfRevenueFromSaleOfServicesAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="SubclassificationAndNotesOnIncomeAndExpenseExplanatoryTextBlock" xlink:to="DisclosureOfRevenueFromSaleOfServicesAbstract" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfRevenueFromSaleOfServicesExplanatoryTextBlock" xlink:label="DisclosureOfRevenueFromSaleOfServicesExplanatoryTextBlock"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfRevenueFromSaleOfServicesAbstract" xlink:to="DisclosureOfRevenueFromSaleOfServicesExplanatoryTextBlock" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueFromSaleOfServicesAbstract" xlink:label="RevenueFromSaleOfServicesAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfRevenueFromSaleOfServicesAbstract" xlink:to="RevenueFromSaleOfServicesAbstract" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueFromSaleOfServicesGross" xlink:label="RevenueFromSaleOfServicesGross"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RevenueFromSaleOfServicesAbstract" xlink:to="RevenueFromSaleOfServicesGross" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_BrokerageDiscountsRebatesOnRevenueFromSaleOfServices" xlink:label="BrokerageDiscountsRebatesOnRevenueFromSaleOfServices"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RevenueFromSaleOfServicesAbstract" xlink:to="BrokerageDiscountsRebatesOnRevenueFromSaleOfServices" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ReturnsOnRevenueFromSaleOfServices" xlink:label="ReturnsOnRevenueFromSaleOfServices"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RevenueFromSaleOfServicesAbstract" xlink:to="ReturnsOnRevenueFromSaleOfServices" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherAllowancesDeductionsOnRevenueFromSaleOfServices" xlink:label="OtherAllowancesDeductionsOnRevenueFromSaleOfServices"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RevenueFromSaleOfServicesAbstract" xlink:to="OtherAllowancesDeductionsOnRevenueFromSaleOfServices" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RevenueFromSaleOfServices" xlink:label="RevenueFromSaleOfServices"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RevenueFromSaleOfServicesAbstract" xlink:to="RevenueFromSaleOfServices" priority="0" order="5.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfOtherOperatingRevenuesAbstract" xlink:label="DisclosureOfOtherOperatingRevenuesAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="SubclassificationAndNotesOnIncomeAndExpenseExplanatoryTextBlock" xlink:to="DisclosureOfOtherOperatingRevenuesAbstract" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfNotesOnOtherOperatingRevenuesExplanatoryTextBlock" xlink:label="DisclosureOfNotesOnOtherOperatingRevenuesExplanatoryTextBlock"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfOtherOperatingRevenuesAbstract" xlink:to="DisclosureOfNotesOnOtherOperatingRevenuesExplanatoryTextBlock" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherOperatingRevenuesAbstract" xlink:label="OtherOperatingRevenuesAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfOtherOperatingRevenuesAbstract" xlink:to="OtherOperatingRevenuesAbstract" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NetGainLossOnForeignCurrencyFluctuationsTreatedAsOtherOperatingRevenue" xlink:label="NetGainLossOnForeignCurrencyFluctuationsTreatedAsOtherOperatingRevenue"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OtherOperatingRevenuesAbstract" xlink:to="NetGainLossOnForeignCurrencyFluctuationsTreatedAsOtherOperatingRevenue" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_MiscellaneousOtherOperatingRevenues" xlink:label="MiscellaneousOtherOperatingRevenues"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OtherOperatingRevenuesAbstract" xlink:to="MiscellaneousOtherOperatingRevenues" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherOperatingRevenues" xlink:label="OtherOperatingRevenues"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OtherOperatingRevenuesAbstract" xlink:to="OtherOperatingRevenues" priority="0" order="3.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfOtherIncomeAbstract" xlink:label="DisclosureOfOtherIncomeAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="SubclassificationAndNotesOnIncomeAndExpenseExplanatoryTextBlock" xlink:to="DisclosureOfOtherIncomeAbstract" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfNotesOnOtherIncomeExplanatoryTextBlock" xlink:label="DisclosureOfNotesOnOtherIncomeExplanatoryTextBlock"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfOtherIncomeAbstract" xlink:to="DisclosureOfNotesOnOtherIncomeExplanatoryTextBlock" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestIncomeAbstract" xlink:label="InterestIncomeAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfOtherIncomeAbstract" xlink:to="InterestIncomeAbstract" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestIncomeOnCurrentInvestmentsAbstract" xlink:label="InterestIncomeOnCurrentInvestmentsAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestIncomeAbstract" xlink:to="InterestIncomeOnCurrentInvestmentsAbstract" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestOnFixedDepositsCurrentInvestments" xlink:label="InterestOnFixedDepositsCurrentInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestIncomeOnCurrentInvestmentsAbstract" xlink:to="InterestOnFixedDepositsCurrentInvestments" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestFromCustomersOnAmountsOverdueCurrentInvestments" xlink:label="InterestFromCustomersOnAmountsOverdueCurrentInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestIncomeOnCurrentInvestmentsAbstract" xlink:to="InterestFromCustomersOnAmountsOverdueCurrentInvestments" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestOnCurrentIntercorporateDeposits" xlink:label="InterestOnCurrentIntercorporateDeposits"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestIncomeOnCurrentInvestmentsAbstract" xlink:to="InterestOnCurrentIntercorporateDeposits" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestOnCurrentDebtSecurities" xlink:label="InterestOnCurrentDebtSecurities"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestIncomeOnCurrentInvestmentsAbstract" xlink:to="InterestOnCurrentDebtSecurities" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestOnCurrentGovernmentSecurities" xlink:label="InterestOnCurrentGovernmentSecurities"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestIncomeOnCurrentInvestmentsAbstract" xlink:to="InterestOnCurrentGovernmentSecurities" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestOnOtherCurrentInvestments" xlink:label="InterestOnOtherCurrentInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestIncomeOnCurrentInvestmentsAbstract" xlink:to="InterestOnOtherCurrentInvestments" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestIncomeOnCurrentInvestments" xlink:label="InterestIncomeOnCurrentInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestIncomeOnCurrentInvestmentsAbstract" xlink:to="InterestIncomeOnCurrentInvestments" priority="0" order="7.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestIncomeOnLongTermInvestmentsAbstract" xlink:label="InterestIncomeOnLongTermInvestmentsAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestIncomeAbstract" xlink:to="InterestIncomeOnLongTermInvestmentsAbstract" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestOnFixedDepositsLongTermInvestments" xlink:label="InterestOnFixedDepositsLongTermInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestIncomeOnLongTermInvestmentsAbstract" xlink:to="InterestOnFixedDepositsLongTermInvestments" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestFromCustomersOnAmountsOverdueLongTermInvestments" xlink:label="InterestFromCustomersOnAmountsOverdueLongTermInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestIncomeOnLongTermInvestmentsAbstract" xlink:to="InterestFromCustomersOnAmountsOverdueLongTermInvestments" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestOnLongTermIntercorporateDeposits" xlink:label="InterestOnLongTermIntercorporateDeposits"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestIncomeOnLongTermInvestmentsAbstract" xlink:to="InterestOnLongTermIntercorporateDeposits" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestOnLongTermDebtSecurities" xlink:label="InterestOnLongTermDebtSecurities"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestIncomeOnLongTermInvestmentsAbstract" xlink:to="InterestOnLongTermDebtSecurities" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestOnLongTermGovernmentSecurities" xlink:label="InterestOnLongTermGovernmentSecurities"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestIncomeOnLongTermInvestmentsAbstract" xlink:to="InterestOnLongTermGovernmentSecurities" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestOnOtherLongTermInvestments" xlink:label="InterestOnOtherLongTermInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestIncomeOnLongTermInvestmentsAbstract" xlink:to="InterestOnOtherLongTermInvestments" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestIncomeOnLongTermInvestments" xlink:label="InterestIncomeOnLongTermInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestIncomeOnLongTermInvestmentsAbstract" xlink:to="InterestIncomeOnLongTermInvestments" priority="0" order="7.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestIncome" xlink:label="InterestIncome"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestIncomeAbstract" xlink:to="InterestIncome" priority="0" order="3.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DividendIncomeAbstract" xlink:label="DividendIncomeAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfOtherIncomeAbstract" xlink:to="DividendIncomeAbstract" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DividendIncomeCurrentInvestmentsAbstract" xlink:label="DividendIncomeCurrentInvestmentsAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DividendIncomeAbstract" xlink:to="DividendIncomeCurrentInvestmentsAbstract" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DividendIncomeCurrentInvestmentsFromSubsidiaries" xlink:label="DividendIncomeCurrentInvestmentsFromSubsidiaries"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DividendIncomeCurrentInvestmentsAbstract" xlink:to="DividendIncomeCurrentInvestmentsFromSubsidiaries" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DividendIncomeCurrentEquitySecurities" xlink:label="DividendIncomeCurrentEquitySecurities"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DividendIncomeCurrentInvestmentsAbstract" xlink:to="DividendIncomeCurrentEquitySecurities" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DividendIncomeCurrentMutualFunds" xlink:label="DividendIncomeCurrentMutualFunds"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DividendIncomeCurrentInvestmentsAbstract" xlink:to="DividendIncomeCurrentMutualFunds" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DividendIncomeCurrentInvestmentsFromOthers" xlink:label="DividendIncomeCurrentInvestmentsFromOthers"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DividendIncomeCurrentInvestmentsAbstract" xlink:to="DividendIncomeCurrentInvestmentsFromOthers" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DividendIncomeCurrentInvestments" xlink:label="DividendIncomeCurrentInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DividendIncomeCurrentInvestmentsAbstract" xlink:to="DividendIncomeCurrentInvestments" priority="0" order="5.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DividendIncomeLongTermInvestmentsAbstract" xlink:label="DividendIncomeLongTermInvestmentsAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DividendIncomeAbstract" xlink:to="DividendIncomeLongTermInvestmentsAbstract" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DividendIncomeLongTermInvestmentsFromSubsidiaries" xlink:label="DividendIncomeLongTermInvestmentsFromSubsidiaries"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DividendIncomeLongTermInvestmentsAbstract" xlink:to="DividendIncomeLongTermInvestmentsFromSubsidiaries" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DividendIncomeLongTermEquitySecurities" xlink:label="DividendIncomeLongTermEquitySecurities"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DividendIncomeLongTermInvestmentsAbstract" xlink:to="DividendIncomeLongTermEquitySecurities" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DividendIncomeLongTermMutualFunds" xlink:label="DividendIncomeLongTermMutualFunds"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DividendIncomeLongTermInvestmentsAbstract" xlink:to="DividendIncomeLongTermMutualFunds" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DividendIncomeLongTermInvestmentsFromOthers" xlink:label="DividendIncomeLongTermInvestmentsFromOthers"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DividendIncomeLongTermInvestmentsAbstract" xlink:to="DividendIncomeLongTermInvestmentsFromOthers" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DividendIncomeLongTermInvestments" xlink:label="DividendIncomeLongTermInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DividendIncomeLongTermInvestmentsAbstract" xlink:to="DividendIncomeLongTermInvestments" priority="0" order="5.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DividendIncome" xlink:label="DividendIncome"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DividendIncomeAbstract" xlink:to="DividendIncome" priority="0" order="3.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NetGainLossOnSaleOfInvestmentsAbstract" xlink:label="NetGainLossOnSaleOfInvestmentsAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfOtherIncomeAbstract" xlink:to="NetGainLossOnSaleOfInvestmentsAbstract" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NetGainLossOnSaleOfCurrentInvestments" xlink:label="NetGainLossOnSaleOfCurrentInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="NetGainLossOnSaleOfInvestmentsAbstract" xlink:to="NetGainLossOnSaleOfCurrentInvestments" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NetGainLossOnSaleOfLongTermInvestments" xlink:label="NetGainLossOnSaleOfLongTermInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="NetGainLossOnSaleOfInvestmentsAbstract" xlink:to="NetGainLossOnSaleOfLongTermInvestments" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NetGainLossOnSaleOfInvestments" xlink:label="NetGainLossOnSaleOfInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="NetGainLossOnSaleOfInvestmentsAbstract" xlink:to="NetGainLossOnSaleOfInvestments" priority="0" order="3.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RentalIncomeOnInvestmentPropertyAbstract" xlink:label="RentalIncomeOnInvestmentPropertyAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfOtherIncomeAbstract" xlink:to="RentalIncomeOnInvestmentPropertyAbstract" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RentalIncomeOnInvestmentPropertyCurrent" xlink:label="RentalIncomeOnInvestmentPropertyCurrent"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RentalIncomeOnInvestmentPropertyAbstract" xlink:to="RentalIncomeOnInvestmentPropertyCurrent" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RentalIncomeOnInvestmentPropertyLongTerm" xlink:label="RentalIncomeOnInvestmentPropertyLongTerm"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RentalIncomeOnInvestmentPropertyAbstract" xlink:to="RentalIncomeOnInvestmentPropertyLongTerm" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RentalIncomeOnInvestmentProperty" xlink:label="RentalIncomeOnInvestmentProperty"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RentalIncomeOnInvestmentPropertyAbstract" xlink:to="RentalIncomeOnInvestmentProperty" priority="0" order="3.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherNonoperatingIncomeAbstract" xlink:label="OtherNonoperatingIncomeAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfOtherIncomeAbstract" xlink:to="OtherNonoperatingIncomeAbstract" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NetGainLossOnForeignCurrencyFluctuationsTreatedAsOtherIncome" xlink:label="NetGainLossOnForeignCurrencyFluctuationsTreatedAsOtherIncome"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OtherNonoperatingIncomeAbstract" xlink:to="NetGainLossOnForeignCurrencyFluctuationsTreatedAsOtherIncome" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_SurplusOnDisposalDiscardDemolishmentAndDestructionOfDepreciableTangibleAsset" xlink:label="SurplusOnDisposalDiscardDemolishmentAndDestructionOfDepreciableTangibleAsset"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OtherNonoperatingIncomeAbstract" xlink:to="SurplusOnDisposalDiscardDemolishmentAndDestructionOfDepreciableTangibleAsset" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_GainOnDisposalOfIntangibleAsset" xlink:label="GainOnDisposalOfIntangibleAsset"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OtherNonoperatingIncomeAbstract" xlink:to="GainOnDisposalOfIntangibleAsset" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AmountCreditedToProfitAndLossAsTransferFromRevaluationReserveOnAccountOfAdditionalDepreciationChargedOnRevaluedTangibleAssets" xlink:label="AmountCreditedToProfitAndLossAsTransferFromRevaluationReserveOnAccountOfAdditionalDepreciationChargedOnRevaluedTangibleAssets"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OtherNonoperatingIncomeAbstract" xlink:to="AmountCreditedToProfitAndLossAsTransferFromRevaluationReserveOnAccountOfAdditionalDepreciationChargedOnRevaluedTangibleAssets" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ExcessProvisionDiminutionInValueInvestmentWrittenBack" xlink:label="ExcessProvisionDiminutionInValueInvestmentWrittenBack"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OtherNonoperatingIncomeAbstract" xlink:to="ExcessProvisionDiminutionInValueInvestmentWrittenBack" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ExcessProvisionsBadDoubtfulDebtsAdvancesWrittenBack" xlink:label="ExcessProvisionsBadDoubtfulDebtsAdvancesWrittenBack"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OtherNonoperatingIncomeAbstract" xlink:to="ExcessProvisionsBadDoubtfulDebtsAdvancesWrittenBack" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_IncomeGovernmentGrantsSubsidies" xlink:label="IncomeGovernmentGrantsSubsidies"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OtherNonoperatingIncomeAbstract" xlink:to="IncomeGovernmentGrantsSubsidies" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_IncomeExportIncentives" xlink:label="IncomeExportIncentives"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OtherNonoperatingIncomeAbstract" xlink:to="IncomeExportIncentives" priority="0" order="8.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_IncomeImportEntitlements" xlink:label="IncomeImportEntitlements"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OtherNonoperatingIncomeAbstract" xlink:to="IncomeImportEntitlements" priority="0" order="9.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_IncomeInsuranceClaims" xlink:label="IncomeInsuranceClaims"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OtherNonoperatingIncomeAbstract" xlink:to="IncomeInsuranceClaims" priority="0" order="10.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_IncomeFromSubsidiaries" xlink:label="IncomeFromSubsidiaries"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OtherNonoperatingIncomeAbstract" xlink:to="IncomeFromSubsidiaries" priority="0" order="11.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestAndIncomeTaxRefund" xlink:label="InterestAndIncomeTaxRefund"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OtherNonoperatingIncomeAbstract" xlink:to="InterestAndIncomeTaxRefund" priority="0" order="12.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_IncomeOnBrokerageCommission" xlink:label="IncomeOnBrokerageCommission"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OtherNonoperatingIncomeAbstract" xlink:to="IncomeOnBrokerageCommission" priority="0" order="13.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_IncomeOnSalesTaxBenefit" xlink:label="IncomeOnSalesTaxBenefit"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OtherNonoperatingIncomeAbstract" xlink:to="IncomeOnSalesTaxBenefit" priority="0" order="14.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ExcessProvisionsWrittenBack" xlink:label="ExcessProvisionsWrittenBack"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OtherNonoperatingIncomeAbstract" xlink:to="ExcessProvisionsWrittenBack" priority="0" order="15.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherAllowancesDeductionOtherIncome" xlink:label="OtherAllowancesDeductionOtherIncome"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OtherNonoperatingIncomeAbstract" xlink:to="OtherAllowancesDeductionOtherIncome" priority="0" order="16.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_MiscellaneousOtherNonoperatingIncome" xlink:label="MiscellaneousOtherNonoperatingIncome"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OtherNonoperatingIncomeAbstract" xlink:to="MiscellaneousOtherNonoperatingIncome" priority="0" order="17.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherNonoperatingIncome" xlink:label="OtherNonoperatingIncome"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OtherNonoperatingIncomeAbstract" xlink:to="OtherNonoperatingIncome" priority="0" order="18.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_IncomeFromPipelineTransportation" xlink:label="IncomeFromPipelineTransportation"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfOtherIncomeAbstract" xlink:to="IncomeFromPipelineTransportation" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherIncome" xlink:label="OtherIncome"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfOtherIncomeAbstract" xlink:to="OtherIncome" priority="0" order="8.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ShareOtherIncomeJointVentures" xlink:label="ShareOtherIncomeJointVentures"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfOtherIncomeAbstract" xlink:to="ShareOtherIncomeJointVentures" priority="0" order="9.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfDetailsOfAmountCreditedToProfitAndLossAsTransferFromRevaluationReserveOnAccountOfAdditionalDepreciationChargedOnRevaluedTangibleAssets" xlink:label="DisclosureOfDetailsOfAmountCreditedToProfitAndLossAsTransferFromRevaluationReserveOnAccountOfAdditionalDepreciationChargedOnRevaluedTangibleAssets"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfOtherIncomeAbstract" xlink:to="DisclosureOfDetailsOfAmountCreditedToProfitAndLossAsTransferFromRevaluationReserveOnAccountOfAdditionalDepreciationChargedOnRevaluedTangibleAssets" priority="0" order="10.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfFinanceCostAbstract" xlink:label="DisclosureOfFinanceCostAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="SubclassificationAndNotesOnIncomeAndExpenseExplanatoryTextBlock" xlink:to="DisclosureOfFinanceCostAbstract" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfNotesOnFinanceCostExplanatoryTextBlock" xlink:label="DisclosureOfNotesOnFinanceCostExplanatoryTextBlock"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfFinanceCostAbstract" xlink:to="DisclosureOfNotesOnFinanceCostExplanatoryTextBlock" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestExpenseAbstract" xlink:label="InterestExpenseAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfFinanceCostAbstract" xlink:to="InterestExpenseAbstract" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestExpenseLongTermLoansAbstract" xlink:label="InterestExpenseLongTermLoansAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestExpenseAbstract" xlink:to="InterestExpenseLongTermLoansAbstract" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestExpenseLongTermLoansBanks" xlink:label="InterestExpenseLongTermLoansBanks"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestExpenseLongTermLoansAbstract" xlink:to="InterestExpenseLongTermLoansBanks" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestExpenseLongTermLoansOthers" xlink:label="InterestExpenseLongTermLoansOthers"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestExpenseLongTermLoansAbstract" xlink:to="InterestExpenseLongTermLoansOthers" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestExpenseLongTermLoans" xlink:label="InterestExpenseLongTermLoans"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestExpenseLongTermLoansAbstract" xlink:to="InterestExpenseLongTermLoans" priority="0" order="3.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestExpenseShortTermLoansAbstract" xlink:label="InterestExpenseShortTermLoansAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestExpenseAbstract" xlink:to="InterestExpenseShortTermLoansAbstract" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestExpenseShortTermLoansBanks" xlink:label="InterestExpenseShortTermLoansBanks"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestExpenseShortTermLoansAbstract" xlink:to="InterestExpenseShortTermLoansBanks" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestExpenseShortTermLoansOthers" xlink:label="InterestExpenseShortTermLoansOthers"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestExpenseShortTermLoansAbstract" xlink:to="InterestExpenseShortTermLoansOthers" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestExpenseShortTermLoans" xlink:label="InterestExpenseShortTermLoans"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestExpenseShortTermLoansAbstract" xlink:to="InterestExpenseShortTermLoans" priority="0" order="3.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestExpenseDeposits" xlink:label="InterestExpenseDeposits"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestExpenseAbstract" xlink:to="InterestExpenseDeposits" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestExpenseDebtSecurities" xlink:label="InterestExpenseDebtSecurities"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestExpenseAbstract" xlink:to="InterestExpenseDebtSecurities" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestExpenseOtherBorrowings" xlink:label="InterestExpenseOtherBorrowings"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestExpenseAbstract" xlink:to="InterestExpenseOtherBorrowings" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestExpenseBorrowings" xlink:label="InterestExpenseBorrowings"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestExpenseAbstract" xlink:to="InterestExpenseBorrowings" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestLeaseFinancing" xlink:label="InterestLeaseFinancing"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestExpenseAbstract" xlink:to="InterestLeaseFinancing" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherInterestCharges" xlink:label="OtherInterestCharges"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestExpenseAbstract" xlink:to="OtherInterestCharges" priority="0" order="8.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterestExpense" xlink:label="InterestExpense"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="InterestExpenseAbstract" xlink:to="InterestExpense" priority="0" order="9.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherBorrowingCosts" xlink:label="OtherBorrowingCosts"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfFinanceCostAbstract" xlink:to="OtherBorrowingCosts" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NetGainLossOnForeignCurrencyTransactionsAndTranslationsTreatedAsFinanceCosts" xlink:label="NetGainLossOnForeignCurrencyTransactionsAndTranslationsTreatedAsFinanceCosts"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfFinanceCostAbstract" xlink:to="NetGainLossOnForeignCurrencyTransactionsAndTranslationsTreatedAsFinanceCosts" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_FinanceCosts" xlink:label="FinanceCosts"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfFinanceCostAbstract" xlink:to="FinanceCosts" priority="0" order="5.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ShareFinanceCostsJointVentures" xlink:label="ShareFinanceCostsJointVentures"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfFinanceCostAbstract" xlink:to="ShareFinanceCostsJointVentures" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EmployeeBenefitExpenseAbstract" xlink:label="EmployeeBenefitExpenseAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="SubclassificationAndNotesOnIncomeAndExpenseExplanatoryTextBlock" xlink:to="EmployeeBenefitExpenseAbstract" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_SalariesAndWages" xlink:label="SalariesAndWages"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="EmployeeBenefitExpenseAbstract" xlink:to="SalariesAndWages" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ContributionToProvidentAndOtherFundsAbstract" xlink:label="ContributionToProvidentAndOtherFundsAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="EmployeeBenefitExpenseAbstract" xlink:to="ContributionToProvidentAndOtherFundsAbstract" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ContributionToProvidentAndOtherFundsForContractLabour" xlink:label="ContributionToProvidentAndOtherFundsForContractLabour"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ContributionToProvidentAndOtherFundsAbstract" xlink:to="ContributionToProvidentAndOtherFundsForContractLabour" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ContributionToProvidentAndOtherFundsForOthers" xlink:label="ContributionToProvidentAndOtherFundsForOthers"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ContributionToProvidentAndOtherFundsAbstract" xlink:to="ContributionToProvidentAndOtherFundsForOthers" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ContributionToProvidentAndOtherFunds" xlink:label="ContributionToProvidentAndOtherFunds"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ContributionToProvidentAndOtherFundsAbstract" xlink:to="ContributionToProvidentAndOtherFunds" priority="0" order="3.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ExpenseOnEmployeeStockOptionSchemeAndEmployeeStockPurchasePlan" xlink:label="ExpenseOnEmployeeStockOptionSchemeAndEmployeeStockPurchasePlan"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="EmployeeBenefitExpenseAbstract" xlink:to="ExpenseOnEmployeeStockOptionSchemeAndEmployeeStockPurchasePlan" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CommissionEmployees" xlink:label="CommissionEmployees"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="EmployeeBenefitExpenseAbstract" xlink:to="CommissionEmployees" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EmployeeMedicalInsuranceExpenses" xlink:label="EmployeeMedicalInsuranceExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="EmployeeBenefitExpenseAbstract" xlink:to="EmployeeMedicalInsuranceExpenses" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_LeaveEncashmentExpenses" xlink:label="LeaveEncashmentExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="EmployeeBenefitExpenseAbstract" xlink:to="LeaveEncashmentExpenses" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_Gratuity" xlink:label="Gratuity"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="EmployeeBenefitExpenseAbstract" xlink:to="Gratuity" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PensionSchemes" xlink:label="PensionSchemes"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="EmployeeBenefitExpenseAbstract" xlink:to="PensionSchemes" priority="0" order="8.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_VoluntaryRetirementCompensation" xlink:label="VoluntaryRetirementCompensation"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="EmployeeBenefitExpenseAbstract" xlink:to="VoluntaryRetirementCompensation" priority="0" order="9.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherRetirementBenefits" xlink:label="OtherRetirementBenefits"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="EmployeeBenefitExpenseAbstract" xlink:to="OtherRetirementBenefits" priority="0" order="10.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_StaffWelfareExpense" xlink:label="StaffWelfareExpense"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="EmployeeBenefitExpenseAbstract" xlink:to="StaffWelfareExpense" priority="0" order="11.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherEmployeeRelatedExpenses" xlink:label="OtherEmployeeRelatedExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="EmployeeBenefitExpenseAbstract" xlink:to="OtherEmployeeRelatedExpenses" priority="0" order="12.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EmployeeBenefitExpense" xlink:label="EmployeeBenefitExpense"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="EmployeeBenefitExpenseAbstract" xlink:to="EmployeeBenefitExpense" priority="0" order="13.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ShareEmployeeBenefitExpenseJointVentures" xlink:label="ShareEmployeeBenefitExpenseJointVentures"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="EmployeeBenefitExpenseAbstract" xlink:to="ShareEmployeeBenefitExpenseJointVentures" priority="0" order="14.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_BreakupOfOtherExpensesAbstract" xlink:label="BreakupOfOtherExpensesAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="SubclassificationAndNotesOnIncomeAndExpenseExplanatoryTextBlock" xlink:to="BreakupOfOtherExpensesAbstract" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ConsumptionOfStoresAndSpareParts" xlink:label="ConsumptionOfStoresAndSpareParts"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="ConsumptionOfStoresAndSpareParts" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PowerAndFuel" xlink:label="PowerAndFuel"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="PowerAndFuel" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_Rent" xlink:label="Rent"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="Rent" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RepairsToBuilding" xlink:label="RepairsToBuilding"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="RepairsToBuilding" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RepairsToMachinery" xlink:label="RepairsToMachinery"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="RepairsToMachinery" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_Insurance" xlink:label="Insurance"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="Insurance" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RatesAndTaxesExcludingTaxesOnIncomeAbstract" xlink:label="RatesAndTaxesExcludingTaxesOnIncomeAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="RatesAndTaxesExcludingTaxesOnIncomeAbstract" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CentralExciseDuty" xlink:label="CentralExciseDuty"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RatesAndTaxesExcludingTaxesOnIncomeAbstract" xlink:to="CentralExciseDuty" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PurchaseTax" xlink:label="PurchaseTax"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RatesAndTaxesExcludingTaxesOnIncomeAbstract" xlink:to="PurchaseTax" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherCessTaxes" xlink:label="OtherCessTaxes"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RatesAndTaxesExcludingTaxesOnIncomeAbstract" xlink:to="OtherCessTaxes" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostTaxesOtherLeviesByGovernmentLocalAuthorities" xlink:label="CostTaxesOtherLeviesByGovernmentLocalAuthorities"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RatesAndTaxesExcludingTaxesOnIncomeAbstract" xlink:to="CostTaxesOtherLeviesByGovernmentLocalAuthorities" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ProvisionWealthTax" xlink:label="ProvisionWealthTax"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RatesAndTaxesExcludingTaxesOnIncomeAbstract" xlink:to="ProvisionWealthTax" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RatesAndTaxesExcludingTaxesOnIncome" xlink:label="RatesAndTaxesExcludingTaxesOnIncome"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RatesAndTaxesExcludingTaxesOnIncomeAbstract" xlink:to="RatesAndTaxesExcludingTaxesOnIncome" priority="0" order="6.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ResearchDevelopmentExpenditure" xlink:label="ResearchDevelopmentExpenditure"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="ResearchDevelopmentExpenditure" priority="0" order="8.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_SubscriptionsMembershipFees" xlink:label="SubscriptionsMembershipFees"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="SubscriptionsMembershipFees" priority="0" order="9.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ElectricityExpenses" xlink:label="ElectricityExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="ElectricityExpenses" priority="0" order="10.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_TelephonePostage" xlink:label="TelephonePostage"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="TelephonePostage" priority="0" order="11.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PrintingStationery" xlink:label="PrintingStationery"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="PrintingStationery" priority="0" order="12.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InformationTechnologyExpenses" xlink:label="InformationTechnologyExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="InformationTechnologyExpenses" priority="0" order="13.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_TravellingConveyance" xlink:label="TravellingConveyance"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="TravellingConveyance" priority="0" order="14.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CateringCanteenExpenses" xlink:label="CateringCanteenExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="CateringCanteenExpenses" priority="0" order="15.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EntertainmentExpenses" xlink:label="EntertainmentExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="EntertainmentExpenses" priority="0" order="16.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_LegalProfessionalCharges" xlink:label="LegalProfessionalCharges"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="LegalProfessionalCharges" priority="0" order="17.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_TrainingRecruitmentExpenses" xlink:label="TrainingRecruitmentExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="TrainingRecruitmentExpenses" priority="0" order="18.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_VehicleRunningExpenses" xlink:label="VehicleRunningExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="VehicleRunningExpenses" priority="0" order="19.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_SafetySecurityExpenses" xlink:label="SafetySecurityExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="SafetySecurityExpenses" priority="0" order="20.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DirectorsSittingFees" xlink:label="DirectorsSittingFees"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="DirectorsSittingFees" priority="0" order="21.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ManagerialRemunerationAbstract" xlink:label="ManagerialRemunerationAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="ManagerialRemunerationAbstract" priority="0" order="22.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RemunerationToDirectorsAbstract" xlink:label="RemunerationToDirectorsAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ManagerialRemunerationAbstract" xlink:to="RemunerationToDirectorsAbstract" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_SalaryToDirectors" xlink:label="SalaryToDirectors"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RemunerationToDirectorsAbstract" xlink:to="SalaryToDirectors" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CommissionToDirectors" xlink:label="CommissionToDirectors"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RemunerationToDirectorsAbstract" xlink:to="CommissionToDirectors" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherBenefitsToDirectors" xlink:label="OtherBenefitsToDirectors"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RemunerationToDirectorsAbstract" xlink:to="OtherBenefitsToDirectors" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RemunerationToDirectors" xlink:label="RemunerationToDirectors"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RemunerationToDirectorsAbstract" xlink:to="RemunerationToDirectors" priority="0" order="4.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RemunerationToManagersAbstract" xlink:label="RemunerationToManagersAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ManagerialRemunerationAbstract" xlink:to="RemunerationToManagersAbstract" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_SalaryToManagers" xlink:label="SalaryToManagers"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RemunerationToManagersAbstract" xlink:to="SalaryToManagers" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CommissionToManagers" xlink:label="CommissionToManagers"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RemunerationToManagersAbstract" xlink:to="CommissionToManagers" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherBenefitsToManagers" xlink:label="OtherBenefitsToManagers"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RemunerationToManagersAbstract" xlink:to="OtherBenefitsToManagers" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RemunerationToManagers" xlink:label="RemunerationToManagers"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="RemunerationToManagersAbstract" xlink:to="RemunerationToManagers" priority="0" order="4.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ManagerialRemuneration" xlink:label="ManagerialRemuneration"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ManagerialRemunerationAbstract" xlink:to="ManagerialRemuneration" priority="0" order="3.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DonationsSubscriptions" xlink:label="DonationsSubscriptions"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="DonationsSubscriptions" priority="0" order="23.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_BooksPeriodicals" xlink:label="BooksPeriodicals"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="BooksPeriodicals" priority="0" order="24.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_SeminarsConferenceExpenses" xlink:label="SeminarsConferenceExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="SeminarsConferenceExpenses" priority="0" order="25.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RegistrationFilingFees" xlink:label="RegistrationFilingFees"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="RegistrationFilingFees" priority="0" order="26.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CustodialFees" xlink:label="CustodialFees"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="CustodialFees" priority="0" order="27.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_BankCharges" xlink:label="BankCharges"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="BankCharges" priority="0" order="28.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_GuestHouseExpenses" xlink:label="GuestHouseExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="GuestHouseExpenses" priority="0" order="29.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AdvertisingPromotionalExpenses" xlink:label="AdvertisingPromotionalExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="AdvertisingPromotionalExpenses" priority="0" order="30.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AfterSalesServiceExpenses" xlink:label="AfterSalesServiceExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="AfterSalesServiceExpenses" priority="0" order="31.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_WarrantyClaimExpenses" xlink:label="WarrantyClaimExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="WarrantyClaimExpenses" priority="0" order="32.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CommissionPaidSoleSellingAgents" xlink:label="CommissionPaidSoleSellingAgents"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="CommissionPaidSoleSellingAgents" priority="0" order="33.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CommissionPaidOtherSellingAgents" xlink:label="CommissionPaidOtherSellingAgents"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="CommissionPaidOtherSellingAgents" priority="0" order="34.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CommissionPaidSoleBuyingAgents" xlink:label="CommissionPaidSoleBuyingAgents"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="CommissionPaidSoleBuyingAgents" priority="0" order="35.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_TransportationDistributionExpenses" xlink:label="TransportationDistributionExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="TransportationDistributionExpenses" priority="0" order="36.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_SecondaryPackingExpenses" xlink:label="SecondaryPackingExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="SecondaryPackingExpenses" priority="0" order="37.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DiscountingCharges" xlink:label="DiscountingCharges"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="DiscountingCharges" priority="0" order="38.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_GuaranteeCommission" xlink:label="GuaranteeCommission"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="GuaranteeCommission" priority="0" order="39.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostRepairsMaintenanceOtherAssets" xlink:label="CostRepairsMaintenanceOtherAssets"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="CostRepairsMaintenanceOtherAssets" priority="0" order="40.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostInformationTechnologyAbstract" xlink:label="CostInformationTechnologyAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="CostInformationTechnologyAbstract" priority="0" order="41.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostSoftware" xlink:label="CostSoftware"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="CostInformationTechnologyAbstract" xlink:to="CostSoftware" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostHardware" xlink:label="CostHardware"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="CostInformationTechnologyAbstract" xlink:to="CostHardware" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostCommunicationConnectivity" xlink:label="CostCommunicationConnectivity"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="CostInformationTechnologyAbstract" xlink:to="CostCommunicationConnectivity" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostInformationTechnology" xlink:label="CostInformationTechnology"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="CostInformationTechnologyAbstract" xlink:to="CostInformationTechnology" priority="0" order="4.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostInsurance" xlink:label="CostInsurance"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="CostInsurance" priority="0" order="42.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostTransportationAbstract" xlink:label="CostTransportationAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="CostTransportationAbstract" priority="0" order="43.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostFreight" xlink:label="CostFreight"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="CostTransportationAbstract" xlink:to="CostFreight" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostOctroi" xlink:label="CostOctroi"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="CostTransportationAbstract" xlink:to="CostOctroi" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostLoadingAndUnloading" xlink:label="CostLoadingAndUnloading"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="CostTransportationAbstract" xlink:to="CostLoadingAndUnloading" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostOtherTransporting" xlink:label="CostOtherTransporting"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="CostTransportationAbstract" xlink:to="CostOtherTransporting" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostTransportation" xlink:label="CostTransportation"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="CostTransportationAbstract" xlink:to="CostTransportation" priority="0" order="5.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostLeaseRentals" xlink:label="CostLeaseRentals"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="CostLeaseRentals" priority="0" order="44.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostEffluentDisposal" xlink:label="CostEffluentDisposal"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="CostEffluentDisposal" priority="0" order="45.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ProvisionForCostOfRestoration" xlink:label="ProvisionForCostOfRestoration"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="ProvisionForCostOfRestoration" priority="0" order="46.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostWarehousing" xlink:label="CostWarehousing"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="CostWarehousing" priority="0" order="47.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostWaterCharges" xlink:label="CostWaterCharges"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="CostWaterCharges" priority="0" order="48.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostReimbursableExpenses" xlink:label="CostReimbursableExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="CostReimbursableExpenses" priority="0" order="49.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostTechnicalServices" xlink:label="CostTechnicalServices"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="CostTechnicalServices" priority="0" order="50.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostRoyalty" xlink:label="CostRoyalty"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="CostRoyalty" priority="0" order="51.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ProvisionBadDoubtfulDebtsCreated" xlink:label="ProvisionBadDoubtfulDebtsCreated"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="ProvisionBadDoubtfulDebtsCreated" priority="0" order="52.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ProvisionBadDoubtfulLoansAdvancesCreated" xlink:label="ProvisionBadDoubtfulLoansAdvancesCreated"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="ProvisionBadDoubtfulLoansAdvancesCreated" priority="0" order="53.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AdjustmentsToCarryingAmountsOfInvestmentsAbstract" xlink:label="AdjustmentsToCarryingAmountsOfInvestmentsAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="AdjustmentsToCarryingAmountsOfInvestmentsAbstract" priority="0" order="54.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ProvisionDiminutionValueCurrentInvestmentsCreated" xlink:label="ProvisionDiminutionValueCurrentInvestmentsCreated"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="AdjustmentsToCarryingAmountsOfInvestmentsAbstract" xlink:to="ProvisionDiminutionValueCurrentInvestmentsCreated" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ProvisionDiminutionValueLongTermInvestmentsCreated" xlink:label="ProvisionDiminutionValueLongTermInvestmentsCreated"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="AdjustmentsToCarryingAmountsOfInvestmentsAbstract" xlink:to="ProvisionDiminutionValueLongTermInvestmentsCreated" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AdjustmentsToCarryingAmountsOfInvestments" xlink:label="AdjustmentsToCarryingAmountsOfInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="AdjustmentsToCarryingAmountsOfInvestmentsAbstract" xlink:to="AdjustmentsToCarryingAmountsOfInvestments" priority="0" order="3.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NetProvisionsChargedAbstract" xlink:label="NetProvisionsChargedAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="NetProvisionsChargedAbstract" priority="0" order="55.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ProvisionWarrantyClaimsCreated" xlink:label="ProvisionWarrantyClaimsCreated"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="NetProvisionsChargedAbstract" xlink:to="ProvisionWarrantyClaimsCreated" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ProvisionStatutoryLiabilitiesCreated" xlink:label="ProvisionStatutoryLiabilitiesCreated"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="NetProvisionsChargedAbstract" xlink:to="ProvisionStatutoryLiabilitiesCreated" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ProvisionRestructuringCreated" xlink:label="ProvisionRestructuringCreated"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="NetProvisionsChargedAbstract" xlink:to="ProvisionRestructuringCreated" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherProvisionsCreated" xlink:label="OtherProvisionsCreated"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="NetProvisionsChargedAbstract" xlink:to="OtherProvisionsCreated" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NetProvisionsCharged" xlink:label="NetProvisionsCharged"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="NetProvisionsChargedAbstract" xlink:to="NetProvisionsCharged" priority="0" order="5.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DiscountIssueSharesDebenturesWrittenOffAbstract" xlink:label="DiscountIssueSharesDebenturesWrittenOffAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="DiscountIssueSharesDebenturesWrittenOffAbstract" priority="0" order="56.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DiscountIssueSharesWrittenOff" xlink:label="DiscountIssueSharesWrittenOff"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DiscountIssueSharesDebenturesWrittenOffAbstract" xlink:to="DiscountIssueSharesWrittenOff" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DiscountIssueDebenturesWrittenOff" xlink:label="DiscountIssueDebenturesWrittenOff"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DiscountIssueSharesDebenturesWrittenOffAbstract" xlink:to="DiscountIssueDebenturesWrittenOff" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DiscountIssueSharesDebenturesWrittenOff" xlink:label="DiscountIssueSharesDebenturesWrittenOff"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DiscountIssueSharesDebenturesWrittenOffAbstract" xlink:to="DiscountIssueSharesDebenturesWrittenOff" priority="0" order="3.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_WriteOffAssetsLiabilitiesAbstract" xlink:label="WriteOffAssetsLiabilitiesAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="WriteOffAssetsLiabilitiesAbstract" priority="0" order="57.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_MiscellaneousExpenditureWrittenOffAbstract" xlink:label="MiscellaneousExpenditureWrittenOffAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="WriteOffAssetsLiabilitiesAbstract" xlink:to="MiscellaneousExpenditureWrittenOffAbstract" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_FinancingChargesWrittenOff" xlink:label="FinancingChargesWrittenOff"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="MiscellaneousExpenditureWrittenOffAbstract" xlink:to="FinancingChargesWrittenOff" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_VoluntaryRetirementCompensationWrittenOff" xlink:label="VoluntaryRetirementCompensationWrittenOff"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="MiscellaneousExpenditureWrittenOffAbstract" xlink:to="VoluntaryRetirementCompensationWrittenOff" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_TechnicalKnowhowWrittenOff" xlink:label="TechnicalKnowhowWrittenOff"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="MiscellaneousExpenditureWrittenOffAbstract" xlink:to="TechnicalKnowhowWrittenOff" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherMiscellaneousExpenditureWrittenOff" xlink:label="OtherMiscellaneousExpenditureWrittenOff"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="MiscellaneousExpenditureWrittenOffAbstract" xlink:to="OtherMiscellaneousExpenditureWrittenOff" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_MiscellaneousExpenditureWrittenOff" xlink:label="MiscellaneousExpenditureWrittenOff"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="MiscellaneousExpenditureWrittenOffAbstract" xlink:to="MiscellaneousExpenditureWrittenOff" priority="0" order="5.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_FixedAssetsWrittenOff" xlink:label="FixedAssetsWrittenOff"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="WriteOffAssetsLiabilitiesAbstract" xlink:to="FixedAssetsWrittenOff" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InventoriesWrittenOff" xlink:label="InventoriesWrittenOff"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="WriteOffAssetsLiabilitiesAbstract" xlink:to="InventoriesWrittenOff" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InvestmentsWrittenOff" xlink:label="InvestmentsWrittenOff"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="WriteOffAssetsLiabilitiesAbstract" xlink:to="InvestmentsWrittenOff" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_BadDebtsWrittenOff" xlink:label="BadDebtsWrittenOff"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="WriteOffAssetsLiabilitiesAbstract" xlink:to="BadDebtsWrittenOff" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_BadDebtsAdvancesWrittenOff" xlink:label="BadDebtsAdvancesWrittenOff"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="WriteOffAssetsLiabilitiesAbstract" xlink:to="BadDebtsAdvancesWrittenOff" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherAssetsWrittenOff" xlink:label="OtherAssetsWrittenOff"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="WriteOffAssetsLiabilitiesAbstract" xlink:to="OtherAssetsWrittenOff" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_LiabilitiesWrittenOff" xlink:label="LiabilitiesWrittenOff"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="WriteOffAssetsLiabilitiesAbstract" xlink:to="LiabilitiesWrittenOff" priority="0" order="8.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_WriteOffAssetsLiabilities" xlink:label="WriteOffAssetsLiabilities"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="WriteOffAssetsLiabilitiesAbstract" xlink:to="WriteOffAssetsLiabilities" priority="0" order="9.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_LossOnDisposalOfIntangibleAsset" xlink:label="LossOnDisposalOfIntangibleAsset"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="LossOnDisposalOfIntangibleAsset" priority="0" order="58.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_LossOnDisposalDiscardDemolishmentAndDestructionOfDepreciableTangibleAsset" xlink:label="LossOnDisposalDiscardDemolishmentAndDestructionOfDepreciableTangibleAsset"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="LossOnDisposalDiscardDemolishmentAndDestructionOfDepreciableTangibleAsset" priority="0" order="59.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ContractCostAbstract" xlink:label="ContractCostAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="ContractCostAbstract" priority="0" order="60.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_SiteLabourSupervisionCostContracts" xlink:label="SiteLabourSupervisionCostContracts"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ContractCostAbstract" xlink:to="SiteLabourSupervisionCostContracts" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_MaterialCostContract" xlink:label="MaterialCostContract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ContractCostAbstract" xlink:to="MaterialCostContract" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DepreciationAssetsContracts" xlink:label="DepreciationAssetsContracts"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ContractCostAbstract" xlink:to="DepreciationAssetsContracts" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostTransportationAssetsContracts" xlink:label="CostTransportationAssetsContracts"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ContractCostAbstract" xlink:to="CostTransportationAssetsContracts" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_HireChargesAssetsContracts" xlink:label="HireChargesAssetsContracts"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ContractCostAbstract" xlink:to="HireChargesAssetsContracts" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostDesignTechnicalAssistanceContracts" xlink:label="CostDesignTechnicalAssistanceContracts"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ContractCostAbstract" xlink:to="CostDesignTechnicalAssistanceContracts" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_WarrantyCostContracts" xlink:label="WarrantyCostContracts"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ContractCostAbstract" xlink:to="WarrantyCostContracts" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherClaimsContracts" xlink:label="OtherClaimsContracts"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ContractCostAbstract" xlink:to="OtherClaimsContracts" priority="0" order="8.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_SaleMaterialScrapOtherAssetsContracts" xlink:label="SaleMaterialScrapOtherAssetsContracts"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ContractCostAbstract" xlink:to="SaleMaterialScrapOtherAssetsContracts" priority="0" order="9.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OverheadCostsApportionedContractsAbstract" xlink:label="OverheadCostsApportionedContractsAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ContractCostAbstract" xlink:to="OverheadCostsApportionedContractsAbstract" priority="0" order="10.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InsuranceCostApportionedContract" xlink:label="InsuranceCostApportionedContract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OverheadCostsApportionedContractsAbstract" xlink:to="InsuranceCostApportionedContract" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DesignTechnicalAssistanceApportionedContracts" xlink:label="DesignTechnicalAssistanceApportionedContracts"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OverheadCostsApportionedContractsAbstract" xlink:to="DesignTechnicalAssistanceApportionedContracts" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherOverheadsApportionedContracts" xlink:label="OtherOverheadsApportionedContracts"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OverheadCostsApportionedContractsAbstract" xlink:to="OtherOverheadsApportionedContracts" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OverheadCostsApportionedContracts" xlink:label="OverheadCostsApportionedContracts"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="OverheadCostsApportionedContractsAbstract" xlink:to="OverheadCostsApportionedContracts" priority="0" order="4.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ContractCost" xlink:label="ContractCost"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="ContractCostAbstract" xlink:to="ContractCost" priority="0" order="11.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CostDryWells" xlink:label="CostDryWells"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="CostDryWells" priority="0" order="61.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OperatingAndMaintenanceCostOfEmissionAndOtherPollutionReductionEquipments" xlink:label="OperatingAndMaintenanceCostOfEmissionAndOtherPollutionReductionEquipments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="OperatingAndMaintenanceCostOfEmissionAndOtherPollutionReductionEquipments" priority="0" order="62.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PaymentsToAuditorAbstract" xlink:label="PaymentsToAuditorAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="PaymentsToAuditorAbstract" priority="0" order="63.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PaymentForAuditServices" xlink:label="PaymentForAuditServices"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="PaymentsToAuditorAbstract" xlink:to="PaymentForAuditServices" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PaymentForTaxationMatters" xlink:label="PaymentForTaxationMatters"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="PaymentsToAuditorAbstract" xlink:to="PaymentForTaxationMatters" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PaymentForCompanyLawMatters" xlink:label="PaymentForCompanyLawMatters"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="PaymentsToAuditorAbstract" xlink:to="PaymentForCompanyLawMatters" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PaymentForManagementServices" xlink:label="PaymentForManagementServices"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="PaymentsToAuditorAbstract" xlink:to="PaymentForManagementServices" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PaymentForOtherServices" xlink:label="PaymentForOtherServices"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="PaymentsToAuditorAbstract" xlink:to="PaymentForOtherServices" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PaymentForReimbursementOfExpenses" xlink:label="PaymentForReimbursementOfExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="PaymentsToAuditorAbstract" xlink:to="PaymentForReimbursementOfExpenses" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PaymentsToAuditor" xlink:label="PaymentsToAuditor"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="PaymentsToAuditorAbstract" xlink:to="PaymentsToAuditor" priority="0" order="7.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_PaymentsToCostAuditorAbstract" xlink:label="PaymentsToCostAuditorAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="PaymentsToCostAuditorAbstract" priority="0" order="64.0"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_PaymentForCostAuditCharges" xlink:label="PaymentForCostAuditCharges"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="PaymentsToCostAuditorAbstract" xlink:to="PaymentForCostAuditCharges" priority="1" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_PaymentForCostComplianceReport" xlink:label="PaymentForCostComplianceReport"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="PaymentsToCostAuditorAbstract" xlink:to="PaymentForCostComplianceReport" priority="2" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_PaymentForOtherCostServices" xlink:label="PaymentForOtherCostServices"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="PaymentsToCostAuditorAbstract" xlink:to="PaymentForOtherCostServices" priority="3" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_PaymentToCostAuditorForReimbursementOfExpenses" xlink:label="PaymentToCostAuditorForReimbursementOfExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="PaymentsToCostAuditorAbstract" xlink:to="PaymentToCostAuditorForReimbursementOfExpenses" priority="4" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_PaymentsToCostAuditor" xlink:label="PaymentsToCostAuditor"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="PaymentsToCostAuditorAbstract" xlink:to="PaymentsToCostAuditor" priority="5" order="5.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_MiscellaneousExpenses" xlink:label="MiscellaneousExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="MiscellaneousExpenses" priority="0" order="65.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherExpenses" xlink:label="OtherExpenses"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfOtherExpensesAbstract" xlink:to="OtherExpenses" priority="0" order="66.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_BreakupOfExpenditureOnProductionTransportationAndOtherExpenditurePertainingToEAndPActivitiesAbstract" xlink:label="BreakupOfExpenditureOnProductionTransportationAndOtherExpenditurePertainingToEAndPActivitiesAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="SubclassificationAndNotesOnIncomeAndExpenseExplanatoryTextBlock" xlink:to="BreakupOfExpenditureOnProductionTransportationAndOtherExpenditurePertainingToEAndPActivitiesAbstract" priority="0" order="8.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_RoyaltyPertainingToEAndPActivities" xlink:label="RoyaltyPertainingToEAndPActivities"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfExpenditureOnProductionTransportationAndOtherExpenditurePertainingToEAndPActivitiesAbstract" xlink:to="RoyaltyPertainingToEAndPActivities" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CessPertainingToEAndPActivities" xlink:label="CessPertainingToEAndPActivities"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfExpenditureOnProductionTransportationAndOtherExpenditurePertainingToEAndPActivitiesAbstract" xlink:to="CessPertainingToEAndPActivities" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EducationCessPertainingToEAndPActivities" xlink:label="EducationCessPertainingToEAndPActivities"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfExpenditureOnProductionTransportationAndOtherExpenditurePertainingToEAndPActivitiesAbstract" xlink:to="EducationCessPertainingToEAndPActivities" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NationalCalamityContingencyDutyPertainingToEAndPActivities" xlink:label="NationalCalamityContingencyDutyPertainingToEAndPActivities"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfExpenditureOnProductionTransportationAndOtherExpenditurePertainingToEAndPActivitiesAbstract" xlink:to="NationalCalamityContingencyDutyPertainingToEAndPActivities" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ExtractionCostPertainingToEAndPActivities" xlink:label="ExtractionCostPertainingToEAndPActivities"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfExpenditureOnProductionTransportationAndOtherExpenditurePertainingToEAndPActivitiesAbstract" xlink:to="ExtractionCostPertainingToEAndPActivities" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_SalesTaxPertainingToEAndPActivities" xlink:label="SalesTaxPertainingToEAndPActivities"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfExpenditureOnProductionTransportationAndOtherExpenditurePertainingToEAndPActivitiesAbstract" xlink:to="SalesTaxPertainingToEAndPActivities" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_GeologicalAndGeophysicalExpenditurePertainingToEAndPActivities" xlink:label="GeologicalAndGeophysicalExpenditurePertainingToEAndPActivities"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfExpenditureOnProductionTransportationAndOtherExpenditurePertainingToEAndPActivitiesAbstract" xlink:to="GeologicalAndGeophysicalExpenditurePertainingToEAndPActivities" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AdministrativeExpenditurePertainingToEAndPActivities" xlink:label="AdministrativeExpenditurePertainingToEAndPActivities"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfExpenditureOnProductionTransportationAndOtherExpenditurePertainingToEAndPActivitiesAbstract" xlink:to="AdministrativeExpenditurePertainingToEAndPActivities" priority="0" order="8.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ResearchAndDevelopmentExpenditurePertainingToEAndPActivities" xlink:label="ResearchAndDevelopmentExpenditurePertainingToEAndPActivities"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfExpenditureOnProductionTransportationAndOtherExpenditurePertainingToEAndPActivitiesAbstract" xlink:to="ResearchAndDevelopmentExpenditurePertainingToEAndPActivities" priority="0" order="9.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PipelineOperationAndMaintenanceExpenditurePertainingToEAndPActivities" xlink:label="PipelineOperationAndMaintenanceExpenditurePertainingToEAndPActivities"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfExpenditureOnProductionTransportationAndOtherExpenditurePertainingToEAndPActivitiesAbstract" xlink:to="PipelineOperationAndMaintenanceExpenditurePertainingToEAndPActivities" priority="0" order="10.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherExpenditurePertainingToEAndPActivities" xlink:label="OtherExpenditurePertainingToEAndPActivities"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfExpenditureOnProductionTransportationAndOtherExpenditurePertainingToEAndPActivitiesAbstract" xlink:to="OtherExpenditurePertainingToEAndPActivities" priority="0" order="11.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ExpenditureOnProductionTransportationAndOtherExpenditurePertainingToEAndPActivities" xlink:label="ExpenditureOnProductionTransportationAndOtherExpenditurePertainingToEAndPActivities"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="BreakupOfExpenditureOnProductionTransportationAndOtherExpenditurePertainingToEAndPActivitiesAbstract" xlink:to="ExpenditureOnProductionTransportationAndOtherExpenditurePertainingToEAndPActivities" priority="0" order="12.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CurrentTaxAbstract" xlink:label="CurrentTaxAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="SubclassificationAndNotesOnIncomeAndExpenseExplanatoryTextBlock" xlink:to="CurrentTaxAbstract" priority="0" order="9.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CurrentTaxPertainingToPreviousYears" xlink:label="CurrentTaxPertainingToPreviousYears"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="CurrentTaxAbstract" xlink:to="CurrentTaxPertainingToPreviousYears" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CurrentTaxPertainingToCurrentYear" xlink:label="CurrentTaxPertainingToCurrentYear"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="CurrentTaxAbstract" xlink:to="CurrentTaxPertainingToCurrentYear" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_MATCreditRecognisedDuringYear" xlink:label="MATCreditRecognisedDuringYear"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="CurrentTaxAbstract" xlink:to="MATCreditRecognisedDuringYear" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CurrentTax" xlink:label="CurrentTax"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="CurrentTaxAbstract" xlink:to="CurrentTax" priority="0" order="4.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+  </presentationLink>
+</linkbase>

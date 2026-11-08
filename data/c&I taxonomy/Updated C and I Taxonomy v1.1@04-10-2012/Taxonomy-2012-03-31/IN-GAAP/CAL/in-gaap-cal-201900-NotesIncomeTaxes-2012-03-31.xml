@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesIncomeTaxes" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-201900"/>
+  <calculationLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesIncomeTaxes">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxAssets" xlink:label="DeferredTaxAssets"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxAssetEmployeeBenefits" xlink:label="DeferredTaxAssetEmployeeBenefits"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeferredTaxAssets" xlink:to="DeferredTaxAssetEmployeeBenefits" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxAssetExpenditureDisallowances" xlink:label="DeferredTaxAssetExpenditureDisallowances"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeferredTaxAssets" xlink:to="DeferredTaxAssetExpenditureDisallowances" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxAssetFixedAssets" xlink:label="DeferredTaxAssetFixedAssets"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeferredTaxAssets" xlink:to="DeferredTaxAssetFixedAssets" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxAssetProvisionDoubtfulDebts" xlink:label="DeferredTaxAssetProvisionDoubtfulDebts"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeferredTaxAssets" xlink:to="DeferredTaxAssetProvisionDoubtfulDebts" priority="0" order="4.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxAssetSundryDebtors" xlink:label="DeferredTaxAssetSundryDebtors"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeferredTaxAssets" xlink:to="DeferredTaxAssetSundryDebtors" priority="0" order="5.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxAssetUnabsorbedDepreciation" xlink:label="DeferredTaxAssetUnabsorbedDepreciation"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeferredTaxAssets" xlink:to="DeferredTaxAssetUnabsorbedDepreciation" priority="0" order="6.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxAssetUnrealisedCarriedForwardLosses" xlink:label="DeferredTaxAssetUnrealisedCarriedForwardLosses"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeferredTaxAssets" xlink:to="DeferredTaxAssetUnrealisedCarriedForwardLosses" priority="0" order="7.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxAssetVRSPayment" xlink:label="DeferredTaxAssetVRSPayment"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeferredTaxAssets" xlink:to="DeferredTaxAssetVRSPayment" priority="0" order="8.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxInRespectOfBusinessCombinations" xlink:label="DeferredTaxInRespectOfBusinessCombinations"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeferredTaxAssets" xlink:to="DeferredTaxInRespectOfBusinessCombinations" priority="0" order="9.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxAssetOther" xlink:label="DeferredTaxAssetOther"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeferredTaxAssets" xlink:to="DeferredTaxAssetOther" priority="0" order="10.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxLiabilities" xlink:label="DeferredTaxLiabilities"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxLiabilityDepreciation" xlink:label="DeferredTaxLiabilityDepreciation"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeferredTaxLiabilities" xlink:to="DeferredTaxLiabilityDepreciation" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxLiabilityExportIncentives" xlink:label="DeferredTaxLiabilityExportIncentives"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeferredTaxLiabilities" xlink:to="DeferredTaxLiabilityExportIncentives" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxLiabilityInvestments" xlink:label="DeferredTaxLiabilityInvestments"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeferredTaxLiabilities" xlink:to="DeferredTaxLiabilityInvestments" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxLiabilityProvisionDoubtfulDebts" xlink:label="DeferredTaxLiabilityProvisionDoubtfulDebts"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeferredTaxLiabilities" xlink:to="DeferredTaxLiabilityProvisionDoubtfulDebts" priority="0" order="4.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxLiabilityProvisionEmployeeBenefits" xlink:label="DeferredTaxLiabilityProvisionEmployeeBenefits"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeferredTaxLiabilities" xlink:to="DeferredTaxLiabilityProvisionEmployeeBenefits" priority="0" order="5.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxLiabilityProvisionExpenses" xlink:label="DeferredTaxLiabilityProvisionExpenses"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeferredTaxLiabilities" xlink:to="DeferredTaxLiabilityProvisionExpenses" priority="0" order="6.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxLiabilityTechnicalKnowhowFees" xlink:label="DeferredTaxLiabilityTechnicalKnowhowFees"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeferredTaxLiabilities" xlink:to="DeferredTaxLiabilityTechnicalKnowhowFees" priority="0" order="7.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeferredTaxLiabilityOther" xlink:label="DeferredTaxLiabilityOther"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeferredTaxLiabilities" xlink:to="DeferredTaxLiabilityOther" priority="0" order="8.0" weight="1"/>
+  </calculationLink>
+</linkbase>

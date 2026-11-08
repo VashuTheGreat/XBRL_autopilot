@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-ca/NotesDirectorRemunerationAndOtherInformation" xlink:type="simple" xlink:href="../in-ca-roles-2012-03-31.xsd#in-ca-rol-300700"/>
+  <presentationLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-ca/NotesDirectorRemunerationAndOtherInformation">
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DisclosureOfDirectorsAndRemunerationToDirectorsExplanatoryTextBlock" xlink:label="DisclosureOfDirectorsAndRemunerationToDirectorsExplanatoryTextBlock"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DisclosureOfDirectorsAndRemunerationToDirectorsAbstract" xlink:label="DisclosureOfDirectorsAndRemunerationToDirectorsAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfDirectorsAndRemunerationToDirectorsExplanatoryTextBlock" xlink:to="DisclosureOfDirectorsAndRemunerationToDirectorsAbstract" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DisclosureOfDirectorsAndRemunerationToDirectorsTable" xlink:label="DisclosureOfDirectorsAndRemunerationToDirectorsTable"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfDirectorsAndRemunerationToDirectorsAbstract" xlink:to="DisclosureOfDirectorsAndRemunerationToDirectorsTable" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DirectorsAxis" xlink:label="DirectorsAxis"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfDirectorsAndRemunerationToDirectorsTable" xlink:to="DirectorsAxis" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DisclosureOfDirectorsAndRemunerationToDirectorsLineItems" xlink:label="DisclosureOfDirectorsAndRemunerationToDirectorsLineItems"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfDirectorsAndRemunerationToDirectorsAbstract" xlink:to="DisclosureOfDirectorsAndRemunerationToDirectorsLineItems" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_NameOfDirector" xlink:label="NameOfDirector"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfDirectorsAndRemunerationToDirectorsLineItems" xlink:to="NameOfDirector" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DirectorIdentificationNumberOfDirector" xlink:label="DirectorIdentificationNumberOfDirector"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfDirectorsAndRemunerationToDirectorsLineItems" xlink:to="DirectorIdentificationNumberOfDirector" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DateOfBirthOfDirector" xlink:label="DateOfBirthOfDirector"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfDirectorsAndRemunerationToDirectorsLineItems" xlink:to="DateOfBirthOfDirector" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DesignationOfDirector" xlink:label="DesignationOfDirector"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfDirectorsAndRemunerationToDirectorsLineItems" xlink:to="DesignationOfDirector" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_QualificationOfDirector" xlink:label="QualificationOfDirector"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfDirectorsAndRemunerationToDirectorsLineItems" xlink:to="QualificationOfDirector" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_SharesHeldByDirector" xlink:label="SharesHeldByDirector"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfDirectorsAndRemunerationToDirectorsLineItems" xlink:to="SharesHeldByDirector" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DirectorRemunerationAbstract" xlink:label="DirectorRemunerationAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfDirectorsAndRemunerationToDirectorsLineItems" xlink:to="DirectorRemunerationAbstract" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_SalaryToDirectorAbstract" xlink:label="SalaryToDirectorAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DirectorRemunerationAbstract" xlink:to="SalaryToDirectorAbstract" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_BasicPayDirector" xlink:label="BasicPayDirector"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="SalaryToDirectorAbstract" xlink:to="BasicPayDirector" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_AllowancesDirector" xlink:label="AllowancesDirector"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="SalaryToDirectorAbstract" xlink:to="AllowancesDirector" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_PerquisitesDirector" xlink:label="PerquisitesDirector"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="SalaryToDirectorAbstract" xlink:to="PerquisitesDirector" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_CommissionDirector" xlink:label="CommissionDirector"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="SalaryToDirectorAbstract" xlink:to="CommissionDirector" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_SalaryToDirector" xlink:label="SalaryToDirector"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="SalaryToDirectorAbstract" xlink:to="SalaryToDirector" priority="0" order="5.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_SittingFeesDirector" xlink:label="SittingFeesDirector"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DirectorRemunerationAbstract" xlink:to="SittingFeesDirector" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_StockCompensationDirector" xlink:label="StockCompensationDirector"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DirectorRemunerationAbstract" xlink:to="StockCompensationDirector" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_PostretirementBenefitsDirector" xlink:label="PostretirementBenefitsDirector"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DirectorRemunerationAbstract" xlink:to="PostretirementBenefitsDirector" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_OtherCompensationDirector" xlink:label="OtherCompensationDirector"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DirectorRemunerationAbstract" xlink:to="OtherCompensationDirector" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DirectorRemuneration" xlink:label="DirectorRemuneration"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DirectorRemunerationAbstract" xlink:to="DirectorRemuneration" priority="0" order="6.0" preferredLabel="http://www.xbrl.org/2003/role/totalLabel"/>
+  </presentationLink>
+</linkbase>

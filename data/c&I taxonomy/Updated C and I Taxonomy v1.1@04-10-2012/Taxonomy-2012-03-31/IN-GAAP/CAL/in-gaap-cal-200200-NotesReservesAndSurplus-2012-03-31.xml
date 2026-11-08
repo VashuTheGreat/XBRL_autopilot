@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesReservesAndSurplus" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-200200"/>
+  <calculationLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesReservesAndSurplus">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ChangesInReserves" xlink:label="ChangesInReserves"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AdditionsToReserves" xlink:label="AdditionsToReserves"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ChangesInReserves" xlink:to="AdditionsToReserves" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ProfitLossForPeriod" xlink:label="ProfitLossForPeriod"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="AdditionsToReserves" xlink:to="ProfitLossForPeriod" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherAdditionsToReserves" xlink:label="OtherAdditionsToReserves"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="AdditionsToReserves" xlink:to="OtherAdditionsToReserves" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DeductionsToReserves" xlink:label="DeductionsToReserves"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ChangesInReserves" xlink:to="DeductionsToReserves" priority="0" order="2.0" weight="-1"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_SecuritiesPremiumAdjustedBonusShares" xlink:label="SecuritiesPremiumAdjustedBonusShares"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeductionsToReserves" xlink:to="SecuritiesPremiumAdjustedBonusShares" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_SecuritiesPremiumAdjustedWritingOffPreliminaryExpenses" xlink:label="SecuritiesPremiumAdjustedWritingOffPreliminaryExpenses"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeductionsToReserves" xlink:to="SecuritiesPremiumAdjustedWritingOffPreliminaryExpenses" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_SecuritiesPremiumAdjustedWritingOffDiscountExpensesIssueSharesDebentures" xlink:label="SecuritiesPremiumAdjustedWritingOffDiscountExpensesIssueSharesDebentures"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeductionsToReserves" xlink:to="SecuritiesPremiumAdjustedWritingOffDiscountExpensesIssueSharesDebentures" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../../IN-CA/in-ca-2012-03-31.xsd#in-ca_SecuritiesPremiumAdjustedPremiumPayableRedemptionPreferenceSharesDebentures" xlink:label="SecuritiesPremiumAdjustedPremiumPayableRedemptionPreferenceSharesDebentures"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeductionsToReserves" xlink:to="SecuritiesPremiumAdjustedPremiumPayableRedemptionPreferenceSharesDebentures" priority="0" order="4.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherUtilisationOfSecuritiesPremiumIfPermitted" xlink:label="OtherUtilisationOfSecuritiesPremiumIfPermitted"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeductionsToReserves" xlink:to="OtherUtilisationOfSecuritiesPremiumIfPermitted" priority="0" order="5.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_OtherDeductionsToReserves" xlink:label="OtherDeductionsToReserves"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DeductionsToReserves" xlink:to="OtherDeductionsToReserves" priority="0" order="6.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AppropriationsForDividendDividendTaxAndGeneralReserve" xlink:label="AppropriationsForDividendDividendTaxAndGeneralReserve"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ChangesInReserves" xlink:to="AppropriationsForDividendDividendTaxAndGeneralReserve" priority="0" order="3.0" weight="-1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DividendAppropriation" xlink:label="DividendAppropriation"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="AppropriationsForDividendDividendTaxAndGeneralReserve" xlink:to="DividendAppropriation" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterimDividendAppropriation" xlink:label="InterimDividendAppropriation"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DividendAppropriation" xlink:to="InterimDividendAppropriation" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterimEquityDividendAppropriation" xlink:label="InterimEquityDividendAppropriation"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="InterimDividendAppropriation" xlink:to="InterimEquityDividendAppropriation" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterimPreferredDividendAppropriation" xlink:label="InterimPreferredDividendAppropriation"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="InterimDividendAppropriation" xlink:to="InterimPreferredDividendAppropriation" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_InterimSpecialDividendAppropriation" xlink:label="InterimSpecialDividendAppropriation"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="InterimDividendAppropriation" xlink:to="InterimSpecialDividendAppropriation" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_FinalDividendAppropriation" xlink:label="FinalDividendAppropriation"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DividendAppropriation" xlink:to="FinalDividendAppropriation" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_FinalEquityDividendAppropriation" xlink:label="FinalEquityDividendAppropriation"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="FinalDividendAppropriation" xlink:to="FinalEquityDividendAppropriation" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_FinalPreferredDividendAppropriation" xlink:label="FinalPreferredDividendAppropriation"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="FinalDividendAppropriation" xlink:to="FinalPreferredDividendAppropriation" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_FinalSpecialDividendAppropriation" xlink:label="FinalSpecialDividendAppropriation"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="FinalDividendAppropriation" xlink:to="FinalSpecialDividendAppropriation" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DividendTaxAppropriation" xlink:label="DividendTaxAppropriation"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="AppropriationsForDividendDividendTaxAndGeneralReserve" xlink:to="DividendTaxAppropriation" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EquityDividendTaxAppropriation" xlink:label="EquityDividendTaxAppropriation"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DividendTaxAppropriation" xlink:to="EquityDividendTaxAppropriation" priority="0" order="1.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_PreferredDividendTaxAppropriation" xlink:label="PreferredDividendTaxAppropriation"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="DividendTaxAppropriation" xlink:to="PreferredDividendTaxAppropriation" priority="0" order="2.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_TransferToGeneralReserve" xlink:label="TransferToGeneralReserve"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="AppropriationsForDividendDividendTaxAndGeneralReserve" xlink:to="TransferToGeneralReserve" priority="0" order="3.0" weight="1"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AppropriationTowardsBonusShares" xlink:label="AppropriationTowardsBonusShares"/>
+    <calculationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/summation-item" xlink:from="ChangesInReserves" xlink:to="AppropriationTowardsBonusShares" priority="0" order="4.0" weight="-1"/>
+  </calculationLink>
+</linkbase>

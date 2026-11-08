@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesLeases" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-201400"/>
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesLeases1" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-201400a"/>
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesLeases2" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-201400b"/>
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesLeases3" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-201400c"/>
+  <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/all" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"/>
+  <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain"/>
+  <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"/>
+  <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"/>
+  <definitionLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesLeases">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfMinimumFinanceLeasePaymentsAndPresentValueByLesseeAbstract" xlink:label="DisclosureOfMinimumFinanceLeasePaymentsAndPresentValueByLesseeAbstract"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfMinimumFinanceLeasePaymentsAndPresentValueByLesseeTable" xlink:label="DisclosureOfMinimumFinanceLeasePaymentsAndPresentValueByLesseeTable"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="DisclosureOfMinimumFinanceLeasePaymentsAndPresentValueByLesseeAbstract" xlink:to="DisclosureOfMinimumFinanceLeasePaymentsAndPresentValueByLesseeTable" priority="0" order="1.0" xbrldt:contextElement="scenario" xbrldt:closed="true"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_MaturityAxis" xlink:label="MaturityAxis"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="DisclosureOfMinimumFinanceLeasePaymentsAndPresentValueByLesseeTable" xlink:to="MaturityAxis" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AggregatedTimeBandsMember" xlink:label="AggregatedTimeBandsMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="MaturityAxis" xlink:to="AggregatedTimeBandsMember" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NotLaterThanOneYearMember" xlink:label="NotLaterThanOneYearMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="AggregatedTimeBandsMember" xlink:to="NotLaterThanOneYearMember" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_LaterThanOneYearAndNotLaterThanFiveYearsMember" xlink:label="LaterThanOneYearAndNotLaterThanFiveYearsMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="AggregatedTimeBandsMember" xlink:to="LaterThanOneYearAndNotLaterThanFiveYearsMember" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_LaterThanFiveYearsMember" xlink:label="LaterThanFiveYearsMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="AggregatedTimeBandsMember" xlink:to="LaterThanFiveYearsMember" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfFinanceLeaseByLesseeLineItems" xlink:label="DisclosureOfFinanceLeaseByLesseeLineItems"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfMinimumFinanceLeasePaymentsAndPresentValueByLesseeAbstract" xlink:to="DisclosureOfFinanceLeaseByLesseeLineItems" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_MinimumFinanceLeasePaymentsPayable" xlink:label="MinimumFinanceLeasePaymentsPayable"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfFinanceLeaseByLesseeLineItems" xlink:to="MinimumFinanceLeasePaymentsPayable" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_MinimumFinanceLeasePaymentsPayableAtPresentValue" xlink:label="MinimumFinanceLeasePaymentsPayableAtPresentValue"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfFinanceLeaseByLesseeLineItems" xlink:to="MinimumFinanceLeasePaymentsPayableAtPresentValue" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_FutureFinanceChargeOnFinanceLease" xlink:label="FutureFinanceChargeOnFinanceLease"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfFinanceLeaseByLesseeLineItems" xlink:to="FutureFinanceChargeOnFinanceLease" priority="0" order="3.0"/>
+  </definitionLink>
+  <definitionLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesLeases1">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_MaturityAxis" xlink:label="MaturityAxis"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AggregatedTimeBandsMember" xlink:label="AggregatedTimeBandsMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="MaturityAxis" xlink:to="AggregatedTimeBandsMember" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NotLaterThanOneYearMember" xlink:label="NotLaterThanOneYearMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="AggregatedTimeBandsMember" xlink:to="NotLaterThanOneYearMember" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_LaterThanOneYearAndNotLaterThanFiveYearsMember" xlink:label="LaterThanOneYearAndNotLaterThanFiveYearsMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="AggregatedTimeBandsMember" xlink:to="LaterThanOneYearAndNotLaterThanFiveYearsMember" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_LaterThanFiveYearsMember" xlink:label="LaterThanFiveYearsMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="AggregatedTimeBandsMember" xlink:to="LaterThanFiveYearsMember" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfMinimumOperatingLeasePaymentsByLesseeAbstract" xlink:label="DisclosureOfMinimumOperatingLeasePaymentsByLesseeAbstract"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfMinimumOperatingLeasePaymentsByLesseeTable" xlink:label="DisclosureOfMinimumOperatingLeasePaymentsByLesseeTable"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="DisclosureOfMinimumOperatingLeasePaymentsByLesseeAbstract" xlink:to="DisclosureOfMinimumOperatingLeasePaymentsByLesseeTable" priority="0" order="1.0" xbrldt:contextElement="scenario" xbrldt:closed="true"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="DisclosureOfMinimumOperatingLeasePaymentsByLesseeTable" xlink:to="MaturityAxis" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfOperatingLeaseByLesseeLineItems" xlink:label="DisclosureOfOperatingLeaseByLesseeLineItems"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfMinimumOperatingLeasePaymentsByLesseeAbstract" xlink:to="DisclosureOfOperatingLeaseByLesseeLineItems" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_MinimumOperatingLeasePaymentsPayable" xlink:label="MinimumOperatingLeasePaymentsPayable"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfOperatingLeaseByLesseeLineItems" xlink:to="MinimumOperatingLeasePaymentsPayable" priority="0" order="1.0"/>
+  </definitionLink>
+  <definitionLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesLeases2">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_MaturityAxis" xlink:label="MaturityAxis"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AggregatedTimeBandsMember" xlink:label="AggregatedTimeBandsMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="MaturityAxis" xlink:to="AggregatedTimeBandsMember" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NotLaterThanOneYearMember" xlink:label="NotLaterThanOneYearMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="AggregatedTimeBandsMember" xlink:to="NotLaterThanOneYearMember" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_LaterThanOneYearAndNotLaterThanFiveYearsMember" xlink:label="LaterThanOneYearAndNotLaterThanFiveYearsMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="AggregatedTimeBandsMember" xlink:to="LaterThanOneYearAndNotLaterThanFiveYearsMember" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_LaterThanFiveYearsMember" xlink:label="LaterThanFiveYearsMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="AggregatedTimeBandsMember" xlink:to="LaterThanFiveYearsMember" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfGrossInvestmentInLeaseAndPresentValueOfMinimumLeasePaymentsReceivableInFinanceLeaseByLessorAbstract" xlink:label="DisclosureOfGrossInvestmentInLeaseAndPresentValueOfMinimumLeasePaymentsReceivableInFinanceLeaseByLessorAbstract"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfGrossInvestmentInLeaseAndPresentValueOfMinimumLeasePaymentsReceivableInFinanceLeaseByLessorTable" xlink:label="DisclosureOfGrossInvestmentInLeaseAndPresentValueOfMinimumLeasePaymentsReceivableInFinanceLeaseByLessorTable"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="DisclosureOfGrossInvestmentInLeaseAndPresentValueOfMinimumLeasePaymentsReceivableInFinanceLeaseByLessorAbstract" xlink:to="DisclosureOfGrossInvestmentInLeaseAndPresentValueOfMinimumLeasePaymentsReceivableInFinanceLeaseByLessorTable" priority="0" order="1.0" xbrldt:contextElement="scenario" xbrldt:closed="true"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="DisclosureOfGrossInvestmentInLeaseAndPresentValueOfMinimumLeasePaymentsReceivableInFinanceLeaseByLessorTable" xlink:to="MaturityAxis" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfFinanceLeaseByLessorTableLineItems" xlink:label="DisclosureOfFinanceLeaseByLessorTableLineItems"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfGrossInvestmentInLeaseAndPresentValueOfMinimumLeasePaymentsReceivableInFinanceLeaseByLessorAbstract" xlink:to="DisclosureOfFinanceLeaseByLessorTableLineItems" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_GrossInvestmentInFinanceLease" xlink:label="GrossInvestmentInFinanceLease"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfFinanceLeaseByLessorTableLineItems" xlink:to="GrossInvestmentInFinanceLease" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_UnearnedFinanceIncomeOnFinanceLease" xlink:label="UnearnedFinanceIncomeOnFinanceLease"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfFinanceLeaseByLessorTableLineItems" xlink:to="UnearnedFinanceIncomeOnFinanceLease" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_MinimumFinanceLeasePaymentsReceivableAtPresentValue" xlink:label="MinimumFinanceLeasePaymentsReceivableAtPresentValue"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfFinanceLeaseByLessorTableLineItems" xlink:to="MinimumFinanceLeasePaymentsReceivableAtPresentValue" priority="0" order="3.0"/>
+  </definitionLink>
+  <definitionLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesLeases3">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_MaturityAxis" xlink:label="MaturityAxis"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AggregatedTimeBandsMember" xlink:label="AggregatedTimeBandsMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="MaturityAxis" xlink:to="AggregatedTimeBandsMember" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NotLaterThanOneYearMember" xlink:label="NotLaterThanOneYearMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="AggregatedTimeBandsMember" xlink:to="NotLaterThanOneYearMember" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_LaterThanOneYearAndNotLaterThanFiveYearsMember" xlink:label="LaterThanOneYearAndNotLaterThanFiveYearsMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="AggregatedTimeBandsMember" xlink:to="LaterThanOneYearAndNotLaterThanFiveYearsMember" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_LaterThanFiveYearsMember" xlink:label="LaterThanFiveYearsMember"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="AggregatedTimeBandsMember" xlink:to="LaterThanFiveYearsMember" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfFutureMinimumLeasePaymentsReceivableUnderNonCancellableOperatingLeasesByLessorAbstract" xlink:label="DisclosureOfFutureMinimumLeasePaymentsReceivableUnderNonCancellableOperatingLeasesByLessorAbstract"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfFutureMinimumLeasePaymentsReceivableUnderNonCancellableOperatingLeasesByLessorTable" xlink:label="DisclosureOfFutureMinimumLeasePaymentsReceivableUnderNonCancellableOperatingLeasesByLessorTable"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="DisclosureOfFutureMinimumLeasePaymentsReceivableUnderNonCancellableOperatingLeasesByLessorAbstract" xlink:to="DisclosureOfFutureMinimumLeasePaymentsReceivableUnderNonCancellableOperatingLeasesByLessorTable" priority="0" order="1.0" xbrldt:contextElement="scenario" xbrldt:closed="true"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="DisclosureOfFutureMinimumLeasePaymentsReceivableUnderNonCancellableOperatingLeasesByLessorTable" xlink:to="MaturityAxis" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfFutureMinimumLeasePaymentsReceivableUnderNonCancellableOperatingLeasesByLessorLineItems" xlink:label="DisclosureOfFutureMinimumLeasePaymentsReceivableUnderNonCancellableOperatingLeasesByLessorLineItems"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfFutureMinimumLeasePaymentsReceivableUnderNonCancellableOperatingLeasesByLessorAbstract" xlink:to="DisclosureOfFutureMinimumLeasePaymentsReceivableUnderNonCancellableOperatingLeasesByLessorLineItems" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_MinimumOperatingLeasePaymentsReceivable" xlink:label="MinimumOperatingLeasePaymentsReceivable"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfFutureMinimumLeasePaymentsReceivableUnderNonCancellableOperatingLeasesByLessorLineItems" xlink:to="MinimumOperatingLeasePaymentsReceivable" priority="0" order="1.0"/>
+  </definitionLink>
+</linkbase>

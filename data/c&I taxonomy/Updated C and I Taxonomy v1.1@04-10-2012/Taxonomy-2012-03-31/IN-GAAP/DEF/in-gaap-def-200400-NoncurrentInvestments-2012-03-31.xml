@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesNoncurrentInvestments" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-200400"/>
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesNoncurrentInvestments/total" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-200401"/>
+  <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/all" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"/>
+  <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"/>
+  <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"/>
+  <definitionLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesNoncurrentInvestments">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfDetailsOfNoncurrentInvestmentsAbstract" xlink:label="DisclosureOfDetailsOfNoncurrentInvestmentsAbstract"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfNoncurrentInvestmentsTable" xlink:label="DetailsOfNoncurrentInvestmentsTable"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="DisclosureOfDetailsOfNoncurrentInvestmentsAbstract" xlink:to="DetailsOfNoncurrentInvestmentsTable" priority="0" order="1.0" xbrldt:contextElement="scenario" xbrldt:closed="true"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ClassificationOfNoncurrentInvestmentsAxis" xlink:label="ClassificationOfNoncurrentInvestmentsAxis"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="DetailsOfNoncurrentInvestmentsTable" xlink:to="ClassificationOfNoncurrentInvestmentsAxis" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfNoncurrentInvestmentsLineItems" xlink:label="DetailsOfNoncurrentInvestmentsLineItems"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfDetailsOfNoncurrentInvestmentsAbstract" xlink:to="DetailsOfNoncurrentInvestmentsLineItems" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_TypeOfNoncurrentInvestments" xlink:label="TypeOfNoncurrentInvestments"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfNoncurrentInvestmentsLineItems" xlink:to="TypeOfNoncurrentInvestments" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ClassOfNoncurrentInvestments" xlink:label="ClassOfNoncurrentInvestments"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfNoncurrentInvestmentsLineItems" xlink:to="ClassOfNoncurrentInvestments" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NatureOfNoncurrentInvestments" xlink:label="NatureOfNoncurrentInvestments"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfNoncurrentInvestmentsLineItems" xlink:to="NatureOfNoncurrentInvestments" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NameOfBodyCorporateInWhomInvestmentHasBeenMade" xlink:label="NameOfBodyCorporateInWhomInvestmentHasBeenMade"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfNoncurrentInvestmentsLineItems" xlink:to="NameOfBodyCorporateInWhomInvestmentHasBeenMade" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfWhetherSuchBodyCorporateIsSubsidiaryAssociateJointVentureOrControlledSpecialPurposeEntity" xlink:label="DetailsOfWhetherSuchBodyCorporateIsSubsidiaryAssociateJointVentureOrControlledSpecialPurposeEntity"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfNoncurrentInvestmentsLineItems" xlink:to="DetailsOfWhetherSuchBodyCorporateIsSubsidiaryAssociateJointVentureOrControlledSpecialPurposeEntity" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NatureOfNoncurrentInvestmentMadeInBodyCorporate" xlink:label="NatureOfNoncurrentInvestmentMadeInBodyCorporate"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfNoncurrentInvestmentsLineItems" xlink:to="NatureOfNoncurrentInvestmentMadeInBodyCorporate" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfNoncurrentInvestmentsMadeInBodyCorporateWhichArePartlyPaid" xlink:label="DetailsOfNoncurrentInvestmentsMadeInBodyCorporateWhichArePartlyPaid"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfNoncurrentInvestmentsLineItems" xlink:to="DetailsOfNoncurrentInvestmentsMadeInBodyCorporateWhichArePartlyPaid" priority="0" order="8.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfNoncurrentInvestmentMadeInPartnershipFirmsAbstract" xlink:label="DetailsOfNoncurrentInvestmentMadeInPartnershipFirmsAbstract"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfNoncurrentInvestmentsLineItems" xlink:to="DetailsOfNoncurrentInvestmentMadeInPartnershipFirmsAbstract" priority="0" order="9.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfNoncurrentInvestmentMadeInPartnershipFirmsExplanatoryTextBlock" xlink:label="DetailsOfNoncurrentInvestmentMadeInPartnershipFirmsExplanatoryTextBlock"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfNoncurrentInvestmentMadeInPartnershipFirmsAbstract" xlink:to="DetailsOfNoncurrentInvestmentMadeInPartnershipFirmsExplanatoryTextBlock" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NameOfPartnershipFirmWhereNoncurrentInvestmentIsMade" xlink:label="NameOfPartnershipFirmWhereNoncurrentInvestmentIsMade"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfNoncurrentInvestmentMadeInPartnershipFirmsAbstract" xlink:to="NameOfPartnershipFirmWhereNoncurrentInvestmentIsMade" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NamesOfAllPartnersInPartnershipFirm" xlink:label="NamesOfAllPartnersInPartnershipFirm"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfNoncurrentInvestmentMadeInPartnershipFirmsAbstract" xlink:to="NamesOfAllPartnersInPartnershipFirm" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfCapitalOfPartnershipFirmAbstract" xlink:label="DetailsOfCapitalOfPartnershipFirmAbstract"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfNoncurrentInvestmentMadeInPartnershipFirmsAbstract" xlink:to="DetailsOfCapitalOfPartnershipFirmAbstract" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_TotalCapitalOfPartnershipFirm" xlink:label="TotalCapitalOfPartnershipFirm"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfCapitalOfPartnershipFirmAbstract" xlink:to="TotalCapitalOfPartnershipFirm" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DateToWhichCapitalOfPartnershipFirmRelates" xlink:label="DateToWhichCapitalOfPartnershipFirmRelates"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfCapitalOfPartnershipFirmAbstract" xlink:to="DateToWhichCapitalOfPartnershipFirmRelates" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfShareOfEachPartnerInCapitalOfPartnershipFirm" xlink:label="DetailsOfShareOfEachPartnerInCapitalOfPartnershipFirm"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfNoncurrentInvestmentMadeInPartnershipFirmsAbstract" xlink:to="DetailsOfShareOfEachPartnerInCapitalOfPartnershipFirm" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfShareOfEachPartnerInProfitsOfPartnershipFirm" xlink:label="DetailsOfShareOfEachPartnerInProfitsOfPartnershipFirm"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfNoncurrentInvestmentMadeInPartnershipFirmsAbstract" xlink:to="DetailsOfShareOfEachPartnerInProfitsOfPartnershipFirm" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfNoncurrentInvestmentsCarriedAtOtherThanCostAbstract" xlink:label="DetailsOfNoncurrentInvestmentsCarriedAtOtherThanCostAbstract"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfNoncurrentInvestmentsLineItems" xlink:to="DetailsOfNoncurrentInvestmentsCarriedAtOtherThanCostAbstract" priority="0" order="10.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_BasisOfValuationForNoncurrentInvestmentsCarriedAtOtherThanAtCost" xlink:label="BasisOfValuationForNoncurrentInvestmentsCarriedAtOtherThanAtCost"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfNoncurrentInvestmentsCarriedAtOtherThanCostAbstract" xlink:to="BasisOfValuationForNoncurrentInvestmentsCarriedAtOtherThanAtCost" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NoncurrentInvestments" xlink:label="NoncurrentInvestments"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfNoncurrentInvestmentsLineItems" xlink:to="NoncurrentInvestments" priority="0" order="4.0"/>
+  </definitionLink>
+  <definitionLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesNoncurrentInvestments/total">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfDetailsOfNoncurrentInvestmentsAbstract" xlink:label="DisclosureOfDetailsOfNoncurrentInvestmentsAbstract"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfNoncurrentInvestmentsTable" xlink:label="DetailsOfNoncurrentInvestmentsTable"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="DisclosureOfDetailsOfNoncurrentInvestmentsAbstract" xlink:to="DetailsOfNoncurrentInvestmentsTable" priority="0" order="1.0" xbrldt:contextElement="scenario" xbrldt:closed="true"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfNoncurrentInvestmentsLineItems" xlink:label="DetailsOfNoncurrentInvestmentsLineItems"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfDetailsOfNoncurrentInvestmentsAbstract" xlink:to="DetailsOfNoncurrentInvestmentsLineItems" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NoncurrentInvestments" xlink:label="NoncurrentInvestments"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfNoncurrentInvestmentsLineItems" xlink:to="NoncurrentInvestments" priority="0" order="1.0"/>
+  </definitionLink>
+</linkbase>

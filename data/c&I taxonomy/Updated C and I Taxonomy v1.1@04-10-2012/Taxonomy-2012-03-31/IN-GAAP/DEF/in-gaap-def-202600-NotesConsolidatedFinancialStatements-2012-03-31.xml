@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesConsolidatedFinancialStatements" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-202600"/>
+  <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/all" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"/>
+  <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"/>
+  <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"/>
+  <definitionLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesConsolidatedFinancialStatements">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfDetailsOfSubsidiariesAbstract" xlink:label="DisclosureOfDetailsOfSubsidiariesAbstract"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfDetailsOfSubsidiariesTable" xlink:label="DisclosureOfDetailsOfSubsidiariesTable"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="DisclosureOfDetailsOfSubsidiariesAbstract" xlink:to="DisclosureOfDetailsOfSubsidiariesTable" priority="0" order="1.0" xbrldt:contextElement="scenario" xbrldt:closed="true"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_SubsidiariesAxis" xlink:label="SubsidiariesAxis"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="DisclosureOfDetailsOfSubsidiariesTable" xlink:to="SubsidiariesAxis" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfDetailsOfSubsidiariesLineItems" xlink:label="DisclosureOfDetailsOfSubsidiariesLineItems"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfDetailsOfSubsidiariesAbstract" xlink:to="DisclosureOfDetailsOfSubsidiariesLineItems" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NameOfSubsidiaryConsolidated" xlink:label="NameOfSubsidiaryConsolidated"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfDetailsOfSubsidiariesLineItems" xlink:to="NameOfSubsidiaryConsolidated" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CountryOfIncorporationOrResidenceOfSubsidiaryConsolidated" xlink:label="CountryOfIncorporationOrResidenceOfSubsidiaryConsolidated"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfDetailsOfSubsidiariesLineItems" xlink:to="CountryOfIncorporationOrResidenceOfSubsidiaryConsolidated" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ProportionOfOwnershipInterestInSubsidiaryConsolidated" xlink:label="ProportionOfOwnershipInterestInSubsidiaryConsolidated"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfDetailsOfSubsidiariesLineItems" xlink:to="ProportionOfOwnershipInterestInSubsidiaryConsolidated" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ProportionOfVotingPowerHeldInSubsidiaryConsolidated" xlink:label="ProportionOfVotingPowerHeldInSubsidiaryConsolidated"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfDetailsOfSubsidiariesLineItems" xlink:to="ProportionOfVotingPowerHeldInSubsidiaryConsolidated" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DescriptionOfNatureOfRelationshipWithSubsidiaryWhereParentHasDirectlyOrIndirectlyLessThanHalfOfVotingPower" xlink:label="DescriptionOfNatureOfRelationshipWithSubsidiaryWhereParentHasDirectlyOrIndirectlyLessThanHalfOfVotingPower"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfDetailsOfSubsidiariesLineItems" xlink:to="DescriptionOfNatureOfRelationshipWithSubsidiaryWhereParentHasDirectlyOrIndirectlyLessThanHalfOfVotingPower" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EffectOfAcquisitionOrDisposalOfSubsidiaryAbstract" xlink:label="EffectOfAcquisitionOrDisposalOfSubsidiaryAbstract"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfDetailsOfSubsidiariesLineItems" xlink:to="EffectOfAcquisitionOrDisposalOfSubsidiaryAbstract" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EffectOnFinancialPositionOnAcquisitionOrDisposal" xlink:label="EffectOnFinancialPositionOnAcquisitionOrDisposal"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="EffectOfAcquisitionOrDisposalOfSubsidiaryAbstract" xlink:to="EffectOnFinancialPositionOnAcquisitionOrDisposal" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EffectOnResultsForReportingPeriodOnAcquisitionOrDisposal" xlink:label="EffectOnResultsForReportingPeriodOnAcquisitionOrDisposal"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="EffectOfAcquisitionOrDisposalOfSubsidiaryAbstract" xlink:to="EffectOnResultsForReportingPeriodOnAcquisitionOrDisposal" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EffectOnResultsForCorrespondingPreviousPeriodOnAcquisitionOrDisposal" xlink:label="EffectOnResultsForCorrespondingPreviousPeriodOnAcquisitionOrDisposal"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="EffectOfAcquisitionOrDisposalOfSubsidiaryAbstract" xlink:to="EffectOnResultsForCorrespondingPreviousPeriodOnAcquisitionOrDisposal" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_EndOfReportingPeriodOfFinancialStatementsOfSubsidiaryWhenDifferentFromParent" xlink:label="EndOfReportingPeriodOfFinancialStatementsOfSubsidiaryWhenDifferentFromParent"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DisclosureOfDetailsOfSubsidiariesLineItems" xlink:to="EndOfReportingPeriodOfFinancialStatementsOfSubsidiaryWhenDifferentFromParent" priority="0" order="7.0"/>
+  </definitionLink>
+</linkbase>

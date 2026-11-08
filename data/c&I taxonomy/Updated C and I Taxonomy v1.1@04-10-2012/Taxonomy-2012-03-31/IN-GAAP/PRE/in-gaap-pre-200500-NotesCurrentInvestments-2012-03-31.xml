@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesCurrentInvestments" xlink:type="simple" xlink:href="../in-gaap-roles-2012-03-31.xsd#in-gaap-rol-200500"/>
+  <presentationLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-gaap/NotesCurrentInvestments">
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfCapitalOfPartnershipFirmAbstract" xlink:label="DetailsOfCapitalOfPartnershipFirmAbstract"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_TotalCapitalOfPartnershipFirm" xlink:label="TotalCapitalOfPartnershipFirm"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfCapitalOfPartnershipFirmAbstract" xlink:to="TotalCapitalOfPartnershipFirm" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DateToWhichCapitalOfPartnershipFirmRelates" xlink:label="DateToWhichCapitalOfPartnershipFirmRelates"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfCapitalOfPartnershipFirmAbstract" xlink:to="DateToWhichCapitalOfPartnershipFirmRelates" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfNotesOnCurrentInvestmentsExplanatoryTextBlock" xlink:label="DisclosureOfNotesOnCurrentInvestmentsExplanatoryTextBlock"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CurrentInvestmentsAbstract" xlink:label="CurrentInvestmentsAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfNotesOnCurrentInvestmentsExplanatoryTextBlock" xlink:to="CurrentInvestmentsAbstract" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AccountingPolicyForDeterminationOfCarryingAmountOfInvestmentsTextBlock" xlink:label="AccountingPolicyForDeterminationOfCarryingAmountOfInvestmentsTextBlock"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="CurrentInvestmentsAbstract" xlink:to="AccountingPolicyForDeterminationOfCarryingAmountOfInvestmentsTextBlock" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DisclosureOfDetailsOfCurrentInvestmentsAbstract" xlink:label="DisclosureOfDetailsOfCurrentInvestmentsAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="CurrentInvestmentsAbstract" xlink:to="DisclosureOfDetailsOfCurrentInvestmentsAbstract" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfCurrentInvestmentsTable" xlink:label="DetailsOfCurrentInvestmentsTable"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfDetailsOfCurrentInvestmentsAbstract" xlink:to="DetailsOfCurrentInvestmentsTable" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ClassificationOfCurrentInvestmentsAxis" xlink:label="ClassificationOfCurrentInvestmentsAxis"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfCurrentInvestmentsTable" xlink:to="ClassificationOfCurrentInvestmentsAxis" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfCurrentInvestmentsLineItems" xlink:label="DetailsOfCurrentInvestmentsLineItems"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfDetailsOfCurrentInvestmentsAbstract" xlink:to="DetailsOfCurrentInvestmentsLineItems" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_TypeOfCurrentInvestments" xlink:label="TypeOfCurrentInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfCurrentInvestmentsLineItems" xlink:to="TypeOfCurrentInvestments" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ClassOfCurrentInvestments" xlink:label="ClassOfCurrentInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfCurrentInvestmentsLineItems" xlink:to="ClassOfCurrentInvestments" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NatureOfCurrentInvestments" xlink:label="NatureOfCurrentInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfCurrentInvestmentsLineItems" xlink:to="NatureOfCurrentInvestments" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_CurrentInvestments" xlink:label="CurrentInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfCurrentInvestmentsLineItems" xlink:to="CurrentInvestments" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_BasisOfValuationOfCurrentInvestments" xlink:label="BasisOfValuationOfCurrentInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfCurrentInvestmentsLineItems" xlink:to="BasisOfValuationOfCurrentInvestments" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NameOfBodyCorporateInWhomInvestmentHasBeenMade" xlink:label="NameOfBodyCorporateInWhomInvestmentHasBeenMade"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfCurrentInvestmentsLineItems" xlink:to="NameOfBodyCorporateInWhomInvestmentHasBeenMade" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfWhetherSuchBodyCorporateIsSubsidiaryAssociateJointVentureOrControlledSpecialPurposeEntity" xlink:label="DetailsOfWhetherSuchBodyCorporateIsSubsidiaryAssociateJointVentureOrControlledSpecialPurposeEntity"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfCurrentInvestmentsLineItems" xlink:to="DetailsOfWhetherSuchBodyCorporateIsSubsidiaryAssociateJointVentureOrControlledSpecialPurposeEntity" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NatureOfCurrentInvestmentMadeInBodyCorporate" xlink:label="NatureOfCurrentInvestmentMadeInBodyCorporate"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfCurrentInvestmentsLineItems" xlink:to="NatureOfCurrentInvestmentMadeInBodyCorporate" priority="0" order="8.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfCurrentInvestmentsMadeInBodyCorporateWhichArePartlyPaid" xlink:label="DetailsOfCurrentInvestmentsMadeInBodyCorporateWhichArePartlyPaid"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfCurrentInvestmentsLineItems" xlink:to="DetailsOfCurrentInvestmentsMadeInBodyCorporateWhichArePartlyPaid" priority="0" order="9.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfCurrentInvestmentMadeInPartnershipFirmsAbstract" xlink:label="DetailsOfCurrentInvestmentMadeInPartnershipFirmsAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfCurrentInvestmentsLineItems" xlink:to="DetailsOfCurrentInvestmentMadeInPartnershipFirmsAbstract" priority="0" order="10.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfCurrentInvestmentMadeInPartnershipFirmsExplanatoryTextBlock" xlink:label="DetailsOfCurrentInvestmentMadeInPartnershipFirmsExplanatoryTextBlock"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfCurrentInvestmentMadeInPartnershipFirmsAbstract" xlink:to="DetailsOfCurrentInvestmentMadeInPartnershipFirmsExplanatoryTextBlock" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NameOfPartnershipFirmWhereCurrentInvestmentIsMade" xlink:label="NameOfPartnershipFirmWhereCurrentInvestmentIsMade"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfCurrentInvestmentMadeInPartnershipFirmsAbstract" xlink:to="NameOfPartnershipFirmWhereCurrentInvestmentIsMade" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_NamesOfAllPartnersInPartnershipFirm" xlink:label="NamesOfAllPartnersInPartnershipFirm"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfCurrentInvestmentMadeInPartnershipFirmsAbstract" xlink:to="NamesOfAllPartnersInPartnershipFirm" priority="0" order="3.0"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfCurrentInvestmentMadeInPartnershipFirmsAbstract" xlink:to="DetailsOfCapitalOfPartnershipFirmAbstract" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfShareOfEachPartnerInCapitalOfPartnershipFirm" xlink:label="DetailsOfShareOfEachPartnerInCapitalOfPartnershipFirm"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfCurrentInvestmentMadeInPartnershipFirmsAbstract" xlink:to="DetailsOfShareOfEachPartnerInCapitalOfPartnershipFirm" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_DetailsOfShareOfEachPartnerInProfitsOfPartnershipFirm" xlink:label="DetailsOfShareOfEachPartnerInProfitsOfPartnershipFirm"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DetailsOfCurrentInvestmentMadeInPartnershipFirmsAbstract" xlink:to="DetailsOfShareOfEachPartnerInProfitsOfPartnershipFirm" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AggregateAmountOfQuotedCurrentInvestments" xlink:label="AggregateAmountOfQuotedCurrentInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="CurrentInvestmentsAbstract" xlink:to="AggregateAmountOfQuotedCurrentInvestments" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_MarketValueOfQuotedCurrentInvestments" xlink:label="MarketValueOfQuotedCurrentInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="CurrentInvestmentsAbstract" xlink:to="MarketValueOfQuotedCurrentInvestments" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AggregateAmountOfUnquotedCurrentInvestments" xlink:label="AggregateAmountOfUnquotedCurrentInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="CurrentInvestmentsAbstract" xlink:to="AggregateAmountOfUnquotedCurrentInvestments" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_AggregateProvisionForDiminutionInValueOfCurrentInvestments" xlink:label="AggregateProvisionForDiminutionInValueOfCurrentInvestments"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="CurrentInvestmentsAbstract" xlink:to="AggregateProvisionForDiminutionInValueOfCurrentInvestments" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ExplanationOfSignificantRestrictionsOnRightOfOwnershipRealizabilityOfInvestmentsOrRemittanceOfIncomeOrProceedsOfDisposal" xlink:label="ExplanationOfSignificantRestrictionsOnRightOfOwnershipRealizabilityOfInvestmentsOrRemittanceOfIncomeOrProceedsOfDisposal"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="CurrentInvestmentsAbstract" xlink:to="ExplanationOfSignificantRestrictionsOnRightOfOwnershipRealizabilityOfInvestmentsOrRemittanceOfIncomeOrProceedsOfDisposal" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-gaap-2012-03-31.xsd#in-gaap_ShareCurrentInvestmentsJointVentures" xlink:label="ShareCurrentInvestmentsJointVentures"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="CurrentInvestmentsAbstract" xlink:to="ShareCurrentInvestmentsJointVentures" priority="0" order="8.0"/>
+  </presentationLink>
+</linkbase>

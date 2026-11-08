@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created by IRIS Business Services Ltd -->
+<!--                     
+            *************** Extended links : 2012-09-07*************
+                      
+       
+ -->
+<xsd:schema targetNamespace="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-com-role" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:in-com-rol="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-com-role" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <xsd:annotation>
+    <xsd:appinfo>
+      <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-com/role/GeneralInformationCompliance" id="GeneralInformationCompliance">
+        <link:definition>[200100] General information compliance</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>
+      <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-com/role/QuantitativeInformation" id="QuantitativeInformation">
+        <link:definition>[200300] Quantitative information</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>
+      <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-com/role/ReconciliationStatement" id="ReconciliationStatement">
+        <link:definition>[200400] Reconciliation statement</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>
+	 <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-com/role/ReconciliationStatementDetailsOfIncomesNotConsidereda" id="ReconciliationStatementDetailsOfIncomesNotConsidereda">
+        <link:definition>[200400a] Reconciliation statement-Details of incomes not considered</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>
+	 <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-com/role/ReconciliationStatementDetailsOfExpensesNotConsideredb" id="ReconciliationStatementDetailsOfExpensesNotConsideredb">
+        <link:definition>[200400b] Reconciliation statement-Details of expenses not considered</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType> 
+      <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-com/role/ComplianceReportFormB" id="ComplianceReportFormB">
+        <link:definition>[200500] Compliance report (Form B)</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>
+      <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-com/role/TypedDefault" id="TypedDefault">
+        <link:definition>[990000] Typed default </link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>
+    </xsd:appinfo>
+  </xsd:annotation>
+</xsd:schema>

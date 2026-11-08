@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created by IRIS Business Services Ltd -->
+<!--                     
+            *************** Extended links : 2012-09-07*************
+                      
+       
+ -->
+
+<xsd:schema targetNamespace="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud-role"
+attributeFormDefault="unqualified" 
+elementFormDefault="qualified" 
+xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+xmlns:in-aud-rol="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud-role" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+xmlns:xlink="http://www.w3.org/1999/xlink">
+  <xsd:annotation>
+      <xsd:appinfo>
+	<link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/GeneralInformation" id="GeneralInformation" >
+        <link:definition>[100100] General information</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>
+	   <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/TypedDefault" id="TypedDefault">
+	   <link:definition>[900000] Typed default</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>	
+	  <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/AxisDefaults" id="AxisDefaults">
+	   <link:definition>[910000] Axis-Defaults</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>	
+      <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/CostAuditReportFormII" id="CostAuditReportFormII">
+        <link:definition>[100300] Cost audit report (Form-II)</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>
+       <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/CostAccountingPolicy" id="CostAccountingPolicy">
+	   <link:definition>[100310] Cost accounting policy</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>
+	  <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/DetailsOfProductOrActivityGroup" id="DetailsOfProductOrActivityGroup">
+	   <link:definition>[100320] Product or activity group</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>
+	  <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/ProfitReconciliation" id="ProfitReconciliation">
+	   <link:definition>[100360] Profit reconciliation</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>
+	   <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/ProfitReconciliationDetailsOfIncomesNotConsidereda" id="ProfitReconciliationDetailsOfIncomesNotConsidereda">
+	   <link:definition>[100360a] Profit reconciliation-Details of incomes not considered</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>
+	   <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/ProfitReconciliationDetailsOfExpensesNotConsideredb" id="ProfitReconciliationDetailsOfExpensesNotConsideredb">
+	   <link:definition>[100360b] Profit reconciliation-Details of expenses not considered</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType> 
+	 <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/ValueAdditionAndDistributionOfEarnings" id="ValueAdditionAndDistributionOfEarnings">
+	   <link:definition>[100370] Value addition and distribution of earnings</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>
+	  <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/FinancialPositionAndRatioAnalysis" id="FinancialPositionAndRatioAnalysis">
+	   <link:definition>[100400] Financial position and ratio analysis</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>
+	  <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/RelatedPartyTransactions" id="RelatedPartyTransactions">
+	   <link:definition>[100410] Related party transactions</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>
+	  <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/ReconciliationOfIndirectTaxes" id="ReconciliationOfIndirectTaxes">
+	   <link:definition>[100420] Reconciliation of indirect taxes</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>		
+	   <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/ReconciliationOfIndirectTaxesNotAll" id="ReconciliationOfIndirectTaxesNotAll">
+	   <link:definition>[100421] Reconciliation of indirect taxes/not-all</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>	
+	   <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/ReconciliationOfIndirectTaxesNotAlla" id="ReconciliationOfIndirectTaxesNotAlla">
+	   <link:definition>[100421a] Reconciliation of indirect taxes/not-all</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>	
+	   <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/ReconciliationOfIndirectTaxesNotAllb" id="ReconciliationOfIndirectTaxesNotAllb">
+	   <link:definition>[100421b] Reconciliation of indirect taxes/not-all</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>	
+	   <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/ReconciliationOfIndirectTaxesNotAllc" id="ReconciliationOfIndirectTaxesNotAllc">
+	   <link:definition>[100421c] Reconciliation of indirect taxes/not-all</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>	
+	   <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/ReconciliationOfIndirectTaxesNotAlld" id="ReconciliationOfIndirectTaxesNotAlld">
+	   <link:definition>[100421d] Reconciliation of indirect taxes/not-all</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>	
+	  <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/QuantitativeInformationOfProductGroup" id="QuantitativeInformationOfProductGroup">
+	   <link:definition>[100330] Quantitative information of product or activity group</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>
+	  <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/AbridgedCostStatementOfProductGroup" id="AbridgedCostStatementOfProductGroup">
+	   <link:definition>[100340] Abridged cost statement of product or activity group</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>		
+	  <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/AbridgedCostStatementDetailsOfMaterialConsumeda" id="AbridgedCostStatementDetailsOfMaterialConsumeda">
+	   <link:definition>[100340a] Abridged cost statement-Details of material consumed </link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>	
+	  <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/AbridgedCostStatementOfProductGroupDetailsOfUtilitiesb" id="AbridgedCostStatementOfProductGroupDetailsOfUtilitiesb">
+	   <link:definition>[100340b] Abridged cost statement-Details of utilities</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>	
+	  <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/AbridgedCostStatementOfProductGroupDetailsOfIndustrySpecificOperatingExpensesc" id="AbridgedCostStatementOfProductGroupDetailsOfIndustrySpecificOperatingExpensesc">
+	   <link:definition>[100340c] Abridged cost statement-Details of industry specific operating expenses</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>	
+	  <link:roleType roleURI="http://www.icwai.org/in/xbrl/2012-09-07/in-cost-aud/role/OperatingRatioAnalysisOfProductGroup" id="OperatingRatioAnalysisOfProductGroup">
+	   <link:definition>[100350] Operating ratio analysis of product or activity group</link:definition>
+        <link:usedOn>link:calculationLink</link:usedOn>
+        <link:usedOn>link:definitionLink</link:usedOn>
+        <link:usedOn>link:presentationLink</link:usedOn>
+      </link:roleType>	
+    </xsd:appinfo>
+  </xsd:annotation>
+</xsd:schema>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-ca/DisclosureOfGeneralInformationAboutCompany" xlink:type="simple" xlink:href="../in-ca-roles-2012-03-31.xsd#in-ca-rol-400100"/>
+  <presentationLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-ca/DisclosureOfGeneralInformationAboutCompany">
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DisclosureOfGeneralInformationAboutCompanyAbstract" xlink:label="DisclosureOfGeneralInformationAboutCompanyAbstract"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DisclosureOfCompanyInformationAbstract" xlink:label="DisclosureOfCompanyInformationAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfGeneralInformationAboutCompanyAbstract" xlink:to="DisclosureOfCompanyInformationAbstract" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_NameOfCompany" xlink:label="NameOfCompany"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfCompanyInformationAbstract" xlink:to="NameOfCompany" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_CorporateIdentityNumber" xlink:label="CorporateIdentityNumber"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfCompanyInformationAbstract" xlink:to="CorporateIdentityNumber" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_PermanentAccountNumberOfEntity" xlink:label="PermanentAccountNumberOfEntity"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfCompanyInformationAbstract" xlink:to="PermanentAccountNumberOfEntity" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_AddressOfRegisteredOfficeOfCompany" xlink:label="AddressOfRegisteredOfficeOfCompany"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfCompanyInformationAbstract" xlink:to="AddressOfRegisteredOfficeOfCompany" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_TypeOfIndustry" xlink:label="TypeOfIndustry"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfCompanyInformationAbstract" xlink:to="TypeOfIndustry" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DisclosureOfDocumentInformationAbstract" xlink:label="DisclosureOfDocumentInformationAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfGeneralInformationAboutCompanyAbstract" xlink:to="DisclosureOfDocumentInformationAbstract" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DateOfBoardMeetingWhenFinalAccountsWereApproved" xlink:label="DateOfBoardMeetingWhenFinalAccountsWereApproved"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfDocumentInformationAbstract" xlink:to="DateOfBoardMeetingWhenFinalAccountsWereApproved" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_PeriodCoveredByFinancialStatements" xlink:label="PeriodCoveredByFinancialStatements"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfDocumentInformationAbstract" xlink:to="PeriodCoveredByFinancialStatements" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DateOfStartOfReportingPeriod" xlink:label="DateOfStartOfReportingPeriod"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfDocumentInformationAbstract" xlink:to="DateOfStartOfReportingPeriod" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DateOfEndOfReportingPeriod" xlink:label="DateOfEndOfReportingPeriod"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfDocumentInformationAbstract" xlink:to="DateOfEndOfReportingPeriod" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_NatureOfReportStandaloneConsolidated" xlink:label="NatureOfReportStandaloneConsolidated"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfDocumentInformationAbstract" xlink:to="NatureOfReportStandaloneConsolidated" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ContentOfReport" xlink:label="ContentOfReport"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfDocumentInformationAbstract" xlink:to="ContentOfReport" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DescriptionOfPresentationCurrency" xlink:label="DescriptionOfPresentationCurrency"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfDocumentInformationAbstract" xlink:to="DescriptionOfPresentationCurrency" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_LevelOfRoundingUsedInFinancialStatements" xlink:label="LevelOfRoundingUsedInFinancialStatements"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfDocumentInformationAbstract" xlink:to="LevelOfRoundingUsedInFinancialStatements" priority="0" order="8.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_TypeOfCashFlowStatement" xlink:label="TypeOfCashFlowStatement"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfDocumentInformationAbstract" xlink:to="TypeOfCashFlowStatement" priority="0" order="9.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DisclosureOfOtherGeneralInformationAbstract" xlink:label="DisclosureOfOtherGeneralInformationAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfGeneralInformationAboutCompanyAbstract" xlink:to="DisclosureOfOtherGeneralInformationAbstract" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_SRNOfForm66" xlink:label="SRNOfForm66"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfOtherGeneralInformationAbstract" xlink:to="SRNOfForm66" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DateFromWhichRegisterOfMembersRemainedClosed" xlink:label="DateFromWhichRegisterOfMembersRemainedClosed"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfOtherGeneralInformationAbstract" xlink:to="DateFromWhichRegisterOfMembersRemainedClosed" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DateTillWhichRegisterOfMembersRemainedClosed" xlink:label="DateTillWhichRegisterOfMembersRemainedClosed"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfOtherGeneralInformationAbstract" xlink:to="DateTillWhichRegisterOfMembersRemainedClosed" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DisclosureOfPrincipalProductOrServicesAbstract" xlink:label="DisclosureOfPrincipalProductOrServicesAbstract"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfGeneralInformationAboutCompanyAbstract" xlink:to="DisclosureOfPrincipalProductOrServicesAbstract" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_TotalNumberOfProductOrServiceCategory" xlink:label="TotalNumberOfProductOrServiceCategory"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfPrincipalProductOrServicesAbstract" xlink:to="TotalNumberOfProductOrServiceCategory" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DescriptionOfPrincipalProductOrServicesCategory" xlink:label="DescriptionOfPrincipalProductOrServicesCategory"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfPrincipalProductOrServicesAbstract" xlink:to="DescriptionOfPrincipalProductOrServicesCategory" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DisclosureOfPrincipalProductOrServicesTable" xlink:label="DisclosureOfPrincipalProductOrServicesTable"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfPrincipalProductOrServicesAbstract" xlink:to="DisclosureOfPrincipalProductOrServicesTable" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_TypesOfPrincipalProductOrServicesAxis" xlink:label="TypesOfPrincipalProductOrServicesAxis"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfPrincipalProductOrServicesTable" xlink:to="TypesOfPrincipalProductOrServicesAxis" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DisclosureOfPrincipalProductOrServicesLineItems" xlink:label="DisclosureOfPrincipalProductOrServicesLineItems"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfPrincipalProductOrServicesAbstract" xlink:to="DisclosureOfPrincipalProductOrServicesLineItems" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ProductOrServiceCategoryITC4DigitCode" xlink:label="ProductOrServiceCategoryITC4DigitCode"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfPrincipalProductOrServicesLineItems" xlink:to="ProductOrServiceCategoryITC4DigitCode" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DescriptionOfProductOrServiceCategory" xlink:label="DescriptionOfProductOrServiceCategory"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfPrincipalProductOrServicesLineItems" xlink:to="DescriptionOfProductOrServiceCategory" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_TurnoverOfProductOrServiceCategory" xlink:label="TurnoverOfProductOrServiceCategory"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfPrincipalProductOrServicesLineItems" xlink:to="TurnoverOfProductOrServiceCategory" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_HighestTurnoverContributingProductOrServiceITC8DigitCode" xlink:label="HighestTurnoverContributingProductOrServiceITC8DigitCode"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfPrincipalProductOrServicesLineItems" xlink:to="HighestTurnoverContributingProductOrServiceITC8DigitCode" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DescriptionOfProductOrService" xlink:label="DescriptionOfProductOrService"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfPrincipalProductOrServicesLineItems" xlink:to="DescriptionOfProductOrService" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_UnitOfMeasurementOfHighestContributingProductOrService" xlink:label="UnitOfMeasurementOfHighestContributingProductOrService"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfPrincipalProductOrServicesLineItems" xlink:to="UnitOfMeasurementOfHighestContributingProductOrService" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_TurnoverOfHighestContributingProductOrService" xlink:label="TurnoverOfHighestContributingProductOrService"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfPrincipalProductOrServicesLineItems" xlink:to="TurnoverOfHighestContributingProductOrService" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_QuantityOfHighestContributingProductOrServiceInUom" xlink:label="QuantityOfHighestContributingProductOrServiceInUom"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="DisclosureOfPrincipalProductOrServicesLineItems" xlink:to="QuantityOfHighestContributingProductOrServiceInUom" priority="0" order="8.0"/>
+  </presentationLink>
+</linkbase>

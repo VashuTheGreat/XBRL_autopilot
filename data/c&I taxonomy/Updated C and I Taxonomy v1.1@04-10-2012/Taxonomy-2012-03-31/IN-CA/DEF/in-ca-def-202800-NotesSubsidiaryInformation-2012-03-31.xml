@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--************* Indian C&I General Purpose Taxonomy - 2012-03-31-Ver 1.1 *************-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <roleRef roleURI="http://www.icai.org/xbrl/taxonomy/role/in-ca/NotesSubsidiaryInformation" xlink:type="simple" xlink:href="../in-ca-roles-2012-03-31.xsd#in-ca-rol-202800"/>
+  <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/all" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"/>
+  <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"/>
+  <arcroleRef arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"/>
+  <definitionLink xlink:type="extended" xlink:role="http://www.icai.org/xbrl/taxonomy/role/in-ca/NotesSubsidiaryInformation">
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfSubsidiariesAbstract" xlink:label="DetailsOfSubsidiariesAbstract"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfSubsidiariesTable" xlink:label="DetailsOfSubsidiariesTable"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="DetailsOfSubsidiariesAbstract" xlink:to="DetailsOfSubsidiariesTable" priority="0" order="1.0" xbrldt:contextElement="scenario" xbrldt:closed="true"/>
+    <loc xlink:type="locator" xlink:href="../../IN-GAAP/in-gaap-2012-03-31.xsd#in-gaap_SubsidiariesAxis" xlink:label="SubsidiariesAxis"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="DetailsOfSubsidiariesTable" xlink:to="SubsidiariesAxis" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfSubsidiariesLineItems" xlink:label="DetailsOfSubsidiariesLineItems"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesAbstract" xlink:to="DetailsOfSubsidiariesLineItems" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../../IN-GAAP/in-gaap-2012-03-31.xsd#in-gaap_NameOfSubsidiary" xlink:label="NameOfSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="NameOfSubsidiary" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../../IN-GAAP/in-gaap-2012-03-31.xsd#in-gaap_CountryOfIncorporationOrResidenceOfSubsidiary" xlink:label="CountryOfIncorporationOrResidenceOfSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="CountryOfIncorporationOrResidenceOfSubsidiary" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_CINOfSubsidiaryCompany" xlink:label="CINOfSubsidiaryCompany"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="CINOfSubsidiaryCompany" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_PANOfSubsidiaryCompany" xlink:label="PANOfSubsidiaryCompany"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="PANOfSubsidiaryCompany" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_SectionUnderWhichCompanyBecameSubsidiary" xlink:label="SectionUnderWhichCompanyBecameSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="SectionUnderWhichCompanyBecameSubsidiary" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_WhetherSubsidiaryHasFiledBalanceSheet" xlink:label="WhetherSubsidiaryHasFiledBalanceSheet"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="WhetherSubsidiaryHasFiledBalanceSheet" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_SRNOfFilingOfBalanceSheetBySubsidiary" xlink:label="SRNOfFilingOfBalanceSheetBySubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="SRNOfFilingOfBalanceSheetBySubsidiary" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ReasonIfNoFilingHasBeenMadeBySubsidiary" xlink:label="ReasonIfNoFilingHasBeenMadeBySubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="ReasonIfNoFilingHasBeenMadeBySubsidiary" priority="0" order="8.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_WhetherFinancialYearOfSubsidiaryCoincidesWithFinancialYearOfHoldingCompany" xlink:label="WhetherFinancialYearOfSubsidiaryCoincidesWithFinancialYearOfHoldingCompany"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="WhetherFinancialYearOfSubsidiaryCoincidesWithFinancialYearOfHoldingCompany" priority="0" order="9.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_FinancialYearOfSubsidiaryAbstract" xlink:label="FinancialYearOfSubsidiaryAbstract"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="FinancialYearOfSubsidiaryAbstract" priority="0" order="10.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_StartDateOfAccountingPeriodOfSubsidiary" xlink:label="StartDateOfAccountingPeriodOfSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="FinancialYearOfSubsidiaryAbstract" xlink:to="StartDateOfAccountingPeriodOfSubsidiary" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_EndDateOfAccountingPeriodOfSubsidiary" xlink:label="EndDateOfAccountingPeriodOfSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="FinancialYearOfSubsidiaryAbstract" xlink:to="EndDateOfAccountingPeriodOfSubsidiary" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DateOfBecomingSubsidiary" xlink:label="DateOfBecomingSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="DateOfBecomingSubsidiary" priority="0" order="11.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DateOfCeasingToBeSubsidiary" xlink:label="DateOfCeasingToBeSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="DateOfCeasingToBeSubsidiary" priority="0" order="12.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_NumberOfSharesHeldOfSubsidiary" xlink:label="NumberOfSharesHeldOfSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="NumberOfSharesHeldOfSubsidiary" priority="0" order="13.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_FaceValueOfSharesOfSubsidiary" xlink:label="FaceValueOfSharesOfSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="FaceValueOfSharesOfSubsidiary" priority="0" order="14.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_PaidUpValueOfSharesHeldOfSubsidiary" xlink:label="PaidUpValueOfSharesHeldOfSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="PaidUpValueOfSharesHeldOfSubsidiary" priority="0" order="15.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_PercentageOfShareholdingInSubsidiary" xlink:label="PercentageOfShareholdingInSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="PercentageOfShareholdingInSubsidiary" priority="0" order="16.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ProportionOfVotingPowerInSubsidiary" xlink:label="ProportionOfVotingPowerInSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="ProportionOfVotingPowerInSubsidiary" priority="0" order="17.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_KeyInformationAboutSubsidiaryAbstract" xlink:label="KeyInformationAboutSubsidiaryAbstract"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="KeyInformationAboutSubsidiaryAbstract" priority="0" order="18.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ReportingCurrencyOfSubsidiary" xlink:label="ReportingCurrencyOfSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="ReportingCurrencyOfSubsidiary" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ExchangeRateAsApplicableForSubsidiary" xlink:label="ExchangeRateAsApplicableForSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="ExchangeRateAsApplicableForSubsidiary" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ShareCapitalOfSubsidiaryAbstract" xlink:label="ShareCapitalOfSubsidiaryAbstract"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="ShareCapitalOfSubsidiaryAbstract" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_EquityShareCapitalOfSubsidiary" xlink:label="EquityShareCapitalOfSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="ShareCapitalOfSubsidiaryAbstract" xlink:to="EquityShareCapitalOfSubsidiary" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_PreferenceShareCapitalOfSubsidiary" xlink:label="PreferenceShareCapitalOfSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="ShareCapitalOfSubsidiaryAbstract" xlink:to="PreferenceShareCapitalOfSubsidiary" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ShareCapitalOfSubsidiary" xlink:label="ShareCapitalOfSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="ShareCapitalOfSubsidiaryAbstract" xlink:to="ShareCapitalOfSubsidiary" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ReservesAndSurplusOfSubsidiary" xlink:label="ReservesAndSurplusOfSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="ReservesAndSurplusOfSubsidiary" priority="0" order="4.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_TotalAssetsOfSubsidiary" xlink:label="TotalAssetsOfSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="TotalAssetsOfSubsidiary" priority="0" order="5.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_TotalLiabilitiesOfSubsidiary" xlink:label="TotalLiabilitiesOfSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="TotalLiabilitiesOfSubsidiary" priority="0" order="6.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_InvestmentOfSubsidiary" xlink:label="InvestmentOfSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="InvestmentOfSubsidiary" priority="0" order="7.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_TotalIncomeOfSubsidiary" xlink:label="TotalIncomeOfSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="TotalIncomeOfSubsidiary" priority="0" order="8.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ProfitBeforeTaxOfSubsidiary" xlink:label="ProfitBeforeTaxOfSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="ProfitBeforeTaxOfSubsidiary" priority="0" order="9.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ProvisionForTaxOfSubsidiary" xlink:label="ProvisionForTaxOfSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="ProvisionForTaxOfSubsidiary" priority="0" order="10.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ProfitAfterTaxOfSubsidiary" xlink:label="ProfitAfterTaxOfSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="ProfitAfterTaxOfSubsidiary" priority="0" order="11.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_ProposedDividendOfSubsidiary" xlink:label="ProposedDividendOfSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="KeyInformationAboutSubsidiaryAbstract" xlink:to="ProposedDividendOfSubsidiary" priority="0" order="12.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_GuaranteeGivenForLoansBorrowedBySubsidiary" xlink:label="GuaranteeGivenForLoansBorrowedBySubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="GuaranteeGivenForLoansBorrowedBySubsidiary" priority="0" order="19.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_NameOfGuaranteedPartyOnLoansBorrowedBySubsidiary" xlink:label="NameOfGuaranteedPartyOnLoansBorrowedBySubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="GuaranteeGivenForLoansBorrowedBySubsidiary" xlink:to="NameOfGuaranteedPartyOnLoansBorrowedBySubsidiary" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_CINOfGuaranteedPartyOnLoansBorrowedBySubsidiary" xlink:label="CINOfGuaranteedPartyOnLoansBorrowedBySubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="GuaranteeGivenForLoansBorrowedBySubsidiary" xlink:to="CINOfGuaranteedPartyOnLoansBorrowedBySubsidiary" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_AmountGuaranteedOnLoansBorrowedBySubsidiary" xlink:label="AmountGuaranteedOnLoansBorrowedBySubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="GuaranteeGivenForLoansBorrowedBySubsidiary" xlink:to="AmountGuaranteedOnLoansBorrowedBySubsidiary" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_GuaranteeBySubsidiaryForLoansBorrowedByCompany" xlink:label="GuaranteeBySubsidiaryForLoansBorrowedByCompany"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="GuaranteeBySubsidiaryForLoansBorrowedByCompany" priority="0" order="20.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_NameOfGuaranteedPartyOnLoansBorrowedByCompany" xlink:label="NameOfGuaranteedPartyOnLoansBorrowedByCompany"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="GuaranteeBySubsidiaryForLoansBorrowedByCompany" xlink:to="NameOfGuaranteedPartyOnLoansBorrowedByCompany" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_CINOfGuaranteedPartyOnLoansBorrowedByCompany" xlink:label="CINOfGuaranteedPartyOnLoansBorrowedByCompany"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="GuaranteeBySubsidiaryForLoansBorrowedByCompany" xlink:to="CINOfGuaranteedPartyOnLoansBorrowedByCompany" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_AmountGuaranteedOnLoansBorrowedByCompany" xlink:label="AmountGuaranteedOnLoansBorrowedByCompany"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="GuaranteeBySubsidiaryForLoansBorrowedByCompany" xlink:to="AmountGuaranteedOnLoansBorrowedByCompany" priority="0" order="3.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_AggregateAmountOfProfitLossOfSubsidiaryForPreviousYearsSinceItBecameSubsidiary" xlink:label="AggregateAmountOfProfitLossOfSubsidiaryForPreviousYearsSinceItBecameSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="AggregateAmountOfProfitLossOfSubsidiaryForPreviousYearsSinceItBecameSubsidiary" priority="0" order="21.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfAggregateAmountNotIncludedByParentCompany" xlink:label="DetailsOfAggregateAmountNotIncludedByParentCompany"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="DetailsOfAggregateAmountNotIncludedByParentCompany" priority="0" order="22.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_AggregateAmountOfSubsidiaryNotAccountedForCurrentYear" xlink:label="AggregateAmountOfSubsidiaryNotAccountedForCurrentYear"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfAggregateAmountNotIncludedByParentCompany" xlink:to="AggregateAmountOfSubsidiaryNotAccountedForCurrentYear" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_AggregateAmountOfSubsidiaryNotAccountedForPreviousYearsSinceItBecameSubsidiary" xlink:label="AggregateAmountOfSubsidiaryNotAccountedForPreviousYearsSinceItBecameSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfAggregateAmountNotIncludedByParentCompany" xlink:to="AggregateAmountOfSubsidiaryNotAccountedForPreviousYearsSinceItBecameSubsidiary" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfAggregateAmountsDealtByParentCompany" xlink:label="DetailsOfAggregateAmountsDealtByParentCompany"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="DetailsOfAggregateAmountsDealtByParentCompany" priority="0" order="23.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_AggregateAmountOfSubsidiaryAccountedForPeriod" xlink:label="AggregateAmountOfSubsidiaryAccountedForPeriod"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfAggregateAmountsDealtByParentCompany" xlink:to="AggregateAmountOfSubsidiaryAccountedForPeriod" priority="0" order="1.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_AggregateAmountOfSubsidiaryAccountedForPreviousYearsSinceItBecameSubsidiary" xlink:label="AggregateAmountOfSubsidiaryAccountedForPreviousYearsSinceItBecameSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfAggregateAmountsDealtByParentCompany" xlink:to="AggregateAmountOfSubsidiaryAccountedForPreviousYearsSinceItBecameSubsidiary" priority="0" order="2.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfAssetsLiabilitiesOfSubsidiaryIncludedInConsolidatedStatements" xlink:label="DetailsOfAssetsLiabilitiesOfSubsidiaryIncludedInConsolidatedStatements"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="DetailsOfAssetsLiabilitiesOfSubsidiaryIncludedInConsolidatedStatements" priority="0" order="24.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfParticipatingInterestsThroughSubsidiary" xlink:label="DetailsOfParticipatingInterestsThroughSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="DetailsOfParticipatingInterestsThroughSubsidiary" priority="0" order="25.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_NatureOfRelationshipWithSubsidiaryWhereParentHasDirectlyOrIndirectlyLessThanHalfOfVotingPower" xlink:label="NatureOfRelationshipWithSubsidiaryWhereParentHasDirectlyOrIndirectlyLessThanHalfOfVotingPower"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="NatureOfRelationshipWithSubsidiaryWhereParentHasDirectlyOrIndirectlyLessThanHalfOfVotingPower" priority="0" order="26.0"/>
+    <loc xlink:type="locator" xlink:href="../in-ca-2012-03-31.xsd#in-ca_DetailsOfJointlyControlledAssetsWithSubsidiary" xlink:label="DetailsOfJointlyControlledAssetsWithSubsidiary"/>
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="DetailsOfSubsidiariesLineItems" xlink:to="DetailsOfJointlyControlledAssetsWithSubsidiary" priority="0" order="27.0"/>
+  </definitionLink>
+</linkbase>
