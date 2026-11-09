@@ -10,3 +10,8 @@ wheels/
 .venv
 
 
+a.py
+b.py
+c.py
+chroma_langchain_db/
+.env
