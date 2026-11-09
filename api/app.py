@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from api.routes import (
+from api.v1.routes import (
     taxonomies
 )
 
