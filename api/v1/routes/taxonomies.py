@@ -6,7 +6,7 @@ from src.pipeline.recom_taxonomies import RecommendTaxonomies
 from src.core.authority import Authority
 from src.constants import CI_TAXONOMY_VDB, IND_AS_TAXONOMY_VDB, COSTING_TAXONOMY_VDB
 from api.responses import success_response, error_response
-
+from api.helper.build_tree import build_role_tree
 router = APIRouter()
 
 _authority_cache: dict[str, Authority] = {}
@@ -621,31 +621,32 @@ async def get_taxonomical_rules(id: str):
             )
 
 
-@router.get("/{id}/elrs")
-async def get_taxonomy_elrs(id: str):
-    """Statements, notes and disclosures (presentation ELRs) with code, title and group."""
-    with logger.span("taxonomies.elrs.list", taxonomy_id=id):
-        try:
-            elrs = get_authority(id).list_elrs()
-            return success_response(data=elrs, message=f"{len(elrs)} ELRs in taxonomy '{id}'", status_code=200)
-        except ValueError as ve:
-            return error_response(message=str(ve), status_code=404)
-        except Exception:
-            logger.exception("taxonomies.elrs.list.failed", taxonomy_id=id)
-            return error_response(message=f"Failed to list ELRs for taxonomy '{id}'", status_code=500)
 
+@router.get("/{taxonomy_id}/roles/{role_id}/tree")
+def get_role_tree(taxonomy_id: str, role_id: str):
+    """Returns the xml tree for mapping and view purpose"""
 
-@router.get("/{id}/elrs/{key}/tree")
-async def get_taxonomy_elr_tree(id: str, key: str):
-    """Presentation tree of one ELR; key = code ('100100'), role id or role URI."""
-    with logger.span("taxonomies.elrs.tree", taxonomy_id=id, key=key):
+    kb = get_authority(taxonomy_id)
+    with logger.span("taxonomies.roles.tree",taxonomy_id=taxonomy_id,role_id=role_id):
         try:
-            tree = get_authority(id).elr_tree(key)
-            if tree is None:
-                return error_response(message=f"ELR '{key}' not found in taxonomy '{id}'", status_code=404)
-            return success_response(data=tree, message=f"Presentation tree of '{key}'", status_code=200)
+            
+            return build_role_tree(
+                role_id=role_id,
+                roles=kb.get_roles(),
+                presentation=kb.get_presentation(),
+                concepts=kb.get_concepts()
+            )
+
         except ValueError as ve:
-            return error_response(message=str(ve), status_code=404)
+            logger.warning("taxonomies.rules.invalid_tree",error=str(ve))
+            return error_response(
+                message=str(ve),
+                status_code=404
+            )
+
         except Exception:
-            logger.exception("taxonomies.elrs.tree.failed", taxonomy_id=id, key=key)
-            return error_response(message=f"Failed to build the tree of '{key}'", status_code=500)
+            logger.exception("taxonomies.rules.tree.failed")
+            return error_response(
+                message=f"Failed to retrieve tree for taxonomy '{taxonomy_id}' and '{role_id}'",
+                status_code=500,
+            )
