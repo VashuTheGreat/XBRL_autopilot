@@ -29,8 +29,8 @@ Steps 3 and 6 take most of the hours. **We automate those two.**
 | Losing work / starting over each year | `.axbrl` project files, autosave and recovery, carry-forward to next year |
 
 ## Scope
-- **v1 (MVP):** C&I 2016 taxonomy, AOC-4 XBRL standalone (consolidated if cheap). The full loop: Excel → tag → validate → fix → XML → save/reopen. MCA Validation Tool v5.1 used as the external final check.
-- **v2:** Ind AS 2017, consolidated; Costing 2019 (CRA-4); company/director masters; PDF preview parity.
+- **v1 (MVP):** C&I 2016 **and Ind AS 2017** (real clients use both, see [ADR-0007](decisions/ADR-0007-real-data-both-taxonomies.md)), AOC-4 XBRL standalone (consolidated if cheap). The full loop: Excel (.xlsx/.xls) → tag → validate → fix → XML → save/reopen, **plus importing an existing XBRL** (e.g. from Webtel). MCA Validation Tool v5.1 used as the external final check.
+- **v2:** consolidated; Costing 2019 (CRA-4); company/director masters; PDF preview parity; trial-balance mapping.
 - **Later:** licensed Groq proxy server, auto-update, CIN prefill from MCA, Tally import, multi-user office sharing.
 
 ## Non-goals (for now)
@@ -39,7 +39,7 @@ Steps 3 and 6 take most of the hours. **We automate those two.**
 - A hosted SaaS. Everything runs on the user's machine.
 
 ## Success criteria for v1
-- `data/sample_financials.xlsx` → ≥ 80 % of lines auto-tagged correctly before review.
+- On the DGPL ↔ Dixon answer key: ≥ 80 % of statement lines auto-tagged correctly before review (measured by the Phase 8 harness).
 - The generated instance passes MCA Validation Tool v5.1 with zero errors after the AI-assisted fix loop.
 - A filing can be closed and reopened with nothing lost.
 - It installs on a clean Windows PC with no Python or Node.

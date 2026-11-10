@@ -17,11 +17,12 @@ Read the doc that matches the task. Keep docs short, factual and current. When c
 | 09 | [IPC & sidecar API](09-ipc-and-sidecar-api.md) | Adding an IPC channel or sidecar endpoint |
 | 10 | [Packaging & release](10-packaging-release.md) | Building the installer, PyInstaller, electron-builder |
 | 11 | [Security & privacy](11-security-privacy.md) | Keys, financial data, Electron hardening |
+| 12 | [Reference data](12-reference-data.md) | The real client files in `data/`, what they teach us, and the tests built on them |
 | — | [decisions/](decisions/) | Why a big choice was made (ADRs) |
 
 ## Glossary
 - **MCA:** Ministry of Corporate Affairs (India). **AOC-4 XBRL** is the e-form for filing financial statements in XBRL. **CRA-4** is the cost audit report.
-- **Taxonomy:** the dictionary of reportable concepts (elements), plus linkbases. v1 uses **C&I 2016** (Commercial & Industrial, non-Ind AS); **Ind AS 2017** and **Costing 2019** come later.
+- **Taxonomy:** the dictionary of reportable concepts (elements), plus linkbases. v1 covers **C&I 2016** (Commercial & Industrial, non-Ind AS) and **Ind AS 2017**; **Costing 2019** comes later.
 - **ELR:** Extended Link Role, i.e. one statement/note/table (e.g. `[100100] Balance sheet`).
 - **Fact:** a value reported for a concept, in a context (entity CIN + period + dimensions), with a unit and decimals.
 - **Dimension / axis / member:** qualifies a fact in a table (e.g. Classes of share capital axis → Equity shares member).

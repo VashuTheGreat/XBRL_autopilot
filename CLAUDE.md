@@ -51,4 +51,4 @@ make rebuild                         # regenerate knowledge_base + Chroma index
    - Business logic lives in Electron-free services that depend on small interfaces (repositories, secret store, authority provider), passed in through the constructor. These services are unit-tested without Electron.
    - IPC handlers and React components stay thin: they validate, delegate and render.
    - Shared helpers go in `engine/src/basics.ts` (domain) or `ui/shared/` (app contracts). Never copy-paste.
-8. **Scope:** v1 is C&I 2016 (AOC-4 XBRL). Keep code taxonomy-generic so Ind AS and Costing slot in later.
+8. **Scope:** v1 is C&I 2016 **and** Ind AS 2017 (AOC-4 XBRL). Keep code taxonomy-generic (Costing later). Real client fixtures are in `data/` (see `docs/12-reference-data.md`); never send them to an AI service.

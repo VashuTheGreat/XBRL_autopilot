@@ -3,18 +3,23 @@
 > Update this file at the end of every work session: move items between sections and add a dated log line.
 
 ## Phase overview
+Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-reference-data.md), [ADR-0007](decisions/ADR-0007-real-data-both-taxonomies.md)).
+
 | # | Phase | State |
 |---|---|---|
 | 0 | Docs + `CLAUDE.md` + repo hygiene | ✅ done |
 | 1 | Scaffold: pnpm workspace, Electron + React + Tailwind shell, sidecar manager + `/health` | ✅ done |
-| 2 | Engine port (`lagacy_js` → `engine/` TS) + authority compiler for C&I 2016 | 🟡 step 1 done (core imported and green, compiler on `data/`); step 2 (JS→TS module by module) open |
-| 3 | `.axbrl` project file, autosave/recovery, recents, new-filing wizard | ✅ done (file association registered at install, so it's verified in Phase 8) |
-| 4 | Editor: Univer Excel pane, XBRL Form, Monaco XML, linkage, Inspector, Taxonomy browser | ⏳ |
-| 5 | AI auto-tagging (`/mapping/suggest`), sidecar bug fixes, ONNX embeddings | ⏳ |
-| 6 | Validation UI, quick fixes, MCA tool launcher + error import, rule-coverage diff | ⏳ |
-| 7 | AI fix agent (`/fix/propose`) + patch review | ⏳ |
-| 8 | Packaging: PyInstaller sidecar + electron-builder NSIS | ⏳ |
-| 9 | Ind AS 2017, Costing CRA-4, masters prefill, Groq proxy, auto-update | ⏳ |
+| 2 | Engine port (`lagacy_js` → `engine/`) + C&I 2016 authority from `data/` | ✅ step 1 done · step 2 (JS→TS by module) runs alongside the later phases |
+| 3 | `.axbrl` project file, autosave/recovery, recents, New Filing wizard, settings | ✅ done |
+| 4 | **Editor**: Univer grid + tag overlay, inspector, XBRL Form, Monaco XML, taxonomy browser, two-way linkage. Remaining: green E2E with real clicks, float-noise rounding, a "column not in this filing" message, remembering column → period per sheet | 🟡 in progress |
+| 5 | **Real-data readiness**: `.xls` import (python-calamine via the sidecar), HPL (C&I) hand-tagged end to end into valid XML, fixes from that run | ⏭ next |
+| 6 | **Ind AS 2017**: taxonomy-generic compiler (per-taxonomy profile), `ind-as-2017` authority, Ind AS rule formalizer, taxonomy choice in the wizard, authority loaded per filing | ⏳ |
+| 7 | **Import an existing XBRL instance** (Webtel / any vendor) into a project; golden test: Dixon instance → regenerate → semantically equal 2,666 facts; diff report against Webtel conventions; previous-year carry-forward from last year's XML | ⏳ |
+| 8 | **AI auto-tagging** (`/mapping/suggest`: memory → exact → hybrid retrieval → Groq rerank) plus an **evaluation harness** on the DGPL ↔ Dixon answer key (precision/recall on every change); sidecar `Authority` bug fixes; ONNX embeddings | ⏳ |
+| 9 | **Validation UI**: live gate/rules/calculation per taxonomy, Problems panel with locate, quick fixes, MCA Validation Tool v5.1 launcher + error import, rule-coverage diff (KB JSON vs engine) | ⏳ |
+| 10 | **AI fix agent** (`/fix/propose`, patch review, audit log) | ⏳ |
+| 11 | **Packaging**: PyInstaller sidecar + electron-builder NSIS, `.axbrl` association | ⏳ |
+| 12 | Costing CRA-4, masters prefill, trial-balance mapping, Groq proxy, auto-update | ⏳ |
 
 ## Known issues / debt
 - **Python `Authority`:**
@@ -63,3 +68,4 @@
   - **Code structure:** applied SOLID: ports/services/infra/ipc layers, composition root, reusable `handleResult` and `unwrap`, UI primitives.
   - **Tests:** ui 34 (axbrl, project service with a lossless save/reopen and byte-identical XML, settings, launch helpers); engine 13 + legacy 284.
   - **E2E (built app, CDP, isolated user data):** wizard → create → explorer/title/status, settings never contain the key, no renderer errors.
+- **2026-11-10, re-plan from real data:** the team supplied the Dixon (Ind AS, Webtel v32.7) instance with its `.xls` workbook, plus the HPL (C&I) workbook. v1 now covers both taxonomies (ADR-0007), with XBRL import and an auto-tagging accuracy harness. Files are committed as fixtures (`docs/12-reference-data.md`).
