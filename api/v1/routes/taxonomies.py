@@ -6,7 +6,7 @@ from src.pipeline.recom_taxonomies import RecommendTaxonomies
 from src.core.authority import Authority
 from src.constants import CI_TAXONOMY_VDB, IND_AS_TAXONOMY_VDB, COSTING_TAXONOMY_VDB
 from api.responses import success_response, error_response
-
+from api.helper.build_tree import build_role_tree
 router = APIRouter()
 
 _authority_cache: dict[str, Authority] = {}
@@ -605,5 +605,36 @@ async def get_taxonomical_rules(id: str):
             logger.exception("taxonomies.rules.failed", taxonomy_id=id)
             return error_response(
                 message=f"Failed to retrieve rules for taxonomy '{id}'",
+                status_code=500,
+            )
+
+
+
+@router.get("/{taxonomy_id}/roles/{role_id}/tree")
+def get_role_tree(taxonomy_id: str, role_id: str):
+    """Returns the xml tree for mapping and view purpose"""
+
+    kb = get_authority(taxonomy_id)
+    with logger.span("taxonomies.roles.tree",taxonomy_id=taxonomy_id,role_id=role_id):
+        try:
+            
+            return build_role_tree(
+                role_id=role_id,
+                roles=kb.get_roles(),
+                presentation=kb.get_presentation(),
+                concepts=kb.get_concepts()
+            )
+
+        except ValueError as ve:
+            logger.warning("taxonomies.rules.invalid_tree",error=str(ve))
+            return error_response(
+                message=str(ve),
+                status_code=404
+            )
+
+        except Exception:
+            logger.exception("taxonomies.rules.tree.failed")
+            return error_response(
+                message=f"Failed to retrieve tree for taxonomy '{taxonomy_id}' and '{role_id}'",
                 status_code=500,
             )
