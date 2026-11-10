@@ -63,7 +63,17 @@ See [ADR-0001](decisions/ADR-0001-hybrid-engine.md).
 ## Directory conventions
 ```
 ui/
-  electron/main/      index.ts, ipc/*.ts (one file per domain), sidecar.ts, project/*.ts, db.ts, settings.ts
+  electron/main/
+    index.ts          composition root: builds adapters, injects them into services, wires events + IPC
+    services/         Electron-free use cases (ProjectService, SettingsService, AutosaveScheduler)
+      ports.ts        the interfaces services depend on (AuthorityProvider, repositories, SecretStore, Clock)
+      errors.ts       typed errors (ValidationError, NoSavePathError, …)
+    infra/            adapters implementing ports (AppDatabase on node:sqlite, SafeStorageSecretStore,
+                      DirAutosaveStore, FileAuthorityProvider)
+    project/          .axbrl format (axbrl.ts, pure) + ProjectController (dialogs, "save changes?")
+    ipc/              thin handlers: handleResult()/handleQuery() + register.ts
+    util/             pure helpers (launch args, .env, window title)
+    sidecar.ts, sidecar-utils.ts, menu.ts
   electron/preload/   index.ts (exposes window.xap), api.d.ts
   src/
     app/              App.tsx, layout (ActivityBar, Panels, StatusBar)

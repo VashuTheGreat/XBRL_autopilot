@@ -1,5 +1,7 @@
-import { Building2, FolderTree, Search, Settings, Sparkles, TriangleAlert } from 'lucide-react'
+import { Building2, Search, Sparkles, TriangleAlert } from 'lucide-react'
 import { EmptyState } from '@/components/EmptyState'
+import { FilingExplorer } from '@/features/explorer/FilingExplorer'
+import { SettingsPanel } from '@/features/settings/SettingsPanel'
 import { useUi, type Activity } from '@/stores/ui'
 
 const TITLES: Record<Activity, string> = {
@@ -19,12 +21,7 @@ export function SidePanel() {
         {TITLES[activity]}
       </header>
       <div className="min-h-0 flex-1 overflow-auto">
-        {activity === 'explorer' && (
-          <EmptyState icon={FolderTree} title="No filing open" phase="Phase 3">
-            Statements, notes and disclosures (ELRs) of the open filing appear here, each with a completion and error
-            status.
-          </EmptyState>
-        )}
+        {activity === 'explorer' && <FilingExplorer />}
         {activity === 'taxonomy' && (
           <EmptyState icon={Search} title="Taxonomy browser" phase="Phase 4">
             Search C&amp;I 2016 elements and drag one onto an Excel cell to tag it.
@@ -41,15 +38,11 @@ export function SidePanel() {
           </EmptyState>
         )}
         {activity === 'masters' && (
-          <EmptyState icon={Building2} title="Company masters" phase="Phase 3">
-            Company, directors and auditor details (General Information, ELR 400100).
+          <EmptyState icon={Building2} title="Company masters" phase="Phase 4">
+            Company, directors and auditor details (General Information, ELR 400100) — edited in the XBRL Form.
           </EmptyState>
         )}
-        {activity === 'settings' && (
-          <EmptyState icon={Settings} title="Settings" phase="Phase 3">
-            Groq API key (stored encrypted), AI model, MCA Validation Tool path, autosave and data-consent options.
-          </EmptyState>
-        )}
+        {activity === 'settings' && <SettingsPanel />}
       </div>
     </aside>
   )

@@ -1,4 +1,20 @@
 /** Shared IPC contract between main, preload and renderer. See docs/09-ipc-and-sidecar-api.md. */
+import type {
+  AppSettings,
+  ElrInfo,
+  NewFilingInput,
+  ProjectSummary,
+  RecentProject,
+  RecoveryItem,
+  SettingsState,
+} from './project'
+
+/**
+ * Every fallible IPC call returns a Result instead of throwing: Electron flattens thrown errors into
+ * "Error invoking remote method …" and drops their type, which the UI needs (e.g. form problems).
+ */
+export type IpcError = { kind: 'validation'; message: string; problems: string[] } | { kind: 'error'; message: string }
+export type Result<T> = { ok: true; value: T } | { ok: false; error: IpcError }
 
 export type SidecarStatus =
   | { state: 'starting' }
@@ -48,6 +64,25 @@ export const IPC = {
   sidecarRequest: 'sidecar:request',
   sidecarRestart: 'sidecar:restart',
   menuCommand: 'menu:command',
+  projectCurrent: 'project:current',
+  projectCreate: 'project:create',
+  projectOpen: 'project:open',
+  projectSave: 'project:save',
+  projectSaveAs: 'project:save-as',
+  projectClose: 'project:close',
+  projectRecent: 'project:recent',
+  projectForgetRecent: 'project:forget-recent',
+  projectRecovery: 'project:recovery',
+  projectRecover: 'project:recover',
+  projectDiscardRecovery: 'project:discard-recovery',
+  projectElrs: 'project:elrs',
+  projectChanged: 'project:changed',
+  settingsGet: 'settings:get',
+  settingsUpdate: 'settings:update',
+  settingsSetGroqKey: 'settings:set-groq-key',
+  settingsClearGroqKey: 'settings:clear-groq-key',
+  settingsPickMcaTool: 'settings:pick-mca-tool',
+  settingsChanged: 'settings:changed',
 } as const
 
 /** The API exposed on window.xap by the preload script. */
@@ -62,4 +97,31 @@ export interface XapApi {
     onLog(cb: (l: SidecarLogLine) => void): () => void
   }
   menu: { onCommand(cb: (c: MenuCommand) => void): () => void }
+  project: {
+    current(): Promise<ProjectSummary | null>
+    create(input: NewFilingInput): Promise<Result<ProjectSummary | null>>
+    /** no path → file dialog; `null` value = cancelled */
+    open(path?: string): Promise<Result<ProjectSummary | null>>
+    /** Save As dialog when the filing was never saved; `null` value = cancelled */
+    save(): Promise<Result<ProjectSummary | null>>
+    saveAs(): Promise<Result<ProjectSummary | null>>
+    /** asks to save unsaved changes first; `false` = the user cancelled */
+    close(): Promise<Result<boolean>>
+    recent(): Promise<RecentProject[]>
+    forgetRecent(path: string): Promise<void>
+    recovery(): Promise<RecoveryItem[]>
+    recover(id: string): Promise<Result<ProjectSummary | null>>
+    discardRecovery(id: string): Promise<void>
+    elrs(): Promise<Result<ElrInfo[]>>
+    onChanged(cb: (s: ProjectSummary | null) => void): () => void
+  }
+  settings: {
+    get(): Promise<SettingsState>
+    update(patch: Partial<AppSettings>): Promise<Result<SettingsState>>
+    setGroqKey(key: string): Promise<Result<SettingsState>>
+    clearGroqKey(): Promise<Result<SettingsState>>
+    /** file dialog for the MCA Validation Tool exe; `null` = cancelled */
+    pickMcaTool(): Promise<Result<SettingsState | null>>
+    onChanged(cb: (s: SettingsState) => void): () => void
+  }
 }

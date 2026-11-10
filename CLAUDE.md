@@ -46,4 +46,9 @@ make rebuild                         # regenerate knowledge_base + Chroma index
 4. **Electron security:** `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`. All privileged work goes through typed IPC in `ui/electron/preload`.
 5. **Sidecar is stateless:** the project state lives in Electron and `.axbrl`. The sidecar gets compact payloads per request.
 6. **Docs discipline:** after finishing a feature, update the matching doc in `docs/` and add a dated line to `docs/STATUS.md`. Record architecture changes as an ADR in `docs/decisions/`.
-7. **Scope:** v1 is C&I 2016 (AOC-4 XBRL). Keep code taxonomy-generic so Ind AS and Costing slot in later.
+7. **Clean code, SOLID, reusable:**
+   - One responsibility per module.
+   - Business logic lives in Electron-free services that depend on small interfaces (repositories, secret store, authority provider), passed in through the constructor. These services are unit-tested without Electron.
+   - IPC handlers and React components stay thin: they validate, delegate and render.
+   - Shared helpers go in `engine/src/basics.ts` (domain) or `ui/shared/` (app contracts). Never copy-paste.
+8. **Scope:** v1 is C&I 2016 (AOC-4 XBRL). Keep code taxonomy-generic so Ind AS and Costing slot in later.

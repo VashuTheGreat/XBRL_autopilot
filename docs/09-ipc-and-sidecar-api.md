@@ -2,6 +2,8 @@
 
 ## Renderer ↔ main (Electron IPC)
 - Implemented in Phase 1: `app:info`, all `sidecar:*` channels and `menu:command`. The source of truth is `ui/shared/ipc.ts`; the other channels land with their phase.
+- **Results, not throws:** fallible calls return `Result<T> = {ok:true,value} | {ok:false,error:{kind:'validation',problems[]}|{kind:'error',message}}`. Electron flattens thrown errors into "Error invoking remote method…", which loses form problems. Main registers handlers with `handleResult()` / `handleQuery()` (`ui/electron/main/ipc/handle.ts`); the renderer calls `unwrap()` (`ui/src/lib/result.ts`).
+- **Phase 3 channels:** `project:*` (current, create, open, save, save-as, close, recent, forget-recent, recovery, recover, discard-recovery, elrs, changed) and `settings:*` (get, update, set-groq-key, clear-groq-key, pick-mca-tool, changed).
 - The preload exposes **one** object, `window.xap`. It's typed in `ui/electron/preload/api.d.ts`, and the renderer never sees `ipcRenderer`.
 - Channels are named `domain:action`. Request/response uses `ipcRenderer.invoke`; events from main use `on(...)` subscriptions that return an unsubscribe function.
 

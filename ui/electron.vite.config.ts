@@ -9,6 +9,8 @@ export default defineConfig({
   main: {
     resolve: { alias: { '@shared': shared } },
     build: {
+      // the engine workspace package ships TS/ESM source: bundle it into main instead of require()-ing it
+      externalizeDeps: { exclude: ['@xap/engine'] },
       rollupOptions: { input: { index: resolve(__dirname, 'electron/main/index.ts') } },
     },
   },

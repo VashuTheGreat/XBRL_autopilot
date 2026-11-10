@@ -8,7 +8,7 @@
 | 0 | Docs + `CLAUDE.md` + repo hygiene | ✅ done |
 | 1 | Scaffold: pnpm workspace, Electron + React + Tailwind shell, sidecar manager + `/health` | ✅ done |
 | 2 | Engine port (`lagacy_js` → `engine/` TS) + authority compiler for C&I 2016 | 🟡 step 1 done (core imported and green, compiler on `data/`); step 2 (JS→TS module by module) open |
-| 3 | `.axbrl` project file, autosave/recovery, recents, new-filing wizard | ⏳ |
+| 3 | `.axbrl` project file, autosave/recovery, recents, new-filing wizard | ✅ done (file association registered at install, so it's verified in Phase 8) |
 | 4 | Editor: Univer Excel pane, XBRL Form, Monaco XML, linkage, Inspector, Taxonomy browser | ⏳ |
 | 5 | AI auto-tagging (`/mapping/suggest`), sidecar bug fixes, ONNX embeddings | ⏳ |
 | 6 | Validation UI, quick fixes, MCA tool launcher + error import, rule-coverage diff | ⏳ |
@@ -54,3 +54,12 @@
   - **Authority:** `pnpm --filter @xap/engine compile:authority` builds `ci-2016.authority.json` in about 2.4 s: 962 executable rules, 48 review-only, 153 not applicable, 1 unimplemented.
   - **Tests:** legacy suite 284 tests, 220 pass, 0 fail, 64 skipped. New vitest facade tests: the example filing validates with 0 errors; XML is deterministic, uses the V3 schemaRef and CIN scheme, and has no `precision`; save/load round trip is lossless.
   - **API:** typed public entry point `engine/src/index.ts`.
+- **2026-11-10, Phase 3 done:**
+  - **Format:** `.axbrl` zip with atomic save, `.bak`, unknown entries preserved, and newer formats opened read-only.
+  - **ProjectService (Electron-free):** new, open, save, save as, close, exact dirty tracking, autosave + crash recovery, recent projects.
+  - **App database:** SQLite through `node:sqlite` (recents, settings, `mapping_memory` schema ready for Phase 5).
+  - **Settings:** the Groq key is stored encrypted with async safeStorage and never sent to the renderer; the sidecar restarts when the key or model changes.
+  - **UI:** welcome screen (new, open, recent, recover), New Filing wizard with live CIN and period checks (defaults to FY 2025-26), filing explorer with 47 ELRs, settings panel, toasts, window title and status bar with save state.
+  - **Code structure:** applied SOLID: ports/services/infra/ipc layers, composition root, reusable `handleResult` and `unwrap`, UI primitives.
+  - **Tests:** ui 34 (axbrl, project service with a lossless save/reopen and byte-identical XML, settings, launch helpers); engine 13 + legacy 284.
+  - **E2E (built app, CDP, isolated user data):** wizard → create → explorer/title/status, settings never contain the key, no renderer errors.

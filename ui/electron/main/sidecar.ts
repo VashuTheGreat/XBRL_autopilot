@@ -23,8 +23,8 @@ export interface SidecarOptions {
   isPackaged: boolean
   repoRoot: string
   resourcesPath: string
-  /** Extra env for the child, e.g. GROQ_API_KEY from safeStorage (packaged) */
-  extraEnv?: () => Record<string, string | undefined>
+  /** Extra env for the child, e.g. GROQ_API_KEY from safeStorage (read fresh on every start) */
+  extraEnv?: () => Promise<Record<string, string | undefined>> | Record<string, string | undefined>
 }
 
 export class SidecarManager extends EventEmitter {
@@ -62,12 +62,13 @@ export class SidecarManager extends EventEmitter {
         resourcesPath: this.opts.resourcesPath,
         platform: process.platform,
       })
+      const extraEnv = (await this.opts.extraEnv?.()) ?? {}
       this.log('system', `Starting sidecar: ${launch.command} ${launch.args.join(' ')} (port ${this.port})`)
       const child = spawn(launch.command, launch.args, {
         cwd: launch.cwd,
         env: {
           ...process.env,
-          ...(this.opts.extraEnv?.() ?? {}),
+          ...extraEnv,
           XAP_PORT: String(this.port),
           XAP_TOKEN: this.token,
           XAP_RESOURCES: this.opts.isPackaged ? this.opts.resourcesPath : this.opts.repoRoot,

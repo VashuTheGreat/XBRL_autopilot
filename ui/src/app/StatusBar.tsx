@@ -1,8 +1,10 @@
 import { cn } from '@/lib/cn'
+import { useProject } from '@/stores/project'
 import { useSidecar } from '@/stores/sidecar'
 
 export function StatusBar() {
   const { status, app } = useSidecar()
+  const filing = useProject((s) => s.summary)
   const dot =
     status.state === 'ready' ? 'bg-ok' : status.state === 'starting' ? 'bg-warn animate-pulse' : 'bg-err'
   const label =
@@ -18,8 +20,19 @@ export function StatusBar() {
 
   return (
     <footer className="flex h-6 shrink-0 items-center gap-4 border-t border-border bg-panel-2 px-3 text-[11px] text-muted">
-      <span>No filing open</span>
-      <span>C&amp;I 2016</span>
+      {filing ? (
+        <>
+          <span className="font-mono">{filing.company.cin}</span>
+          <span>{filing.fyLabel}</span>
+          <span>{filing.reportType}</span>
+          <span>C&amp;I 2016</span>
+          <span className={filing.dirty ? 'text-warn' : ''} data-testid="save-state">
+            {filing.readOnlyReason ? 'Read-only' : filing.dirty ? (filing.path ? 'Unsaved changes' : 'Not saved yet') : 'Saved'}
+          </span>
+        </>
+      ) : (
+        <span>No filing open</span>
+      )}
       <div className="flex-1" />
       <span
         className="flex items-center gap-1.5"
