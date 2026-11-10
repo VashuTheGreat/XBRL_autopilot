@@ -64,8 +64,9 @@ export function htmlGuidelineIssues(s, { detail = false } = {}) {
   return detail ? { errors: [...new Set(out)], warnings: [...new Set(warn)] } : [...new Set(out)];
 }
 
-// v14.3: share capital amounts whose actual value MCA compares (authorised, issued, subscribed, called, paid-up)
-export const SHARE_CAPITAL = new Set(['ShareCapital', 'ValueOfSharesAuthorised', 'ValueOfSharesIssued', 'ValueOfSharesSubscribed', 'ValueOfSharesSubscribedAndFullyPaid', 'ValueOfSharesSubscribedButNotFullyPaid', 'ValueOfSharesCalled', 'ValueOfSharesPaidUp']);
+// v14.3: share capital amounts whose actual value MCA compares (authorised, issued, subscribed, called, paid-up).
+// Local names: C&I 2016 ShareCapital, Ind AS 2017 EquityShareCapital (the ValueOfShares* names are in both).
+export const SHARE_CAPITAL = new Set(['ShareCapital', 'EquityShareCapital','ValueOfSharesAuthorised', 'ValueOfSharesIssued', 'ValueOfSharesSubscribed', 'ValueOfSharesSubscribedAndFullyPaid', 'ValueOfSharesSubscribedButNotFullyPaid', 'ValueOfSharesCalled', 'ValueOfSharesPaidUp']);
 const localName = (q) => String(q).slice(String(q).indexOf(':') + 1);
 
 export class Gate {

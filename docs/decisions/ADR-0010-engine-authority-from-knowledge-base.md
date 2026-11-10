@@ -1,0 +1,36 @@
+# ADR-0010 · The engine authority comes from the knowledge base, served by a route
+- **Status:** accepted (2026-11-10). Phase 6, which carries out the "next step" of [ADR-0008](ADR-0008-taxonomy-data-via-routes.md).
+- **Context:**
+  - The engine needs much more than the UI. It needs the DTS-resolved concepts with their types and facets, the presentation, calculation and definition networks after XBRL 2.1 prohibition and override, and the dimensional model: tables, hypercubes, axes, members, `usable` flags, dimension defaults and base sets.
+  - All of that came from a TypeScript compiler (`engine/compiler/dts.mjs`, `tables.mjs`), separate from the Python ingestion that builds `knowledge_base/` for the UI and the AI. There were two parsers of the same files, and only C&I was supported.
+- **Decision:**
+  - **One builder, in Python.** `src/services/engine_authority/` builds the engine authority of each taxonomy from the official files in `data/`, and writes `knowledge_base/<kb>_engine_authority.json`:
+    - `dts.py` handles DTS discovery and prohibition/override.
+    - `dimensions.py` builds the dimensional model.
+    - `builder.py` assembles the authority.
+    - `specs.py` holds the per-taxonomy filing conventions: entry points, schemaRef, CIN scheme and validator patches.
+  - It runs as part of `make rebuild`, or alone with `make engine-authority`. The files are committed, like the other knowledge-base files.
+  - **Route.** `GET /api/v1/taxonomies/{id}/authority` serves the file in the usual envelope. The bytes are wrapped without being parsed: 5 MB for C&I, 10 MB for Ind AS. Costing returns 404 (Phase 12).
+  - **Business rules stay in the engine until Phase 9.**
+    - `pnpm --filter @xap/engine compile:authority` is now only the rule compiler. It reads `knowledge_base/ci_engine_authority.json` and the MCA rule workbook, and writes `engine/authority/ci-2016.rules.json`.
+    - That file's `meta.taxonomyHash` ties it to the taxonomy build. The engine's `assembleAuthority` refuses rules built against a different build.
+    - The compiler also writes the assembled `ci-2016.authority.json` for tests and tools.
+  - **The app** (`AuthorityService`, an Electron-free service) loads the taxonomy half through `SidecarAuthoritySource` (the route) and the rules half through `FileRuleBundleSource`. It assembles them once per taxonomy.
+    - A taxonomy without compiled rules gets an empty rule model. Ind AS works this way today: facts, XML and structural checks work, but MCA business rules don't run yet.
+  - **The TS DTS compiler is retired** (`dts.mjs`, `tables.mjs` deleted). `taxonomy-source.mjs` remains only to prepare the patched working copy for the test-side Arelle XSD check, and reads the patches from the built authority.
+  - **Ind AS DTS = union of two entry points.**
+    - The Ind AS 2017 package splits AOC-4 into `in-ci-ent-2017-03-31.xsd`, with the Ind AS statements and notes, and `in-ca-ent-2017-03-31.xsd`, with the in-ca 700xxx disclosures: general information, auditors' report, directors' report, signatories, KMP and secretarial audit.
+    - The MCA-accepted Dixon instance names `in-ci-ent` and reports facts from both, so the filing's DTS is their union. The schemaRef stays `https://www.mca.gov.in/V3XBRL/2017/07/16/Taxonomy/Ind/in-ci-ent-2017-03-31.xsd`.
+    - This gives 66 ELRs, 5,647 concepts and 205 tables, the same statements and concepts the UI browses. Every element, axis and member in the Dixon instance resolves.
+- **Golden check (passed 2026-11-10):**
+  - The Python-built C&I authority is equal to the TS compiler's output in every section, including key and array order (`collation.py` reproduces JS `localeCompare`), and so are the business rules compiled from it.
+  - The example filing exports byte-identical XML. That XML is now the fixture `engine/test/fixtures/ci-2016-example.golden.xml`, checked by `engine/test/authority-bundle.test.ts`.
+  - The HPL real-data test is unchanged and green.
+- **Consequences:**
+  - Creating or opening a filing needs the sidecar, as the statement tree already did. The first load waits for `/health` for up to 120 s.
+  - **Packaging (Phase 11):**
+    - Ship `knowledge_base/*_engine_authority.json` with the sidecar.
+    - Ship `engine/authority/*.rules.json` in `resources/authority/`.
+  - **Changing `src/services/engine_authority`:** run `make engine-authority`, then `compile:authority`. `tests/test_engine_authority.py` fails if the committed file is stale.
+  - **Share capital at actual value** now also covers Ind AS `EquityShareCapital` (engine `SHARE_CAPITAL`; the `ValueOfShares*` names are shared).
+  - **Provenance.** `meta.sources` hashes the published files in `data/`. The validator patches are listed in `meta.validatorPatches`, and `meta.taxonomyHash` identifies the build.

@@ -10,6 +10,7 @@ export * from './basics'
 // below is the stable API the app uses.
 // ---------------------------------------------------------------------------------------------
 export { Authority } from './core/authority.js'
+export { assembleAuthority, emptyRuleModel, AuthorityMismatchError } from './core/authority-bundle.js'
 export { Session, DimensionError, CalculatedCellError, PyLockedError } from './core/session.js'
 export { Filing, FactValueError, factKey, dimKey, normDims, defaultMeta } from './core/model.js'
 export { generateInstance, buildContexts } from './core/generator.js'

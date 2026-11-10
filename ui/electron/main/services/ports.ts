@@ -59,9 +59,22 @@ export interface SidecarClient {
   request<T>(method: HttpMethod, path: string, body?: unknown): Promise<SidecarResponse<T>>
 }
 
-/** Supplies the compiled taxonomy authority (loaded once, cached by the implementation). */
+/** Supplies the engine authority of a taxonomy (loaded once per taxonomy, cached by the implementation). */
 export interface AuthorityProvider {
-  load(): Promise<LoadedAuthority>
+  load(taxonomy: TaxonomyId): Promise<LoadedAuthority>
+}
+
+/** Raw authority JSON as the engine's assembleAuthority takes it (ADR-0010). */
+export type AuthorityJson = Record<string, unknown> & { meta: Record<string, unknown> }
+
+/** The taxonomy half: concepts, networks, dimensional model (sidecar route /taxonomies/{id}/authority). */
+export interface TaxonomyAuthoritySource {
+  taxonomyAuthority(taxonomy: TaxonomyId): Promise<AuthorityJson>
+}
+
+/** The business-rule half, compiled by engine/compiler; null when the taxonomy has no compiled rules yet. */
+export interface RuleBundleSource {
+  rules(taxonomy: TaxonomyId): Promise<AuthorityJson | null>
 }
 
 export interface RecentProjectsRepository {

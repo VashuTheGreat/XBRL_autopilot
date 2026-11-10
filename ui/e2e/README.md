@@ -10,6 +10,8 @@ XAP_USER_DATA="$TEMP/xap-e2e-$RANDOM" env -u ELECTRON_RUN_AS_NODE \
 node e2e/phase4-editor.mjs 9350 <screenshotDir> "../data/sample_financials.xlsx"
 ```
 
+`phase6-taxonomy.mjs` (dev app): New Filing taxonomy choice → Ind AS 2017 filing → status bar, 66 ELRs, Ind AS schemaRef. Usage: `node e2e/phase6-taxonomy.mjs <port> <screenshotDir>`.
+
 `phase3-filing.mjs` runs against the built app (`pnpm build`, then `electron . --remote-debugging-port=…`). It doesn't need the test hooks.
 
 ## Gotchas learned the hard way

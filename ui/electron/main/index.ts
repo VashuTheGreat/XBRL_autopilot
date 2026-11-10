@@ -11,7 +11,9 @@ import { AppDatabase } from './infra/app-database'
 import { DirAutosaveStore } from './infra/dir-autosave-store'
 import { sidecarXlsReader, workbookParser } from './infra/workbook-parser'
 import { readXlsx } from './infra/xlsx-reader'
-import { FileAuthorityProvider } from './infra/file-authority-provider'
+import { FileRuleBundleSource } from './infra/file-authority-provider'
+import { SidecarAuthoritySource } from './infra/sidecar-authority-source'
+import { AuthorityService } from './services/authority-service'
 import { SidecarTaxonomyCatalog } from './infra/sidecar-taxonomy-catalog'
 import { SafeStorageSecretStore } from './infra/safe-storage-secret-store'
 import { registerIpc } from './ipc/register'
@@ -47,16 +49,6 @@ mkdirSync(userData, { recursive: true })
 const db = new AppDatabase(join(userData, 'app.db'))
 const devEnv = isDev && existsSync(join(repoRoot, '.env')) ? parseDotEnv(readFileSync(join(repoRoot, '.env'), 'utf8')) : {}
 const settings = new SettingsService(db, new SafeStorageSecretStore(join(userData, 'secrets.bin')), devEnv.GROQ_API_KEY || null)
-const projects = new ProjectService({
-  authority: new FileAuthorityProvider(
-    isDev ? join(repoRoot, 'engine', 'authority', 'ci-2016.authority.json') : join(process.resourcesPath, 'authority', 'ci-2016.authority.json'),
-  ),
-  recents: db,
-  autosave: new DirAutosaveStore(join(userData, 'autosave')),
-  appVersion: app.getVersion(),
-})
-const projectController = new ProjectController(projects, getWindow)
-const autosave = new AutosaveScheduler(projects, () => settings.get().autosaveSeconds)
 const sidecar = new SidecarManager({
   isPackaged: app.isPackaged,
   repoRoot,
@@ -64,6 +56,20 @@ const sidecar = new SidecarManager({
   // Settings win over the dev .env (pydantic-settings gives env vars priority over .env).
   extraEnv: async () => ({ GROQ_API_KEY: (await settings.groqKey()) ?? undefined, GROQ_MODEL: settings.get().groqModel }),
 })
+// Engine authority (ADR-0010): the taxonomy half from the knowledge base through the sidecar route, the compiled
+// business rules from engine/authority (dev) or resources/authority (packaged).
+const authorities = new AuthorityService(
+  new SidecarAuthoritySource(sidecar),
+  new FileRuleBundleSource(isDev ? join(repoRoot, 'engine', 'authority') : join(process.resourcesPath, 'authority')),
+)
+const projects = new ProjectService({
+  authority: authorities,
+  recents: db,
+  autosave: new DirAutosaveStore(join(userData, 'autosave')),
+  appVersion: app.getVersion(),
+})
+const projectController = new ProjectController(projects, getWindow)
+const autosave = new AutosaveScheduler(projects, () => settings.get().autosaveSeconds)
 
 // .xlsx in process (exceljs); old .xls through the sidecar's python-calamine route
 const sources = new SourceService(projects, workbookParser({ xlsx: readXlsx, xls: sidecarXlsReader(sidecar) }))

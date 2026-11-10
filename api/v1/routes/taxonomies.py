@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Query
+from fastapi.responses import Response
 from src.core.logger import logger
 from typing import Annotated, Any, Dict, List, Optional
 from api.v1.schemas.taxonomies import RecommendTaxonomies as RecommendTaxonomiesSchema
@@ -7,6 +8,7 @@ from src.core.authority import Authority
 from src.constants import CI_TAXONOMY_VDB, IND_AS_TAXONOMY_VDB, COSTING_TAXONOMY_VDB
 from api.responses import success_response, error_response
 from api.helper.build_tree import build_role_tree
+from src.services.engine_authority.store import AuthorityNotAvailable, default_store as engine_authorities
 router = APIRouter()
 
 _authority_cache: dict[str, Authority] = {}
@@ -650,6 +652,23 @@ def get_role_tree(taxonomy_id: str, role_id: str):
                 message=f"Failed to retrieve tree for taxonomy '{taxonomy_id}' and '{role_id}'",
                 status_code=500,
             )
+
+
+@router.get("/{id}/authority")
+async def get_engine_authority(id: str):
+    """The engine authority of a taxonomy (ADR-0010): concepts, ELRs, presentation/calculation/definition networks,
+    tables, hypercubes, dimension defaults and the filing conventions (schemaRef, CIN scheme).
+
+    Built by src.ingestion.build_engine_authorities from the official MCA taxonomy. Several MB, so the file is
+    wrapped in the usual {data, success, message} envelope as bytes, without being parsed.
+    """
+    with logger.span("taxonomies.authority", taxonomy_id=id):
+        try:
+            raw = engine_authorities.raw(id)
+        except AuthorityNotAvailable as e:
+            return error_response(message=str(e), status_code=404)
+        body = b'{"data":' + raw + b',"message":"Engine authority","success":true,"errors":null}'
+        return Response(content=body, media_type="application/json")
 
 
 @router.get("/{id}/elrs")

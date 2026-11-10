@@ -9,11 +9,11 @@ import path from 'node:path';
 import { authority, q } from './helpers.mjs';
 import { buildTableView, buildElrView } from '../../src/core/views.js';
 
-import { REPO_ROOT } from '../../compiler/taxonomy-source.mjs';
-const TAX = fileURLToPath(new URL('../../.taxonomy/Taxonomy-2016-03-31/', import.meta.url));
-// provenance paths: '.taxonomy/…' is relative to engine/, everything else (data/…, engine/compiler/…) to the repo root
-const ENGINE = fileURLToPath(new URL('../../', import.meta.url));
-const sourcePath = (f) => path.join(f.startsWith('.taxonomy/') ? ENGINE : REPO_ROOT, f);
+import { REPO_ROOT, DATA_TAXONOMY_ROOT } from '../../compiler/taxonomy-source.mjs';
+// the published taxonomy (data/); the authority is built from it by the Python ingestion (ADR-0010)
+const TAX = DATA_TAXONOMY_ROOT;
+// provenance paths are relative to the repo root (data/…, engine/compiler/…)
+const sourcePath = (f) => path.join(REPO_ROOT, f);
 const defFiles = () => ['IN-GAAP/DEF', 'IN-CA/DEF'].flatMap((d) => readdirSync(path.join(TAX, d)).map((f) => path.join(TAX, d, f)));
 const countArcrole = (role) => defFiles().reduce((n, f) => n + (readFileSync(f, 'utf8').match(new RegExp(`arcrole="http://xbrl.org/int/dim/arcrole/${role}"`, 'g')) || []).length, 0);
 

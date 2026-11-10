@@ -13,8 +13,8 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 | 3 | `.axbrl` project file, autosave/recovery, recents, New Filing wizard, settings | ✅ done |
 | 4 | **Editor**: Univer grid + tag overlay, inspector, XBRL Form, Monaco XML, taxonomy browser, two-way linkage, float-noise rounding, column → period per sheet | ✅ done |
 | 5 | **Real-data readiness**: `.xls` import (python-calamine via the sidecar), HPL (C&I) hand-tagged end to end (BS + P&L match the filed instance, statements free of their own errors), fixes from that run: share capital exact, range sums, derived totals, mandatory zeros, decimal places editable, huge-sheet cap | ✅ done |
-| 6 | **Ind AS 2017 + engine data via routes** (⏭ next) (ADR-0008): browsing already works for all 3 taxonomies through the routes. Move the **dimensional model** (tables, hypercubes, axis defaults, ELR applicability) into `knowledge_base` (Python ingestion) and add a route serving it; the engine loads its authority **from that route** for C&I and Ind AS, and the TS compiler is retired. Golden check: the route-built C&I authority gives identical XML to today's. Also the taxonomy choice in the wizard | ⏳ |
-| 7 | **Import an existing XBRL instance** (Webtel / any vendor) into a project; golden test: Dixon instance → regenerate → semantically equal 2,666 facts; diff report against Webtel conventions; previous-year carry-forward from last year's XML | ⏳ |
+| 6 | **Ind AS 2017 + engine data via routes** ([ADR-0010](decisions/ADR-0010-engine-authority-from-knowledge-base.md)): the Python ingestion builds the engine authority (DTS, prohibition/override, dimensional model) for C&I and Ind AS, served by `/{id}/authority`; the app assembles it with the compiled rules (`AuthorityService`); the TS DTS compiler is retired. Golden: identical C&I authority and byte-identical XML. Ind AS = union of the `in-ci-ent` + `in-ca-ent` DTS (66 ELRs, every Dixon element resolves). Taxonomy choice in the wizard | ✅ done |
+| 7 | **Import an existing XBRL instance** (⏭ next) (Webtel / any vendor) into a project; golden test: Dixon instance → regenerate → semantically equal 2,666 facts; diff report against Webtel conventions; previous-year carry-forward from last year's XML | ⏳ |
 | 8 | **AI auto-tagging** (`/mapping/suggest`: memory → exact → hybrid retrieval → Groq rerank) plus an **evaluation harness** on the DGPL ↔ Dixon answer key (precision/recall on every change); sidecar `Authority` bug fixes; ONNX embeddings | ⏳ |
 | 9 | **Validation UI**: the executable rule ASTs move into `knowledge_base` and are served by a route (the rule text already is); live gate/rules/calculation per taxonomy, Problems panel with locate, quick fixes, MCA Validation Tool v5.1 launcher + error import, rule-coverage report | ⏳ |
 | 10 | **AI fix agent** (`/fix/propose`, patch review, audit log) | ⏳ |
@@ -27,7 +27,9 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 - The `lagacy_js` compile step expects input file names that differ from `data/` and needs the Annexure txt + filing-manual pdf. Make those optional when porting.
 - The Groq dev key was shared in chat. Rotate it before production.
 - **Missing legacy evidence:** `golden-DIVERGENCES.json` was reconstructed from the legacy test assertions, and `APPROVED_LIMITATIONS.json` was recreated. The MCA-validated `golden-FILING-A/B_2024-25.xml` instances, the Annexure II text export and the Filing Manual pdf are not in the repo, so ~50 regression tests skip. **Ask the `lagacy_js` author for the originals** (see `docs/04-xbrl-engine.md`).
-- **Arelle isn't installed** in the Python environment, so 7 XSD tests skip. Add `arelle-release` to the sidecar deps in Phase 6.
+- **Arelle isn't installed** in the Python environment, so 7 XSD tests skip. Still open after Phase 6: add `arelle-release` (dev extra) when the XSD check is wired into Phase 9.
+- **Ind AS has no business rules yet:** its rule workbook is formalized in Phase 9. Until then an Ind AS filing gets facts, XML and structural checks only.
+- **Webtel's Ind AS conventions** (e.g. Dixon files every amount in rupees with `decimals="2"` although the statements are in lakhs) are compared in Phase 7, not adopted yet.
 - **Possible legacy-test flake:** one run of `pnpm test` (while a dev Electron app was also running) failed a `golden-DIVERGENCES.json` assertion; the next three runs passed (220/0). Watch for it.
 - **`xlsx@0.18.5` (SheetJS, npm)** is the last npm release and has known advisories. It's used only at build time by the authority compiler, on the trusted MCA workbook. Never use it for user files; user Excel goes through exceljs.
 
@@ -107,4 +109,30 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
     - The sidecar now exits when the app's PID is gone (`src/core/parent_watch.py`, `XAP_PARENT_PID`; pytest +3).
     - Main logs `render-process-gone` and reloads the page.
     - Ranges are never expanded beyond 1,000 cells (`MAX_RANGE_CELLS`), and a block or whole-column selection means its first cell. This guards against a selection like `A1:XFD1048576`.
-
+- **2026-11-10, Phase 6 done: engine authority from the knowledge base ([ADR-0010](decisions/ADR-0010-engine-authority-from-knowledge-base.md)):**
+  - **Python:** `src/services/engine_authority/` (`dts.py`, `dimensions.py`, `builder.py`, `specs.py`, `collation.py`, `store.py`) ports the TS DTS loader and tables compiler. `make engine-authority` (also part of `make rebuild`) writes `knowledge_base/ci_engine_authority.json` (5.3 MB) and `ind_as_engine_authority.json` (9.7 MB) in about 8 s.
+  - **Route:** `GET /api/v1/taxonomies/{id}/authority`, which wraps the file without parsing it. Costing returns 404.
+  - **Golden check:**
+    - The Python C&I authority equals the TS compiler's in every section, in the same key and array order. `collation.py` mirrors JS `localeCompare`.
+    - The rules compiled from it are identical.
+    - The example filing's XML is byte-identical, now a fixture: `engine/test/fixtures/ci-2016-example.golden.xml`.
+  - **Engine:**
+    - `assembleAuthority` / `emptyRuleModel` (`src/core/authority-bundle.js`) refuse rules compiled against another taxonomy build.
+    - `compile:authority` is now the rule compiler only (input: the KB authority); `dts.mjs` and `tables.mjs` are deleted.
+    - `taxonomy-source.mjs` (Arelle working copy) reads the patches from `meta.validatorPatches`.
+    - `SHARE_CAPITAL` includes Ind AS `EquityShareCapital`.
+  - **Ind AS:**
+    - The entry points `in-ci-ent` and `in-ca-ent` load as one DTS. Without `in-ca-ent`, the 700xxx general-information, auditor, director, signatory, KMP and secretarial ELRs were missing.
+    - Result: 66 ELRs, 5,647 concepts and 205 tables, the same set the UI browses. All 627 elements of the Dixon instance resolve.
+    - schemaRef: `https://www.mca.gov.in/V3XBRL/2017/07/16/Taxonomy/Ind/in-ci-ent-2017-03-31.xsd`.
+  - **Electron:**
+    - `AuthorityService` (ports `TaxonomyAuthoritySource`, `RuleBundleSource`; adapters `SidecarAuthoritySource`, `FileRuleBundleSource`) loads each taxonomy once and retries after a failure.
+    - `AuthorityProvider.load(taxonomy)`; `NewFilingInput.taxonomy`; `ProjectSummary.taxonomy: TaxonomyId`.
+    - Opening a `.axbrl` picks the taxonomy from its manifest.
+  - **UI:** the wizard has a C&I 2016 / Ind AS 2017 choice (`FILING_TAXONOMIES`, `isFilingTaxonomy`, `taxonomyLabel` in basics), and the status bar names the filing's taxonomy.
+  - **Tests:**
+    - pytest 50 (+13: builder freshness and determinism, inventory, KB parity, Ind AS in-ca ELRs, SRN patch, route).
+    - engine 23 (+6 golden / Ind AS / mismatch); legacy 220/0 fail.
+    - ui 121 (+5 `authority-service.test.ts`, including an Ind AS create → save → reopen → XML).
+    - **E2E `ui/e2e/phase6-taxonomy.mjs` green** (7 checks: wizard choice, Ind AS project, status bar, 66 ELRs, Ind AS schemaRef, in-ca fact, no renderer errors).
+  - **Next:** Phase 7, XBRL instance import with the Dixon golden (Ind AS), plus Webtel conventions.

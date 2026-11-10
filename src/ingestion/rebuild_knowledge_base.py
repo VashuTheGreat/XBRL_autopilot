@@ -8,6 +8,7 @@ from src.services.extractors import (
 )
 import shutil
 from .ingest_all_taxonomies import ingest_all
+from . import build_engine_authorities
 
 
 async def create_json_files():
@@ -53,6 +54,8 @@ async def main():
     args = parser.parse_args()
 
     await create_json_files()
+    # engine authorities (DTS, networks, dimensional model) served by /{id}/authority (ADR-0010)
+    build_engine_authorities.main()
 
     if not args.skip_chroma:
         wipe_chroma_vector_db()

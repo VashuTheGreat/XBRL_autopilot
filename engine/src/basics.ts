@@ -42,11 +42,23 @@ export interface Issue {
   location?: IssueLocation
 }
 
-export const SUPPORTED_TAXONOMIES: ReadonlyArray<{ id: TaxonomyId; label: string; v1: boolean }> = [
-  { id: 'ci-2016', label: 'C&I 2016 (AOC-4 XBRL, non-Ind AS)', v1: true },
-  { id: 'ind-as-2017', label: 'Ind AS 2017', v1: false },
-  { id: 'costing-2019', label: 'Costing 2019 (CRA-4)', v1: false },
+export const SUPPORTED_TAXONOMIES: ReadonlyArray<{ id: TaxonomyId; label: string; hint: string; v1: boolean }> = [
+  { id: 'ci-2016', label: 'C&I 2016', hint: 'AOC-4 XBRL, companies not on Ind AS (Schedule III Division I)', v1: true },
+  { id: 'ind-as-2017', label: 'Ind AS 2017', hint: 'AOC-4 XBRL, companies on Ind AS (Schedule III Division II)', v1: true },
+  { id: 'costing-2019', label: 'Costing 2019', hint: 'CRA-4', v1: false },
 ]
+
+/** The taxonomies a new filing can use in this version (AOC-4 XBRL). */
+export const FILING_TAXONOMIES = SUPPORTED_TAXONOMIES.filter((t) => t.v1)
+export const DEFAULT_TAXONOMY: TaxonomyId = 'ci-2016'
+
+export function isFilingTaxonomy(id: unknown): id is TaxonomyId {
+  return FILING_TAXONOMIES.some((t) => t.id === id)
+}
+
+export function taxonomyLabel(id: TaxonomyId): string {
+  return SUPPORTED_TAXONOMIES.find((t) => t.id === id)?.label ?? id
+}
 
 /** CIN format: e.g. U12345MH2010PTC123456 (21 chars). Ported from lagacy_js/expr.js FORMATS. */
 export const CIN_PATTERN = /^[LU]\d{5}[A-Z]{2}\d{4}[A-Z]{3}\d{6}$/

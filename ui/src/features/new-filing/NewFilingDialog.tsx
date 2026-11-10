@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
+  DEFAULT_TAXONOMY,
+  FILING_TAXONOMIES,
   defaultStatementPlaces,
   defaultReportingYear,
   fyLabel,
@@ -10,12 +12,14 @@ import {
   validateFilingPeriods,
   type ReportType,
   type RoundingLevel,
+  type TaxonomyId,
 } from '@xap/engine/basics'
 import type { NewFilingInput } from '@shared/project'
 import { Button, Checkbox, Dialog, Field, Input, Section, Select } from '@/components/ui/primitives'
 import { useProject } from '@/stores/project'
 
 interface FormState {
+  taxonomy: TaxonomyId
   companyName: string
   cin: string
   reportType: ReportType
@@ -33,11 +37,12 @@ interface FormState {
 function initialForm(): FormState {
   const cy = defaultReportingYear(new Date())
   const py = previousYearOf(cy)!
-  return { companyName: '', cin: '', reportType: 'Standalone', cyStart: cy.start, cyEnd: cy.end, firstYear: false, pyStart: py.start, pyEnd: py.end, pyTouched: false, level: 'Lakhs', statementPlaces: defaultStatementPlaces('Lakhs') }
+  return { taxonomy: DEFAULT_TAXONOMY, companyName: '', cin: '', reportType: 'Standalone', cyStart: cy.start, cyEnd: cy.end, firstYear: false, pyStart: py.start, pyEnd: py.end, pyTouched: false, level: 'Lakhs', statementPlaces: defaultStatementPlaces('Lakhs') }
 }
 
 export function toInput(f: FormState): NewFilingInput {
   return {
+    taxonomy: f.taxonomy,
     companyName: f.companyName,
     cin: f.cin.trim().toUpperCase(),
     reportType: f.reportType,
@@ -91,7 +96,7 @@ export function NewFilingDialog() {
   return (
     <Dialog
       open={newFilingOpen}
-      title="New filing — AOC-4 XBRL (C&I 2016)"
+      title="New filing — AOC-4 XBRL"
       onClose={closeNewFiling}
       width={620}
       footer={
@@ -112,6 +117,28 @@ export function NewFilingDialog() {
           void submit()
         }}
       >
+        <Section title="Taxonomy">
+          <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Taxonomy">
+            {FILING_TAXONOMIES.map((t) => {
+              const on = f.taxonomy === t.id
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={on}
+                  data-testid={`taxonomy-${t.id}`}
+                  onClick={() => patch({ taxonomy: t.id })}
+                  className={`rounded border px-3 py-2 text-left transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${on ? 'border-accent bg-accent/10' : 'border-border hover:bg-panel-2'}`}
+                >
+                  <div className="text-[13px] font-medium">{t.label}</div>
+                  <div className="text-[11px] text-muted">{t.hint}</div>
+                </button>
+              )
+            })}
+          </div>
+        </Section>
+
         <Section title="Company">
           <div className="grid grid-cols-2 gap-3">
             <Field label="Company name" error={nameError} className="col-span-2">

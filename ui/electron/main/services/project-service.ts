@@ -8,7 +8,17 @@ import { randomUUID } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import { basename } from 'node:path'
 import { Filing, Session } from '@xap/engine'
-import { defaultStatementPlaces, fyLabel, isValidCin, maxDisplayPlaces, ROUNDING_LEVELS, validateFilingPeriods } from '@xap/engine/basics'
+import {
+  DEFAULT_TAXONOMY,
+  defaultStatementPlaces,
+  fyLabel,
+  isFilingTaxonomy,
+  isValidCin,
+  maxDisplayPlaces,
+  ROUNDING_LEVELS,
+  validateFilingPeriods,
+  type TaxonomyId,
+} from '@xap/engine/basics'
 import type { NewFilingInput, ProjectSummary, RecentProject, RecoveryItem } from '@shared/project'
 import {
   AXBRL_FORMAT,
@@ -84,7 +94,7 @@ export class ProjectService extends EventEmitter<ProjectEvents> implements Proje
       path: p.path,
       fileName: p.path ? basename(p.path) : null,
       dirty: this.isDirty(),
-      taxonomy: 'ci-2016',
+      taxonomy: p.loaded.taxonomyId,
       company: { name: m.name, cin: m.cin },
       reportType: m.reportType,
       cy: { ...m.periods.cy },
@@ -149,7 +159,7 @@ export class ProjectService extends EventEmitter<ProjectEvents> implements Proje
   async newFiling(input: NewFilingInput): Promise<ProjectSummary> {
     const problems = validateNewFiling(input)
     if (problems.length) throw new ValidationError(problems)
-    const loaded = await this.deps.authority.load()
+    const loaded = await this.deps.authority.load(input.taxonomy ?? DEFAULT_TAXONOMY)
     const session = new Session(loaded.authority)
     const first = input.py === null
     session.setMeta({
@@ -252,10 +262,11 @@ export class ProjectService extends EventEmitter<ProjectEvents> implements Proje
   }
 
   private async projectFrom(content: AxbrlContent, path: string | null, readOnlyReason: string | null): Promise<OpenProject> {
-    const loaded = await this.deps.authority.load()
-    if (content.manifest.taxonomy.id !== loaded.taxonomyId) {
-      throw new ValidationError([`This filing uses the ${content.manifest.taxonomy.id} taxonomy, which this version does not support yet.`])
+    const taxonomy = content.manifest.taxonomy.id as TaxonomyId
+    if (!isFilingTaxonomy(taxonomy)) {
+      throw new ValidationError([`This filing uses the ${taxonomy} taxonomy, which this version does not support yet.`])
     }
+    const loaded = await this.deps.authority.load(taxonomy)
     const filing = Filing.fromJSON(loaded.authority, content.filing)
     const session = new Session(loaded.authority, filing)
     return {
@@ -332,6 +343,7 @@ export class ProjectService extends EventEmitter<ProjectEvents> implements Proje
 /** Pure validation of the New Filing form; returns user-facing problems. */
 export function validateNewFiling(input: NewFilingInput): string[] {
   const problems: string[] = []
+  if (input.taxonomy !== undefined && !isFilingTaxonomy(input.taxonomy)) problems.push('Choose a taxonomy: C&I 2016 or Ind AS 2017.')
   if (!input.companyName?.trim()) problems.push('Enter the company name.')
   if (!isValidCin(input.cin ?? '')) problems.push('Enter a valid 21-character CIN (e.g. U72200KA2010PTC123456).')
   if (input.reportType !== 'Standalone' && input.reportType !== 'Consolidated') problems.push('Choose Standalone or Consolidated.')

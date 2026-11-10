@@ -1,7 +1,7 @@
 /** Project-level types shared by main, preload and renderer. See docs/03-project-file-axbrl.md. */
-import type { ReportType, RoundingLevel } from '@xap/engine/basics'
+import type { ReportType, RoundingLevel, TaxonomyId } from '@xap/engine/basics'
 
-export type { ReportType, RoundingLevel }
+export type { ReportType, RoundingLevel, TaxonomyId }
 
 export interface Period {
   start: string
@@ -9,6 +9,8 @@ export interface Period {
 }
 
 export interface NewFilingInput {
+  /** C&I 2016 or Ind AS 2017; omitted → C&I 2016 */
+  taxonomy?: TaxonomyId
   companyName: string
   cin: string
   reportType: ReportType
@@ -29,7 +31,7 @@ export interface ProjectSummary {
   path: string | null
   fileName: string | null
   dirty: boolean
-  taxonomy: 'ci-2016'
+  taxonomy: TaxonomyId
   company: { name: string; cin: string }
   reportType: ReportType
   cy: Period

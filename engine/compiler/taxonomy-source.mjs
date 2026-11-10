@@ -1,45 +1,32 @@
-// Prepares the MCA C&I 2016 taxonomy for the DTS loader.
+// Working copy of the MCA C&I 2016 taxonomy for the test-side XML Schema check (xsd-validate.mjs, Arelle).
 //
-// Source: the published package, already extracted in the repo at
-//   data/c&I taxonomy/Final C and I Taxonomy 2016 V1.2@31-03-2016/Taxonomy-2016-03-31/
-// Working copy: engine/.taxonomy/Taxonomy-2016-03-31/ (git-ignored), with the validator patches applied.
-//
-// Validator patches (replaces lagacy_js' "validator taxonomy zip" step, see docs/04-xbrl-engine.md):
-// the C&I taxonomy that the MCA XBRL Validator downloads before validating differs from the published package
-// in one file only. in-ca-types:SRNNumber has a second xsd:pattern that accepts the MCA V3 SRN format
-// (two letters + seven digits, e.g. AB1234567). We don't have the validator's zip, so the difference is
-// applied as an explicit, checked patch. If the source file changes, the patch fails loudly instead of
-// silently doing nothing.
+// Source: the published package in data/. Working copy: engine/.taxonomy/Taxonomy-2016-03-31/ (git-ignored),
+// with the validator patches applied. The patches are not defined here: they come from the taxonomy authority
+// built by the Python ingestion (meta.validatorPatches, src/services/engine_authority/specs.py), so the engine
+// and the XSD check always see the same taxonomy. A patch whose original text is missing fails loudly.
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadTaxonomyAuthority, REPO_ROOT } from './compile.mjs';
 
+export { REPO_ROOT };
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'); // engine/
-export const REPO_ROOT = path.resolve(ROOT, '..');
 export const DATA_TAXONOMY_ROOT = path.join(
   REPO_ROOT, 'data', 'c&I taxonomy', 'Final C and I Taxonomy 2016 V1.2@31-03-2016', 'Taxonomy-2016-03-31',
 );
 export const TAXONOMY_DIR = path.join(ROOT, '.taxonomy');
 export const TAXONOMY_ROOT = path.join(TAXONOMY_DIR, 'Taxonomy-2016-03-31');
 const MARKER = path.join(TAXONOMY_DIR, '.validator-update');
-const PATCH_VERSION = 1;
 
-/** Validator patches: { file (relative to the taxonomy root), find, replace }. `find` must occur exactly once. */
-export const VALIDATOR_PATCHES = [
-  {
-    file: 'IN-CA/in-ca-types-2016-03-31.xsd',
-    reason: 'MCA V3 SRN format (two letters + seven digits) accepted by the MCA XBRL Validator taxonomy',
-    find: '<xsd:pattern value="[A-Z][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]"/>',
-    replace:
-      '<xsd:pattern value="[A-Z][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]"/>\n' +
-      '        <xsd:pattern value="[A-Z][A-Z][0-9][0-9][0-9][0-9][0-9][0-9][0-9]"/>',
-  },
-];
+/** Validator patches { file, reason, find, replace } of the C&I taxonomy build. */
+export function validatorPatches() {
+  return loadTaxonomyAuthority().meta.validatorPatches || [];
+}
 
 /** Applies the patches that are not applied yet. Returns [{ file, bytes }] for the files changed now. */
 export function validatorUpdates() {
   const updated = [];
-  for (const p of VALIDATOR_PATCHES) {
+  for (const p of validatorPatches()) {
     const target = path.join(TAXONOMY_ROOT, p.file);
     const text = readFileSync(target, 'utf8');
     if (text.includes(p.replace)) continue; // already applied
@@ -56,7 +43,7 @@ export function ensureTaxonomy() {
   if (!existsSync(path.join(DATA_TAXONOMY_ROOT, 'in-ci-ent-2016-03-31.xsd'))) {
     throw new Error(`C&I 2016 taxonomy not found at ${DATA_TAXONOMY_ROOT}`);
   }
-  const stamp = `patches-v${PATCH_VERSION}`;
+  const stamp = JSON.stringify(validatorPatches().map((p) => [p.file, p.find, p.replace]));
   if (existsSync(path.join(TAXONOMY_ROOT, 'in-ci-ent-2016-03-31.xsd')) && existsSync(MARKER)
     && JSON.parse(readFileSync(MARKER, 'utf8')).stamp === stamp) return TAXONOMY_ROOT;
   rmSync(TAXONOMY_DIR, { recursive: true, force: true });
