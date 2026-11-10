@@ -61,6 +61,21 @@ export type ReportType = 'Standalone' | 'Consolidated'
 export const ROUNDING_LEVELS = ['Actual', 'Thousands', 'Lakhs', 'Millions', 'Crores', 'Billions'] as const
 export type RoundingLevel = (typeof ROUNDING_LEVELS)[number]
 
+/**
+ * "Decimal places as presented" a filing can take at a level of rounding: 0 … places that reach paise
+ * (Actual 2, Lakhs 7). Mirrors scaling.js SCALE_POWERS for the renderer, which doesn't load the engine core
+ * (a test keeps the two in step).
+ */
+export function maxDisplayPlaces(level: RoundingLevel): number {
+  const power: Record<RoundingLevel, number> = { Actual: 0, Thousands: 3, Lakhs: 5, Millions: 6, Crores: 7, Billions: 9 }
+  return power[level] + 2
+}
+
+/** The usual places for a level: whole rupees for Actual, two places for scaled statements (₹ 5,443.47 lakhs). */
+export function defaultDisplayPlaces(level: RoundingLevel): number {
+  return level === 'Actual' ? 0 : 2
+}
+
 /** yyyy-mm-dd → Date (UTC) or null. */
 function utc(iso: string): Date | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null

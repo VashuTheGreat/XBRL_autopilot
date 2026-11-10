@@ -46,6 +46,8 @@ On the right, the XBRL Form shows the reverse: the source cell ref shows as a ch
 
 ## Linkage interactions
 - **Selecting a cell** → the Inspector shows its mapping. The right pane scrolls to the fact in the XBRL Form, and in the XML tab the `<fact>` line is highlighted.
+- **Amounts in the Inspector** are shown as they go into the filing. Excel float noise is rounded to the cell's number format, or to the filing's "decimal places as presented" when the cell has none. A `rounded` badge appears, and its tooltip shows the stored number (e.g. `5443.466337358575` → 5,443.47). A shown digit beyond the filing's decimal places is never rounded away: tagging is refused with a message.
+- **Column period** (untagged cells): "Column C: CY" with the reason in the tooltip (header, layout, or your choice). The CY/PY buttons set the period for that column of that sheet, and the choice is remembered in `mapping.json`. "auto" goes back to the header. When a header names a period outside the filing (a 3rd-year column, or stale text like "As at 30th September, 2019"), the strip says "Column C isn't part of this filing" and never guesses. Changing a tagged cell's CY/PY also sets its column.
 - **Selecting a fact (Form or XML)** → the source cell is selected and scrolled into view on the left.
 - **Hovering a cell** → tooltip: concept label + qname, period, dimensions, confidence, rule status.
 - **Drag** a taxonomy concept onto a cell → creates a manual mapping, `origin: manual`.

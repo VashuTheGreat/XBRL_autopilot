@@ -21,6 +21,8 @@ const ev = async (expr) => { const r = await send('Runtime.evaluate', { expressi
 const shot = async (name) => { const s = await send('Page.captureScreenshot', { format: 'png' }); writeFileSync(join(outDir, name), Buffer.from(s.result.data, 'base64')); console.log('screenshot', name) }
 const waitFor = async (expr, label, ms = 60000) => { const t = Date.now(); while (Date.now() - t < ms) { if (await ev(expr)) return true; await sleep(300) } throw new Error('timeout: ' + label) }
 const T = 'window.__xap_test__'
+const failures = []
+const check = (ok, what) => { console.log(ok ? 'PASS' : 'FAIL', what); if (!ok) failures.push(what) }
 // Real mouse clicks on the Univer canvas, positioned from Univer's own layout skeleton.
 const mouseClick = async (x, y) => { for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount: 1 }); await sleep(350) }
 async function clickCell(ref) {
@@ -31,8 +33,12 @@ async function clickCell(ref) {
     const left = (c ? colAcc[c - 1] : 0), top = (r ? rowAcc[r - 1] : 0);
     return { x: cv.left + sk.rowHeaderWidth + left + (colAcc[c] - left) / 2, y: cv.top + sk.columnHeaderHeight + top + (rowAcc[r] - top) / 2 }
   })()`)
-  await mouseClick(p.x, p.y)
-  const got = await ev(`${T}.editor.getState().selection.cell?.ref`)
+  // the first click after the page loads only focuses the window: retry once
+  let got
+  for (let attempt = 0; attempt < 2 && got !== ref; attempt++) {
+    await mouseClick(p.x, p.y)
+    got = await ev(`${T}.editor.getState().selection.cell?.ref`)
+  }
   if (got !== ref) throw new Error('click did not select ' + ref + ' (got ' + got + ' at ' + JSON.stringify(p) + ' debug ' + (await ev(`(() => { const ws = ${T}.univer.getActiveWorkbook().getActiveSheet(); const sk = ws.getSkeleton(); return JSON.stringify({ rh: sk.rowHeaderWidth, ch: sk.columnHeaderHeight, col0: sk.columnWidthAccumulation.slice(0,4), row0: sk.rowHeightAccumulation.slice(0,10), canvases: [...document.querySelectorAll('[data-testid=univer-host] canvas')].map(c => { const r = c.getBoundingClientRect(); return [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)] }) }) })()`)) + ')')
   return 'skeleton'
 }
@@ -55,6 +61,9 @@ await shot('p4-01-imported.png')
 // 3. select C9 through Univer (fires our SelectionChanged wiring)
 console.log('click C9 via', await clickCell('C9'))
 console.log('inspector before:', await ev(`document.querySelector('[data-testid=inspector]').innerText.replace(/\\n/g,' ')`))
+
+await waitFor(`!!document.querySelector('[data-testid=column-period]')`, 'column period shown')
+check((await ev(`document.querySelector('[data-testid=column-period]').dataset.basis`)) === 'header', 'C9 column period comes from its header')
 
 // 4. taxonomy: search + double-click
 await ev(`document.querySelector('button[aria-label="Taxonomy"]').click()`)
@@ -100,7 +109,12 @@ await waitFor(`!!document.querySelector('[data-testid=xml-editor] .monaco-editor
 await sleep(1500)
 const xs = await ev(`(() => { const s = ${T}.editor.getState(); const line = s.xml.factLines[s.selection.factKey]; return JSON.stringify({ line, text: s.xml.xml.split('\\n')[line-1]?.trim(), highlighted: document.querySelectorAll('.xap-xml-line').length, facts: Object.keys(s.xml.factLines).length, errors: s.xml.errorCount }) })()`)
 console.log('xml:', xs)
+check(JSON.parse(xs).highlighted > 0, 'selected fact line highlighted in the XML')
+check(JSON.parse(xs).text?.includes('ShareCapital'), 'highlighted line is the selected fact')
 await shot('p4-03-xml.png')
 console.log('status bar:', await ev(`document.querySelector('footer:last-of-type')?.innerText.replace(/\\n/g,' | ')`))
 console.log('renderer errors:', errors.length ? errors : 'none')
+check(errors.length === 0, 'no renderer errors')
 ws.close()
+if (failures.length) { console.error('FAILED:', failures); process.exit(1) }
+console.log('ALL PASS')

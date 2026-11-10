@@ -16,6 +16,8 @@ export interface NewFilingInput {
   /** null when this is the company's first financial year */
   py: Period | null
   level: RoundingLevel
+  /** "Decimal places as presented" (0 … maxDisplayPlaces(level)); omitted → defaultDisplayPlaces(level) */
+  displayPlaces?: number
 }
 
 export interface ProjectSummary {
@@ -31,6 +33,7 @@ export interface ProjectSummary {
   py: Period | null
   firstFinancialYear: boolean
   level: RoundingLevel
+  displayPlaces: number
   fyLabel: string
   factCount: number
   /** bumps on every change to facts, mapping or sources: views refetch when it changes */

@@ -53,7 +53,8 @@ my-company_FY2025-26_standalone.axbrl
       "rationale": "Row label matches standard label; balance credit; ELR 100100",
       "status": "approved"       // suggested | approved | rejected
     }
-  ]
+  ],
+  "columns": { "workbook-1.xlsx|BS|C": "CY" }   // period the user chose per value column (optional)
 }
 ```
 

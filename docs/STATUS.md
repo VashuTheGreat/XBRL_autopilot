@@ -11,8 +11,8 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 | 1 | Scaffold: pnpm workspace, Electron + React + Tailwind shell, sidecar manager + `/health` | ✅ done |
 | 2 | Engine port (`lagacy_js` → `engine/`) + C&I 2016 authority from `data/` | ✅ step 1 done · step 2 (JS→TS by module) runs alongside the later phases |
 | 3 | `.axbrl` project file, autosave/recovery, recents, New Filing wizard, settings | ✅ done |
-| 4 | **Editor**: Univer grid + tag overlay, inspector, XBRL Form, Monaco XML, taxonomy browser, two-way linkage. Remaining: green E2E with real clicks, float-noise rounding, a "column not in this filing" message, remembering column → period per sheet | 🟡 in progress |
-| 5 | **Real-data readiness**: `.xls` import (python-calamine via the sidecar), HPL (C&I) hand-tagged end to end into valid XML, fixes from that run | ⏭ next |
+| 4 | **Editor**: Univer grid + tag overlay, inspector, XBRL Form, Monaco XML, taxonomy browser, two-way linkage, float-noise rounding, column → period per sheet | ✅ done |
+| 5 | **Real-data readiness**: `.xls` import (python-calamine via the sidecar), HPL (C&I) hand-tagged end to end into valid XML, fixes from that run. Also: a way to change "decimal places as presented" after creation (filing properties) | ⏭ next |
 | 6 | **Ind AS 2017 + engine data via routes** (ADR-0008): browsing already works for all 3 taxonomies through the routes. Move the **dimensional model** (tables, hypercubes, axis defaults, ELR applicability) into `knowledge_base` (Python ingestion) and add a route serving it; the engine loads its authority **from that route** for C&I and Ind AS, and the TS compiler is retired. Golden check: the route-built C&I authority gives identical XML to today's. Also the taxonomy choice in the wizard | ⏳ |
 | 7 | **Import an existing XBRL instance** (Webtel / any vendor) into a project; golden test: Dixon instance → regenerate → semantically equal 2,666 facts; diff report against Webtel conventions; previous-year carry-forward from last year's XML | ⏳ |
 | 8 | **AI auto-tagging** (`/mapping/suggest`: memory → exact → hybrid retrieval → Groq rerank) plus an **evaluation harness** on the DGPL ↔ Dixon answer key (precision/recall on every change); sidecar `Authority` bug fixes; ONNX embeddings | ⏳ |
@@ -28,6 +28,7 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 - The Groq dev key was shared in chat. Rotate it before production.
 - **Missing legacy evidence:** `golden-DIVERGENCES.json` was reconstructed from the legacy test assertions, and `APPROVED_LIMITATIONS.json` was recreated. The MCA-validated `golden-FILING-A/B_2024-25.xml` instances, the Annexure II text export and the Filing Manual pdf are not in the repo, so ~50 regression tests skip. **Ask the `lagacy_js` author for the originals** (see `docs/04-xbrl-engine.md`).
 - **Arelle isn't installed** in the Python environment, so 7 XSD tests skip. Add `arelle-release` to the sidecar deps in Phase 6.
+- **Possible legacy-test flake:** one run of `pnpm test` (while a dev Electron app was also running) failed a `golden-DIVERGENCES.json` assertion; the next three runs passed (220/0). Watch for it.
 - **`xlsx@0.18.5` (SheetJS, npm)** is the last npm release and has known advisories. It's used only at build time by the authority compiler, on the trusted MCA workbook. Never use it for user files; user Excel goes through exceljs.
 
 ## Log
@@ -80,3 +81,9 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
     6. Remember the column → period choice per sheet.
   - **Then Phase 5:** `.xls` import through the sidecar (python-calamine), and hand-tag HPL end to end.
 - **2026-11-10, phases adjusted for ADR-0008:** Phase 6 is now "move the dimensional model into `knowledge_base` + a route; the engine loads its authority from routes" (Ind AS browsing already works). In Phase 9 the rule ASTs move into `knowledge_base` too. Phases 4, 5, 7, 8, 10 and 11 are unchanged.
+- **2026-11-10, Phase 4 done:**
+  - **Float noise:** `mapping/cell-amount.ts` rounds numeric cells (engine decimals, half away from zero) to the number format's places (`formatPlaces`), else the filing's "decimal places as presented". Tagging uses the engine's strict path and refuses a shown digit the filing can't hold. The New Filing wizard now asks for decimal places (default 0 for Actual, 2 for scaled levels; `maxDisplayPlaces` in `engine/src/basics.ts`).
+  - **Column periods:** `inferScope` returns `header` / `layout` / `outside`. A header naming another period is never guessed (HPL's 3rd year, DGPL's stale "30th September, 2019"). `ColumnPeriodService` remembers the user's choice per sheet column in `mapping.json` `columns`; `setScope` on a tag also sets its column. New IPC: `editor.cellInfo`, `editor.setColumnPeriod`. The inspector shows the amount (with a `rounded` badge) and the column period with CY/PY/auto.
+  - **Fixes:** Univer creation and disposal are both deferred out of React's commit (no unmount warning; StrictMode's throwaway mount no longer creates a second instance). The Monaco highlight re-runs after mount. The import/sync race no longer duplicates a workbook. The main process creates `userData` before opening SQLite (a fresh profile crashed with "unable to open database file").
+  - **Tests:** ui 100 (helpers +24, services +4), engine 16 + legacy 220/0 fail. **E2E `phase4-editor.mjs` green with real clicks**; it now asserts and exits non-zero on failure.
+

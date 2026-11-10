@@ -3,7 +3,7 @@
  * Source of truth stays in main; this store caches read-models and refreshes when the project revision changes.
  */
 import { create } from 'zustand'
-import type { FormView, MappingView, Scope, XmlView } from '@shared/editor'
+import type { CellInfo, FormView, MappingView, Scope, XmlView } from '@shared/editor'
 import { cellKey, type CellRef, type WorkbookModel } from '@shared/workbook'
 import { unwrap } from '@/lib/result'
 import { toast } from './toast'
@@ -20,6 +20,8 @@ interface EditorState {
   byCell: Map<string, MappingView>
   byFact: Map<string, MappingView>
   selection: Selection
+  /** amount + column period of the selected cell (inspector) */
+  cellInfo: CellInfo | null
   /** a request for the Excel pane to show a cell; `seq` changes on every request */
   reveal: { cell: CellRef; seq: number } | null
   activeElr: string | null
@@ -42,6 +44,8 @@ interface EditorState {
   tagSelected(concept: string, scope?: Scope): Promise<boolean>
   untag(id: string): Promise<void>
   setScope(id: string, scope: Scope): Promise<void>
+  /** remembers the period of the selected cell's column (null forgets it) */
+  setColumnPeriod(scope: Scope | null): Promise<void>
 }
 
 const api = () => window.xap.editor
@@ -60,6 +64,7 @@ const EMPTY = {
   byCell: new Map<string, MappingView>(),
   byFact: new Map<string, MappingView>(),
   selection: { cell: null, factKey: null },
+  cellInfo: null,
   reveal: null,
   form: null,
   xml: null,
@@ -73,6 +78,13 @@ export const useEditor = create<EditorState>((set, get) => {
     if (!uri) return
     const form = await unwrap(api().form(uri), { quiet: true })
     if (form) set({ form })
+  }
+  const loadCellInfo = async () => {
+    const cell = get().selection.cell
+    if (!cell) return set({ cellInfo: null })
+    const info = await unwrap(api().cellInfo(cell), { quiet: true })
+    // a newer selection may have arrived meanwhile
+    if (get().selection.cell === cell) set({ cellInfo: info ?? null })
   }
   const loadXml = async () => {
     const xml = await unwrap(api().xml(), { quiet: true })
@@ -96,7 +108,7 @@ export const useEditor = create<EditorState>((set, get) => {
       ])
       if (workbooks) set({ workbooks, activeSource: get().activeSource ?? workbooks[0]?.source ?? null })
       if (mappings) set(index(mappings))
-      await Promise.all([loadForm(), get().xmlWanted ? loadXml() : Promise.resolve()])
+      await Promise.all([loadForm(), loadCellInfo(), get().xmlWanted ? loadXml() : Promise.resolve()])
     },
 
     importWorkbook: async (path) => {
@@ -104,7 +116,8 @@ export const useEditor = create<EditorState>((set, get) => {
       const wb = await unwrap(api().importWorkbook(path))
       set({ busy: false })
       if (wb) {
-        set((s) => ({ workbooks: [...s.workbooks, wb], activeSource: wb.source }))
+        // the revision sync may already have fetched it: keep one entry per source
+        set((s) => ({ workbooks: [...s.workbooks.filter((w) => w.source !== wb.source), wb], activeSource: wb.source }))
         toast.success(`Imported ${wb.fileName} (${wb.sheets.length} sheets)`)
       }
     },
@@ -115,12 +128,14 @@ export const useEditor = create<EditorState>((set, get) => {
       const cur = get().selection.cell
       if (cur && cellKey(cur) === cellKey(cell)) return
       const m = get().byCell.get(cellKey(cell))
-      set({ selection: { cell, factKey: m?.factKey ?? null } })
+      set({ selection: { cell, factKey: m?.factKey ?? null }, cellInfo: null })
+      void loadCellInfo()
     },
 
     selectFact: (factKey) => {
       const m = factKey ? get().byFact.get(factKey) : undefined
-      set({ selection: { cell: m?.cell ?? null, factKey } })
+      set({ selection: { cell: m?.cell ?? null, factKey }, cellInfo: null })
+      void loadCellInfo()
       if (m) get().revealCell(m.cell)
     },
 
@@ -160,6 +175,13 @@ export const useEditor = create<EditorState>((set, get) => {
     setScope: async (id, scope) => {
       const m = await unwrap(api().setScope(id, scope), { onValidation: (p) => toast.error(p.join(' ')) })
       if (m) set((s) => ({ selection: { ...s.selection, factKey: m.factKey } }))
+    },
+
+    setColumnPeriod: async (scope) => {
+      const cell = get().selection.cell
+      if (!cell) return
+      const col = await unwrap(api().setColumnPeriod(cell, scope), { onValidation: (p) => toast.error(p.join(' ')) })
+      if (col && get().selection.cell === cell) set((s) => ({ cellInfo: s.cellInfo && { ...s.cellInfo, column: col } }))
     },
   }
 })

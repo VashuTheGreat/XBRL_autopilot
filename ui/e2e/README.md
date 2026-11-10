@@ -18,10 +18,11 @@ node e2e/phase4-editor.mjs 9350 <screenshotDir> "../data/sample_financials.xlsx"
   - The payload's `selections` can be empty, so read `getActiveWorkbook().getActiveRange()` instead.
   - Programmatic `range.activate()` fires no event at all.
 - **Clicking a cell from a test:** compute its position from `worksheet.getSkeleton()`: `rowHeaderWidth` / `columnHeaderHeight` plus `columnWidthAccumulation` / `rowHeightAccumulation`, relative to the **largest visible** canvas in the host. Don't use `getCellRect()` or `getScrollState()`, whose coordinates aren't page pixels.
+- **The first canvas click after load only focuses the window**; `clickCell` retries once.
+- **Univer lifecycle:** create and dispose in a `setTimeout`, never inside React's commit. Two live instances (StrictMode double-mount with only disposal deferred) stop selection events reaching our handlers.
+- **Fresh `XAP_USER_DATA`:** the main process creates the folder itself (SQLite opens before `app.ready`).
 - **Single instance:** a still-running app holds the single-instance lock, so a new instance quits at once. Kill old `electron.exe` first and use a fresh `XAP_USER_DATA`.
 - **`ELECTRON_RUN_AS_NODE`** is set inside VS Code terminals: always launch with `env -u ELECTRON_RUN_AS_NODE`.
 - **React effects:** `scrollIntoView()` returns a Promise in Electron 45's Chromium. Never write expression-bodied `useEffect`s.
 
-## Known open items (Phase 4)
-- **Unmount warning:** "Attempted to synchronously unmount a root while React was already rendering" appears when the Univer grid unmounts. Defer `univer.dispose()` with `setTimeout`.
-- **XML highlight:** the selected-fact line highlight (`.xap-xml-line`) wasn't counted in the last run. Check decoration timing after Monaco mounts.
+The script prints `PASS`/`FAIL` per check and exits 1 on any failure (last green run: 2026-11-10).

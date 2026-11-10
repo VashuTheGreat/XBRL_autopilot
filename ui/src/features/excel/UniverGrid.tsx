@@ -38,47 +38,58 @@ export function UniverGrid({ model }: { model: WorkbookModel }) {
 
   // ---- create Univer for this workbook
   useEffect(() => {
-    if (!host.current) return
-    const { univer, univerAPI } = createUniver({
-      locale: LocaleType.EN_US,
-      locales: { [LocaleType.EN_US]: mergeLocales(UniverPresetSheetsCoreEnUS) },
-      presets: [
-        UniverSheetsCorePreset({
-          container: host.current,
-          header: false,
-          toolbar: false,
-          formulaBar: false,
-          contextMenu: false,
-          footer: { sheetBar: true, statisticBar: false, menus: false, zoomSlider: true },
-        }),
-      ],
-    })
-    const wb = univerAPI.createWorkbook(toUniverWorkbook(model))
-    wb.setEditable(false) // edits flowing back into the filing arrive in a later phase
-    apiRef.current = univerAPI
-    registerTestHook('univer', univerAPI)
+    const el = host.current
+    if (!el) return
+    // Univer mounts/unmounts its own React roots. Doing that inside React's commit logs "Attempted to synchronously
+    // unmount a root while React was already rendering", so creation and disposal both run after the commit. Deferring
+    // creation also means StrictMode's throwaway mount creates nothing: two live Univer instances break event delivery.
+    let instance: { dispose(): void } | null = null
+    let subs: IDisposable[] = []
+    const create = setTimeout(() => {
+      const { univer, univerAPI } = createUniver({
+        locale: LocaleType.EN_US,
+        locales: { [LocaleType.EN_US]: mergeLocales(UniverPresetSheetsCoreEnUS) },
+        presets: [
+          UniverSheetsCorePreset({
+            container: el,
+            header: false,
+            toolbar: false,
+            formulaBar: false,
+            contextMenu: false,
+            footer: { sheetBar: true, statisticBar: false, menus: false, zoomSlider: true },
+          }),
+        ],
+      })
+      instance = univer
+      const wb = univerAPI.createWorkbook(toUniverWorkbook(model))
+      wb.setEditable(false) // edits flowing back into the filing arrive in a later phase
+      apiRef.current = univerAPI
+      registerTestHook('univer', univerAPI)
 
-    // A user click fires SelectionMoveEnd (not SelectionChanged) in Univer 1.4, and the payload's `selections`
-    // can be empty, so the active range is read from the workbook itself.
-    const onSelection = () => {
-      const wb = univerAPI.getActiveWorkbook()
-      const range = wb?.getActiveRange()
-      const ws = wb?.getActiveSheet()
-      if (!range || !ws) return
-      useEditor.getState().selectCell({ workbook: model.source, sheet: ws.getSheetName(), ref: toA1(range.getRow(), range.getColumn()) })
-    }
-    const subs: IDisposable[] = [
-      univerAPI.addEvent(univerAPI.Event.SelectionMoveEnd, onSelection),
-      univerAPI.addEvent(univerAPI.Event.SelectionChanged, onSelection),
-      univerAPI.addEvent(univerAPI.Event.ActiveSheetChanged, () => drawOverlay()),
-    ]
-    drawOverlay()
+      // A user click fires SelectionMoveEnd (not SelectionChanged) in Univer 1.4, and the payload's `selections`
+      // can be empty, so the active range is read from the workbook itself.
+      const onSelection = () => {
+        const wb = univerAPI.getActiveWorkbook()
+        const range = wb?.getActiveRange()
+        const ws = wb?.getActiveSheet()
+        if (!range || !ws) return
+        useEditor.getState().selectCell({ workbook: model.source, sheet: ws.getSheetName(), ref: toA1(range.getRow(), range.getColumn()) })
+      }
+      subs = [
+        univerAPI.addEvent(univerAPI.Event.SelectionMoveEnd, onSelection),
+        univerAPI.addEvent(univerAPI.Event.SelectionChanged, onSelection),
+        univerAPI.addEvent(univerAPI.Event.ActiveSheetChanged, () => drawOverlay()),
+      ]
+      drawOverlay()
+    }, 0)
     return () => {
+      clearTimeout(create)
       subs.forEach((d) => d.dispose())
       overlays.current.forEach((d) => d.dispose())
       overlays.current = []
       apiRef.current = null
-      univer.dispose()
+      const univer = instance
+      if (univer) setTimeout(() => univer.dispose(), 0)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model])

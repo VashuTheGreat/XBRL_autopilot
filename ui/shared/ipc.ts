@@ -8,8 +8,8 @@ import type {
   RecoveryItem,
   SettingsState,
 } from './project'
-import type { ConceptHit, FormView, MappingStatus, MappingView, Scope, TagCellInput, XmlView } from './editor'
-import type { WorkbookModel } from './workbook'
+import type { CellInfo, ColumnPeriod, ConceptHit, FormView, MappingStatus, MappingView, Scope, TagCellInput, XmlView } from './editor'
+import type { CellRef, WorkbookModel } from './workbook'
 
 /**
  * Every fallible IPC call returns a Result instead of throwing: Electron flattens thrown errors into
@@ -93,6 +93,8 @@ export const IPC = {
   mappingUntag: 'mapping:untag',
   mappingSetScope: 'mapping:set-scope',
   mappingSetStatus: 'mapping:set-status',
+  mappingCellInfo: 'mapping:cell-info',
+  mappingSetColumnPeriod: 'mapping:set-column-period',
   editorForm: 'editor:form',
   editorXml: 'editor:xml',
   taxonomySearch: 'taxonomy:search',
@@ -146,6 +148,10 @@ export interface XapApi {
     untag(id: string): Promise<Result<void>>
     setScope(id: string, scope: Scope): Promise<Result<MappingView>>
     setStatus(id: string, status: MappingStatus): Promise<Result<MappingView>>
+    /** the cell's amount (rounded to the statement's precision) and its column's period */
+    cellInfo(cell: CellRef): Promise<Result<CellInfo>>
+    /** remembers the period of the cell's column on its sheet; null forgets the choice */
+    setColumnPeriod(cell: CellRef, scope: Scope | null): Promise<Result<ColumnPeriod>>
     form(elrUri: string): Promise<Result<FormView>>
     xml(): Promise<Result<XmlView>>
     searchConcepts(query: string): Promise<Result<ConceptHit[]>>

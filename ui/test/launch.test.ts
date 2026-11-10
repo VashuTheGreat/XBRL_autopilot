@@ -6,7 +6,7 @@ const summary = (over: Partial<ProjectSummary> = {}): ProjectSummary => ({
   id: 'p', path: null, fileName: null, dirty: false, taxonomy: 'ci-2016',
   company: { name: 'Acme Pvt Ltd', cin: 'U72200KA2010PTC123456' }, reportType: 'Standalone',
   cy: { start: '2025-04-01', end: '2026-03-31' }, py: { start: '2024-04-01', end: '2025-03-31' },
-  firstFinancialYear: false, level: 'Lakhs', fyLabel: 'FY 2025-26', factCount: 0, revision: 0, sources: [],
+  firstFinancialYear: false, level: 'Lakhs', displayPlaces: 2, fyLabel: 'FY 2025-26', factCount: 0, revision: 0, sources: [],
   createdAt: '', updatedAt: '', readOnlyReason: null, ...over,
 })
 

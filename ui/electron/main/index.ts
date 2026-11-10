@@ -3,7 +3,7 @@
  * It creates the adapters (database, secret store, autosave dir, authority file), injects them
  * into the services, and wires services ↔ window ↔ IPC.
  */
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { app, BrowserWindow, Menu, shell } from 'electron'
 import { IPC } from '@shared/ipc'
@@ -17,6 +17,7 @@ import { registerIpc } from './ipc/register'
 import { buildMenu } from './menu'
 import { ProjectController } from './project/project-controller'
 import { AutosaveScheduler } from './services/autosave-scheduler'
+import { ColumnPeriodService } from './services/column-period-service'
 import { EditorQueryService } from './services/editor-query-service'
 import { MappingService } from './services/mapping-service'
 import { SourceService } from './services/source-service'
@@ -38,6 +39,8 @@ const getWindow = () => mainWindow
 
 // ---------------------------------------------------------------- adapters + services
 const userData = app.getPath('userData')
+// Electron creates userData lazily (after ready); the database opens before that, e.g. on a first launch.
+mkdirSync(userData, { recursive: true })
 const db = new AppDatabase(join(userData, 'app.db'))
 const devEnv = isDev && existsSync(join(repoRoot, '.env')) ? parseDotEnv(readFileSync(join(repoRoot, '.env'), 'utf8')) : {}
 const settings = new SettingsService(db, new SafeStorageSecretStore(join(userData, 'secrets.bin')), devEnv.GROQ_API_KEY || null)
@@ -51,7 +54,8 @@ const projects = new ProjectService({
 })
 const projectController = new ProjectController(projects, getWindow)
 const sources = new SourceService(projects, readXlsx)
-const mapping = new MappingService(projects, sources)
+const columns = new ColumnPeriodService(projects, sources)
+const mapping = new MappingService(projects, sources, columns)
 const autosave = new AutosaveScheduler(projects, () => settings.get().autosaveSeconds)
 const sidecar = new SidecarManager({
   isPackaged: app.isPackaged,
@@ -165,6 +169,7 @@ if (!app.requestSingleInstanceLock()) {
       sources,
       mapping,
       editor,
+      columns,
       taxonomy,
       getWindow,
     })

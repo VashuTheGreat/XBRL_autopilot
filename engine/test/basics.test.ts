@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fyLabel, previousYearOf, validateFilingPeriods } from '../src/basics'
+import { defaultDisplayPlaces, fyLabel, maxDisplayPlaces, previousYearOf, ROUNDING_LEVELS, validateFilingPeriods } from '../src/basics'
 
 describe('period helpers', () => {
   it('derives the previous year from an April–March current year', () => {
@@ -41,5 +41,14 @@ describe('formatIndian', () => {
     expect(formatIndian('999')).toBe('999')
     expect(formatIndian('1000')).toBe('1,000')
     expect(formatIndian('Lakhs')).toBe('Lakhs')
+  })
+})
+
+describe('display places', () => {
+  it('reach paise at every level, in step with the engine scale powers', async () => {
+    const { SCALE_POWERS } = await import('../src/core/scaling.js')
+    for (const level of ROUNDING_LEVELS) expect(maxDisplayPlaces(level)).toBe((SCALE_POWERS as Record<string, number>)[level]! + 2)
+    expect(defaultDisplayPlaces('Actual')).toBe(0)
+    expect(defaultDisplayPlaces('Lakhs')).toBe(2)
   })
 })

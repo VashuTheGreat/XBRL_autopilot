@@ -35,7 +35,12 @@ export interface AxbrlContent {
   /** engine Filing.toJSON() — the source of truth for XML */
   filing: unknown
   /** Excel cell ↔ fact linkage (Phase 4/5) */
-  mapping: { version: 1; entries: unknown[] }
+  mapping: {
+    version: 1
+    entries: unknown[]
+    /** "workbook|sheet|column letter" → period the user chose for that value column */
+    columns?: Record<string, 'CY' | 'PY'>
+  }
   validation: unknown | null
   /** source/<name>.xlsx, byte-identical */
   sources: Record<string, Uint8Array>

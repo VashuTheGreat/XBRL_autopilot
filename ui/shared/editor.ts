@@ -42,6 +42,41 @@ export interface TagCellInput {
   sign?: 1 | -1
 }
 
+/** A cell's amount as it goes into the filing (Excel float noise rounded to the statement's precision). */
+export interface CellAmount {
+  /** the number as stored in the workbook, e.g. "5443.466337358575" */
+  exact: string
+  /** canonical decimal used for the filing, e.g. "5443.47" */
+  value: string
+  places: number
+  /** where `places` came from: the cell's number format, the filing's decimal places, or the typed text */
+  placesFrom: 'format' | 'filing' | 'typed'
+  rounded: boolean
+}
+
+/**
+ * The period a value column stands for.
+ * - remembered: the user chose it for this column (kept per sheet in mapping.json)
+ * - header: a header above names the filing's CY or PY
+ * - layout: no header; the sheet's first/second value column
+ * - outside: a header names a period that is neither CY nor PY (3rd-year or stale header)
+ * - unknown: nothing to go on
+ */
+export interface ColumnPeriod {
+  /** "C" */
+  column: string
+  scope: Scope | null
+  basis: 'remembered' | 'header' | 'layout' | 'outside' | 'unknown'
+  /** shown to the user, e.g. column header “31.03.2014” */
+  reason: string
+}
+
+export interface CellInfo {
+  cell: CellRef
+  amount: CellAmount | null
+  column: ColumnPeriod
+}
+
 export interface ConceptHit {
   qname: string
   label: string

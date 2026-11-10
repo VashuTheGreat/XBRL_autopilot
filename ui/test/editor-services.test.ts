@@ -8,6 +8,7 @@ import { DirAutosaveStore } from '../electron/main/infra/dir-autosave-store'
 import { FileAuthorityProvider } from '../electron/main/infra/file-authority-provider'
 import { SidecarTaxonomyCatalog } from '../electron/main/infra/sidecar-taxonomy-catalog'
 import { readXlsx } from '../electron/main/infra/xlsx-reader'
+import { ColumnPeriodService } from '../electron/main/services/column-period-service'
 import { EditorQueryService } from '../electron/main/services/editor-query-service'
 import { ValidationError } from '../electron/main/services/errors'
 import { MappingService } from '../electron/main/services/mapping-service'
@@ -40,6 +41,7 @@ describe.skipIf(!existsSync(AUTHORITY))('editor services on the sample workbook'
   let projects: ProjectService
   let sources: SourceService
   let mapping: MappingService
+  let columns: ColumnPeriodService
   let editor: EditorQueryService
   let taxonomy: TaxonomyService
   const cell = (sheet: string, ref: string): CellRef => ({ workbook: 'workbook-1.xlsx', sheet, ref })
@@ -48,7 +50,8 @@ describe.skipIf(!existsSync(AUTHORITY))('editor services on the sample workbook'
     dir = mkdtempSync(join(tmpdir(), 'xap-editor-'))
     projects = new ProjectService({ authority, recents: new AppDatabase(':memory:'), autosave: new DirAutosaveStore(join(dir, 'a')), appVersion: '0.1.0' })
     sources = new SourceService(projects, readXlsx)
-    mapping = new MappingService(projects, sources)
+    columns = new ColumnPeriodService(projects, sources)
+    mapping = new MappingService(projects, sources, columns)
     editor = new EditorQueryService(projects, () => mapping.list(), catalog, () => '2014-09-30')
     taxonomy = new TaxonomyService(projects, catalog)
     await projects.newFiling({
@@ -117,6 +120,46 @@ describe.skipIf(!existsSync(AUTHORITY))('editor services on the sample workbook'
     mapping.untag(moved.id)
     expect(projects.session().getValue('in-gaap:ShareCapital', 'PY')).toBeNull()
     expect(mapping.list()).toEqual([])
+    // correcting a cell's period corrects its column
+    expect((await mapping.cellInfo(cell('BS', 'C14'))).column).toMatchObject({ column: 'C', scope: 'PY', basis: 'remembered' })
+  })
+
+  it('reports a cell’s amount and its column’s period for the inspector', async () => {
+    const info = await mapping.cellInfo(cell('BS', 'C9'))
+    expect(info.amount).toMatchObject({ value: '60000000', rounded: false })
+    expect(info.column).toEqual({ column: 'C', scope: 'CY', basis: 'header', reason: 'column header “31.03.2014”' })
+    expect((await mapping.cellInfo(cell('BS', 'A9'))).amount).toBeNull()
+  })
+
+  it('never guesses a column whose header names another year: asks, then remembers the choice per sheet', async () => {
+    await projects.newFiling({
+      companyName: 'XBRL Ltd',
+      cin: 'U72200KA2010PLC123456',
+      reportType: 'Standalone',
+      cy: { start: '2015-04-01', end: '2016-03-31' },
+      py: { start: '2014-04-01', end: '2015-03-31' },
+      level: 'Actual',
+    })
+    await sources.importWorkbook('sample_financials.xlsx', readFileSync(SAMPLE))
+    expect((await mapping.cellInfo(cell('BS', 'C9'))).column).toMatchObject({ scope: null, basis: 'outside' })
+    await expect(mapping.tag({ cell: cell('BS', 'C9'), concept: 'in-gaap:ShareCapital' })).rejects.toThrow(/Column C isn’t part of this filing/)
+
+    await columns.set(cell('BS', 'C9'), 'CY')
+    expect((await mapping.tag({ cell: cell('BS', 'C9'), concept: 'in-gaap:ShareCapital' })).fact.scope).toBe('CY')
+    expect((await mapping.cellInfo(cell('BS', 'C14'))).column).toMatchObject({ scope: 'CY', basis: 'remembered' })
+    expect((await mapping.cellInfo(cell('PL', 'C6'))).column.basis).toBe('outside') // per sheet
+    await columns.set(cell('BS', 'C9'), null)
+    expect((await mapping.cellInfo(cell('BS', 'C14'))).column.basis).toBe('outside')
+  })
+
+  it('refuses an amount whose shown decimals exceed the filing’s decimal places (nothing is rounded away)', async () => {
+    const p = projects.project()
+    const sheet = await sources.sheet(cell('BS', 'C9'))
+    sheet.cells.find((c) => c.r === 8 && c.c === 2)!.v = 1234.5678
+    sheet.cells.find((c) => c.r === 8 && c.c === 2)!.numFmt = '#,##0.00'
+    await expect(mapping.tag({ cell: cell('BS', 'C9'), concept: 'in-gaap:ShareCapital' })).rejects.toThrow(/1234\.57 \(2 decimal places\).*0 decimal places/)
+    ;(p.session.filing.meta as { displayPlaces: number }).displayPlaces = 2
+    expect((await mapping.tag({ cell: cell('BS', 'C9'), concept: 'in-gaap:ShareCapital' })).value).toBe('1234.57')
   })
 
   it('refuses text for amounts, empty cells and table-only elements with clear messages', async () => {
@@ -151,15 +194,17 @@ describe.skipIf(!existsSync(AUTHORITY))('editor services on the sample workbook'
 
   it('saves sources and mapping in the .axbrl and restores them on open', async () => {
     await mapping.tag({ cell: cell('BS', 'C9'), concept: 'in-gaap:ShareCapital' })
+    await columns.set(cell('BS', 'D9'), 'PY')
     const file = join(dir, 'xbrl-ltd.axbrl')
     await projects.saveAs(file)
 
     const reopened = new ProjectService({ authority, recents: new AppDatabase(':memory:'), autosave: new DirAutosaveStore(join(dir, 'b')), appVersion: '0.1.0' })
     await reopened.open(file)
     const src2 = new SourceService(reopened, readXlsx)
-    const map2 = new MappingService(reopened, src2)
+    const map2 = new MappingService(reopened, src2, new ColumnPeriodService(reopened, src2))
     expect((await src2.workbooks())[0]!.fileName).toBe('sample_financials.xlsx')
     expect(map2.list()).toEqual([expect.objectContaining({ cell: cell('BS', 'C9'), value: '60000000' })])
     expect(reopened.summary()!.dirty).toBe(false)
+    expect((await new ColumnPeriodService(reopened, src2).of(cell('BS', 'D20'))).basis).toBe('remembered')
   })
 })

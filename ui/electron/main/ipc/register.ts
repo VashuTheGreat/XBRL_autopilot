@@ -4,8 +4,10 @@ import { basename } from 'node:path'
 import { dialog, type BrowserWindow } from 'electron'
 import type { MappingStatus, Scope, TagCellInput } from '@shared/editor'
 import { IPC, type AppInfo, type HttpMethod } from '@shared/ipc'
+import type { CellRef } from '@shared/workbook'
 import type { AppSettings, NewFilingInput } from '@shared/project'
 import type { ProjectController } from '../project/project-controller'
+import type { ColumnPeriodService } from '../services/column-period-service'
 import type { EditorQueryService } from '../services/editor-query-service'
 import type { MappingService } from '../services/mapping-service'
 import type { SourceService } from '../services/source-service'
@@ -24,6 +26,7 @@ export interface IpcDeps {
   sources: SourceService
   mapping: MappingService
   editor: EditorQueryService
+  columns: ColumnPeriodService
   taxonomy: TaxonomyService
   getWindow: () => BrowserWindow | null
 }
@@ -86,7 +89,14 @@ function registerSettingsIpc({ settings, getWindow }: IpcDeps): void {
 const SCOPES: Scope[] = ['CY', 'PY']
 const STATUSES: MappingStatus[] = ['suggested', 'approved', 'rejected']
 
-function registerEditorIpc({ sources, mapping, editor, taxonomy, getWindow }: IpcDeps): void {
+/** A CellRef from the renderer: three non-empty strings, nothing else kept. */
+function requireCell(v: unknown): CellRef {
+  const c = v as Partial<CellRef> | null
+  if (!c || typeof c !== 'object') throw new Error('Invalid cell')
+  return { workbook: requireString(c.workbook, 'workbook'), sheet: requireString(c.sheet, 'sheet'), ref: requireString(c.ref, 'cell reference') }
+}
+
+function registerEditorIpc({ sources, mapping, columns, editor, taxonomy, getWindow }: IpcDeps): void {
   handleResult(IPC.workbookImport, async (_e, path?: unknown) => {
     if (path !== undefined) {
       const file = requireString(path, 'path')
@@ -117,6 +127,11 @@ function registerEditorIpc({ sources, mapping, editor, taxonomy, getWindow }: Ip
   handleResult(IPC.mappingSetStatus, (_e, id: unknown, status: MappingStatus) => {
     if (!STATUSES.includes(status)) throw new Error('Invalid status')
     return mapping.setStatus(requireString(id, 'id'), status)
+  })
+  handleResult(IPC.mappingCellInfo, (_e, cell: unknown) => mapping.cellInfo(requireCell(cell)))
+  handleResult(IPC.mappingSetColumnPeriod, (_e, cell: unknown, scope: unknown) => {
+    if (scope !== null && !SCOPES.includes(scope as Scope)) throw new Error('Invalid scope')
+    return columns.set(requireCell(cell), scope as Scope | null)
   })
   handleResult(IPC.editorForm, (_e, uri: unknown) => editor.form(requireString(uri, 'statement')))
   handleResult(IPC.editorXml, () => editor.xml())
