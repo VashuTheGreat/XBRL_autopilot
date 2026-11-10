@@ -70,3 +70,12 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
   - **Grouping:** ELRs are grouped by title (consistent across C&I, Ind AS and Costing), not by code.
   - **Tests:** added `taxonomy_loader`, so the integrity test runs: 31 pytest pass.
   - **Electron:** a `TaxonomyCatalog` port with a `SidecarTaxonomyCatalog` adapter. The statement list, Form structure and search now come from the routes; the engine supplies only values and table knowledge. Editor tests run against the real sidecar (11 pass).
+- **2026-11-10, handover to a new chat:**
+  - **Phase 4 remaining:**
+    1. Re-run `ui/e2e/phase4-editor.mjs` green with real clicks (the click helper is fixed; see `ui/e2e/README.md`).
+    2. Defer `univer.dispose()` to fix the React unmount warning.
+    3. Confirm the XML line highlight.
+    4. Round Excel float noise to the display precision (e.g. HPL `5443.466337358575` lakhs).
+    5. Show "this column isn't part of the filing" for 3rd-year or stale-header columns.
+    6. Remember the column → period choice per sheet.
+  - **Then Phase 5:** `.xls` import through the sidecar (python-calamine), and hand-tag HPL end to end.
