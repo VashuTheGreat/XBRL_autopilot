@@ -38,6 +38,7 @@ const api: XapApi = {
     recover: (id) => invoke(IPC.projectRecover, id),
     discardRecovery: (id) => invoke(IPC.projectDiscardRecovery, id),
     elrs: () => invoke(IPC.projectElrs),
+    setStatementPlaces: (places) => invoke(IPC.projectSetStatementPlaces, places),
     onChanged: (cb) => subscribe<ProjectSummary | null>(IPC.projectChanged, cb),
   },
   settings: {
@@ -60,6 +61,7 @@ const api: XapApi = {
     setColumnPeriod: (cell, scope) => invoke(IPC.mappingSetColumnPeriod, cell, scope),
     form: (elrUri) => invoke(IPC.editorForm, elrUri),
     xml: () => invoke(IPC.editorXml),
+    fillMandatoryZeros: (elrUri) => invoke(IPC.editorFillMandatoryZeros, elrUri),
     searchConcepts: (query) => invoke(IPC.taxonomySearch, query),
   },
 }

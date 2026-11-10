@@ -9,6 +9,7 @@ import { app, BrowserWindow, Menu, shell } from 'electron'
 import { IPC } from '@shared/ipc'
 import { AppDatabase } from './infra/app-database'
 import { DirAutosaveStore } from './infra/dir-autosave-store'
+import { sidecarXlsReader, workbookParser } from './infra/workbook-parser'
 import { readXlsx } from './infra/xlsx-reader'
 import { FileAuthorityProvider } from './infra/file-authority-provider'
 import { SidecarTaxonomyCatalog } from './infra/sidecar-taxonomy-catalog'
@@ -19,8 +20,10 @@ import { ProjectController } from './project/project-controller'
 import { AutosaveScheduler } from './services/autosave-scheduler'
 import { ColumnPeriodService } from './services/column-period-service'
 import { EditorQueryService } from './services/editor-query-service'
+import { FilingPropertiesService } from './services/filing-properties-service'
 import { MappingService } from './services/mapping-service'
 import { SourceService } from './services/source-service'
+import { StatementService } from './services/statement-service'
 import { TaxonomyService } from './services/taxonomy-service'
 import { ProjectService } from './services/project-service'
 import { SettingsService } from './services/settings-service'
@@ -53,9 +56,6 @@ const projects = new ProjectService({
   appVersion: app.getVersion(),
 })
 const projectController = new ProjectController(projects, getWindow)
-const sources = new SourceService(projects, readXlsx)
-const columns = new ColumnPeriodService(projects, sources)
-const mapping = new MappingService(projects, sources, columns)
 const autosave = new AutosaveScheduler(projects, () => settings.get().autosaveSeconds)
 const sidecar = new SidecarManager({
   isPackaged: app.isPackaged,
@@ -64,6 +64,13 @@ const sidecar = new SidecarManager({
   // Settings win over the dev .env (pydantic-settings gives env vars priority over .env).
   extraEnv: async () => ({ GROQ_API_KEY: (await settings.groqKey()) ?? undefined, GROQ_MODEL: settings.get().groqModel }),
 })
+
+// .xlsx in process (exceljs); old .xls through the sidecar's python-calamine route
+const sources = new SourceService(projects, workbookParser({ xlsx: readXlsx, xls: sidecarXlsReader(sidecar) }))
+const columns = new ColumnPeriodService(projects, sources)
+const mapping = new MappingService(projects, sources, columns)
+const filing = new FilingPropertiesService(projects, mapping)
+const statements = new StatementService(projects)
 
 // Taxonomy browsing comes from the knowledge base through the FastAPI routes (docs/02-architecture.md).
 const catalog = new SidecarTaxonomyCatalog(sidecar)
@@ -107,6 +114,13 @@ function createWindow(): void {
       mainWindow?.close()
     })
   })
+
+  // A renderer crash used to leave a black window. The filing lives in main, so reloading the page restores the editor.
+  mainWindow.webContents.on('render-process-gone', (_e, details) => {
+    console.error(`[main] renderer gone: ${details.reason} (exit ${details.exitCode})`)
+    if (details.reason !== 'clean-exit' && mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.reload()
+  })
+  mainWindow.on('unresponsive', () => console.error('[main] renderer unresponsive'))
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https:\/\//i.test(url)) void shell.openExternal(url)
@@ -170,6 +184,8 @@ if (!app.requestSingleInstanceLock()) {
       mapping,
       editor,
       columns,
+      filing,
+      statements,
       taxonomy,
       getWindow,
     })

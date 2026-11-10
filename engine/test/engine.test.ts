@@ -1,6 +1,6 @@
 import { readFileSync, existsSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { Authority, Session, Filing, buildExample, explainMcaErrors, decimal } from '../src/index'
+import { Authority, Session, Filing, buildExample, explainMcaErrors, decimal, fillMandatoryZeros, mandatoryZeroPlan } from '../src/index'
 
 const AUTH = new URL('../authority/ci-2016.authority.json', import.meta.url)
 const hasAuthority = existsSync(AUTH)
@@ -20,6 +20,21 @@ describe.skipIf(!hasAuthority)('engine facade on the compiled C&I 2016 authority
     expect(out.xml).toContain('https://www.mca.gov.in/V3XBRL/2016/07/26/Taxonomy/CnI/in-ci-ent-2016-03-31.xsd')
     expect(out.xml).toContain('<xbrli:identifier scheme="http://www.mca.gov.in/CIN">U72200KA2010PTC123456</xbrli:identifier>')
     expect(out.xml).not.toContain('precision=')
+  })
+
+  it('reports a statement’s empty mandatory amounts as 0, never overwriting a value or touching text', () => {
+    const S = new Session(A)
+    S.setMeta({ name: 'Z Ltd', cin: 'U72200KA2010PTC123456', reportType: 'Standalone', level: 'Lakhs', statementPlaces: 2, displayPlaces: 7,
+      periods: { cy: { start: '2025-04-01', end: '2026-03-31' }, py: { start: '2024-04-01', end: '2025-03-31' } } })
+    S.setValue('in-gaap:LongTermBorrowings', 'CY', '12.5')
+    const plan = mandatoryZeroPlan(S, '100100')
+    expect(plan.map((z: { concept: string; scope: string }) => `${z.concept} ${z.scope}`)).toContain('in-gaap:LongTermBorrowings PY')
+    expect(plan.some((z: { concept: string; scope: string }) => z.concept === 'in-gaap:LongTermBorrowings' && z.scope === 'CY')).toBe(false)
+    expect(plan.every((z: { concept: string }) => A.dataType(z.concept) === 'monetary')).toBe(true)
+    expect(fillMandatoryZeros(S, '100100')).toEqual(plan)
+    expect(S.getValue('in-gaap:LongTermBorrowings', 'PY').value).toBe('0')
+    expect(S.getValue('in-gaap:LongTermBorrowings', 'CY').value).toBe('1250000')
+    expect(mandatoryZeroPlan(S, '100100')).toEqual([])
   })
 
   it('is deterministic: the same filing gives byte-identical XML', () => {

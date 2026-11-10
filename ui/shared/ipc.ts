@@ -8,7 +8,7 @@ import type {
   RecoveryItem,
   SettingsState,
 } from './project'
-import type { CellInfo, ColumnPeriod, ConceptHit, FormView, MappingStatus, MappingView, Scope, TagCellInput, XmlView } from './editor'
+import type { CellInfo, ColumnPeriod, ZeroFilled, ConceptHit, FormView, MappingStatus, MappingView, Scope, TagCellInput, XmlView } from './editor'
 import type { CellRef, WorkbookModel } from './workbook'
 
 /**
@@ -79,6 +79,7 @@ export const IPC = {
   projectRecover: 'project:recover',
   projectDiscardRecovery: 'project:discard-recovery',
   projectElrs: 'project:elrs',
+  projectSetStatementPlaces: 'project:set-statement-places',
   projectChanged: 'project:changed',
   settingsGet: 'settings:get',
   settingsUpdate: 'settings:update',
@@ -97,6 +98,7 @@ export const IPC = {
   mappingSetColumnPeriod: 'mapping:set-column-period',
   editorForm: 'editor:form',
   editorXml: 'editor:xml',
+  editorFillMandatoryZeros: 'editor:fill-mandatory-zeros',
   taxonomySearch: 'taxonomy:search',
 } as const
 
@@ -128,6 +130,8 @@ export interface XapApi {
     recover(id: string): Promise<Result<ProjectSummary | null>>
     discardRecovery(id: string): Promise<void>
     elrs(): Promise<Result<ElrInfo[]>>
+    /** "decimal places as presented"; re-pulls tagged figures from Excel. Value = tags that kept their old value */
+    setStatementPlaces(places: number): Promise<Result<string[]>>
     onChanged(cb: (s: ProjectSummary | null) => void): () => void
   }
   settings: {
@@ -154,6 +158,8 @@ export interface XapApi {
     setColumnPeriod(cell: CellRef, scope: Scope | null): Promise<Result<ColumnPeriod>>
     form(elrUri: string): Promise<Result<FormView>>
     xml(): Promise<Result<XmlView>>
+    /** reports the statement's empty mandatory amounts as 0; returns what was filled */
+    fillMandatoryZeros(elrUri: string): Promise<Result<ZeroFilled[]>>
     searchConcepts(query: string): Promise<Result<ConceptHit[]>>
   }
 }

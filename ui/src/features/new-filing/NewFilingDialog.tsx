@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  defaultDisplayPlaces,
+  defaultStatementPlaces,
   defaultReportingYear,
   fyLabel,
   isValidCin,
@@ -27,13 +27,13 @@ interface FormState {
   /** once the user edits PY dates we stop deriving them from CY */
   pyTouched: boolean
   level: RoundingLevel
-  displayPlaces: number
+  statementPlaces: number
 }
 
 function initialForm(): FormState {
   const cy = defaultReportingYear(new Date())
   const py = previousYearOf(cy)!
-  return { companyName: '', cin: '', reportType: 'Standalone', cyStart: cy.start, cyEnd: cy.end, firstYear: false, pyStart: py.start, pyEnd: py.end, pyTouched: false, level: 'Lakhs', displayPlaces: defaultDisplayPlaces('Lakhs') }
+  return { companyName: '', cin: '', reportType: 'Standalone', cyStart: cy.start, cyEnd: cy.end, firstYear: false, pyStart: py.start, pyEnd: py.end, pyTouched: false, level: 'Lakhs', statementPlaces: defaultStatementPlaces('Lakhs') }
 }
 
 export function toInput(f: FormState): NewFilingInput {
@@ -44,7 +44,7 @@ export function toInput(f: FormState): NewFilingInput {
     cy: { start: f.cyStart, end: f.cyEnd },
     py: f.firstYear ? null : { start: f.pyStart, end: f.pyEnd },
     level: f.level,
-    displayPlaces: f.displayPlaces,
+    statementPlaces: f.statementPlaces,
   }
 }
 
@@ -166,7 +166,7 @@ export function NewFilingDialog() {
               value={f.level}
               onChange={(e) => {
                 const level = e.target.value as RoundingLevel
-                patch({ level, displayPlaces: defaultDisplayPlaces(level) })
+                patch({ level, statementPlaces: defaultStatementPlaces(level) })
               }}
             >
               {ROUNDING_LEVELS.map((l) => (
@@ -177,7 +177,7 @@ export function NewFilingDialog() {
             </Select>
           </Field>
           <Field label="Decimal places as presented" hint="As printed (₹ 5,443.47 lakhs = 2). Excel figures are rounded to the cell's format, never past these places.">
-            <Select value={f.displayPlaces} onChange={(e) => patch({ displayPlaces: Number(e.target.value) })} data-testid="display-places">
+            <Select value={f.statementPlaces} onChange={(e) => patch({ statementPlaces: Number(e.target.value) })} data-testid="statement-places">
               {Array.from({ length: maxDisplayPlaces(f.level) + 1 }, (_, n) => (
                 <option key={n} value={n}>
                   {n}

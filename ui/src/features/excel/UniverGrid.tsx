@@ -8,7 +8,7 @@ import { UniverSheetsCorePreset } from '@univerjs/preset-sheets-core'
 import UniverPresetSheetsCoreEnUS from '@univerjs/preset-sheets-core/locales/en-US'
 import '@univerjs/preset-sheets-core/lib/index.css'
 import type { MappingView } from '@shared/editor'
-import { cellKey, fromA1, toA1, type WorkbookModel } from '@shared/workbook'
+import { cellKey, MAX_RANGE_CELLS, rangeA1, rangeOf, type WorkbookModel } from '@shared/workbook'
 import { registerTestHook } from '@/lib/test-hooks'
 import { useEditor } from '@/stores/editor'
 import { toUniverWorkbook } from './univer-data'
@@ -66,16 +66,22 @@ export function UniverGrid({ model }: { model: WorkbookModel }) {
       apiRef.current = univerAPI
       registerTestHook('univer', univerAPI)
 
-      // A user click fires SelectionMoveEnd (not SelectionChanged) in Univer 1.4, and the payload's `selections`
-      // can be empty, so the active range is read from the workbook itself.
+      // Univer 1.4: the selection events (SelectionMoveEnd, not SelectionChanged) start firing only after the grid's
+      // first few clicks, while CellPointerUp fires on every click and after a drag. The payloads' `selections` can be
+      // empty, so the active range is read from the workbook itself (selectCell ignores repeats).
       const onSelection = () => {
         const wb = univerAPI.getActiveWorkbook()
         const range = wb?.getActiveRange()
         const ws = wb?.getActiveSheet()
         if (!range || !ws) return
-        useEditor.getState().selectCell({ workbook: model.source, sheet: ws.getSheetName(), ref: toA1(range.getRow(), range.getColumn()) })
+        // a drag over several cells selects the range (tagged as their sum)
+        let g = { r1: range.getRow(), c1: range.getColumn(), r2: range.getLastRow(), c2: range.getLastColumn() }
+        // only a one-column run of cells can be summed; a block, a whole column or the whole sheet means its first cell
+        if (g.c2 !== g.c1 || g.r2 - g.r1 + 1 > MAX_RANGE_CELLS) g = { r1: g.r1, c1: g.c1, r2: g.r1, c2: g.c1 }
+        useEditor.getState().selectCell({ workbook: model.source, sheet: ws.getSheetName(), ref: rangeA1(g) })
       }
       subs = [
+        univerAPI.addEvent(univerAPI.Event.CellPointerUp, onSelection),
         univerAPI.addEvent(univerAPI.Event.SelectionMoveEnd, onSelection),
         univerAPI.addEvent(univerAPI.Event.SelectionChanged, onSelection),
         univerAPI.addEvent(univerAPI.Event.ActiveSheetChanged, () => drawOverlay()),
@@ -127,11 +133,11 @@ export function UniverGrid({ model }: { model: WorkbookModel }) {
     if (!reveal || !univerAPI || reveal.cell.workbook !== model.source) return
     const wb = univerAPI.getActiveWorkbook()
     const ws = wb?.getSheetByName(reveal.cell.sheet)
-    const at = fromA1(reveal.cell.ref)
+    const at = rangeOf(reveal.cell.ref)
     if (!wb || !ws || !at) return
     ws.activate()
     ws.getRange(reveal.cell.ref).activate()
-    ws.scrollToCell(Math.max(0, at.r - 3), Math.max(0, at.c - 2))
+    ws.scrollToCell(Math.max(0, at.r1 - 3), Math.max(0, at.c1 - 2))
     drawOverlay()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reveal?.seq])

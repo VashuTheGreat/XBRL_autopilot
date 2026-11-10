@@ -49,8 +49,11 @@ export interface CellAmount {
   /** canonical decimal used for the filing, e.g. "5443.47" */
   value: string
   places: number
-  /** where `places` came from: the cell's number format, the filing's decimal places, or the typed text */
-  placesFrom: 'format' | 'filing' | 'typed'
+  /**
+   * where `places` came from: the cell's number format, the filing's decimal places, the typed text, or 'actual'
+   * (share capital: kept exact to the rupee, whatever the format shows)
+   */
+  placesFrom: 'format' | 'filing' | 'typed' | 'actual'
   rounded: boolean
 }
 
@@ -69,6 +72,13 @@ export interface ColumnPeriod {
   basis: 'remembered' | 'header' | 'layout' | 'outside' | 'unknown'
   /** shown to the user, e.g. column header “31.03.2014” */
   reason: string
+}
+
+/** A mandatory amount reported as 0 by "fill empty mandatory amounts". */
+export interface ZeroFilled {
+  concept: string
+  label: string
+  scope: Scope
 }
 
 export interface CellInfo {

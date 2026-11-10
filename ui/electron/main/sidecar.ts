@@ -94,6 +94,8 @@ export class SidecarManager extends EventEmitter {
           ...extraEnv,
           XAP_PORT: String(this.port),
           XAP_TOKEN: this.token,
+          // the sidecar exits when this process is gone, even after a crash or a force-kill
+          XAP_PARENT_PID: String(process.pid),
           XAP_RESOURCES: this.opts.isPackaged ? this.opts.resourcesPath : this.opts.repoRoot,
           PYTHONUNBUFFERED: '1',
           PYTHONIOENCODING: 'utf-8',

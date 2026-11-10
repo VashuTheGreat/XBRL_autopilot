@@ -62,8 +62,8 @@ export const ROUNDING_LEVELS = ['Actual', 'Thousands', 'Lakhs', 'Millions', 'Cro
 export type RoundingLevel = (typeof ROUNDING_LEVELS)[number]
 
 /**
- * "Decimal places as presented" a filing can take at a level of rounding: 0 … places that reach paise
- * (Actual 2, Lakhs 7). Mirrors scaling.js SCALE_POWERS for the renderer, which doesn't load the engine core
+ * The finest decimal places an amount can have at a level of rounding: places that reach paise (Actual 2, Lakhs 7).
+ * The engine's `displayPlaces`, and the upper bound of "decimal places as presented" (`statementPlaces`). Mirrors scaling.js SCALE_POWERS for the renderer, which doesn't load the engine core
  * (a test keeps the two in step).
  */
 export function maxDisplayPlaces(level: RoundingLevel): number {
@@ -72,7 +72,7 @@ export function maxDisplayPlaces(level: RoundingLevel): number {
 }
 
 /** The usual places for a level: whole rupees for Actual, two places for scaled statements (₹ 5,443.47 lakhs). */
-export function defaultDisplayPlaces(level: RoundingLevel): number {
+export function defaultStatementPlaces(level: RoundingLevel): number {
   return level === 'Actual' ? 0 : 2
 }
 

@@ -23,6 +23,8 @@ interface ProjectState {
   recover(id: string): Promise<void>
   discardRecovery(id: string): Promise<void>
   forgetRecent(path: string): Promise<void>
+  /** "decimal places as presented"; tagged figures are re-pulled from Excel */
+  setStatementPlaces(places: number): Promise<void>
 }
 
 const api = () => window.xap.project
@@ -116,6 +118,13 @@ export const useProject = create<ProjectState>((set, get) => {
     forgetRecent: async (path) => {
       await api().forgetRecent(path)
       await get().refreshLists()
+    },
+
+    setStatementPlaces: async (places) => {
+      const kept = await unwrap(api().setStatementPlaces(places), { onValidation: (p) => toast.error(p.join(' ')) })
+      if (!kept) return
+      if (kept.length) toast.error(`Decimal places set to ${places}; ${kept.length} tag(s) kept their old value: ${kept.join(' ')}`)
+      else toast.success(`Decimal places as presented: ${places}. Tagged figures were re-read from Excel.`)
     },
   }
 })

@@ -25,6 +25,23 @@ const failures = []
 const check = (ok, what) => { console.log(ok ? 'PASS' : 'FAIL', what); if (!ok) failures.push(what) }
 // Real mouse clicks on the Univer canvas, positioned from Univer's own layout skeleton.
 const mouseClick = async (x, y) => { for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x, y, button: 'left', clickCount: 1 }); await sleep(350) }
+async function cellCenter(ref) {
+  return ev(`(() => {
+    const ws = ${T}.univer.getActiveWorkbook().getActiveSheet(); const rg = ws.getRange('${ref}'); const r = rg.getRow(), c = rg.getColumn();
+    const sk = ws.getSkeleton(); const cv = [...document.querySelectorAll('[data-testid=univer-host] canvas')].map(c => c.getBoundingClientRect()).filter(r => r.width > 0 && r.left >= 0).sort((a, b) => b.width * b.height - a.width * a.height)[0];
+    const colAcc = sk.columnWidthAccumulation, rowAcc = sk.rowHeightAccumulation;
+    const left = (c ? colAcc[c - 1] : 0), top = (r ? rowAcc[r - 1] : 0);
+    return { x: cv.left + sk.rowHeaderWidth + left + (colAcc[c] - left) / 2, y: cv.top + sk.columnHeaderHeight + top + (rowAcc[r] - top) / 2 }
+  })()`)
+}
+async function dragCells(from, to) {
+  const a = await cellCenter(from), b = await cellCenter(to)
+  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: a.x, y: a.y, button: 'none' })
+  await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: a.x, y: a.y, button: 'left', clickCount: 1 })
+  for (let i = 1; i <= 5; i++) { await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: a.x + ((b.x - a.x) * i) / 5, y: a.y + ((b.y - a.y) * i) / 5, button: 'left', buttons: 1 }); await sleep(60) }
+  await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: b.x, y: b.y, button: 'left', clickCount: 1 })
+  await sleep(500)
+}
 async function clickCell(ref) {
   const p = await ev(`(() => {
     const ws = ${T}.univer.getActiveWorkbook().getActiveSheet(); const rg = ws.getRange('${ref}'); const r = rg.getRow(), c = rg.getColumn();
@@ -33,12 +50,9 @@ async function clickCell(ref) {
     const left = (c ? colAcc[c - 1] : 0), top = (r ? rowAcc[r - 1] : 0);
     return { x: cv.left + sk.rowHeaderWidth + left + (colAcc[c] - left) / 2, y: cv.top + sk.columnHeaderHeight + top + (rowAcc[r] - top) / 2 }
   })()`)
-  // the first click after the page loads only focuses the window: retry once
-  let got
-  for (let attempt = 0; attempt < 2 && got !== ref; attempt++) {
-    await mouseClick(p.x, p.y)
-    got = await ev(`${T}.editor.getState().selection.cell?.ref`)
-  }
+  // one real click must be enough (the app listens to CellPointerUp: Univer's selection events start late)
+  await mouseClick(p.x, p.y)
+  const got = await ev(`${T}.editor.getState().selection.cell?.ref`)
   if (got !== ref) throw new Error('click did not select ' + ref + ' (got ' + got + ' at ' + JSON.stringify(p) + ' debug ' + (await ev(`(() => { const ws = ${T}.univer.getActiveWorkbook().getActiveSheet(); const sk = ws.getSkeleton(); return JSON.stringify({ rh: sk.rowHeaderWidth, ch: sk.columnHeaderHeight, col0: sk.columnWidthAccumulation.slice(0,4), row0: sk.rowHeightAccumulation.slice(0,10), canvases: [...document.querySelectorAll('[data-testid=univer-host] canvas')].map(c => { const r = c.getBoundingClientRect(); return [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)] }) }) })()`)) + ')')
   return 'skeleton'
 }
@@ -112,6 +126,15 @@ console.log('xml:', xs)
 check(JSON.parse(xs).highlighted > 0, 'selected fact line highlighted in the XML')
 check(JSON.parse(xs).text?.includes('ShareCapital'), 'highlighted line is the selected fact')
 await shot('p4-03-xml.png')
+// 8. drag C14 → C15: the range is selected and the inspector shows the sum (tagged as one figure)
+// cell positions come from an unscrolled skeleton: the reveal in step 6 scrolled the grid
+await ev(`${T}.univer.getActiveWorkbook().getActiveSheet().scrollToCell(0, 0), true`)
+await sleep(500)
+await dragCells('C14', 'C15')
+const dragged = await ev(`${T}.editor.getState().selection.cell?.ref`)
+check(dragged === 'C14:C15', `dragging selects the range C14:C15 (got ${dragged})`)
+await waitFor(`/sum of 2 cells/.test(document.querySelector('[data-testid=inspector]')?.innerText ?? '')`, 'range inspector', 10000).catch(() => {})
+check(/sum of 2 cells/.test(await ev(`document.querySelector('[data-testid=inspector]').innerText`)) && (await ev(`document.querySelector('[data-testid=inspector-amount]')?.textContent`))?.startsWith('12,95,442'), 'inspector shows the range sum 12,95,442')
 console.log('status bar:', await ev(`document.querySelector('footer:last-of-type')?.innerText.replace(/\\n/g,' | ')`))
 console.log('renderer errors:', errors.length ? errors : 'none')
 check(errors.length === 0, 'no renderer errors')

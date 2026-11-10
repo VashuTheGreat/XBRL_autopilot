@@ -9,8 +9,10 @@ import type { AppSettings, NewFilingInput } from '@shared/project'
 import type { ProjectController } from '../project/project-controller'
 import type { ColumnPeriodService } from '../services/column-period-service'
 import type { EditorQueryService } from '../services/editor-query-service'
+import type { FilingPropertiesService } from '../services/filing-properties-service'
 import type { MappingService } from '../services/mapping-service'
 import type { SourceService } from '../services/source-service'
+import type { StatementService } from '../services/statement-service'
 import type { TaxonomyService } from '../services/taxonomy-service'
 import type { ProjectService } from '../services/project-service'
 import type { SettingsService } from '../services/settings-service'
@@ -27,6 +29,8 @@ export interface IpcDeps {
   mapping: MappingService
   editor: EditorQueryService
   columns: ColumnPeriodService
+  filing: FilingPropertiesService
+  statements: StatementService
   taxonomy: TaxonomyService
   getWindow: () => BrowserWindow | null
 }
@@ -54,7 +58,7 @@ function registerSidecarIpc({ sidecar }: IpcDeps): void {
   })
 }
 
-function registerProjectIpc({ projects, projectController: pc, taxonomy }: IpcDeps): void {
+function registerProjectIpc({ projects, projectController: pc, taxonomy, filing }: IpcDeps): void {
   handleQuery(IPC.projectCurrent, () => projects.summary())
   handleQuery(IPC.projectRecent, () => projects.recentProjects())
   handleQuery(IPC.projectForgetRecent, (_e, path: unknown) => projects.forgetRecent(requireString(path, 'path')))
@@ -67,6 +71,10 @@ function registerProjectIpc({ projects, projectController: pc, taxonomy }: IpcDe
   handleResult(IPC.projectClose, () => pc.close())
   handleResult(IPC.projectRecover, (_e, id: unknown) => pc.recover(requireString(id, 'id')))
   handleResult(IPC.projectElrs, () => taxonomy.elrs())
+  handleResult(IPC.projectSetStatementPlaces, (_e, places: unknown) => {
+    if (typeof places !== 'number') throw new Error('Invalid decimal places')
+    return filing.setStatementPlaces(places)
+  })
 }
 
 function registerSettingsIpc({ settings, getWindow }: IpcDeps): void {
@@ -96,11 +104,11 @@ function requireCell(v: unknown): CellRef {
   return { workbook: requireString(c.workbook, 'workbook'), sheet: requireString(c.sheet, 'sheet'), ref: requireString(c.ref, 'cell reference') }
 }
 
-function registerEditorIpc({ sources, mapping, columns, editor, taxonomy, getWindow }: IpcDeps): void {
+function registerEditorIpc({ sources, mapping, columns, editor, statements, taxonomy, getWindow }: IpcDeps): void {
   handleResult(IPC.workbookImport, async (_e, path?: unknown) => {
     if (path !== undefined) {
       const file = requireString(path, 'path')
-      if (!/\.(xlsx|xlsm|xls)$/i.test(file)) throw new Error('Only Excel workbooks (.xlsx) can be imported.')
+      if (!/\.(xlsx|xlsm|xls)$/i.test(file)) throw new Error('Only Excel workbooks (.xlsx, .xlsm, .xls) can be imported.')
       return sources.importWorkbook(basename(file), new Uint8Array(await readFile(file)))
     }
     const win = getWindow()
@@ -135,5 +143,6 @@ function registerEditorIpc({ sources, mapping, columns, editor, taxonomy, getWin
   })
   handleResult(IPC.editorForm, (_e, uri: unknown) => editor.form(requireString(uri, 'statement')))
   handleResult(IPC.editorXml, () => editor.xml())
+  handleResult(IPC.editorFillMandatoryZeros, (_e, uri: unknown) => statements.fillMandatoryZeros(requireString(uri, 'statement')))
   handleResult(IPC.taxonomySearch, (_e, q: unknown) => taxonomy.searchConcepts(typeof q === 'string' ? q.slice(0, 200) : ''))
 }

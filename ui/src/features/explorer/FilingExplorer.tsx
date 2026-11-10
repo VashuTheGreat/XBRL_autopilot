@@ -1,4 +1,5 @@
 import { ChevronDown, ChevronRight, FolderTree } from 'lucide-react'
+import { maxDisplayPlaces } from '@xap/engine/basics'
 import { useMemo, useState } from 'react'
 import type { ElrInfo } from '@shared/project'
 import { EmptyState } from '@/components/EmptyState'
@@ -11,7 +12,7 @@ const GROUPS: ElrInfo['group'][] = ['Statements', 'Notes', 'Disclosures']
 
 /** ELR tree of the open filing. Completion/error status dots arrive with validation (Phase 6). */
 export function FilingExplorer() {
-  const { summary, elrs } = useProject()
+  const { summary, elrs, setStatementPlaces } = useProject()
   const { activeElr, setActiveElr } = useEditor()
   const setRightTab = useUi((s) => s.setRightTab)
   const openElr = (uri: string) => {
@@ -46,8 +47,24 @@ export function FilingExplorer() {
       <div className="border-b border-border px-3 py-2">
         <div className="truncate text-[13px] font-medium">{summary.company.name}</div>
         <div className="truncate font-mono text-[11px] text-muted">{summary.company.cin}</div>
-        <div className="mt-0.5 text-[11px] text-muted">
-          {summary.fyLabel} · {summary.reportType} · {summary.level}
+        <div className="mt-0.5 flex items-center gap-1 text-[11px] text-muted">
+          <span className="truncate">
+            {summary.fyLabel} · {summary.reportType} · {summary.level} ·
+          </span>
+          <select
+            value={summary.statementPlaces}
+            onChange={(e) => void setStatementPlaces(Number(e.target.value))}
+            title="Decimal places as presented in the statements. Tagged figures are re-read from Excel when this changes."
+            aria-label="Decimal places as presented"
+            data-testid="statement-places-edit"
+            className="rounded border border-border bg-panel px-1 text-[11px] text-fg"
+          >
+            {Array.from({ length: maxDisplayPlaces(summary.level) + 1 }, (_, n) => (
+              <option key={n} value={n}>
+                {n} dp
+              </option>
+            ))}
+          </select>
         </div>
       </div>
       <div className="px-2 py-2">

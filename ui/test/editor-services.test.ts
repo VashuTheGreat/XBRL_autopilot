@@ -10,6 +10,7 @@ import { SidecarTaxonomyCatalog } from '../electron/main/infra/sidecar-taxonomy-
 import { readXlsx } from '../electron/main/infra/xlsx-reader'
 import { ColumnPeriodService } from '../electron/main/services/column-period-service'
 import { EditorQueryService } from '../electron/main/services/editor-query-service'
+import { FilingPropertiesService } from '../electron/main/services/filing-properties-service'
 import { ValidationError } from '../electron/main/services/errors'
 import { MappingService } from '../electron/main/services/mapping-service'
 import { ProjectService } from '../electron/main/services/project-service'
@@ -152,14 +153,39 @@ describe.skipIf(!existsSync(AUTHORITY))('editor services on the sample workbook'
     expect((await mapping.cellInfo(cell('BS', 'C14'))).column.basis).toBe('outside')
   })
 
-  it('refuses an amount whose shown decimals exceed the filing’s decimal places (nothing is rounded away)', async () => {
-    const p = projects.project()
+  it('refuses an amount whose shown digits a rupee filing cannot hold (finer than paise): nothing is rounded away', async () => {
     const sheet = await sources.sheet(cell('BS', 'C9'))
-    sheet.cells.find((c) => c.r === 8 && c.c === 2)!.v = 1234.5678
-    sheet.cells.find((c) => c.r === 8 && c.c === 2)!.numFmt = '#,##0.00'
-    await expect(mapping.tag({ cell: cell('BS', 'C9'), concept: 'in-gaap:ShareCapital' })).rejects.toThrow(/1234\.57 \(2 decimal places\).*0 decimal places/)
-    ;(p.session.filing.meta as { displayPlaces: number }).displayPlaces = 2
-    expect((await mapping.tag({ cell: cell('BS', 'C9'), concept: 'in-gaap:ShareCapital' })).value).toBe('1234.57')
+    const c9 = sheet.cells.find((c) => c.r === 8 && c.c === 2)!
+    c9.v = 1234.5678
+    c9.numFmt = '#,##0.000'
+    await expect(mapping.tag({ cell: cell('BS', 'C9'), concept: 'in-gaap:ReservesAndSurplus' })).rejects.toThrow(/1234\.568 \(3 decimal places\).*at most 2/)
+    c9.numFmt = '#,##0.00'
+    expect((await mapping.tag({ cell: cell('BS', 'C9'), concept: 'in-gaap:ReservesAndSurplus' })).value).toBe('1234.57')
+  })
+
+  it('tags a one-column range as the sum of its cells, and keeps one cell → one fact', async () => {
+    // C14 1283442 + C15 12000 (both long-term lines of the sample)
+    const sum = await mapping.tag({ cell: cell('BS', 'C14:C15'), concept: 'in-gaap:LongTermBorrowings' })
+    expect(sum).toMatchObject({ value: '1295442', fact: { scope: 'CY' } })
+    expect(mapping.byCell().get('workbook-1.xlsx|BS|C15')?.id).toBe(sum.id)
+    expect((await mapping.cellInfo(cell('BS', 'C14:C15'))).amount?.value).toBe('1295442')
+    // tagging a cell inside the range replaces the range's tag
+    await mapping.tag({ cell: cell('BS', 'C15'), concept: 'in-gaap:OtherLongTermLiabilities' })
+    expect(mapping.list().map((m) => m.cell.ref)).toEqual(['C15'])
+    expect(projects.session().getValue('in-gaap:LongTermBorrowings', 'CY')).toBeNull()
+    await expect(mapping.tag({ cell: cell('BS', 'C14:D14'), concept: 'in-gaap:LongTermBorrowings' })).rejects.toThrow(/one column/)
+  })
+
+  it('re-pulls tagged figures from Excel when the decimal places as presented change', async () => {
+    const sheet = await sources.sheet(cell('BS', 'C10'))
+    sheet.cells.find((c) => c.r === 9 && c.c === 2)!.v = -343854.4567 // no number format: statement places decide
+    const m = await mapping.tag({ cell: cell('BS', 'C10'), concept: 'in-gaap:ReservesAndSurplus' })
+    expect(m.value).toBe('-343854')
+    const props = new FilingPropertiesService(projects, mapping)
+    expect(await props.setStatementPlaces(2)).toEqual([])
+    expect(projects.summary()!.statementPlaces).toBe(2)
+    expect(mapping.list()[0]!.value).toBe('-343854.46')
+    await expect(props.setStatementPlaces(3)).rejects.toThrow(/0 to 2/)
   })
 
   it('refuses text for amounts, empty cells and table-only elements with clear messages', async () => {

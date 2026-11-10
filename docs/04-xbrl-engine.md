@@ -111,6 +111,10 @@ The original `golden-DIVERGENCES.json`, `APPROVED_LIMITATIONS.json` and the MCA-
 2. Add strict types at module boundaries (`Fact`, `Issue`, `RuleAst`, `AuthorityJson`).
 3. Any port that changes behaviour gets a note here and a test.
 
+## App-facing helpers (TypeScript, `engine/src`)
+- `mandatory-zeros.ts`: `mandatoryZeroPlan(session, elrCode)` / `fillMandatoryZeros(session, elrCode)`. These report a statement's empty, applicable, non-dimensional mandatory **amounts** (executable `mandatory` rules of that ELR) as 0 through `Session.setValue`, with recalculation. It's an explicit user action, never automatic.
+- `basics.ts`: `maxDisplayPlaces(level)` / `defaultStatementPlaces(level)` (see [ADR-0009](decisions/ADR-0009-amounts-from-excel.md)). `SHARE_CAPITAL` (from `gate.js`) is exported for the app's actual-value rule.
+
 ## Public API (target)
 ```ts
 import { loadAuthority, Session, generateInstance, importInstance, explainMcaErrors } from '@xap/engine'

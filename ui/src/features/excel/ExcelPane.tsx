@@ -44,7 +44,7 @@ export function ExcelPane() {
           </Suspense>
         ) : (
           <EmptyState icon={FileSpreadsheet} title="No workbook imported">
-            <p>Import the company&apos;s Excel financial statements (.xlsx). Tagged cells are coloured: green = approved, amber = AI suggestion.</p>
+            <p>Import the company&apos;s Excel financial statements (.xlsx or .xls). Tagged cells are coloured: green = approved, amber = AI suggestion.</p>
             <div className="mt-3">
               <Button variant="primary" disabled={busy} onClick={() => void importWorkbook()}>
                 <Upload size={14} /> Import Excel…

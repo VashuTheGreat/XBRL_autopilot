@@ -57,6 +57,9 @@ my-company_FY2025-26_standalone.axbrl
   "columns": { "workbook-1.xlsx|BS|C": "CY" }   // period the user chose per value column (optional)
 }
 ```
+`cell.ref` is a single cell (`"C5"`) or a one-column range (`"D22:D23"`) whose cells are summed ([ADR-0009](decisions/ADR-0009-amounts-from-excel.md)). Sources keep their real extension (`source/workbook-2.xls`).
+```text
+```
 
 ## Rules
 - **The source of truth for XML is `filing.json`.** `mapping.json` explains where each value came from, and lets "re-pull from Excel" work after the workbook changes.

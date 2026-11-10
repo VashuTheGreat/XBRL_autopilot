@@ -18,12 +18,17 @@ These are real client files supplied by the team (2026-11-10). They're committed
 | **Float noise from Excel formulas**: `5443.466337358575` lakhs | HPL | Phase 4: round to the statement's display precision (cell number format, or the filing's "decimal places"); the inspector shows the rounding |
 | **Three year columns** (2026 / 2025 / 2024) | HPL | `inferScope` already returns nothing for a column that matches neither CY nor PY. The UI must say "this column isn't part of this filing" |
 | **Stale header text**: "As at 30th September, 2019" sitting above FY 2025-26 figures | DGPL | Header inference must never guess from a non-matching date. Ask the user, then remember the column → period choice per sheet |
+| **Share capital filed exact** (`4.1783` lakhs) while the cell format shows 4.18; other figures filed as presented | HPL | Phase 5 ✅: share capital at its actual value ([ADR-0009](decisions/ADR-0009-amounts-from-excel.md)) |
+| **Totals with no cell**: Trade payables is only its MSME / other lines (D22, D23); Total fixed assets has no row | HPL | Phase 5 ✅: tag a one-column range as a sum; empty calculation totals follow their tagged parts |
+| **Mandatory lines the company doesn't have** (Long-term borrowings, Intangible assets, investments, share application money) are filed as 0 | HPL | Phase 5 ✅: "Empty mandatory → 0" per statement (engine `fillMandatoryZeros`). It also fills CSR expenditure, which HPL keeps inside Other expenses (₹17 lakhs split out from the notes by the filer): the user reviews what it filled |
+| **Filer's hand adjustments**: Inventories 4,879.73 and Other current assets 794.79 filed where the statement shows 4,879.74 / 794.78 (both foot to 7,864.31) | HPL | Known divergence; the app files the statement's figures |
+| **A 1.3-million-cell ledger sheet** ("payables- mar 26") and an out-of-range date cell | HPL | Phase 5 ✅: sheets over 60,000 cells show their first rows (and say so); invalid dates are skipped |
 | **Helper columns** to the right with ×1,00,000 values (rupees next to lakhs) | HPL | Auto-tagging (Phase 8) must pick the presentation column, not the helper |
 | **Statement sheet names**: "IND AS BS", "Notes of IND AS BS", "Balance Sheet", "Note 3-20" | both | Sheet-kind detection for auto-tagging |
 | **Trial-balance sheets** ("TB", "TB 24-25", "TB 25-26") alongside the statements | both | Future: TB → statement mapping (Phase 12+) |
 | **Webtel's conventions**: descriptive context ids (`I2026_CurrentMember_ClassificationBasedOnCurrentNoncurrentAxis_…_401100`); fact ids `TAB…` on every fact | Dixon XML | Not required by MCA (our ids are shorter). Record any other differences in the Phase 7 import diff report |
 
 ## How they're used in tests
-- **Phase 5:** HPL imports, and its Balance Sheet / P&L can be tagged by hand into valid XML (C&I).
+- **Phase 5 ✅ (`ui/test/hpl-real-data.test.ts`):** HPL imports and its Balance Sheet, P&L and Note 21 revenue split are tagged by hand for both years. All 52 statement figures equal the filed instance (with the adjustments above noted). The two statements have no errors of their own; the remaining errors ask for note tables and note breakdowns (tables arrive in a later phase), and the whole-filing errors ask for the general-information pages.
 - **Phase 7 (import golden test):** import the Dixon instance into a project → regenerate → the facts are semantically equal (concept, period, dimensions, value, decimals), all 2,666 of them.
 - **Phase 8 (auto-tagging evaluation):** build an answer key automatically by matching DGPL amounts (lakhs ×1,00,000, rounded) to Dixon facts. Report auto-tagging precision and recall against it on every change to the tagger.

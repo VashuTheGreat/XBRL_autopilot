@@ -4,7 +4,7 @@
  */
 import { create } from 'zustand'
 import type { CellInfo, FormView, MappingView, Scope, XmlView } from '@shared/editor'
-import { cellKey, type CellRef, type WorkbookModel } from '@shared/workbook'
+import { cellKey, rangeCells, type CellRef, type WorkbookModel } from '@shared/workbook'
 import { unwrap } from '@/lib/result'
 import { toast } from './toast'
 
@@ -44,6 +44,8 @@ interface EditorState {
   tagSelected(concept: string, scope?: Scope): Promise<boolean>
   untag(id: string): Promise<void>
   setScope(id: string, scope: Scope): Promise<void>
+  /** reports the active statement's empty mandatory amounts as 0 */
+  fillMandatoryZeros(): Promise<void>
   /** remembers the period of the selected cell's column (null forgets it) */
   setColumnPeriod(scope: Scope | null): Promise<void>
 }
@@ -53,7 +55,8 @@ let revealSeq = 0
 
 const index = (mappings: MappingView[]) => ({
   mappings,
-  byCell: new Map(mappings.map((m) => [cellKey(m.cell), m])),
+  // keyed by the mapping's own reference and by every cell a summed range covers
+  byCell: new Map(mappings.flatMap((m) => [[cellKey(m.cell), m] as const, ...rangeCells(m.cell.ref).map((a1) => [cellKey({ ...m.cell, ref: a1 }), m] as const)])),
   byFact: new Map(mappings.filter((m) => m.factKey).map((m) => [m.factKey!, m])),
 })
 
@@ -119,6 +122,12 @@ export const useEditor = create<EditorState>((set, get) => {
         // the revision sync may already have fetched it: keep one entry per source
         set((s) => ({ workbooks: [...s.workbooks.filter((w) => w.source !== wb.source), wb], activeSource: wb.source }))
         toast.success(`Imported ${wb.fileName} (${wb.sheets.length} sheets)`)
+        const cut = wb.sheets.filter((s) => s.truncated)
+        if (cut.length) {
+          toast.info(
+            `Very large sheet${cut.length > 1 ? 's' : ''} shown in part: ${cut.map((s) => `“${s.name}” (first ${s.truncated!.keptRows.toLocaleString('en-IN')} rows of ${s.truncated!.totalCells.toLocaleString('en-IN')} cells)`).join(', ')}.`,
+          )
+        }
       }
     },
 
@@ -175,6 +184,15 @@ export const useEditor = create<EditorState>((set, get) => {
     setScope: async (id, scope) => {
       const m = await unwrap(api().setScope(id, scope), { onValidation: (p) => toast.error(p.join(' ')) })
       if (m) set((s) => ({ selection: { ...s.selection, factKey: m.factKey } }))
+    },
+
+    fillMandatoryZeros: async () => {
+      const uri = get().activeElr
+      if (!uri) return
+      const filled = await unwrap(api().fillMandatoryZeros(uri), { onValidation: (p) => toast.error(p.join(' ')) })
+      if (!filled) return
+      if (!filled.length) toast.info('No empty mandatory amounts in this statement.')
+      else toast.success(`Reported as 0: ${filled.map((z) => `${z.label} (${z.scope})`).join(', ')}`)
     },
 
     setColumnPeriod: async (scope) => {

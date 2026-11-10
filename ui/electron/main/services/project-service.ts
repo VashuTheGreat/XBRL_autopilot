@@ -8,7 +8,7 @@ import { randomUUID } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import { basename } from 'node:path'
 import { Filing, Session } from '@xap/engine'
-import { defaultDisplayPlaces, fyLabel, isValidCin, maxDisplayPlaces, ROUNDING_LEVELS, validateFilingPeriods } from '@xap/engine/basics'
+import { defaultStatementPlaces, fyLabel, isValidCin, maxDisplayPlaces, ROUNDING_LEVELS, validateFilingPeriods } from '@xap/engine/basics'
 import type { NewFilingInput, ProjectSummary, RecentProject, RecoveryItem } from '@shared/project'
 import {
   AXBRL_FORMAT,
@@ -77,6 +77,7 @@ export class ProjectService extends EventEmitter<ProjectEvents> implements Proje
       firstFinancialYear: boolean
       level: ProjectSummary['level']
       displayPlaces?: number
+      statementPlaces?: number | null
     }
     return {
       id: p.id,
@@ -90,7 +91,7 @@ export class ProjectService extends EventEmitter<ProjectEvents> implements Proje
       py: m.firstFinancialYear ? null : { ...m.periods.py },
       firstFinancialYear: m.firstFinancialYear,
       level: m.level,
-      displayPlaces: Number(m.displayPlaces) || 0,
+      statementPlaces: Number(m.statementPlaces ?? m.displayPlaces) || 0,
       fyLabel: fyLabel(m.periods.cy),
       factCount: p.session.filing.facts.size,
       revision: p.session.filing.revision + p.contentRevision * 1_000_000,
@@ -157,7 +158,9 @@ export class ProjectService extends EventEmitter<ProjectEvents> implements Proje
       reportType: input.reportType,
       firstFinancialYear: first,
       level: input.level,
-      displayPlaces: input.displayPlaces ?? defaultDisplayPlaces(input.level),
+      // statement figures at the places presented; any amount may be finer, down to paise (share capital to the rupee)
+      statementPlaces: input.statementPlaces ?? defaultStatementPlaces(input.level),
+      displayPlaces: maxDisplayPlaces(input.level),
       periods: { cy: { ...input.cy }, py: first ? { ...BLANK_PERIOD } : { ...input.py! } },
     })
     const nameOfCompany = loaded.authority.qnameOfLocal('NameOfCompany')
@@ -333,9 +336,9 @@ export function validateNewFiling(input: NewFilingInput): string[] {
   if (!isValidCin(input.cin ?? '')) problems.push('Enter a valid 21-character CIN (e.g. U72200KA2010PTC123456).')
   if (input.reportType !== 'Standalone' && input.reportType !== 'Consolidated') problems.push('Choose Standalone or Consolidated.')
   if (!ROUNDING_LEVELS.includes(input.level)) problems.push('Choose a level of rounding.')
-  else if (input.displayPlaces !== undefined) {
+  else if (input.statementPlaces !== undefined) {
     const max = maxDisplayPlaces(input.level)
-    if (!Number.isInteger(input.displayPlaces) || input.displayPlaces < 0 || input.displayPlaces > max) {
+    if (!Number.isInteger(input.statementPlaces) || input.statementPlaces < 0 || input.statementPlaces > max) {
       problems.push(`Decimal places as presented must be a whole number from 0 to ${max} for amounts in ${input.level}.`)
     }
   }

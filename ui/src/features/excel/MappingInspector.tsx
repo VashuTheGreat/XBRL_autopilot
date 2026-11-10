@@ -1,7 +1,7 @@
 import { CalendarRange, Link2, Search, Unlink } from 'lucide-react'
 import { formatIndian } from '@xap/engine/basics'
 import type { CellAmount, ColumnPeriod, Scope } from '@shared/editor'
-import { cellKey, fromA1 } from '@shared/workbook'
+import { cellKey, rangeOf, rangeSize } from '@shared/workbook'
 import { Button } from '@/components/ui/primitives'
 import { cn } from '@/lib/cn'
 import { useEditor } from '@/stores/editor'
@@ -17,11 +17,12 @@ export function MappingInspector() {
   if (!cell) {
     return <footer className="flex h-9 shrink-0 items-center border-t border-border px-3 text-[11px] text-muted">Select a cell to see or set its tag.</footer>
   }
-  const at = fromA1(cell.ref)
+  const at = rangeOf(cell.ref)
+  const cellCount = rangeSize(cell.ref)
   const raw = workbooks
     .find((w) => w.source === cell.workbook)
     ?.sheets.find((s) => s.name === cell.sheet)
-    ?.cells.find((c) => at && c.r === at.r && c.c === at.c)?.v
+    ?.cells.find((c) => at && c.r === at.r1 && c.c === at.c1)?.v
   const m = byCell.get(cellKey(cell))
   const info = cellInfo && cellKey(cellInfo.cell) === cellKey(cell) ? cellInfo : null
 
@@ -30,6 +31,7 @@ export function MappingInspector() {
       <span className="font-mono text-muted">
         {cell.sheet}!{cell.ref}
       </span>
+      {cellCount > 1 && <span className="shrink-0 text-[11px] text-muted">sum of {cellCount} cells</span>}
       {info?.amount ? (
         <AmountText amount={info.amount} />
       ) : (

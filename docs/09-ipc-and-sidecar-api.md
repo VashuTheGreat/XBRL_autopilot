@@ -21,7 +21,9 @@
 | project | `project:open` | invoke | `path?` (dialog if empty) → `ProjectSummary` |
 | project | `project:save` / `project:save-as` | invoke | → `{path}` |
 | project | `project:recent` | invoke | → `RecentProject[]` |
-| excel | `excel:import` | invoke | `path?` → `WorkbookModel` |
+| excel | `workbook:import` | invoke | `path?` → `WorkbookModel` (.xlsx/.xlsm in process; .xls through `POST /api/v1/workbooks/read`) |
+| mapping | `mapping:cell-info` | invoke | `CellRef` → `CellInfo` (amount at the statement's precision + column period) |
+| mapping | `mapping:set-column-period` | invoke | `CellRef, 'CY' \| 'PY' \| null` → `ColumnPeriod` (remembered per sheet column in `mapping.json`) |
 | engine | `engine:set-value` / `engine:validate` / `engine:export-xml` / `engine:apply-fix` | invoke | (Phase 2+) |
 | settings | `settings:get` / `settings:set` | invoke | non-secret settings |
 | settings | `settings:set-groq-key` / `settings:has-groq-key` | invoke | the key is stored with safeStorage; it is never returned to the renderer |
@@ -35,7 +37,7 @@ type SidecarStatus =
 
 ## Main ↔ sidecar (HTTP)
 - **Address and auth:** `http://127.0.0.1:<port>`. Every request except `/health` needs `Authorization: Bearer <token>`.
-- **Configuration:** the port and token are passed as env vars `XAP_PORT`, `XAP_TOKEN`. The Groq key is passed as `GROQ_API_KEY` from safeStorage, or from `.env` in dev.
+- **Configuration:** the port and token are passed as env vars `XAP_PORT`, `XAP_TOKEN`. `XAP_PARENT_PID` (Electron main's PID) makes the sidecar exit when the app is gone, even after a crash or force-kill. The Groq key is passed as `GROQ_API_KEY` from safeStorage, or from `.env` in dev.
 - **Response envelope** (existing, `api/responses.py`): `{data, message, success, errors[]}`.
 
 | Method & path | Purpose | Status |
@@ -51,6 +53,7 @@ type SidecarStatus =
 | `GET /api/v1/taxonomies/{id}/relationships/{kind}` | presentation/calculation/definition | exists |
 | `GET /api/v1/taxonomies/{id}/business-rules?concept=` | Raw rules | exists |
 | `GET /api/v1/taxonomies/recommend?keys=` | Legacy top-1 recommend | exists → superseded |
+| `POST /api/v1/workbooks/read` | `{fileName, contentBase64}` → `{sheets:[{name,rowCount,colCount,cells,merges,colWidths}]}` (the `WorkbookModel` shape). python-calamine reads `.xls`; there are no number formats, so amounts round to the filing's decimal places. 422 for unreadable files | **used by the UI** (Phase 5) |
 | `POST /api/v1/mapping/suggest` | Auto-tagging, see [06](06-ai-auto-tagging.md) | Phase 5 |
 | `POST /api/v1/mapping/review` | Tagging-quality review | Phase 5 |
 | `POST /api/v1/fix/propose` | Fix agent, see [07](07-ai-fix-agent.md) | Phase 7 |
