@@ -72,3 +72,16 @@ body {
 .tabular {
   font-variant-numeric: tabular-nums;
 }
+
+/* XML view: the line of the selected fact */
+.xap-xml-line {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+.xap-xml-gutter {
+  border-left: 3px solid var(--accent);
+}
+
+/* Univer fills its host */
+.univer-host {
+  position: relative;
+}

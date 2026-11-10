@@ -114,3 +114,17 @@ export function defaultReportingYear(today: Date): { start: string; end: string 
   const startYear = today.getMonth() >= 3 ? y - 1 : y - 2 // month 3 = April
   return { start: `${startYear}-04-01`, end: `${startYear + 1}-03-31` }
 }
+
+/**
+ * Indian digit grouping for display: "60000000" → "6,00,00,000", "-343854.5" → "-3,43,854.5".
+ * Text that isn't a plain decimal number is returned unchanged.
+ */
+export function formatIndian(value: string): string {
+  const m = /^(-?)(\d+)(\.\d+)?$/.exec(value.trim())
+  if (!m) return value
+  const [, sign, int, frac = ''] = m
+  const last3 = int!.slice(-3)
+  const rest = int!.slice(0, -3)
+  const grouped = rest ? `${rest.replace(/\B(?=(\d{2})+(?!\d))/g, ',')},${last3}` : last3
+  return `${sign}${grouped}${frac}`
+}

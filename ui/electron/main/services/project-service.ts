@@ -20,7 +20,7 @@ import {
   type AxbrlManifest,
 } from '../project/axbrl'
 import { NoProjectError, NoSavePathError, ReadOnlyProjectError, ValidationError } from './errors'
-import type { AuthorityProvider, AutosaveStore, Clock, LoadedAuthority, RecentProjectsRepository } from './ports'
+import type { AuthorityProvider, AutosaveStore, Clock, LoadedAuthority, ProjectAccess, ProjectHandle, RecentProjectsRepository } from './ports'
 import { systemClock } from './ports'
 
 export interface ProjectServiceDeps {
@@ -42,6 +42,8 @@ interface OpenProject {
   savedRevision: number
   /** changes outside the engine filing (mapping, sources, …) since the last save */
   extraDirty: boolean
+  /** changes to non-engine content (mapping, sources) since open */
+  contentRevision: number
   readOnlyReason: string | null
   loaded: LoadedAuthority
 }
@@ -50,7 +52,7 @@ export type ProjectEvents = { changed: [ProjectSummary | null] }
 
 const BLANK_PERIOD = { start: '', end: '' }
 
-export class ProjectService extends EventEmitter<ProjectEvents> {
+export class ProjectService extends EventEmitter<ProjectEvents> implements ProjectAccess {
   private current: OpenProject | null = null
   private readonly clock: Clock
   private readonly newId: () => string
@@ -89,6 +91,7 @@ export class ProjectService extends EventEmitter<ProjectEvents> {
       level: m.level,
       fyLabel: fyLabel(m.periods.cy),
       factCount: p.session.filing.facts.size,
+      revision: p.session.filing.revision + p.contentRevision * 1_000_000,
       sources: Object.keys(p.content.sources),
       createdAt: p.content.manifest.createdAt,
       updatedAt: p.content.manifest.updatedAt,
@@ -103,6 +106,27 @@ export class ProjectService extends EventEmitter<ProjectEvents> {
 
   hasProject(): boolean {
     return this.current !== null
+  }
+
+  /** ProjectAccess: a narrow handle on the open filing for the editor services. */
+  project(): ProjectHandle {
+    const p = this.require()
+    return {
+      id: p.id,
+      session: p.session,
+      content: p.content,
+      authority: p.loaded,
+      periods: () => {
+        const m = p.session.filing.meta as { firstFinancialYear: boolean; periods: { cy: { start: string; end: string }; py: { start: string; end: string } } }
+        return { cy: { ...m.periods.cy }, py: m.firstFinancialYear ? null : { ...m.periods.py } }
+      },
+      touch: () => {
+        if (this.current !== p) return // the project was closed/replaced meanwhile
+        p.extraDirty = true
+        p.contentRevision++
+        this.emitChanged()
+      },
+    }
   }
 
   /** The live engine session, for engine-level features (Phase 4+). */
@@ -155,7 +179,7 @@ export class ProjectService extends EventEmitter<ProjectEvents> {
     }
     // A new filing starts dirty: it exists only in memory until saved (revision -1 never matches).
     await this.replaceCurrent({
-      id, path: null, session, content: emptyContent(manifest, null), savedRevision: -1, extraDirty: false, readOnlyReason: null, loaded,
+      id, path: null, session, content: emptyContent(manifest, null), savedRevision: -1, extraDirty: false, contentRevision: 0, readOnlyReason: null, loaded,
     })
     return this.summary()!
   }
@@ -239,6 +263,7 @@ export class ProjectService extends EventEmitter<ProjectEvents> {
       content,
       savedRevision: session.filing.revision,
       extraDirty: false,
+      contentRevision: 0,
       readOnlyReason,
       loaded,
     }

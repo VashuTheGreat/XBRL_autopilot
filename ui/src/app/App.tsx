@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import type { MenuCommand } from '@shared/ipc'
 import { Toasts } from '@/components/Toasts'
 import { NewFilingDialog } from '@/features/new-filing/NewFilingDialog'
+import { useEditor } from '@/stores/editor'
 import { useProject } from '@/stores/project'
 import { useSettings } from '@/stores/settings'
 import { useSidecar } from '@/stores/sidecar'
@@ -24,6 +25,8 @@ function runCommand(cmd: MenuCommand): void {
       return void (project.summary ? project.save() : undefined)
     case 'file:save-as':
       return void (project.summary ? project.saveAs() : undefined)
+    case 'file:import-excel':
+      return void (project.summary ? useEditor.getState().importWorkbook() : project.openNewFiling())
     case 'view:toggle-sidebar':
       return ui.toggleSidebar()
     case 'view:toggle-bottom':
@@ -47,6 +50,7 @@ export function App() {
   useEffect(() => initProject(), [initProject])
   useEffect(() => initSettings(), [initSettings])
   useEffect(() => window.xap?.menu.onCommand(runCommand), [])
+  useEditorSync()
 
   return (
     <div className="flex h-full flex-col bg-bg text-fg">
@@ -59,4 +63,25 @@ export function App() {
       <Toasts />
     </div>
   )
+}
+
+/** Keeps the editor read-models in step with the open filing (revision bumps on every change in main). */
+function useEditorSync(): void {
+  const summary = useProject((s) => s.summary)
+  const elrs = useProject((s) => s.elrs)
+  const { sync, reset, activeElr, setActiveElr } = useEditor()
+  const projectId = summary?.id ?? null
+
+  useEffect(() => {
+    reset()
+  }, [projectId, reset])
+
+  useEffect(() => {
+    if (summary) void sync(summary.revision, summary.sources.length)
+  }, [summary, sync])
+
+  useEffect(() => {
+    // open on the balance sheet by default
+    if (summary && !activeElr && elrs.length) void setActiveElr((elrs.find((e) => e.code === '100100') ?? elrs[0]!).uri)
+  }, [summary, elrs, activeElr, setActiveElr])
 }

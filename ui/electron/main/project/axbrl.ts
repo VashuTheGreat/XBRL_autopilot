@@ -26,6 +26,8 @@ export interface AxbrlManifest {
     firstFinancialYear: boolean
     roundingLevel: string
   }
+  /** imported workbooks: source name (e.g. workbook-1.xlsx) → original file name */
+  sources?: Record<string, { fileName: string; importedAt: string }>
 }
 
 export interface AxbrlContent {

@@ -33,6 +33,8 @@ export interface ProjectSummary {
   level: RoundingLevel
   fyLabel: string
   factCount: number
+  /** bumps on every change to facts, mapping or sources: views refetch when it changes */
+  revision: number
   sources: string[]
   createdAt: string
   updatedAt: string

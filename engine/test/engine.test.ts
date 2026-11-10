@@ -42,3 +42,19 @@ describe.skipIf(!hasAuthority)('engine facade on the compiled C&I 2016 authority
     expect(decimal.toString(decimal.add(decimal.parse('0.1'), decimal.parse('0.2')))).toBe('0.3')
   })
 })
+
+describe.skipIf(!hasAuthority)('indexFactLines', () => {
+  it('points every emitted fact at its own XML line', async () => {
+    const { indexFactLines } = await import('../src/index')
+    const A = new Authority(JSON.parse(readFileSync(AUTH, 'utf8')))
+    const S = new Session(A)
+    buildExample(S)
+    const out = S.exportXml({ today: '2017-09-30' })
+    const index = indexFactLines(out.xml, S.filing, out.gate.emit)
+    const lines = out.xml.split('\n')
+    expect(Object.keys(index).length).toBe(out.gate.emit.length)
+    for (const f of out.gate.emit as { key: string; concept: string }[]) {
+      expect(lines[index[f.key]! - 1]).toContain(`<${f.concept} `)
+    }
+  })
+})

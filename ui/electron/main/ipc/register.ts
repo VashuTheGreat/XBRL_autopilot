@@ -1,8 +1,14 @@
 /** Thin IPC controllers: validate input, delegate to services, return Results. */
+import { readFile } from 'node:fs/promises'
+import { basename } from 'node:path'
 import { dialog, type BrowserWindow } from 'electron'
+import type { MappingStatus, Scope, TagCellInput } from '@shared/editor'
 import { IPC, type AppInfo, type HttpMethod } from '@shared/ipc'
 import type { AppSettings, NewFilingInput } from '@shared/project'
 import type { ProjectController } from '../project/project-controller'
+import type { EditorQueryService } from '../services/editor-query-service'
+import type { MappingService } from '../services/mapping-service'
+import type { SourceService } from '../services/source-service'
 import type { ProjectService } from '../services/project-service'
 import type { SettingsService } from '../services/settings-service'
 import type { SidecarManager } from '../sidecar'
@@ -14,6 +20,9 @@ export interface IpcDeps {
   projects: ProjectService
   projectController: ProjectController
   settings: SettingsService
+  sources: SourceService
+  mapping: MappingService
+  editor: EditorQueryService
   getWindow: () => BrowserWindow | null
 }
 
@@ -22,6 +31,7 @@ export function registerIpc(d: IpcDeps): void {
   registerSidecarIpc(d)
   registerProjectIpc(d)
   registerSettingsIpc(d)
+  registerEditorIpc(d)
 }
 
 function registerAppIpc(d: IpcDeps): void {
@@ -69,4 +79,44 @@ function registerSettingsIpc({ settings, getWindow }: IpcDeps): void {
     const { canceled, filePaths } = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
     return canceled || !filePaths[0] ? null : settings.update({ mcaToolPath: filePaths[0] })
   })
+}
+
+const SCOPES: Scope[] = ['CY', 'PY']
+const STATUSES: MappingStatus[] = ['suggested', 'approved', 'rejected']
+
+function registerEditorIpc({ sources, mapping, editor, getWindow }: IpcDeps): void {
+  handleResult(IPC.workbookImport, async (_e, path?: unknown) => {
+    if (path !== undefined) {
+      const file = requireString(path, 'path')
+      if (!/\.(xlsx|xlsm|xls)$/i.test(file)) throw new Error('Only Excel workbooks (.xlsx) can be imported.')
+      return sources.importWorkbook(basename(file), new Uint8Array(await readFile(file)))
+    }
+    const win = getWindow()
+    const opts = {
+      title: 'Import Excel financial statements',
+      properties: ['openFile' as const],
+      filters: [{ name: 'Excel workbook', extensions: ['xlsx', 'xlsm', 'xls'] }],
+    }
+    const { canceled, filePaths } = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
+    const file = canceled ? null : filePaths[0]
+    return file ? sources.importWorkbook(basename(file), new Uint8Array(await readFile(file))) : null
+  })
+  handleResult(IPC.workbookList, () => sources.workbooks())
+  handleResult(IPC.mappingList, () => mapping.list())
+  handleResult(IPC.mappingTag, (_e, input: TagCellInput) => {
+    if (!input?.cell || typeof input.concept !== 'string') throw new Error('Invalid tag request')
+    return mapping.tag(input)
+  })
+  handleResult(IPC.mappingUntag, (_e, id: unknown) => mapping.untag(requireString(id, 'id')))
+  handleResult(IPC.mappingSetScope, (_e, id: unknown, scope: Scope) => {
+    if (!SCOPES.includes(scope)) throw new Error('Invalid scope')
+    return mapping.setScope(requireString(id, 'id'), scope)
+  })
+  handleResult(IPC.mappingSetStatus, (_e, id: unknown, status: MappingStatus) => {
+    if (!STATUSES.includes(status)) throw new Error('Invalid status')
+    return mapping.setStatus(requireString(id, 'id'), status)
+  })
+  handleResult(IPC.editorForm, (_e, uri: unknown) => editor.form(requireString(uri, 'statement')))
+  handleResult(IPC.editorXml, () => editor.xml())
+  handleResult(IPC.taxonomySearch, (_e, q: unknown) => editor.searchConcepts(typeof q === 'string' ? q.slice(0, 200) : ''))
 }

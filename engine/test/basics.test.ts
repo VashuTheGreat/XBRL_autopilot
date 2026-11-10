@@ -32,3 +32,14 @@ describe('defaultReportingYear', () => {
     expect(defaultReportingYear(new Date(2026, 2, 31))).toEqual({ start: '2024-04-01', end: '2025-03-31' })
   })
 })
+
+describe('formatIndian', () => {
+  it('groups like an Indian balance sheet', async () => {
+    const { formatIndian } = await import('../src/basics')
+    expect(formatIndian('60000000')).toBe('6,00,00,000')
+    expect(formatIndian('-343854.50')).toBe('-3,43,854.50')
+    expect(formatIndian('999')).toBe('999')
+    expect(formatIndian('1000')).toBe('1,000')
+    expect(formatIndian('Lakhs')).toBe('Lakhs')
+  })
+})

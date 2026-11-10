@@ -15,6 +15,8 @@ export function buildMenu(getWindow: () => BrowserWindow | null, isDev: boolean)
         { label: 'Save', accelerator: 'CmdOrCtrl+S', click: send('file:save') },
         { label: 'Save As…', accelerator: 'CmdOrCtrl+Shift+S', click: send('file:save-as') },
         { type: 'separator' },
+        { label: 'Import Excel…', accelerator: 'CmdOrCtrl+I', click: send('file:import-excel') },
+        { type: 'separator' },
         { label: 'Settings', accelerator: 'CmdOrCtrl+,', click: send('tools:settings') },
         { type: 'separator' },
         { role: 'quit' },

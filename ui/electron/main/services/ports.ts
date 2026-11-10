@@ -2,7 +2,7 @@
  * Ports: the small interfaces the main-process services depend on (dependency inversion).
  * Production adapters live in ../infra; tests use in-memory fakes.
  */
-import type { Authority } from '@xap/engine'
+import type { Authority, Session } from '@xap/engine'
 import type { ElrInfo, RecentProject } from '@shared/project'
 import type { AxbrlContent, AxbrlManifest } from '../project/axbrl'
 
@@ -51,6 +51,28 @@ export interface AutosaveStore {
   list(): Promise<AutosaveEntry[]>
   read(id: string): Promise<{ content: AxbrlContent; originalPath: string | null }>
   remove(id: string): Promise<void>
+}
+
+/** Periods of the open filing, in the shape the mapping helpers use. */
+export interface FilingPeriods {
+  cy: { start: string; end: string }
+  py: { start: string; end: string } | null
+}
+
+/** Narrow access to the open filing for services other than ProjectService (interface segregation). */
+export interface ProjectHandle {
+  readonly id: string
+  readonly session: Session
+  readonly content: AxbrlContent
+  readonly authority: LoadedAuthority
+  periods(): FilingPeriods
+  /** call after changing sources/mapping (marks dirty) or facts (refreshes views) */
+  touch(): void
+}
+
+export interface ProjectAccess {
+  /** throws NoProjectError when nothing is open */
+  project(): ProjectHandle
 }
 
 export interface Clock {

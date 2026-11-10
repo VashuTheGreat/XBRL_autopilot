@@ -142,6 +142,7 @@ export class Session {
     if (c.periodType === 'instant' && preferredLabel === 'periodStartLabel') return openingPeriodFor(this.filing.meta.periods, scope);
     return this.filing.period(concept, scope);
   }
+  /** @param {string} concept @param {string} scope @param {any[]} [dims] @param {string | null} [preferredLabel] */
   getValue(concept, scope, dims = [], preferredLabel = null) {
     const p = this.periodForCell(concept, scope, preferredLabel);
     return p ? this.filing.get(concept, p, dims) : null;

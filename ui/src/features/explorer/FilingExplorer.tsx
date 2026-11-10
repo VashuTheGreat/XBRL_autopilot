@@ -2,13 +2,22 @@ import { ChevronDown, ChevronRight, FolderTree } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import type { ElrInfo } from '@shared/project'
 import { EmptyState } from '@/components/EmptyState'
+import { cn } from '@/lib/cn'
+import { useEditor } from '@/stores/editor'
 import { useProject } from '@/stores/project'
+import { useUi } from '@/stores/ui'
 
 const GROUPS: ElrInfo['group'][] = ['Statements', 'Notes', 'Disclosures']
 
 /** ELR tree of the open filing. Completion/error status dots arrive with validation (Phase 6). */
 export function FilingExplorer() {
   const { summary, elrs } = useProject()
+  const { activeElr, setActiveElr } = useEditor()
+  const setRightTab = useUi((s) => s.setRightTab)
+  const openElr = (uri: string) => {
+    void setActiveElr(uri)
+    setRightTab('form')
+  }
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set(['Notes', 'Disclosures']))
   const [filter, setFilter] = useState('')
   const grouped = useMemo(() => {
@@ -65,8 +74,10 @@ export function FilingExplorer() {
                 <div
                   key={e.uri}
                   role="treeitem"
+                  aria-selected={activeElr === e.uri}
                   title={`[${e.code}] ${e.title}`}
-                  className="flex cursor-default items-baseline gap-2 truncate py-0.5 pr-2 pl-6 hover:bg-panel-2"
+                  onClick={() => openElr(e.uri)}
+                  className={cn('flex cursor-default items-baseline gap-2 truncate py-0.5 pr-2 pl-6 hover:bg-panel-2', activeElr === e.uri && 'bg-accent/10 text-fg')}
                 >
                   <span className="shrink-0 font-mono text-[10px] text-muted">{e.code}</span>
                   <span className="truncate">{e.title}</span>

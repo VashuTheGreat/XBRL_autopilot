@@ -1,7 +1,8 @@
-import { Building2, Search, Sparkles, TriangleAlert } from 'lucide-react'
+import { Building2, Sparkles, TriangleAlert } from 'lucide-react'
 import { EmptyState } from '@/components/EmptyState'
 import { FilingExplorer } from '@/features/explorer/FilingExplorer'
 import { SettingsPanel } from '@/features/settings/SettingsPanel'
+import { TaxonomyPanel } from '@/features/taxonomy/TaxonomyPanel'
 import { useUi, type Activity } from '@/stores/ui'
 
 const TITLES: Record<Activity, string> = {
@@ -22,11 +23,7 @@ export function SidePanel() {
       </header>
       <div className="min-h-0 flex-1 overflow-auto">
         {activity === 'explorer' && <FilingExplorer />}
-        {activity === 'taxonomy' && (
-          <EmptyState icon={Search} title="Taxonomy browser" phase="Phase 4">
-            Search C&amp;I 2016 elements and drag one onto an Excel cell to tag it.
-          </EmptyState>
-        )}
+        {activity === 'taxonomy' && <TaxonomyPanel />}
         {activity === 'problems' && (
           <EmptyState icon={TriangleAlert} title="No problems" phase="Phase 6">
             Validation errors, warnings and MCA tool messages will be grouped by statement here.

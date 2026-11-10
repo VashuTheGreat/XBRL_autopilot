@@ -48,6 +48,18 @@ const api: XapApi = {
     pickMcaTool: () => invoke(IPC.settingsPickMcaTool),
     onChanged: (cb) => subscribe<SettingsState>(IPC.settingsChanged, cb),
   },
+  editor: {
+    importWorkbook: (path) => invoke(IPC.workbookImport, path),
+    workbooks: () => invoke(IPC.workbookList),
+    mappings: () => invoke(IPC.mappingList),
+    tag: (input) => invoke(IPC.mappingTag, input),
+    untag: (id) => invoke(IPC.mappingUntag, id),
+    setScope: (id, scope) => invoke(IPC.mappingSetScope, id, scope),
+    setStatus: (id, status) => invoke(IPC.mappingSetStatus, id, status),
+    form: (elrUri) => invoke(IPC.editorForm, elrUri),
+    xml: () => invoke(IPC.editorXml),
+    searchConcepts: (query) => invoke(IPC.taxonomySearch, query),
+  },
 }
 
 contextBridge.exposeInMainWorld('xap', api)

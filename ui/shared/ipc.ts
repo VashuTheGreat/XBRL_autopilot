@@ -8,6 +8,8 @@ import type {
   RecoveryItem,
   SettingsState,
 } from './project'
+import type { ConceptHit, FormView, MappingStatus, MappingView, Scope, TagCellInput, XmlView } from './editor'
+import type { WorkbookModel } from './workbook'
 
 /**
  * Every fallible IPC call returns a Result instead of throwing: Electron flattens thrown errors into
@@ -47,6 +49,7 @@ export type MenuCommand =
   | 'file:open'
   | 'file:save'
   | 'file:save-as'
+  | 'file:import-excel'
   | 'filing:validate'
   | 'filing:generate-xml'
   | 'view:toggle-sidebar'
@@ -83,6 +86,16 @@ export const IPC = {
   settingsClearGroqKey: 'settings:clear-groq-key',
   settingsPickMcaTool: 'settings:pick-mca-tool',
   settingsChanged: 'settings:changed',
+  workbookImport: 'workbook:import',
+  workbookList: 'workbook:list',
+  mappingList: 'mapping:list',
+  mappingTag: 'mapping:tag',
+  mappingUntag: 'mapping:untag',
+  mappingSetScope: 'mapping:set-scope',
+  mappingSetStatus: 'mapping:set-status',
+  editorForm: 'editor:form',
+  editorXml: 'editor:xml',
+  taxonomySearch: 'taxonomy:search',
 } as const
 
 /** The API exposed on window.xap by the preload script. */
@@ -123,5 +136,18 @@ export interface XapApi {
     /** file dialog for the MCA Validation Tool exe; `null` = cancelled */
     pickMcaTool(): Promise<Result<SettingsState | null>>
     onChanged(cb: (s: SettingsState) => void): () => void
+  }
+  editor: {
+    /** no path → file dialog (also used for drag-and-drop); `null` value = cancelled */
+    importWorkbook(path?: string): Promise<Result<WorkbookModel | null>>
+    workbooks(): Promise<Result<WorkbookModel[]>>
+    mappings(): Promise<Result<MappingView[]>>
+    tag(input: TagCellInput): Promise<Result<MappingView>>
+    untag(id: string): Promise<Result<void>>
+    setScope(id: string, scope: Scope): Promise<Result<MappingView>>
+    setStatus(id: string, status: MappingStatus): Promise<Result<MappingView>>
+    form(elrUri: string): Promise<Result<FormView>>
+    xml(): Promise<Result<XmlView>>
+    searchConcepts(query: string): Promise<Result<ConceptHit[]>>
   }
 }

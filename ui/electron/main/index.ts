@@ -9,12 +9,16 @@ import { app, BrowserWindow, Menu, shell } from 'electron'
 import { IPC } from '@shared/ipc'
 import { AppDatabase } from './infra/app-database'
 import { DirAutosaveStore } from './infra/dir-autosave-store'
+import { readXlsx } from './infra/xlsx-reader'
 import { FileAuthorityProvider } from './infra/file-authority-provider'
 import { SafeStorageSecretStore } from './infra/safe-storage-secret-store'
 import { registerIpc } from './ipc/register'
 import { buildMenu } from './menu'
 import { ProjectController } from './project/project-controller'
 import { AutosaveScheduler } from './services/autosave-scheduler'
+import { EditorQueryService } from './services/editor-query-service'
+import { MappingService } from './services/mapping-service'
+import { SourceService } from './services/source-service'
 import { ProjectService } from './services/project-service'
 import { SettingsService } from './services/settings-service'
 import { SidecarManager } from './sidecar'
@@ -44,6 +48,9 @@ const projects = new ProjectService({
   appVersion: app.getVersion(),
 })
 const projectController = new ProjectController(projects, getWindow)
+const sources = new SourceService(projects, readXlsx)
+const mapping = new MappingService(projects, sources)
+const editor = new EditorQueryService(projects, () => mapping.list())
 const autosave = new AutosaveScheduler(projects, () => settings.get().autosaveSeconds)
 const sidecar = new SidecarManager({
   isPackaged: app.isPackaged,
@@ -149,6 +156,9 @@ if (!app.requestSingleInstanceLock()) {
       projects,
       projectController,
       settings,
+      sources,
+      mapping,
+      editor,
       getWindow,
     })
     wireEvents()

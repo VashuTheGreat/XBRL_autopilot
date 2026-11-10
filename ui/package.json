@@ -14,11 +14,16 @@
     "dist": "electron-vite build && electron-builder --win"
   },
   "dependencies": {
+    "@monaco-editor/react": "4.7.0",
+    "@univerjs/preset-sheets-core": "1.4.0",
+    "@univerjs/presets": "1.4.0",
     "@xap/engine": "workspace:*",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
+    "exceljs": "4.4.0",
     "jszip": "3.10.2",
     "lucide-react": "1.71.0",
+    "monaco-editor": "0.57.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "react-resizable-panels": "4.21.0",
