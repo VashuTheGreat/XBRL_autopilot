@@ -1,0 +1,13 @@
+# ADR-0001 · Hybrid engine: TypeScript XBRL core + Python AI sidecar
+- **Status:** accepted (2026-11-10)
+- **Context:**
+  - `lagacy_js/` contains about 17k lines of tested, deterministic C&I 2016 logic: model, generator, rules, calculation, gate, fixes.
+  - The Python code (`api/`, `src/`) has the taxonomy knowledge base and retrieval-based tag recommendation, but no generation or validation.
+  - We need live validation while the user edits, and offline XML generation.
+- **Decision:**
+  - Port the legacy logic to a TS package, `engine/` (`@xap/engine`), that runs inside Electron.
+  - Keep and extend the Python FastAPI app as a bundled, stateless local sidecar (PyInstaller) for AI work: auto-tagging, the Groq fix agent, knowledge-base retrieval, and Arelle.
+- **Consequences:**
+  - Two languages. The boundary is a typed HTTP contract ([09](../09-ipc-and-sidecar-api.md)).
+  - The core keeps working without the sidecar, so a sidecar crash only disables AI.
+  - The installer must bundle a Python runtime, which means watching its size.

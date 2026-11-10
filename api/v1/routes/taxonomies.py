@@ -135,11 +135,16 @@ async def search_taxonomy_concepts(
     q: str = Query(..., min_length=1, description="Query string to search in concept QName, name, or labels"),
     limit: Optional[int] = Query(None, ge=1, description="Limit number of concepts returned"),
     offset: int = Query(0, ge=0, description="Offset for pagination"),
+    summary: bool = Query(False, description="Ranked compact results {total, items} (label, type, periodType, balance, elrCodes)"),
+    reportable_only: bool = Query(True, description="With summary=true: only elements a value can be reported for"),
 ):
     """Label/QName se concept search - Search concepts in taxonomy by query string."""
     with logger.span("taxonomies.concepts.search", taxonomy_id=id, query=q):
         try:
             authority = get_authority(id)
+            if summary:
+                result = authority.search_concepts(q, limit=limit or 50, offset=offset, reportable_only=reportable_only)
+                return success_response(data=result, message=f"Ranked search results for '{q}' in taxonomy '{id}'", status_code=200)
             concepts_dict = authority.get_concepts()
 
             q_clean = q.strip().lower()
@@ -190,7 +195,11 @@ async def search_taxonomy_concepts(
 
 
 @router.get("/{id}/concepts/{qname}")
-async def get_taxonomy_concept_detail(id: str, qname: str):
+async def get_taxonomy_concept_detail(
+    id: str,
+    qname: str,
+    include_rules: bool = Query(False, description="Also return the MCA business rules for this element"),
+):
     """Specific concept ki complete details - Complete details for a concept."""
     with logger.span("taxonomies.concepts.detail", taxonomy_id=id, qname=qname):
         try:
@@ -207,6 +216,9 @@ async def get_taxonomy_concept_detail(id: str, qname: str):
                     message=f"Concept '{qname}' not found in taxonomy '{id}'",
                     status_code=404,
                 )
+
+            if include_rules:
+                concept = {**concept, "summary": authority.concept_summary(qname), "businessRules": authority.rules_for_concept(qname)}
 
             logger.info(
                 "taxonomies.concepts.detail.success",
@@ -592,7 +604,7 @@ async def get_taxonomical_rules(id: str):
     with logger.span("taxonomies.rules.get", taxonomy_id=id):
         try:
             authority = get_authority(id)
-            data = authority.get_roles()
+            data = authority.get_business_rules()
             return success_response(
                 data=data,
                 message="Taxonomies rules succeed",

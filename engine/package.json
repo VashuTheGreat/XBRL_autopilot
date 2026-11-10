@@ -1,0 +1,29 @@
+{
+  "name": "@xap/engine",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Deterministic XBRL core for XBRL Autopilot (model, rules, validation, instance generation). Port of lagacy_js.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./basics": "./src/basics.ts"
+  },
+  "scripts": {
+    "compile:authority": "node compiler/compile.mjs",
+    "test": "vitest run && node --test --test-concurrency=4 \"test/legacy/*.test.mjs\"",
+    "test:unit": "vitest run",
+    "test:legacy": "node --test --test-concurrency=4 \"test/legacy/*.test.mjs\"",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "devDependencies": {
+    "@types/node": "26.6.6",
+    "typescript": "7.0.2",
+    "vitest": "5.1.0",
+    "xlsx": "0.18.5"
+  },
+  "dependencies": {
+    "@xmldom/xmldom": "0.8.15"
+  }
+}

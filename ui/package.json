@@ -1,0 +1,47 @@
+{
+  "name": "ui",
+  "productName": "XBRL Autopilot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "XBRL Autopilot desktop app (Electron + React)",
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "dist": "electron-vite build && electron-builder --win"
+  },
+  "dependencies": {
+    "@monaco-editor/react": "4.7.0",
+    "@univerjs/preset-sheets-core": "1.4.0",
+    "@univerjs/presets": "1.4.0",
+    "@xap/engine": "workspace:*",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "exceljs": "4.4.0",
+    "jszip": "3.10.2",
+    "lucide-react": "1.71.0",
+    "monaco-editor": "0.57.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-resizable-panels": "4.21.0",
+    "tailwind-merge": "3.7.0",
+    "zustand": "5.1.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.3.5",
+    "@types/node": "26.6.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.3.0",
+    "electron": "45.2.3",
+    "electron-builder": "26.18.0",
+    "electron-vite": "6.0.0",
+    "tailwindcss": "4.3.5",
+    "typescript": "7.0.2",
+    "vite": "8.3.7",
+    "vitest": "5.1.0"
+  }
+}
