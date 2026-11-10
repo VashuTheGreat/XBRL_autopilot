@@ -13,10 +13,10 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 | 3 | `.axbrl` project file, autosave/recovery, recents, New Filing wizard, settings | ✅ done |
 | 4 | **Editor**: Univer grid + tag overlay, inspector, XBRL Form, Monaco XML, taxonomy browser, two-way linkage. Remaining: green E2E with real clicks, float-noise rounding, a "column not in this filing" message, remembering column → period per sheet | 🟡 in progress |
 | 5 | **Real-data readiness**: `.xls` import (python-calamine via the sidecar), HPL (C&I) hand-tagged end to end into valid XML, fixes from that run | ⏭ next |
-| 6 | **Ind AS 2017**: taxonomy-generic compiler (per-taxonomy profile), `ind-as-2017` authority, Ind AS rule formalizer, taxonomy choice in the wizard, authority loaded per filing | ⏳ |
+| 6 | **Ind AS 2017 + engine data via routes** (ADR-0008): browsing already works for all 3 taxonomies through the routes. Move the **dimensional model** (tables, hypercubes, axis defaults, ELR applicability) into `knowledge_base` (Python ingestion) and add a route serving it; the engine loads its authority **from that route** for C&I and Ind AS, and the TS compiler is retired. Golden check: the route-built C&I authority gives identical XML to today's. Also the taxonomy choice in the wizard | ⏳ |
 | 7 | **Import an existing XBRL instance** (Webtel / any vendor) into a project; golden test: Dixon instance → regenerate → semantically equal 2,666 facts; diff report against Webtel conventions; previous-year carry-forward from last year's XML | ⏳ |
 | 8 | **AI auto-tagging** (`/mapping/suggest`: memory → exact → hybrid retrieval → Groq rerank) plus an **evaluation harness** on the DGPL ↔ Dixon answer key (precision/recall on every change); sidecar `Authority` bug fixes; ONNX embeddings | ⏳ |
-| 9 | **Validation UI**: live gate/rules/calculation per taxonomy, Problems panel with locate, quick fixes, MCA Validation Tool v5.1 launcher + error import, rule-coverage diff (KB JSON vs engine) | ⏳ |
+| 9 | **Validation UI**: the executable rule ASTs move into `knowledge_base` and are served by a route (the rule text already is); live gate/rules/calculation per taxonomy, Problems panel with locate, quick fixes, MCA Validation Tool v5.1 launcher + error import, rule-coverage report | ⏳ |
 | 10 | **AI fix agent** (`/fix/propose`, patch review, audit log) | ⏳ |
 | 11 | **Packaging**: PyInstaller sidecar + electron-builder NSIS, `.axbrl` association | ⏳ |
 | 12 | Costing CRA-4, masters prefill, trial-balance mapping, Groq proxy, auto-update | ⏳ |
@@ -79,3 +79,4 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
     5. Show "this column isn't part of the filing" for 3rd-year or stale-header columns.
     6. Remember the column → period choice per sheet.
   - **Then Phase 5:** `.xls` import through the sidecar (python-calamine), and hand-tag HPL end to end.
+- **2026-11-10, phases adjusted for ADR-0008:** Phase 6 is now "move the dimensional model into `knowledge_base` + a route; the engine loads its authority from routes" (Ind AS browsing already works). In Phase 9 the rule ASTs move into `knowledge_base` too. Phases 4, 5, 7, 8, 10 and 11 are unchanged.

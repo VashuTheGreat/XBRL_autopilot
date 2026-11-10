@@ -18,7 +18,9 @@
   - whether an element is reported only inside a dimensional table
 
   The knowledge base has no tables, hypercubes, dimension defaults or executable rules yet.
-- **Next step:** once the knowledge base carries those, the engine loads its authority through a route as well.
+- **Next step (scheduled):**
+  - Phase 6 moves the dimensional model into `knowledge_base` and serves it by a route; the engine loads its authority from that route, and the TS compiler is retired.
+  - Phase 9 does the same for the executable rule ASTs.
 - **Consequences:**
   - The statement tree and Form need the sidecar to be running; the catalog waits for `/health`.
   - The editor tests run against the real sidecar, so the contract is tested end to end.
