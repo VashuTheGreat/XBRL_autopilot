@@ -2,6 +2,68 @@
 
 The engine is the deterministic core. It is a pure TypeScript library with no Electron, network or AI dependencies. It runs inside Electron (main / utilityProcess) and in Vitest. It is a **port of `lagacy_js/`**, which is a tested C&I 2016 tool, generalised so other taxonomies can be added.
 
+## Current state (2026-11-10)
+- **Step 1 is done: a behaviour-preserving import.**
+  - The legacy runtime modules live unchanged in `engine/src/core/*.js`, with one JSDoc annotation on `Session`.
+  - `engine/src/index.ts` is the typed public entry point. With `allowJs`, TypeScript infers the core's types.
+  - The compiler lives in `engine/compiler/*.mjs`, and the legacy tests in `engine/test/legacy/` (run with `node:test`).
+- **Step 2 is next: convert `src/core/*.js` to TS one module at a time.**
+  - Start with the leaves: decimal, periods, units, scaling, dates, dimensions, then up the import graph.
+  - After each module, `pnpm --filter @xap/engine test` must stay green.
+- **Not ported:**
+  - `app.js`, `shell.html`, `styles.css`, `build.mjs`, `browser-smoke.mjs`: the legacy UI.
+  - `excel-import.js` and its test: SheetJS-based browser import; layout analysis moves to the Python sidecar (06).
+  - `xml-errors-v144.test`: it reads the legacy UI source.
+  - `release-gate.mjs`.
+
+### Layout
+```
+engine/
+  src/index.ts            typed public API (re-exports the core)
+  src/core/*.js           runtime: model, session, rules, gate, generator, importer, …
+  compiler/*.mjs          authority compiler (DTS loader, tables, rule formalizer, taxonomy source)
+  compiler/golden-DIVERGENCES.json   rules downgraded to WARNING by MCA-accepted evidence (see below)
+  compiler/APPROVED_LIMITATIONS.json release-owner approvals (none approved)
+  authority/              generated: ci-2016.authority.json (~6 MB), ci-2016.coverage.json (git-ignored)
+  .taxonomy/              generated working copy of the taxonomy with validator patches (git-ignored)
+  test/*.test.ts          vitest (facade)
+  test/legacy/*.test.mjs  node:test (ported legacy suite)
+  test/fixtures/golden/   put MCA-validated golden-*.xml here to enable ~50 skipped regression tests
+```
+
+### Commands
+```bash
+pnpm --filter @xap/engine compile:authority   # data/ → authority/ci-2016.*.json (~2.5 s)
+pnpm --filter @xap/engine test                # vitest + legacy suite (needs the compiled authority)
+```
+Results on 2026-11-10:
+- **Compiler:** 962 executable rules, 48 review-only (they need MCA21 master data), 153 not applicable, 1 unimplemented (ML-20-b).
+- **Legacy suite:** 284 tests, 220 pass, 0 fail, 64 skipped:
+  - ~50 need `golden-*.xml`
+  - 7 need Arelle
+  - 2 need the workbook text export
+  - the rest are skipped by the tests themselves
+
+### Differences from `lagacy_js` (deliberate)
+| Area | Legacy | Now |
+|---|---|---|
+| Taxonomy source | `Final_C_and_I_Taxonomy_2016_V1.2.zip` + validator zip | Extracted package in `data/c&I taxonomy/…`, copied to `engine/.taxonomy/` |
+| Validator taxonomy update | Taken from the MCA validator's `Taxonomy-2016-03-31.zip` | **Explicit checked patch** (`VALIDATOR_PATCHES` in `compiler/taxonomy-source.mjs`): the second `SRNNumber` pattern `[A-Z][A-Z][0-9]{7}` (MCA V3 SRN). It fails loudly if the source text changes |
+| Rule workbook | Repo root | `data/c&I taxonomy/Final Business Rules …/Final_Business_Rule_C&I_Taxonomy_2016_V1.3.xls` (`RULES_WORKBOOK`) |
+| Annexure II / Filing Manual hashing | Required | Optional (`engine/compiler/`); `meta.annexureCrossCheck` is `null` when absent |
+| Outputs | `MCA_AUTHORITY.json`, `BUSINESS_RULE_COVERAGE.json` | `authority/ci-2016.authority.json`, `authority/ci-2016.coverage.json` |
+| `rule-formalizer` source file name | `split('/')` | `split(/[\/]/)`, so it works on Windows |
+
+### Evidence files: reconstructed ⚠️
+The original `golden-DIVERGENCES.json`, `APPROVED_LIMITATIONS.json` and the MCA-validated reference instances (`golden-FILING-A/B_2024-25.xml`) were **never committed** to `lagacy_js`.
+- `golden-DIVERGENCES.json` was **reconstructed from what the legacy tests assert**. It downgrades these rules to WARNING:
+  - SR-L2116-1
+  - SR-L3996-1 and CH-4 (`NameOfMainProductOrService`)
+  - SR-L4140-1
+  - ML-41: the board-approval-dates element only
+- Each entry says it was reconstructed.
+- **Ask whoever wrote `lagacy_js` for the originals.** Then replace the file and drop the golden XMLs into `engine/test/fixtures/golden/`.
+
 ## Concepts
 - **Authority:** a compiled, executable taxonomy for one taxonomy version. It contains:
   - concepts: type, periodType, balance, labels

@@ -1,0 +1,12 @@
+{
+  "_provenance": "Release-owner approvals of known engine limitations. An approved UNIMPLEMENTED rule is shown as 'APPROVED LIMITATION / NOT EXECUTED', never as PASS. Nothing is approved by default. Recreated 2026-11-10 during the lagacy_js -> engine port (the original file was not committed); its only entry is the one the lagacy_js tests require.",
+  "limitations": [
+    {
+      "kind": "rule",
+      "id": "ML-20-b",
+      "approved": false,
+      "approvedBy": null,
+      "description": "Outstanding balances for related-party transactions: the MCA workbook says an amount element 'shall be mandatory for various transactions' without saying which. MCA-validated instances report related-party rows without any outstanding-balance amount, so the rule is not formalized (UNIMPLEMENTED)."
+    }
+  ]
+}

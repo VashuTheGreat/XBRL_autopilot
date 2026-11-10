@@ -1,0 +1,27 @@
+{
+  "_provenance": "RECONSTRUCTED 2026-11-10 during the lagacy_js -> engine port. The original golden-DIVERGENCES.json and the MCA-validated reference instances behind it (golden-FILING-A_2024-25.xml, golden-FILING-B_2024-25.xml) were not committed to lagacy_js. The rule ids and element lists below are exactly those that the lagacy_js test suite asserts as divergences (audit-filing-a.test, mandatory-marks.test, v151.test). Replace this file with the original evidence when it is available. See docs/05-validation.md.",
+  "schemaRefs": [],
+  "rules": [
+    {
+      "ruleId": "SR-L2116-1",
+      "evidence": "Contradicted by an MCA-validated reference instance (FY 2024-25; reconstructed from the lagacy_js test expectations, original evidence file not in repo): the instance was accepted without the element this rule makes mandatory for key managerial personnel."
+    },
+    {
+      "ruleId": "SR-L3996-1",
+      "evidence": "Contradicted by an MCA-validated reference instance (FY 2024-25; reconstructed from the lagacy_js test expectations, original evidence file not in repo): NameOfMainProductOrService omitted for a reporting period starting after 01/04/2018."
+    },
+    {
+      "ruleId": "CH-4",
+      "evidence": "Contradicted by an MCA-validated reference instance (FY 2024-25; reconstructed from the lagacy_js test expectations, original evidence file not in repo): NameOfMainProductOrService omitted for a reporting period starting after 01/04/2018 (change-sheet restatement of SR-L3996-1)."
+    },
+    {
+      "ruleId": "SR-L4140-1",
+      "evidence": "Contradicted by the MCA-accepted filing (FY 2024-25; reconstructed from the lagacy_js v15.1 test expectations, original evidence file not in repo): accepted with 'Secretarial auditors firm' selected and the dependent element not reported."
+    },
+    {
+      "ruleId": "ML-41",
+      "concepts": ["in-ca:DatesOfApprovalOfMaterialContractsArrangementsTransactionsWithRelatedPartyByBoard"],
+      "evidence": "The MCA-accepted filing (FY 2024-25; reconstructed from the lagacy_js v15.1 test expectations, original evidence file not in repo) omits the board approval dates of material related-party contracts; the other ML-41 line items stay blocking."
+    }
+  ]
+}

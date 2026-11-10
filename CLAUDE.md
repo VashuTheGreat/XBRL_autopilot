@@ -25,7 +25,8 @@
 pnpm install                         # JS deps (pnpm only, never npm/yarn)
 pnpm dev                             # Electron app in dev (also starts the Python sidecar via uv)
 pnpm test                            # all JS tests (engine + ui)
-pnpm --filter @xap/engine test       # engine tests only
+pnpm --filter @xap/engine compile:authority  # data/ → engine/authority/ci-2016.*.json (run once before engine tests)
+pnpm --filter @xap/engine test       # engine tests only (vitest + ported legacy node:test suite)
 pnpm typecheck
 uv sync                              # Python deps
 make dev                             # sidecar alone on :7860
