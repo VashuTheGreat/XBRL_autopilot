@@ -35,6 +35,23 @@
 | **Engine** (`engine/`) | Filing model, authority (compiled taxonomy + rules), validation, XML generation/import, deterministic fixes | Make network calls, call the AI, or depend on Electron. It's a pure library that also runs in Vitest |
 | **Sidecar** (`api/`, `src/`) | Knowledge-base queries, retrieval/embeddings, LLM calls (Groq), Excel layout heuristics for tagging | Hold project state; write to user files |
 
+## Knowledge-base files: two per taxonomy, kept separate on purpose
+Each taxonomy has two generated files in `knowledge_base/`, built from the same official files in `data/` by `make rebuild`:
+
+| File | Built by | Used for | Shape |
+|---|---|---|---|
+| `<kb>_knowledge_base.json` (C&I, Ind AS, Costing) | `src/services/extractors/*.py` | Browsing routes (`/elrs`, `/elrs/{code}/tree`, search, concept detail), Chroma index, raw MCA rule text | Labels incl. Hindi, raw arcs, raw business-rule rows: tuned for search and display |
+| `<kb>_engine_authority.json` (C&I, Ind AS) | `src/services/engine_authority/` | The engine (`/{id}/authority`): facts, XML, validation | DTS from the entry points, prohibition/override applied, full definition-arc attributes, dimensional model, type facets, validator patches: exact enough to file |
+
+- **Why separate:**
+  - Each file has one job, and one consumer can change without breaking the other: AI/search tuning won't move a byte of the filed XML, and engine fixes won't change search results.
+  - The engine file is golden-checked against MCA output, while the browsing file is free to evolve.
+- **The cost:** concepts and labels are stored twice (about 15 MB).
+- **Guard:** `tests/test_engine_authority.py::test_engine_and_browsing_see_the_same_taxonomy` fails if the two disagree on statements (ELRs) or concepts. The user can therefore never browse to an element the engine can't file.
+- **Rule of thumb:** anything that decides what goes into the XML reads the engine file; anything that helps the user find or understand something reads the browsing file.
+
+Decided 2026-11-10 ([ADR-0010](decisions/ADR-0010-engine-authority-from-knowledge-base.md)).
+
 ## Why hybrid (TS engine + Python AI)?
 See [ADR-0001](decisions/ADR-0001-hybrid-engine.md).
 - The legacy JS engine is already tested for C&I. In-process TS gives **live validation as the user types** and **offline XML generation**.

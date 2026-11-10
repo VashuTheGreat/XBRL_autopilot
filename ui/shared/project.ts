@@ -25,6 +25,50 @@ export interface NewFilingInput {
   statementPlaces?: number
 }
 
+/** How an existing XBRL instance becomes a filing (Phase 7). */
+export type InstanceImportMode =
+  /** open that year's filing: current- and previous-year facts as filed */
+  | 'both'
+  /** start the following year's filing: the instance's current year becomes the previous year */
+  | 'next'
+
+/** What the user sees after importing an XBRL instance (also saved in the project as import/<name>.report.json). */
+export interface ImportReportView {
+  fileName: string
+  mode: InstanceImportMode
+  taxonomy: TaxonomyId
+  schemaRef: string
+  periods: { cy: Period; py: Period | null }
+  counts: { sourceFacts: number; imported: number; unresolved: number; footnotes: number; skippedPrevious: number }
+  warnings: string[]
+  /** facts that could not be imported, with the reason (first 200) */
+  unresolved: { concept: string; context: string | null; reason: string }[]
+  /** 'both' only: the filing regenerated and compared with the source, fact by fact (meaning, not text) */
+  roundTrip: {
+    identical: boolean
+    sourceFacts: number
+    equal: number
+    missing: string[]
+    extra: string[]
+    changed: { key: string; source: string[]; regenerated: string[] }[]
+  } | null
+  /** vendor choices that don't change the facts: theirs vs ours */
+  conventions: { source: InstanceConventionsView; ours: InstanceConventionsView }
+}
+
+export interface InstanceConventionsView {
+  generator: string | null
+  contexts: number
+  duplicateContexts: number
+  contextIdStyle: 'descriptive' | 'short'
+  longestContextId: number
+  facts: number
+  factsWithId: number
+  units: string[]
+  footnotes: number
+  decimals: Record<string, number>
+}
+
 export interface ProjectSummary {
   id: string
   /** null until first saved */

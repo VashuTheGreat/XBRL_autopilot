@@ -14,6 +14,7 @@ import { readXlsx } from './infra/xlsx-reader'
 import { FileRuleBundleSource } from './infra/file-authority-provider'
 import { SidecarAuthoritySource } from './infra/sidecar-authority-source'
 import { AuthorityService } from './services/authority-service'
+import { InstanceImportService } from './services/instance-import-service'
 import { SidecarTaxonomyCatalog } from './infra/sidecar-taxonomy-catalog'
 import { SafeStorageSecretStore } from './infra/safe-storage-secret-store'
 import { registerIpc } from './ipc/register'
@@ -68,7 +69,7 @@ const projects = new ProjectService({
   autosave: new DirAutosaveStore(join(userData, 'autosave')),
   appVersion: app.getVersion(),
 })
-const projectController = new ProjectController(projects, getWindow)
+const projectController = new ProjectController(projects, getWindow, new InstanceImportService(authorities, projects))
 const autosave = new AutosaveScheduler(projects, () => settings.get().autosaveSeconds)
 
 // .xlsx in process (exceljs); old .xls through the sidecar's python-calamine route

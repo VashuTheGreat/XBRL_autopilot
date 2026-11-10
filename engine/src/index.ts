@@ -29,5 +29,18 @@ export { carryForwardPlan, carryForward } from './core/carry-forward.js'
 export { buildExample, completeMandatory } from './core/example.js'
 export * as decimal from './core/decimal.js'
 export { indexFactLines } from './xml-index'
+export {
+  importXbrl,
+  readSchemaRef,
+  canonicalFacts,
+  compareInstanceFacts,
+  verifyRoundTrip,
+  instanceConventions,
+  type ImportMode,
+  type ImportedInstance,
+  type InstanceComparison,
+  type InstanceConventions,
+  type FactDifference,
+} from './instance-import'
 export { nondimAllowed } from './core/dimensions.js'
 export { mandatoryZeroPlan, fillMandatoryZeros, type ZeroFill } from './mandatory-zeros'

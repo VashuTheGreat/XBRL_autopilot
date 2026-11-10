@@ -29,6 +29,7 @@ const api: XapApi = {
     current: () => invoke(IPC.projectCurrent),
     create: (input) => invoke(IPC.projectCreate, input),
     open: (path) => invoke(IPC.projectOpen, path),
+    importXbrl: (mode, path) => invoke(IPC.projectImportXbrl, mode, path),
     save: () => invoke(IPC.projectSave),
     saveAs: () => invoke(IPC.projectSaveAs),
     close: () => invoke(IPC.projectClose),

@@ -56,17 +56,21 @@ On the right, the XBRL Form shows the reverse: the source cell ref shows as a ch
 - **Drag** a taxonomy concept onto a cell → creates a manual mapping, `origin: manual`.
 
 ## Screens
-1. **Welcome:** New filing · Open… · Recent projects (company, FY, last opened) · Recover unsaved work (if any).
+1. **Welcome:** New filing · Open… · Import XBRL… · Recent projects (company, FY, last opened) · Recover unsaved work (if any).
 2. **New filing wizard:**
-   1. Taxonomy & form: C&I 2016 → AOC-4 XBRL.
+   1. Taxonomy: C&I 2016 or Ind AS 2017 (cards; AOC-4 XBRL).
    2. Company name and CIN, validated live against the CIN format.
    3. Report type: standalone / consolidated.
    4. FY dates; first financial year?
    5. Rounding level (Actual / Thousands / Lakhs / Millions / Crores).
    6. Import Excel (optional) → **Auto-tag now?**
-3. **Workbench:** the main window above.
-4. **Generate XML dialog:** blocking errors are summarised, with "Fix first" or "Generate anyway". Output path; option to open the MCA tool.
-5. **Settings.**
+3. **Import XBRL instance** (welcome button, File → Import XBRL Instance…; Phase 7):
+   - Choose *Open that filing* (every fact as filed) or *Start next year's filing* (its current year becomes the previous year), then the file.
+   - The taxonomy, company and periods come from the file.
+   - The **import report** follows: counts, the round-trip proof (every fact regenerated with the same element, period, dimensions, unit, decimals and value), anything not imported, and a "their conventions vs ours" table (generator, context-id style, duplicate contexts, fact ids, units, decimals, footnotes). The report is kept in the project (`import/`).
+4. **Workbench:** the main window above.
+5. **Generate XML dialog:** blocking errors are summarised, with "Fix first" or "Generate anyway". Output path; option to open the MCA tool.
+6. **Settings.**
 
 ## Keyboard shortcuts
 | Keys | Action |

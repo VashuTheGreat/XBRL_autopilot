@@ -15,7 +15,7 @@ import {
   type TaxonomyId,
 } from '@xap/engine/basics'
 import type { NewFilingInput } from '@shared/project'
-import { Button, Checkbox, Dialog, Field, Input, Section, Select } from '@/components/ui/primitives'
+import { Button, Checkbox, ChoiceCards, Dialog, Field, Input, Section, Select } from '@/components/ui/primitives'
 import { useProject } from '@/stores/project'
 
 interface FormState {
@@ -118,25 +118,7 @@ export function NewFilingDialog() {
         }}
       >
         <Section title="Taxonomy">
-          <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Taxonomy">
-            {FILING_TAXONOMIES.map((t) => {
-              const on = f.taxonomy === t.id
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={on}
-                  data-testid={`taxonomy-${t.id}`}
-                  onClick={() => patch({ taxonomy: t.id })}
-                  className={`rounded border px-3 py-2 text-left transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${on ? 'border-accent bg-accent/10' : 'border-border hover:bg-panel-2'}`}
-                >
-                  <div className="text-[13px] font-medium">{t.label}</div>
-                  <div className="text-[11px] text-muted">{t.hint}</div>
-                </button>
-              )
-            })}
-          </div>
+          <ChoiceCards label="Taxonomy" value={f.taxonomy} options={FILING_TAXONOMIES} onChange={(taxonomy) => patch({ taxonomy })} testIdPrefix="taxonomy" />
         </Section>
 
         <Section title="Company">

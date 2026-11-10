@@ -26,6 +26,11 @@
   - The Python-built C&I authority is equal to the TS compiler's output in every section, including key and array order (`collation.py` reproduces JS `localeCompare`), and so are the business rules compiled from it.
   - The example filing exports byte-identical XML. That XML is now the fixture `engine/test/fixtures/ci-2016-example.golden.xml`, checked by `engine/test/authority-bundle.test.ts`.
   - The HPL real-data test is unchanged and green.
+- **Two files per taxonomy, kept separate (confirmed by the team 2026-11-10):**
+  - The engine authority is not merged into `<kb>_knowledge_base.json`, and the browsing routes don't read it.
+  - The browsing file serves search, the Chroma index and display; the engine file serves filing. Each changes without risk to the other.
+  - Concepts and labels are stored twice (~15 MB); a pytest keeps their ELRs and concepts identical.
+  - See [02-architecture](../02-architecture.md#knowledge-base-files-two-per-taxonomy-kept-separate-on-purpose).
 - **Consequences:**
   - Creating or opening a filing needs the sidecar, as the statement tree already did. The first load waits for `/health` for up to 120 s.
   - **Packaging (Phase 11):**

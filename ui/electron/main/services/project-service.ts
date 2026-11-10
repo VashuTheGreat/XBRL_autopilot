@@ -19,7 +19,7 @@ import {
   validateFilingPeriods,
   type TaxonomyId,
 } from '@xap/engine/basics'
-import type { NewFilingInput, ProjectSummary, RecentProject, RecoveryItem } from '@shared/project'
+import type { NewFilingInput, Period, ProjectSummary, RecentProject, RecoveryItem } from '@shared/project'
 import {
   AXBRL_FORMAT,
   AXBRL_FORMAT_VERSION,
@@ -176,6 +176,46 @@ export class ProjectService extends EventEmitter<ProjectEvents> implements Proje
     const nameOfCompany = loaded.authority.qnameOfLocal('NameOfCompany')
     if (nameOfCompany) session.setValue(nameOfCompany, 'CY', input.companyName.trim())
 
+    await this.startUnsaved(loaded, session, { reportType: input.reportType, cy: input.cy, py: input.py, firstFinancialYear: first, roundingLevel: input.level })
+    return this.summary()!
+  }
+
+  /**
+   * A new, unsaved project around a filing read from an existing XBRL instance (InstanceImportService).
+   * The instance and its import report are kept in the project (import/…), unchanged.
+   */
+  async adoptImported(input: {
+    loaded: LoadedAuthority
+    filing: unknown
+    fileName: string
+    sourceXml: string
+    report: unknown
+    mode: 'both' | 'next'
+  }): Promise<ProjectSummary> {
+    const session = new Session(input.loaded.authority, input.filing as Filing)
+    const m = session.filing.meta as { reportType: string; level: string; firstFinancialYear: boolean; periods: { cy: Period; py: Period } }
+    const base = input.fileName.replace(/\.xml$/i, '').replace(/[^\w.-]+/g, '_').slice(0, 80) || 'instance'
+    const entry = `${base}.xml`
+    await this.startUnsaved(
+      input.loaded,
+      session,
+      { reportType: m.reportType, cy: m.periods.cy, py: m.firstFinancialYear ? null : m.periods.py, firstFinancialYear: m.firstFinancialYear, roundingLevel: m.level },
+      (content, now) => {
+        content.imports[entry] = input.sourceXml
+        content.imports[`${base}.report.json`] = JSON.stringify(input.report, null, 1)
+        content.manifest.importedFrom = { fileName: input.fileName, entry, mode: input.mode, importedAt: now }
+      },
+    )
+    return this.summary()!
+  }
+
+  /** Makes `session` the current project, new and unsaved (it starts dirty: revision -1 never matches). */
+  private async startUnsaved(
+    loaded: LoadedAuthority,
+    session: Session,
+    filing: AxbrlManifest['filing'],
+    decorate?: (content: AxbrlContent, now: string) => void,
+  ): Promise<void> {
     const now = this.clock.now().toISOString()
     const id = this.newId()
     const manifest: AxbrlManifest = {
@@ -187,13 +227,13 @@ export class ProjectService extends EventEmitter<ProjectEvents> implements Proje
       updatedAt: now,
       taxonomy: { id: loaded.taxonomyId, authorityHash: loaded.hash },
       company: { name: '', cin: '' },
-      filing: { reportType: input.reportType, cy: input.cy, py: input.py, firstFinancialYear: first, roundingLevel: input.level },
+      filing,
     }
-    // A new filing starts dirty: it exists only in memory until saved (revision -1 never matches).
+    const content = emptyContent(manifest, null)
+    decorate?.(content, now)
     await this.replaceCurrent({
-      id, path: null, session, content: emptyContent(manifest, null), savedRevision: -1, extraDirty: false, contentRevision: 0, readOnlyReason: null, loaded,
+      id, path: null, session, content, savedRevision: -1, extraDirty: false, contentRevision: 0, readOnlyReason: null, loaded,
     })
-    return this.summary()!
   }
 
   async open(path: string): Promise<ProjectSummary> {

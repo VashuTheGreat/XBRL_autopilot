@@ -17,8 +17,9 @@
 | sidecar | `sidecar:restart` | invoke | → `void` |
 | menu | `menu:command` | event | `MenuCommand` (e.g. `file:save`, `filing:validate`) |
 | sidecar | `sidecar:request` | invoke | `{method, path, body?}` → `{status, data}` (main adds the token; the renderer never sees it) |
-| project | `project:new` | invoke | `NewFilingInput` → `ProjectSummary` |
+| project | `project:create` | invoke | `NewFilingInput` (incl. `taxonomy`) → `ProjectSummary` |
 | project | `project:open` | invoke | `path?` (dialog if empty) → `ProjectSummary` |
+| project | `project:import-xbrl` | invoke | `mode: 'both' \| 'next', path?` (dialog if empty) → `{summary, report: ImportReportView}` (Phase 7; `InstanceImportService`) |
 | project | `project:save` / `project:save-as` | invoke | → `{path}` |
 | project | `project:recent` | invoke | → `RecentProject[]` |
 | excel | `workbook:import` | invoke | `path?` → `WorkbookModel` (.xlsx/.xlsm in process; .xls through `POST /api/v1/workbooks/read`) |

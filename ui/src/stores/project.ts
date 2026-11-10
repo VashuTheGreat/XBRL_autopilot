@@ -1,6 +1,6 @@
 /** Renderer view of the open filing + the use cases the UI triggers. All state lives in main. */
 import { create } from 'zustand'
-import type { ElrInfo, NewFilingInput, ProjectSummary, RecentProject, RecoveryItem } from '@shared/project'
+import type { ElrInfo, ImportReportView, InstanceImportMode, NewFilingInput, ProjectSummary, RecentProject, RecoveryItem } from '@shared/project'
 import { unwrap } from '@/lib/result'
 import { toast } from './toast'
 
@@ -9,7 +9,12 @@ interface ProjectState {
   recent: RecentProject[]
   recovery: RecoveryItem[]
   elrs: ElrInfo[]
+  /** project id the ELR list belongs to (each project may use another taxonomy) */
+  elrsFor: string | null
   newFilingOpen: boolean
+  importXbrlOpen: boolean
+  /** shown after an XBRL instance import */
+  importReport: ImportReportView | null
   init(): () => void
   refreshLists(): Promise<void>
   openNewFiling(): void
@@ -17,6 +22,11 @@ interface ProjectState {
   /** returns form problems on validation failure, [] on success */
   create(input: NewFilingInput): Promise<string[]>
   open(path?: string): Promise<void>
+  openImportXbrl(): void
+  closeImportXbrl(): void
+  /** a filing from an existing XBRL instance (file dialog in main) */
+  importXbrl(mode: InstanceImportMode, path?: string): Promise<void>
+  closeImportReport(): void
   save(): Promise<void>
   saveAs(): Promise<void>
   close(): Promise<void>
@@ -31,10 +41,11 @@ const api = () => window.xap.project
 
 export const useProject = create<ProjectState>((set, get) => {
   const loadElrs = async (summary: ProjectSummary | null) => {
-    if (!summary) return set({ elrs: [] })
-    if (get().elrs.length) return
+    if (!summary) return set({ elrs: [], elrsFor: null })
+    if (get().elrsFor === summary.id) return
+    set({ elrs: [], elrsFor: summary.id })
     const elrs = await unwrap(api().elrs())
-    if (elrs) set({ elrs })
+    if (elrs && get().elrsFor === summary.id) set({ elrs })
   }
   const afterOpen = async (s: ProjectSummary | null | undefined, verb: string) => {
     if (!s) return
@@ -49,7 +60,10 @@ export const useProject = create<ProjectState>((set, get) => {
     recent: [],
     recovery: [],
     elrs: [],
+    elrsFor: null,
     newFilingOpen: false,
+    importXbrlOpen: false,
+    importReport: null,
 
     init: () => {
       if (!window.xap) return () => {}
@@ -85,6 +99,16 @@ export const useProject = create<ProjectState>((set, get) => {
 
     open: async (path) => afterOpen(await unwrap(api().open(path)), 'Opened'),
 
+    openImportXbrl: () => set({ importXbrlOpen: true }),
+    closeImportXbrl: () => set({ importXbrlOpen: false }),
+    importXbrl: async (mode, path) => {
+      const res = await unwrap(api().importXbrl(mode, path))
+      if (!res) return
+      set({ importXbrlOpen: false, importReport: res.report })
+      await afterOpen(res.summary, mode === 'next' ? 'Started next year for' : 'Imported')
+    },
+    closeImportReport: () => set({ importReport: null }),
+
     save: async () => {
       const s = await unwrap(api().save())
       if (s) {
@@ -103,7 +127,7 @@ export const useProject = create<ProjectState>((set, get) => {
 
     close: async () => {
       if (await unwrap(api().close())) {
-        set({ summary: null, elrs: [] })
+        set({ summary: null, elrs: [], elrsFor: null })
         await get().refreshLists()
       }
     },

@@ -3,11 +3,10 @@
  * taxonomy. The unit tests use the knowledge-base files as the "route" so they run without a sidecar; the route
  * itself is covered by tests/test_engine_authority.py and the editor tests.
  */
-import { existsSync, mkdtempSync, readFileSync } from 'node:fs'
+import { mkdtempSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join, resolve } from 'node:path'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import type { TaxonomyId } from '@xap/engine/basics'
 import type { NewFilingInput } from '@shared/project'
 import { AppDatabase } from '../electron/main/infra/app-database'
 import { DirAutosaveStore } from '../electron/main/infra/dir-autosave-store'
@@ -15,32 +14,8 @@ import { FileRuleBundleSource } from '../electron/main/infra/file-authority-prov
 import { readAxbrl } from '../electron/main/project/axbrl'
 import { AuthorityService } from '../electron/main/services/authority-service'
 import { ValidationError } from '../electron/main/services/errors'
-import type { AuthorityJson, TaxonomyAuthoritySource } from '../electron/main/services/ports'
 import { ProjectService } from '../electron/main/services/project-service'
-
-const KB = resolve(__dirname, '../../knowledge_base')
-const RULES_DIR = resolve(__dirname, '../../engine/authority')
-const FILES: Partial<Record<TaxonomyId, string>> = {
-  'ci-2016': join(KB, 'ci_engine_authority.json'),
-  'ind-as-2017': join(KB, 'ind_as_engine_authority.json'),
-}
-const ready = Object.values(FILES).every((f) => existsSync(f!)) && existsSync(join(RULES_DIR, 'ci-2016.rules.json'))
-
-/** The route's payload, read from the knowledge base; counts calls to check caching. */
-class KbFiles implements TaxonomyAuthoritySource {
-  calls = 0
-  failNext = false
-  async taxonomyAuthority(taxonomy: TaxonomyId): Promise<AuthorityJson> {
-    this.calls++
-    if (this.failNext) {
-      this.failNext = false
-      throw new Error('sidecar restarting')
-    }
-    const file = FILES[taxonomy]
-    if (!file) throw new Error(`no engine authority for ${taxonomy}`)
-    return JSON.parse(readFileSync(file, 'utf8'))
-  }
-}
+import { KbAuthoritySource, kbReady, RULES_DIR } from './helpers/kb-authorities'
 
 const input = (over: Partial<NewFilingInput> = {}): NewFilingInput => ({
   companyName: 'Dixon Global Pvt Ltd',
@@ -52,8 +27,8 @@ const input = (over: Partial<NewFilingInput> = {}): NewFilingInput => ({
   ...over,
 })
 
-describe.skipIf(!ready)('AuthorityService', () => {
-  const kb = new KbFiles()
+describe.skipIf(!kbReady)('AuthorityService', () => {
+  const kb = new KbAuthoritySource()
   const service = new AuthorityService(kb, new FileRuleBundleSource(RULES_DIR))
 
   it('assembles C&I 2016 with its compiled business rules', async () => {

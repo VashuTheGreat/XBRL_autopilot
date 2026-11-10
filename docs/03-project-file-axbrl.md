@@ -18,6 +18,9 @@ my-company_FY2025-26_standalone.axbrl
 │  └─ history.jsonl       # one line per AI suggestion / patch proposal + user decision
 ├─ output/
 │  └─ 001.xml, 002.xml    # generated instances (numbered; latest = highest)
+├─ import/                # only for filings created from an XBRL instance (Phase 7)
+│  ├─ <name>.xml          # the source instance, unchanged
+│  └─ <name>.report.json  # import report: counts, round-trip comparison, vendor conventions, raw importer report
 └─ ui-state.json          # open tabs, selected ELR, pane sizes (optional, cosmetic)
 ```
 
@@ -33,9 +36,11 @@ my-company_FY2025-26_standalone.axbrl
   "company": { "name": "Acme Pvt Ltd", "cin": "U12345MH2010PTC123456" },
   "filing": { "reportType": "standalone", "cy": { "start": "2025-04-01", "end": "2026-03-31" },
               "py": { "start": "2024-04-01", "end": "2025-03-31" }, "firstFinancialYear": false,
-              "roundingLevel": "Lakhs" }
+              "roundingLevel": "Lakhs" },
+  "importedFrom": { "fileName": "Instance_Dixon….xml", "entry": "Instance_Dixon….xml", "mode": "both", "importedAt": "…" }
 }
 ```
+`taxonomy.id` is `ci-2016` or `ind-as-2017`; opening a file loads that taxonomy's authority. `importedFrom` is optional: it is present only when the filing came from an XBRL instance (`mode`: `both` = that year as filed, `next` = the following year started from it).
 
 ### `mapping.json`
 ```json

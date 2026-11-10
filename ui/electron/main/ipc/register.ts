@@ -66,6 +66,10 @@ function registerProjectIpc({ projects, projectController: pc, taxonomy, filing 
   handleQuery(IPC.projectDiscardRecovery, (_e, id: unknown) => projects.discardRecovery(requireString(id, 'id')))
   handleResult(IPC.projectCreate, (_e, input: NewFilingInput) => pc.create(input))
   handleResult(IPC.projectOpen, (_e, path?: unknown) => pc.open(path === undefined ? undefined : requireString(path, 'path')))
+  handleResult(IPC.projectImportXbrl, (_e, mode: unknown, path?: unknown) => {
+    if (mode !== 'both' && mode !== 'next') throw new Error('Unknown import mode')
+    return pc.importInstance(mode, path === undefined ? undefined : requireString(path, 'path'))
+  })
   handleResult(IPC.projectSave, () => pc.save())
   handleResult(IPC.projectSaveAs, () => pc.saveAs())
   handleResult(IPC.projectClose, () => pc.close())

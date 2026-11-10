@@ -28,6 +28,8 @@ export interface AxbrlManifest {
   }
   /** imported workbooks: source name (e.g. workbook-1.xlsx) → original file name */
   sources?: Record<string, { fileName: string; importedAt: string }>
+  /** set when the filing was created from an existing XBRL instance (Phase 7) */
+  importedFrom?: { fileName: string; entry: string; mode: 'both' | 'next'; importedAt: string }
 }
 
 export interface AxbrlContent {
@@ -52,6 +54,8 @@ export interface AxbrlContent {
   aiHistory: string
   /** output/NNN.xml */
   outputs: Record<string, string>
+  /** import/<name>.xml (the instance the filing was imported from, unchanged) and import/<name>.report.json */
+  imports: Record<string, string>
   uiState: unknown | null
   /** entries this version doesn't know; preserved byte-for-byte on save */
   extra: Record<string, Uint8Array>
@@ -60,8 +64,9 @@ export interface AxbrlContent {
 export class AxbrlFormatError extends Error {}
 
 const KNOWN = new Set(['manifest.json', 'filing.json', 'mapping.json', 'validation.json', 'source/edits.json', 'ai/history.jsonl', 'ui-state.json'])
+const IMPORT_ENTRY = /^import\/[^/]+\.(xml|json)$/i
 const isKnown = (name: string) =>
-  KNOWN.has(name) || /^source\/[^/]+\.xlsx?$/i.test(name) || /^mca-errors\/[^/]+\.txt$/.test(name) || /^output\/[^/]+\.xml$/.test(name)
+  KNOWN.has(name) || /^source\/[^/]+\.xlsx?$/i.test(name) || /^mca-errors\/[^/]+\.txt$/.test(name) || /^output\/[^/]+\.xml$/.test(name) || IMPORT_ENTRY.test(name)
 
 export function emptyContent(manifest: AxbrlManifest, filing: unknown): AxbrlContent {
   return {
@@ -74,6 +79,7 @@ export function emptyContent(manifest: AxbrlManifest, filing: unknown): AxbrlCon
     mcaErrors: {},
     aiHistory: '',
     outputs: {},
+    imports: {},
     uiState: null,
     extra: {},
   }
@@ -95,6 +101,7 @@ export async function packAxbrl(c: AxbrlContent): Promise<Buffer> {
   for (const [name, text] of Object.entries(c.mcaErrors)) add(`mca-errors/${name}`, text)
   if (c.aiHistory) add('ai/history.jsonl', c.aiHistory)
   for (const [name, xml] of Object.entries(c.outputs)) add(`output/${name}`, xml)
+  for (const [name, text] of Object.entries(c.imports)) add(`import/${name}`, text)
   if (c.uiState != null) add('ui-state.json', json(c.uiState))
   for (const [name, bytes] of Object.entries(c.extra)) if (!isKnown(name)) add(name, bytes)
   return zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE', compressionOptions: { level: 6 } })
@@ -145,6 +152,7 @@ export async function unpackAxbrl(buf: Uint8Array): Promise<UnpackResult> {
     if (/^source\/[^/]+\.xlsx?$/i.test(n)) content.sources[n.slice('source/'.length)] = await entry.async('uint8array')
     else if (/^mca-errors\/[^/]+\.txt$/.test(n)) content.mcaErrors[n.slice('mca-errors/'.length)] = await entry.async('string')
     else if (/^output\/[^/]+\.xml$/.test(n)) content.outputs[n.slice('output/'.length)] = await entry.async('string')
+    else if (IMPORT_ENTRY.test(n)) content.imports[n.slice('import/'.length)] = await entry.async('string')
     else if (!isKnown(n)) content.extra[n] = await entry.async('uint8array')
   }
 

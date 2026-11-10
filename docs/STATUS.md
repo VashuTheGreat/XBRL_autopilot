@@ -14,8 +14,8 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 | 4 | **Editor**: Univer grid + tag overlay, inspector, XBRL Form, Monaco XML, taxonomy browser, two-way linkage, float-noise rounding, column → period per sheet | ✅ done |
 | 5 | **Real-data readiness**: `.xls` import (python-calamine via the sidecar), HPL (C&I) hand-tagged end to end (BS + P&L match the filed instance, statements free of their own errors), fixes from that run: share capital exact, range sums, derived totals, mandatory zeros, decimal places editable, huge-sheet cap | ✅ done |
 | 6 | **Ind AS 2017 + engine data via routes** ([ADR-0010](decisions/ADR-0010-engine-authority-from-knowledge-base.md)): the Python ingestion builds the engine authority (DTS, prohibition/override, dimensional model) for C&I and Ind AS, served by `/{id}/authority`; the app assembles it with the compiled rules (`AuthorityService`); the TS DTS compiler is retired. Golden: identical C&I authority and byte-identical XML. Ind AS = union of the `in-ci-ent` + `in-ca-ent` DTS (66 ELRs, every Dixon element resolves). Taxonomy choice in the wizard | ✅ done |
-| 7 | **Import an existing XBRL instance** (⏭ next) (Webtel / any vendor) into a project; golden test: Dixon instance → regenerate → semantically equal 2,666 facts; diff report against Webtel conventions; previous-year carry-forward from last year's XML | ⏳ |
-| 8 | **AI auto-tagging** (`/mapping/suggest`: memory → exact → hybrid retrieval → Groq rerank) plus an **evaluation harness** on the DGPL ↔ Dixon answer key (precision/recall on every change); sidecar `Authority` bug fixes; ONNX embeddings | ⏳ |
+| 7 | **Import an existing XBRL instance** (any vendor) into a project: golden test Dixon → regenerate → all 2,666 facts semantically equal (also after save → reopen); import report with the round-trip proof and Webtel's conventions vs ours; next year's filing started from last year's XML | ✅ done |
+| 8 | **AI auto-tagging** (⏭ next) (`/mapping/suggest`: memory → exact → hybrid retrieval → Groq rerank) plus an **evaluation harness** on the DGPL ↔ Dixon answer key (precision/recall on every change); sidecar `Authority` bug fixes; ONNX embeddings | ⏳ |
 | 9 | **Validation UI**: the executable rule ASTs move into `knowledge_base` and are served by a route (the rule text already is); live gate/rules/calculation per taxonomy, Problems panel with locate, quick fixes, MCA Validation Tool v5.1 launcher + error import, rule-coverage report | ⏳ |
 | 10 | **AI fix agent** (`/fix/propose`, patch review, audit log) | ⏳ |
 | 11 | **Packaging**: PyInstaller sidecar + electron-builder NSIS, `.axbrl` association | ⏳ |
@@ -29,7 +29,9 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 - **Missing legacy evidence:** `golden-DIVERGENCES.json` was reconstructed from the legacy test assertions, and `APPROVED_LIMITATIONS.json` was recreated. The MCA-validated `golden-FILING-A/B_2024-25.xml` instances, the Annexure II text export and the Filing Manual pdf are not in the repo, so ~50 regression tests skip. **Ask the `lagacy_js` author for the originals** (see `docs/04-xbrl-engine.md`).
 - **Arelle isn't installed** in the Python environment, so 7 XSD tests skip. Still open after Phase 6: add `arelle-release` (dev extra) when the XSD check is wired into Phase 9.
 - **Ind AS has no business rules yet:** its rule workbook is formalized in Phase 9. Until then an Ind AS filing gets facts, XML and structural checks only.
-- **Webtel's Ind AS conventions** (e.g. Dixon files every amount in rupees with `decimals="2"` although the statements are in lakhs) are compared in Phase 7, not adopted yet.
+- **Webtel's conventions** are reported by the Phase 7 import (descriptive context ids, `TAB…` fact ids, duplicate contexts). Dixon's amounts are rupees with `decimals="-3"`/`"2"` as filed; imported facts keep their own `decimals`, so the regenerated XML reports them unchanged.
+- **Next-year import of Ind AS** keeps general-information and report facts in the previous year: GR-12 ("not applicable to a previous year") is a business rule, and Ind AS has none until Phase 9.
+- **E2E can't switch projects:** a dirty project triggers the native "Save changes?" box, which CDP can't click. The statement-list fix for switching taxonomies has no E2E yet.
 - **Possible legacy-test flake:** one run of `pnpm test` (while a dev Electron app was also running) failed a `golden-DIVERGENCES.json` assertion; the next three runs passed (220/0). Watch for it.
 - **`xlsx@0.18.5` (SheetJS, npm)** is the last npm release and has known advisories. It's used only at build time by the authority compiler, on the trusted MCA workbook. Never use it for user files; user Excel goes through exceljs.
 
@@ -136,3 +138,32 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
     - ui 121 (+5 `authority-service.test.ts`, including an Ind AS create → save → reopen → XML).
     - **E2E `ui/e2e/phase6-taxonomy.mjs` green** (7 checks: wizard choice, Ind AS project, status bar, 66 ELRs, Ind AS schemaRef, in-ca fact, no renderer errors).
   - **Next:** Phase 7, XBRL instance import with the Dixon golden (Ind AS), plus Webtel conventions.
+- **2026-11-10, knowledge files kept separate (team decision):** `<kb>_knowledge_base.json` (browsing, search, Chroma) and `<kb>_engine_authority.json` (filing) stay two files per taxonomy. The why and the guard test are in [02-architecture](02-architecture.md#knowledge-base-files-two-per-taxonomy-kept-separate-on-purpose) and ADR-0010.
+- **2026-11-10, Phase 7 done: import an existing XBRL instance:**
+  - **Engine:** `src/instance-import.ts`:
+    - `importXbrl` wraps the legacy importer with xmldom. A `ReportingDOMParser` maps `onError` to xmldom's `errorHandler`, because malformed XML used to pass silently.
+    - `canonicalFacts`, `compareInstanceFacts` and `verifyRoundTrip` compare facts by meaning: (concept, period, dimensions) → (unit, decimals, value). Ids, order and formatting are ignored.
+    - `instanceConventions` summarises the vendor's choices.
+    - The importer's messages no longer say "C&I 2016" for every taxonomy.
+  - **Dixon golden:**
+    - 2,666 of 2,666 facts imported, 28 footnotes, 0 unresolved; the periods and the Indirect cash-flow method are detected.
+    - Regenerated: 2,666 of 2,666 facts are equal, decimals included.
+    - Webtel's 2 duplicate contexts are merged (346 → 344).
+    - Next-year mode: FY 2026-27 with 1,427 previous-year facts.
+    - The C&I example filing also round-trips.
+  - **Electron:**
+    - `InstanceImportService` (Electron-free) picks the taxonomy from the schemaRef (V3, retired V2 or the entry-point file name).
+    - It takes the company name from `NameOfCompany` (the legacy importer used the file name) and sets `displayPlaces` per ADR-0009.
+    - It proves the round trip, then hands the result to `ProjectService.adoptImported`. `newFiling` and `adoptImported` share `startUnsaved`.
+    - `.axbrl` gains `import/<name>.xml` + `.report.json` and `manifest.importedFrom`.
+    - IPC `project:import-xbrl`; menu File → Import XBRL Instance…
+  - **UI:**
+    - Welcome-screen button "Import XBRL…".
+    - `ImportXbrlDialog` (mode cards) and `ImportReportDialog` (summary, round trip, notes, their conventions vs ours).
+    - New reusable `ChoiceCards` primitive (the wizard's taxonomy cards use it too).
+  - **Fix:** the statement list was cached across projects, so switching from a C&I filing to an Ind AS one kept the old list. It is now keyed by project.
+  - **Tests:**
+    - engine 30 (+7 Dixon golden, conventions, next year, tamper detection, malformed XML, C&I round trip); legacy 220/0 fail.
+    - ui 126 (+5 `instance-import-service.test.ts`, incl. save → reopen → still equal); pytest 50.
+    - **E2E `ui/e2e/phase7-import.mjs` green** (7 checks; the Form shows Dixon's Total assets 1,904.45 lakhs = filed ₹190,445,000).
+  - **Next:** Phase 8, AI auto-tagging with the DGPL ↔ Dixon evaluation harness.

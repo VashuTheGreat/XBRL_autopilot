@@ -2,6 +2,8 @@
 import type {
   AppSettings,
   ElrInfo,
+  ImportReportView,
+  InstanceImportMode,
   NewFilingInput,
   ProjectSummary,
   RecentProject,
@@ -50,6 +52,7 @@ export type MenuCommand =
   | 'file:save'
   | 'file:save-as'
   | 'file:import-excel'
+  | 'file:import-xbrl'
   | 'filing:validate'
   | 'filing:generate-xml'
   | 'view:toggle-sidebar'
@@ -70,6 +73,7 @@ export const IPC = {
   projectCurrent: 'project:current',
   projectCreate: 'project:create',
   projectOpen: 'project:open',
+  projectImportXbrl: 'project:import-xbrl',
   projectSave: 'project:save',
   projectSaveAs: 'project:save-as',
   projectClose: 'project:close',
@@ -119,6 +123,8 @@ export interface XapApi {
     create(input: NewFilingInput): Promise<Result<ProjectSummary | null>>
     /** no path → file dialog; `null` value = cancelled */
     open(path?: string): Promise<Result<ProjectSummary | null>>
+    /** a filing from an existing XBRL instance; no path → file dialog; `null` value = cancelled */
+    importXbrl(mode: InstanceImportMode, path?: string): Promise<Result<{ summary: ProjectSummary; report: ImportReportView } | null>>
     /** Save As dialog when the filing was never saved; `null` value = cancelled */
     save(): Promise<Result<ProjectSummary | null>>
     saveAs(): Promise<Result<ProjectSummary | null>>

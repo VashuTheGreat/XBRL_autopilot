@@ -25,6 +25,7 @@ The engine is the deterministic core. It is a pure TypeScript library with no El
 engine/
   src/index.ts            typed public API (re-exports the core)
   src/core/*.js           runtime: model, session, rules, gate, generator, importer, …
+  src/instance-import.ts   importXbrl (xmldom), canonicalFacts / compareInstanceFacts / verifyRoundTrip (semantic), instanceConventions
   src/core/authority-bundle.js  assembleAuthority(taxonomy, rules|null): joins the two halves (ADR-0010)
   compiler/compile.mjs    business-rule compiler (reads knowledge_base/ci_engine_authority.json + the MCA rule workbook)
   compiler/rule-formalizer.mjs, rules-source.mjs   rule workbook → rule ASTs (moves to Python in Phase 9)
