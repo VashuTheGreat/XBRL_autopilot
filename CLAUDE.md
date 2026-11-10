@@ -51,4 +51,8 @@ make rebuild                         # regenerate knowledge_base + Chroma index
    - Business logic lives in Electron-free services that depend on small interfaces (repositories, secret store, authority provider), passed in through the constructor. These services are unit-tested without Electron.
    - IPC handlers and React components stay thin: they validate, delegate and render.
    - Shared helpers go in `engine/src/basics.ts` (domain) or `ui/shared/` (app contracts). Never copy-paste.
-8. **Scope:** v1 is C&I 2016 **and** Ind AS 2017 (AOC-4 XBRL). Keep code taxonomy-generic (Costing later). Real client fixtures are in `data/` (see `docs/12-reference-data.md`); never send them to an AI service.
+8. **Taxonomy data comes from the FastAPI routes** (`/api/v1/taxonomies/{id}/…`, `id` = `ci_taxonomy` | `ind_as_taxonomy` | `costing_taxonomy`, see `src/constants.py`), backed by `knowledge_base/*.json`:
+   - Everything the UI shows about a taxonomy goes through the `TaxonomyCatalog` port: statement list (`/elrs`), Form structure (`/elrs/{code}/tree`), element search and details.
+   - Never hardcode taxonomy data. `lagacy_js/` is reference reading only.
+   - The engine authority is used only for what the knowledge base can't do yet (facts, XML generation, validation), see [ADR-0008](docs/decisions/ADR-0008-taxonomy-data-via-routes.md).
+9. **Scope:** v1 is C&I 2016 **and** Ind AS 2017 (AOC-4 XBRL). Keep code taxonomy-generic (Costing later). Real client fixtures are in `data/` (see `docs/12-reference-data.md`); never send them to an AI service.

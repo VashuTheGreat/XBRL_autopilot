@@ -135,11 +135,16 @@ async def search_taxonomy_concepts(
     q: str = Query(..., min_length=1, description="Query string to search in concept QName, name, or labels"),
     limit: Optional[int] = Query(None, ge=1, description="Limit number of concepts returned"),
     offset: int = Query(0, ge=0, description="Offset for pagination"),
+    summary: bool = Query(False, description="Ranked compact results {total, items} (label, type, periodType, balance, elrCodes)"),
+    reportable_only: bool = Query(True, description="With summary=true: only elements a value can be reported for"),
 ):
     """Label/QName se concept search - Search concepts in taxonomy by query string."""
     with logger.span("taxonomies.concepts.search", taxonomy_id=id, query=q):
         try:
             authority = get_authority(id)
+            if summary:
+                result = authority.search_concepts(q, limit=limit or 50, offset=offset, reportable_only=reportable_only)
+                return success_response(data=result, message=f"Ranked search results for '{q}' in taxonomy '{id}'", status_code=200)
             concepts_dict = authority.get_concepts()
 
             q_clean = q.strip().lower()
@@ -190,7 +195,11 @@ async def search_taxonomy_concepts(
 
 
 @router.get("/{id}/concepts/{qname}")
-async def get_taxonomy_concept_detail(id: str, qname: str):
+async def get_taxonomy_concept_detail(
+    id: str,
+    qname: str,
+    include_rules: bool = Query(False, description="Also return the MCA business rules for this element"),
+):
     """Specific concept ki complete details - Complete details for a concept."""
     with logger.span("taxonomies.concepts.detail", taxonomy_id=id, qname=qname):
         try:
@@ -207,6 +216,9 @@ async def get_taxonomy_concept_detail(id: str, qname: str):
                     message=f"Concept '{qname}' not found in taxonomy '{id}'",
                     status_code=404,
                 )
+
+            if include_rules:
+                concept = {**concept, "summary": authority.concept_summary(qname), "businessRules": authority.rules_for_concept(qname)}
 
             logger.info(
                 "taxonomies.concepts.detail.success",
@@ -592,7 +604,7 @@ async def get_taxonomical_rules(id: str):
     with logger.span("taxonomies.rules.get", taxonomy_id=id):
         try:
             authority = get_authority(id)
-            data = authority.get_roles()
+            data = authority.get_business_rules()
             return success_response(
                 data=data,
                 message="Taxonomies rules succeed",
@@ -607,3 +619,33 @@ async def get_taxonomical_rules(id: str):
                 message=f"Failed to retrieve rules for taxonomy '{id}'",
                 status_code=500,
             )
+
+
+@router.get("/{id}/elrs")
+async def get_taxonomy_elrs(id: str):
+    """Statements, notes and disclosures (presentation ELRs) with code, title and group."""
+    with logger.span("taxonomies.elrs.list", taxonomy_id=id):
+        try:
+            elrs = get_authority(id).list_elrs()
+            return success_response(data=elrs, message=f"{len(elrs)} ELRs in taxonomy '{id}'", status_code=200)
+        except ValueError as ve:
+            return error_response(message=str(ve), status_code=404)
+        except Exception:
+            logger.exception("taxonomies.elrs.list.failed", taxonomy_id=id)
+            return error_response(message=f"Failed to list ELRs for taxonomy '{id}'", status_code=500)
+
+
+@router.get("/{id}/elrs/{key}/tree")
+async def get_taxonomy_elr_tree(id: str, key: str):
+    """Presentation tree of one ELR; key = code ('100100'), role id or role URI."""
+    with logger.span("taxonomies.elrs.tree", taxonomy_id=id, key=key):
+        try:
+            tree = get_authority(id).elr_tree(key)
+            if tree is None:
+                return error_response(message=f"ELR '{key}' not found in taxonomy '{id}'", status_code=404)
+            return success_response(data=tree, message=f"Presentation tree of '{key}'", status_code=200)
+        except ValueError as ve:
+            return error_response(message=str(ve), status_code=404)
+        except Exception:
+            logger.exception("taxonomies.elrs.tree.failed", taxonomy_id=id, key=key)
+            return error_response(message=f"Failed to build the tree of '{key}'", status_code=500)

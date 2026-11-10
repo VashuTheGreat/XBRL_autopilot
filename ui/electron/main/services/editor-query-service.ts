@@ -1,49 +1,40 @@
 /**
- * EditorQueryService: read-models for the right-hand editor (XBRL Form, XML) and the taxonomy browser.
- * Queries only; all changes go through MappingService / the engine session.
+ * EditorQueryService: read-models for the right-hand editor (XBRL Form, XML).
+ * The Form's *structure* (rows, labels, order, depth) comes from the knowledge base through the FastAPI /tree route
+ * (TaxonomyCatalog). The engine only supplies the *values* (facts, CY/PY, source cells) and whether an element can be
+ * reported outside a dimensional table. Queries only; changes go through MappingService / the engine session.
  */
 import { indexFactLines, nondimAllowed } from '@xap/engine'
-import type { ConceptHit, FormCell, FormRow, FormView, MappingView, XmlView } from '@shared/editor'
+import type { FormCell, FormRow, FormView, MappingView, XmlView } from '@shared/editor'
 import type { CellRef } from '@shared/workbook'
 import { ValidationError } from './errors'
-import type { ProjectAccess } from './ports'
+import type { ElrTreeNode, ProjectAccess, TaxonomyCatalog } from './ports'
 
-interface ConceptJson {
-  kind?: string
-  periodType?: 'instant' | 'duration' | null
-  balance?: 'debit' | 'credit' | null
-  labels?: Record<string, string>
-}
-
-interface ElrViewRow {
-  kind: 'header' | 'item' | 'table'
-  concept?: string
-  tableId?: string
-  depth: number
-  label: string
-  preferredLabel?: string | null
-  dataType?: string
-}
+/** Presentation-tree nodes that are structure, not reportable values (XBRL dimensional constructs). */
+const STRUCTURAL = /\[(table|axis|member|domain|line items)\]$/i
 
 export class EditorQueryService {
   constructor(
     private readonly projects: ProjectAccess,
     private readonly mappings: () => MappingView[],
+    private readonly catalog: TaxonomyCatalog,
     private readonly today: () => string = () => new Date().toISOString().slice(0, 10),
   ) {}
 
-  form(elrUri: string): FormView {
+  async form(elrUri: string): Promise<FormView> {
     const p = this.projects.project()
-    const A = p.authority.authority
-    const elr = A.elr(elrUri) as { code: string; title: string } | null
+    const taxonomy = p.authority.taxonomyId
+    const elr = (await this.catalog.elrs(taxonomy)).find((e) => e.uri === elrUri)
     if (!elr) throw new ValidationError(['Unknown statement.'])
-    const view = p.session.elrView(elrUri) as { rows: ElrViewRow[]; tables: string[] }
+    const tree = await this.catalog.elrTree(taxonomy, elr.code)
+
+    const A = p.authority.authority
     const byFact = new Map<string, MappingView>()
     for (const m of this.mappings()) if (m.factKey) byFact.set(m.factKey, m)
     const hasPy = p.periods().py !== null
 
-    const cellFor = (concept: string, scope: 'CY' | 'PY', preferredLabel: string | null): FormCell => {
-      const fact = p.session.getValue(concept, scope, [], preferredLabel) as { key: string } | null
+    const cellFor = (concept: string, scope: 'CY' | 'PY'): FormCell => {
+      const fact = p.session.getValue(concept, scope, []) as { key: string } | null
       const m = fact ? byFact.get(fact.key) : undefined
       return {
         factKey: fact?.key ?? null,
@@ -53,20 +44,30 @@ export class EditorQueryService {
       }
     }
 
-    const rows: FormRow[] = view.rows.map((r) => {
-      if (r.kind !== 'item' || !r.concept) return { kind: r.kind, depth: r.depth, label: r.label, concept: r.concept, tableId: r.tableId }
-      const pl = r.preferredLabel ?? null
-      return {
-        kind: 'item',
-        depth: r.depth,
-        label: r.label,
-        concept: r.concept,
-        dataType: r.dataType,
-        cy: cellFor(r.concept, 'CY', pl),
-        ...(hasPy ? { py: cellFor(r.concept, 'PY', pl) } : {}),
+    const rows: FormRow[] = []
+    let tableCount = 0
+    const visit = (n: ElrTreeNode, depth: number) => {
+      if (/\[table\]$/i.test(n.label)) tableCount++
+      if (n.abstract || STRUCTURAL.test(n.label)) {
+        rows.push({ kind: /\[table\]$/i.test(n.label) ? 'table' : 'header', depth, label: n.label, concept: n.qname })
+      } else if (A.has(n.qname) && nondimAllowed(A, n.qname)) {
+        rows.push({
+          kind: 'item',
+          depth,
+          label: n.label,
+          concept: n.qname,
+          dataType: A.dataType(n.qname),
+          cy: cellFor(n.qname, 'CY'),
+          ...(hasPy ? { py: cellFor(n.qname, 'PY') } : {}),
+        })
+      } else {
+        // reported only inside a dimensional table (or unknown to the engine): shown, not editable here
+        rows.push({ kind: 'item', depth, label: n.label, concept: n.qname, dimensional: true })
       }
-    })
-    return { elrUri, code: elr.code, title: elr.title, rows, tableCount: view.tables.length }
+      for (const child of n.children) visit(child, depth + 1)
+    }
+    for (const root of tree.tree) visit(root, 0)
+    return { elrUri, code: elr.code, title: elr.title, rows, tableCount }
   }
 
   xml(): XmlView {
@@ -82,38 +83,5 @@ export class EditorQueryService {
       validated: out.validated,
       errorCount: out.gate.summary.errors,
     }
-  }
-
-  /** Label/qname search over reportable elements; every word must match. Statement-level elements rank first. */
-  searchConcepts(query: string, limit = 60): ConceptHit[] {
-    const p = this.projects.project()
-    const A = p.authority.authority
-    const words = query.toLowerCase().split(/\s+/).filter(Boolean)
-    if (!words.length) return []
-    const concepts = (A as unknown as { concepts: Record<string, ConceptJson> }).concepts
-    const hits: { hit: ConceptHit; score: number }[] = []
-    for (const [qname, c] of Object.entries(concepts)) {
-      if (c.kind !== 'item' || !A.isReportable(qname)) continue
-      const label = A.label(qname)
-      const hay = `${label} ${qname}`.toLowerCase()
-      if (!words.every((w) => hay.includes(w))) continue
-      const nonDimensional = nondimAllowed(A, qname)
-      const l = label.toLowerCase()
-      const q = words.join(' ')
-      const score = (l === q ? 100 : l.startsWith(q) ? 50 : l.includes(q) ? 20 : 0) + (nonDimensional ? 10 : 0) - label.length / 100
-      hits.push({
-        score,
-        hit: {
-          qname,
-          label,
-          dataType: A.dataType(qname),
-          periodType: c.periodType ?? null,
-          balance: c.balance ?? null,
-          nonDimensional,
-          elrCodes: (A.conceptElrs(qname) as string[]).map((u) => (A.elr(u) as { code: string } | null)?.code ?? '').filter(Boolean),
-        },
-      })
-    }
-    return hits.sort((a, b) => b.score - a.score || a.hit.label.localeCompare(b.hit.label)).slice(0, limit).map((h) => h.hit)
   }
 }

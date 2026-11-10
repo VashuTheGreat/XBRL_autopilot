@@ -49,7 +49,7 @@ export function FormView() {
           </table>
           {form.tableCount > 0 && (
             <p className="px-3 py-3 text-[11px] text-muted">
-              This statement has {form.tableCount} dimensional table(s) (with axes). Tagging them is part of a later phase.
+              Rows marked “in table” are reported inside one of this statement’s {form.tableCount} dimensional table(s); tagging tables is part of a later phase.
             </p>
           )}
         </div>
@@ -67,6 +67,18 @@ function Row(props: { row: FormRow; hasPy: boolean; selectedFact: string | null;
         <td colSpan={props.hasPy ? 3 : 2} style={indent} className={cn('py-1 pr-3', r.kind === 'header' ? 'font-semibold' : 'italic text-muted')}>
           {r.kind === 'table' && <Table2 size={11} className="mr-1 inline" />}
           {r.label}
+        </td>
+      </tr>
+    )
+  }
+  if (r.dimensional) {
+    return (
+      <tr className="border-b border-border/50 text-muted">
+        <td style={indent} className="py-1 pr-3" title={r.concept}>
+          {r.label}
+        </td>
+        <td colSpan={props.hasPy ? 2 : 1} className="px-3 py-1 text-right text-[10px] italic">
+          in table
         </td>
       </tr>
     )

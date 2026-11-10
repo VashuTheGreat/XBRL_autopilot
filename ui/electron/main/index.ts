@@ -11,6 +11,7 @@ import { AppDatabase } from './infra/app-database'
 import { DirAutosaveStore } from './infra/dir-autosave-store'
 import { readXlsx } from './infra/xlsx-reader'
 import { FileAuthorityProvider } from './infra/file-authority-provider'
+import { SidecarTaxonomyCatalog } from './infra/sidecar-taxonomy-catalog'
 import { SafeStorageSecretStore } from './infra/safe-storage-secret-store'
 import { registerIpc } from './ipc/register'
 import { buildMenu } from './menu'
@@ -19,6 +20,7 @@ import { AutosaveScheduler } from './services/autosave-scheduler'
 import { EditorQueryService } from './services/editor-query-service'
 import { MappingService } from './services/mapping-service'
 import { SourceService } from './services/source-service'
+import { TaxonomyService } from './services/taxonomy-service'
 import { ProjectService } from './services/project-service'
 import { SettingsService } from './services/settings-service'
 import { SidecarManager } from './sidecar'
@@ -50,7 +52,6 @@ const projects = new ProjectService({
 const projectController = new ProjectController(projects, getWindow)
 const sources = new SourceService(projects, readXlsx)
 const mapping = new MappingService(projects, sources)
-const editor = new EditorQueryService(projects, () => mapping.list())
 const autosave = new AutosaveScheduler(projects, () => settings.get().autosaveSeconds)
 const sidecar = new SidecarManager({
   isPackaged: app.isPackaged,
@@ -59,6 +60,11 @@ const sidecar = new SidecarManager({
   // Settings win over the dev .env (pydantic-settings gives env vars priority over .env).
   extraEnv: async () => ({ GROQ_API_KEY: (await settings.groqKey()) ?? undefined, GROQ_MODEL: settings.get().groqModel }),
 })
+
+// Taxonomy browsing comes from the knowledge base through the FastAPI routes (docs/02-architecture.md).
+const catalog = new SidecarTaxonomyCatalog(sidecar)
+const taxonomy = new TaxonomyService(projects, catalog)
+const editor = new EditorQueryService(projects, () => mapping.list(), catalog)
 
 // ---------------------------------------------------------------- window
 function createWindow(): void {
@@ -159,6 +165,7 @@ if (!app.requestSingleInstanceLock()) {
       sources,
       mapping,
       editor,
+      taxonomy,
       getWindow,
     })
     wireEvents()

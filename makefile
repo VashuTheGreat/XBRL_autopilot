@@ -19,7 +19,7 @@ start:
 	uv run uvicorn api.app:app --host 127.0.0.1 --port 7860
 
 test:
-	uv run pytest -v
+	uv run --extra dev pytest -v
 
 rebuild:
 	uv run python -m src.ingestion.rebuild_knowledge_base $(EXTRA_ARGS)

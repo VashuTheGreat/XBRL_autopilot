@@ -22,11 +22,6 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 | 12 | Costing CRA-4, masters prefill, trial-balance mapping, Groq proxy, auto-update | ⏳ |
 
 ## Known issues / debt
-- **Python `Authority`:**
-  - `__init__` reads `self.SUPPORTED_TAXONOMIES`, but that name is defined at module level, so every `/api/v1/taxonomies/{id}/…` route returns 500.
-  - `get_concept`, `get_role` and `get_business_rule` are missing.
-  - `/rules` returns roles.
-- `tests/test_taxonomy_integrity.py` imports `src.core.taxonomy_loader`, which doesn't exist.
 - `src/services/retrieval/hybrid.py` and `reranking.py` are empty.
 - `pyproject.toml` `[project.scripts]` points at modules that don't exist; `huggingface` is a stray dependency.
 - The `lagacy_js` compile step expects input file names that differ from `data/` and needs the Annexure txt + filing-manual pdf. Make those optional when porting.
@@ -69,3 +64,9 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
   - **Tests:** ui 34 (axbrl, project service with a lossless save/reopen and byte-identical XML, settings, launch helpers); engine 13 + legacy 284.
   - **E2E (built app, CDP, isolated user data):** wizard → create → explorer/title/status, settings never contain the key, no renderer errors.
 - **2026-11-10, re-plan from real data:** the team supplied the Dixon (Ind AS, Webtel v32.7) instance with its `.xls` workbook, plus the HPL (C&I) workbook. v1 now covers both taxonomies (ADR-0007), with XBRL import and an auto-tagging accuracy harness. Files are committed as fixtures (`docs/12-reference-data.md`).
+- **2026-11-10, taxonomy data via the FastAPI routes (ADR-0008):**
+  - **Python:** fixed `Authority` (all `/{id}/…` routes returned 500) and added `get_concept`, `get_role` and `get_business_rule`; `/rules` no longer returns roles.
+  - **New routes:** `/elrs` and `/elrs/{code}/tree`; ranked `?summary=true` search; `?include_rules=true` on concept detail.
+  - **Grouping:** ELRs are grouped by title (consistent across C&I, Ind AS and Costing), not by code.
+  - **Tests:** added `taxonomy_loader`, so the integrity test runs: 31 pytest pass.
+  - **Electron:** a `TaxonomyCatalog` port with a `SidecarTaxonomyCatalog` adapter. The statement list, Form structure and search now come from the routes; the engine supplies only values and table knowledge. Editor tests run against the real sidecar (11 pass).

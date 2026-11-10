@@ -31,3 +31,8 @@ BATCH_SIZE = 500
 
 
 
+
+# Aliases used by tests and the API (taxonomy ids of the knowledge bases)
+TAXONOMY_CI: str = CI_TAXONOMY_VDB
+TAXONOMY_IND_AS: str = IND_AS_TAXONOMY_VDB
+TAXONOMY_COSTING: str = COSTING_TAXONOMY_VDB

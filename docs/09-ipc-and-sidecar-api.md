@@ -42,7 +42,12 @@ type SidecarStatus =
 |---|---|---|
 | `GET /health` | `{status:"ok", version, taxonomies:[…], ai:{enabled, model}}` | Phase 1 |
 | `GET /api/v1/taxonomies` | List taxonomies | exists |
-| `GET /api/v1/taxonomies/{id}/concepts?search=` | Concept search | exists (fix Authority bug, Phase 5) |
+| `GET /api/v1/taxonomies/{id}/elrs` | Statements/notes/disclosures: `{uri,id,code,title,group}` | **used by the UI** (2026-11-10) |
+| `GET /api/v1/taxonomies/{id}/elrs/{code}/tree` | Presentation tree of one ELR → XBRL Form structure | **used by the UI** |
+| `GET /api/v1/taxonomies/{id}/concepts/search?q=&summary=true` | Ranked compact search `{total, items}` | **used by the UI**; without `summary`, the original shape is kept |
+| `GET /api/v1/taxonomies/{id}/concepts/{qname}?include_rules=true` | Element + MCA business rules | fixed (was 500) |
+| `GET /api/v1/taxonomies/{id}/roles/{key}` · `/business-rules/{index or element}` · `/rules` | Role detail, one rule, all rules | fixed (were 500 / returned roles) |
+| `GET /api/v1/taxonomies/{id}/concepts?search=` | Concept list/filter | exists |
 | `GET /api/v1/taxonomies/{id}/relationships/{kind}` | presentation/calculation/definition | exists |
 | `GET /api/v1/taxonomies/{id}/business-rules?concept=` | Raw rules | exists |
 | `GET /api/v1/taxonomies/recommend?keys=` | Legacy top-1 recommend | exists → superseded |

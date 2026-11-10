@@ -67,6 +67,8 @@ export interface FormRow {
   concept?: string
   tableId?: string
   dataType?: string
+  /** reported only inside a dimensional table: shown for orientation, not taggable from a plain cell */
+  dimensional?: boolean
   cy?: FormCell
   py?: FormCell
 }

@@ -9,6 +9,7 @@ import type { ProjectController } from '../project/project-controller'
 import type { EditorQueryService } from '../services/editor-query-service'
 import type { MappingService } from '../services/mapping-service'
 import type { SourceService } from '../services/source-service'
+import type { TaxonomyService } from '../services/taxonomy-service'
 import type { ProjectService } from '../services/project-service'
 import type { SettingsService } from '../services/settings-service'
 import type { SidecarManager } from '../sidecar'
@@ -23,6 +24,7 @@ export interface IpcDeps {
   sources: SourceService
   mapping: MappingService
   editor: EditorQueryService
+  taxonomy: TaxonomyService
   getWindow: () => BrowserWindow | null
 }
 
@@ -49,7 +51,7 @@ function registerSidecarIpc({ sidecar }: IpcDeps): void {
   })
 }
 
-function registerProjectIpc({ projects, projectController: pc }: IpcDeps): void {
+function registerProjectIpc({ projects, projectController: pc, taxonomy }: IpcDeps): void {
   handleQuery(IPC.projectCurrent, () => projects.summary())
   handleQuery(IPC.projectRecent, () => projects.recentProjects())
   handleQuery(IPC.projectForgetRecent, (_e, path: unknown) => projects.forgetRecent(requireString(path, 'path')))
@@ -61,7 +63,7 @@ function registerProjectIpc({ projects, projectController: pc }: IpcDeps): void 
   handleResult(IPC.projectSaveAs, () => pc.saveAs())
   handleResult(IPC.projectClose, () => pc.close())
   handleResult(IPC.projectRecover, (_e, id: unknown) => pc.recover(requireString(id, 'id')))
-  handleResult(IPC.projectElrs, () => projects.elrs())
+  handleResult(IPC.projectElrs, () => taxonomy.elrs())
 }
 
 function registerSettingsIpc({ settings, getWindow }: IpcDeps): void {
@@ -84,7 +86,7 @@ function registerSettingsIpc({ settings, getWindow }: IpcDeps): void {
 const SCOPES: Scope[] = ['CY', 'PY']
 const STATUSES: MappingStatus[] = ['suggested', 'approved', 'rejected']
 
-function registerEditorIpc({ sources, mapping, editor, getWindow }: IpcDeps): void {
+function registerEditorIpc({ sources, mapping, editor, taxonomy, getWindow }: IpcDeps): void {
   handleResult(IPC.workbookImport, async (_e, path?: unknown) => {
     if (path !== undefined) {
       const file = requireString(path, 'path')
@@ -118,5 +120,5 @@ function registerEditorIpc({ sources, mapping, editor, getWindow }: IpcDeps): vo
   })
   handleResult(IPC.editorForm, (_e, uri: unknown) => editor.form(requireString(uri, 'statement')))
   handleResult(IPC.editorXml, () => editor.xml())
-  handleResult(IPC.taxonomySearch, (_e, q: unknown) => editor.searchConcepts(typeof q === 'string' ? q.slice(0, 200) : ''))
+  handleResult(IPC.taxonomySearch, (_e, q: unknown) => taxonomy.searchConcepts(typeof q === 'string' ? q.slice(0, 200) : ''))
 }

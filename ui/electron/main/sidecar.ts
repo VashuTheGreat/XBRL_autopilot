@@ -45,6 +45,29 @@ export class SidecarManager extends EventEmitter {
     return this.status
   }
 
+  /** Resolves once the sidecar is healthy; rejects on error or timeout. */
+  whenReady(timeoutMs: number): Promise<void> {
+    if (this.status.state === 'ready') return Promise.resolve()
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.off('status', onStatus)
+        reject(new Error('The AI engine (sidecar) is not ready yet. Try again in a moment.'))
+      }, timeoutMs)
+      const onStatus = (s: SidecarStatus) => {
+        if (s.state === 'ready') {
+          clearTimeout(timer)
+          this.off('status', onStatus)
+          resolve()
+        } else if (s.state === 'error') {
+          clearTimeout(timer)
+          this.off('status', onStatus)
+          reject(new Error(`The AI engine (sidecar) failed to start: ${s.message}`))
+        }
+      }
+      this.on('status', onStatus)
+    })
+  }
+
   getLogs(): SidecarLogLine[] {
     return [...this.logs]
   }

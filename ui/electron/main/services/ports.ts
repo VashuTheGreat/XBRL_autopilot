@@ -3,14 +3,60 @@
  * Production adapters live in ../infra; tests use in-memory fakes.
  */
 import type { Authority, Session } from '@xap/engine'
+import type { TaxonomyId } from '@xap/engine/basics'
+import type { HttpMethod, SidecarResponse } from '@shared/ipc'
 import type { ElrInfo, RecentProject } from '@shared/project'
 import type { AxbrlContent, AxbrlManifest } from '../project/axbrl'
 
 export interface LoadedAuthority {
-  taxonomyId: 'ci-2016'
+  taxonomyId: TaxonomyId
   authority: Authority
   hash: string | null
-  elrs: ElrInfo[]
+}
+
+/** A concept as the knowledge-base search returns it (FastAPI ?summary=true). */
+export interface CatalogConcept {
+  qname: string
+  label: string
+  type: string | null
+  periodType: 'instant' | 'duration' | null
+  balance: 'debit' | 'credit' | null
+  abstract: boolean
+  reportable: boolean
+  mandatory: boolean
+  elrCodes: string[]
+}
+
+/** One node of an ELR presentation tree (FastAPI /elrs/{code}/tree). */
+export interface ElrTreeNode {
+  qname: string
+  label: string
+  abstract: boolean
+  type: string | null
+  periodType: 'instant' | 'duration' | null
+  balance: 'debit' | 'credit' | null
+  children: ElrTreeNode[]
+}
+
+export interface ElrTree {
+  uri: string
+  code: string
+  title: string
+  group: ElrInfo['group']
+  tree: ElrTreeNode[]
+}
+
+/** Taxonomy browsing data (knowledge base via the FastAPI routes). */
+export interface TaxonomyCatalog {
+  elrs(taxonomy: TaxonomyId): Promise<ElrInfo[]>
+  elrTree(taxonomy: TaxonomyId, code: string): Promise<ElrTree>
+  searchConcepts(taxonomy: TaxonomyId, query: string, limit: number): Promise<CatalogConcept[]>
+}
+
+/** The part of the sidecar manager that HTTP adapters need. */
+export interface SidecarClient {
+  whenReady(timeoutMs: number): Promise<void>
+  request<T>(method: HttpMethod, path: string, body?: unknown): Promise<SidecarResponse<T>>
 }
 
 /** Supplies the compiled taxonomy authority (loaded once, cached by the implementation). */

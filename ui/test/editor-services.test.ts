@@ -1,22 +1,39 @@
 import { existsSync, mkdtempSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import type { CellRef } from '@shared/workbook'
 import { AppDatabase } from '../electron/main/infra/app-database'
 import { DirAutosaveStore } from '../electron/main/infra/dir-autosave-store'
 import { FileAuthorityProvider } from '../electron/main/infra/file-authority-provider'
+import { SidecarTaxonomyCatalog } from '../electron/main/infra/sidecar-taxonomy-catalog'
 import { readXlsx } from '../electron/main/infra/xlsx-reader'
 import { EditorQueryService } from '../electron/main/services/editor-query-service'
 import { ValidationError } from '../electron/main/services/errors'
 import { MappingService } from '../electron/main/services/mapping-service'
 import { ProjectService } from '../electron/main/services/project-service'
 import { SourceService } from '../electron/main/services/source-service'
+import { TaxonomyService } from '../electron/main/services/taxonomy-service'
+import { SidecarManager } from '../electron/main/sidecar'
 
 const AUTHORITY = resolve(__dirname, '../../engine/authority/ci-2016.authority.json')
 const SAMPLE = resolve(__dirname, '../../data/sample_financials.xlsx')
 const BS = 'http://www.icai.org/xbrl/taxonomy/role/in-gaap/BalanceSheet'
 const authority = new FileAuthorityProvider(AUTHORITY)
+const REPO = resolve(__dirname, '../..')
+
+// The real FastAPI sidecar (uv run python -m api) serves the taxonomy routes: no fakes for the contract under test.
+let sidecar: SidecarManager
+let catalog: SidecarTaxonomyCatalog
+beforeAll(async () => {
+  sidecar = new SidecarManager({ isPackaged: false, repoRoot: REPO, resourcesPath: '' })
+  void sidecar.start()
+  await sidecar.whenReady(170_000)
+  catalog = new SidecarTaxonomyCatalog(sidecar)
+}, 180_000)
+afterAll(async () => {
+  await sidecar?.stop()
+})
 
 describe.skipIf(!existsSync(AUTHORITY))('editor services on the sample workbook', () => {
   let dir: string
@@ -24,6 +41,7 @@ describe.skipIf(!existsSync(AUTHORITY))('editor services on the sample workbook'
   let sources: SourceService
   let mapping: MappingService
   let editor: EditorQueryService
+  let taxonomy: TaxonomyService
   const cell = (sheet: string, ref: string): CellRef => ({ workbook: 'workbook-1.xlsx', sheet, ref })
 
   beforeEach(async () => {
@@ -31,7 +49,8 @@ describe.skipIf(!existsSync(AUTHORITY))('editor services on the sample workbook'
     projects = new ProjectService({ authority, recents: new AppDatabase(':memory:'), autosave: new DirAutosaveStore(join(dir, 'a')), appVersion: '0.1.0' })
     sources = new SourceService(projects, readXlsx)
     mapping = new MappingService(projects, sources)
-    editor = new EditorQueryService(projects, () => mapping.list(), () => '2014-09-30')
+    editor = new EditorQueryService(projects, () => mapping.list(), catalog, () => '2014-09-30')
+    taxonomy = new TaxonomyService(projects, catalog)
     await projects.newFiling({
       companyName: 'XBRL Ltd',
       cin: 'U72200KA2010PLC123456',
@@ -57,7 +76,7 @@ describe.skipIf(!existsSync(AUTHORITY))('editor services on the sample workbook'
     expect([cy.value, py.value]).toEqual(['60000000', '30000000'])
     expect(cy).toMatchObject({ label: '- Share Capital', origin: 'manual', status: 'approved', conceptLabel: expect.stringMatching(/share capital/i) })
 
-    const form = editor.form(BS)
+    const form = await editor.form(BS)
     const row = form.rows.find((r) => r.concept === 'in-gaap:ShareCapital')!
     expect(row.cy).toMatchObject({ display: '60000000', source: cell('BS', 'C9'), mappingId: cy.id })
     expect(row.py).toMatchObject({ display: '30000000', source: cell('BS', 'D9') })
@@ -103,15 +122,31 @@ describe.skipIf(!existsSync(AUTHORITY))('editor services on the sample workbook'
   it('refuses text for amounts, empty cells and table-only elements with clear messages', async () => {
     await expect(mapping.tag({ cell: cell('BS', 'A9'), concept: 'in-gaap:ShareCapital', scope: 'CY' })).rejects.toThrow(/not a number/)
     await expect(mapping.tag({ cell: cell('BS', 'C12'), concept: 'in-gaap:ShareCapital', scope: 'CY' })).rejects.toThrow(/empty/)
-    const tableOnly = editor.searchConcepts('classes of share capital').find((h) => !h.nonDimensional)
+    const tableOnly = (await taxonomy.searchConcepts('classes of share capital')).find((h) => !h.nonDimensional)
     if (tableOnly) await expect(mapping.tag({ cell: cell('BS', 'C9'), concept: tableOnly.qname })).rejects.toBeInstanceOf(ValidationError)
   })
 
-  it('searches the taxonomy with statement-level elements first', () => {
-    const hits = editor.searchConcepts('share capital')
+  it('searches the taxonomy through the FastAPI route, enriched with the engine’s table knowledge', async () => {
+    const hits = await taxonomy.searchConcepts('share capital')
     expect(hits[0]).toMatchObject({ qname: 'in-gaap:ShareCapital', nonDimensional: true, periodType: 'instant', balance: 'credit' })
     expect(hits[0]!.elrCodes).toContain('100100')
-    expect(editor.searchConcepts('')).toEqual([])
+    expect(await taxonomy.searchConcepts('')).toEqual([])
+  })
+
+  it('lists statements from the /elrs route, grouped by title', async () => {
+    const elrs = await taxonomy.elrs()
+    expect(elrs).toHaveLength(47)
+    expect(elrs[0]).toMatchObject({ code: '100100', title: 'Balance sheet', group: 'Statements' })
+    expect(new Set(elrs.map((e) => e.group))).toEqual(new Set(['Statements', 'Notes', 'Disclosures']))
+  })
+
+  it('builds the XBRL Form structure from the /tree route', async () => {
+    const form = await editor.form(BS)
+    expect(form).toMatchObject({ code: '100100', title: 'Balance sheet' })
+    expect(form.rows[0]).toMatchObject({ kind: 'header', depth: 0 })
+    const share = form.rows.find((r) => r.concept === 'in-gaap:ShareCapital')!
+    expect(share).toMatchObject({ kind: 'item', cy: { display: '' } })
+    expect(form.rows.filter((r) => r.kind === 'item' && !r.dimensional).length).toBeGreaterThan(30)
   })
 
   it('saves sources and mapping in the .axbrl and restores them on open', async () => {

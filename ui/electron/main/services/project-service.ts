@@ -9,7 +9,7 @@ import { existsSync } from 'node:fs'
 import { basename } from 'node:path'
 import { Filing, Session } from '@xap/engine'
 import { fyLabel, isValidCin, ROUNDING_LEVELS, validateFilingPeriods } from '@xap/engine/basics'
-import type { ElrInfo, NewFilingInput, ProjectSummary, RecentProject, RecoveryItem } from '@shared/project'
+import type { NewFilingInput, ProjectSummary, RecentProject, RecoveryItem } from '@shared/project'
 import {
   AXBRL_FORMAT,
   AXBRL_FORMAT_VERSION,
@@ -132,10 +132,6 @@ export class ProjectService extends EventEmitter<ProjectEvents> implements Proje
   /** The live engine session, for engine-level features (Phase 4+). */
   session(): Session {
     return this.require().session
-  }
-
-  async elrs(): Promise<ElrInfo[]> {
-    return (await this.deps.authority.load()).elrs
   }
 
   recentProjects(): RecentProject[] {
