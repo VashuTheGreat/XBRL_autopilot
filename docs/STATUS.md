@@ -18,7 +18,7 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 | 8 | **AI auto-tagging** (`/mapping/suggest`: layout → memory → exact label → BM25 with heading context, filtered by period type / dimensions / statement → optional Groq rerank) plus an **evaluation harness** on the DGPL ↔ Dixon answer key (precision 0.738, recall 0.793; ≥ 0.9 right 93.6%); suggestions → Accept / Reject / Accept all ≥ 90% in the app; mapping memory. Embeddings (ONNX) deferred | ✅ done |
 | 9 | **Validation UI** ([ADR-0011](decisions/ADR-0011-business-rules-from-knowledge-base.md)): the executable rule ASTs are built in Python into `knowledge_base` and served by `/{id}/engine-rules`; C&I deep-equal to the retired TS compiler; **Ind AS formalized** (95.36% executable, Dixon 0 ERRORs); rule-coverage reports; live validation (gate, rules, calculation per taxonomy), Problems panel with locate and quick fixes, MCA Validation Tool v5.1 launcher + error import; Arelle XSD check (dev extra) working | ✅ done |
 | 10 | **AI fix agent** ([ADR-0012](decisions/ADR-0012-ai-fix-patches.md)): `/fix/propose` (Groq tool loop ≤ 6 calls, tools on the knowledge base + bundle, strict JSON patches), privacy checked twice + fixture guard, engine `checkPatch` / `applyFactPatch` / `dryRun`, diff cards with Accept / Edit / Reject, Fix all rounds with budgets, `ai/history.jsonl` with the exact payload; live Groq smoke 4/4 correct | ✅ done |
-| 11 | **Complete end-to-end tagging** ([ADR-0013](decisions/ADR-0013-table-tagging.md)): coverage evaluation of every filed fact ✅; ELR groups by title ✅; table blocks + figures reported twice + rule-driven table zeros (engine, app, UI) ✅; next: table suggestions (Ind AS on Dixon, C&I on HPL), text + filing-details form, Excel parsing gaps | 🔄 steps 1–2 done |
+| 11 | **Complete end-to-end tagging** ([ADR-0013](decisions/ADR-0013-table-tagging.md)): coverage evaluation of every filed fact ✅; ELR groups by title ✅; table blocks + figures reported twice + rule-driven table zeros (engine, app, UI) ✅; table suggestions in the sidecar + per-producer scoreboard + HPL key ✅ (3a); next: suggestions in the app, parent-member roll-ups, engine-side scoreboard, text + filing-details form, Excel parsing gaps | 🔄 steps 1–3a done |
 | 11b | **Packaging**: PyInstaller sidecar (check xlrd in the bundle) + electron-builder NSIS, `.axbrl` association. A packaging spike comes earlier only if a pilot install is needed | ⏳ |
 | 12 | Costing CRA-4 (its KB exists; no engine authority, rules or wizard entry yet), masters prefill, trial-balance mapping, Groq proxy, auto-update | ⏳ |
 
@@ -297,3 +297,13 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
     - legacy 226/0; pytest 128.
   - **E2E `ui/e2e/phase11-tables.mjs` green** (25 checks, DGPL, no AI). Map as table on FA → 36 cells; FA!E18 = PPE closing, computers, gross, CY, 0.73; both-way linkage; Equity share capital also as "Equity shares 1"; Table zeros → 0 clears ML-13 (4 → 0); removing the block untags its cells.
   - **Next:** step 3, table suggestions in the sidecar, and the table producers on the scoreboard (Dixon, HPL).
+- **2026-11-11, Phase 11 step 3a: table suggestions in the sidecar ([06](06-ai-auto-tagging.md#table-suggestions-phase-11-step-3a-adr-0013)):**
+  - `src/services/tagging/tables.py`: catalog, block detection, table matching, assignment, and one-class "also report as". `suggest()` returns `blocks`, and statement suggestions can carry `also`.
+  - **Scoreboard per producer (Dixon):** table 63 right / 0 wrong / 4 extra; also 2 / 0 / 4 (gated at ≥ 0.9); statement unchanged (143 / 4 near / 39 / 113).
+  - **HPL (C&I) hand-checked key:** 13 / 13 right; 8 facts the filer put under its own member ("Plant and equipment") are listed apart.
+  - **Tests:** pytest 134 (+6 `test_table_suggestions.py`).
+  - **Not yet:**
+    - the app doesn't store or show block suggestions (AutoTagService / UI);
+    - parent-member roll-ups (changes in equity, loans and share classes file one value under several nested members) need an engine derivation;
+    - related parties, financial instruments by category and share-capital notes (counts in text) aren't suggested;
+    - DGPL's financial-instruments header is stale ("As at March 31, 2025" over FY 2026 figures): a figures-vs-statement check for column years is needed.

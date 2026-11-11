@@ -151,6 +151,46 @@ The keyed-cell evaluation above only scores statement-level amounts. `src/evalua
   - **Figures reported twice:** 169 of the 288 non-zero table amounts are a statement figure reported again with a member.
   - **General information:** it mostly comes from a filing-details form.
 
+## Table suggestions (Phase 11 step 3a, [ADR-0013](decisions/ADR-0013-table-tagging.md))
+`src/services/tagging/tables.py`, called by `suggest()`. `POST /mapping/suggest` returns `blocks` next to `suggestions`.
+- **Catalog** (`TableCatalog`, from the engine authority, so any taxonomy works):
+  - each table with axes;
+  - its numeric line items, in presentation order with their label roles (a port of `buildTableView`);
+  - its axes' members, with default / usable.
+
+  The table's **subject words** (shared by 40%+ of its line items, e.g. "property plant equipment") are left out when rows are matched.
+- **Blocks** (`find_blocks`):
+  - figure rows with 2+ numeric cells, grouped while the columns overlap (gaps of ≤ 3 rows);
+  - value columns that hold numbers in at least half the rows;
+  - the header is the text up to 5 rows above;
+  - at least one column must name something other than a year (plain CY / PY notes stay with the statement tagger);
+  - heading rows just above belong to the block.
+- **Matching** (`match_block`): the best (table, column axis) pair, scored 0.55 × column headers ↔ members of that axis + 0.45 × row labels ↔ line items or members of another axis.
+  - A dated balance row counts as matched when the table rolls a balance forward.
+  - Two columns of one year can't be the same member.
+  - The minimum score is 0.45.
+- **Assignment:**
+  - **Columns:** each column takes its member; a "Total" column is the class total (no column member).
+  - **Group headings:** a heading, or a label containing a member of another axis, sets a group member. "Gross Block …" is the gross carrying amount, and the longest contained member wins. "Net carrying amount" is the default, so it gives no member.
+  - **Balance rows:** a balance row's date gives its period role. Year-end dates: 31 March 2024 is the PY opening, 31 March 2025 the PY closing, 31 March 2026 the CY closing. Year-start dates ("1 April 2024") work too.
+  - **Movement rows:** each takes the year of the next closing balance below it.
+  - **Cells:** a cell with no member at all is left out; that's a statement figure.
+  - **Phrases:** "gross block", "net block", "charge for the year" and "profit/(loss) for the year" are mapped to the taxonomy's wording.
+- **One class** (`one_class_also`): a statement suggestion of 0.9 or more whose element is a line item of a table with exactly one numbered "classes" axis (Equity shares 1), all other axes defaultable, gets `also: [{concept, tableId, dims, preferredLabel, confidence 0.7}]`.
+- **Scoreboard** (2026-11-11, `coverage_eval`, per producer):
+
+  | producer | right | near | wrong | extra |
+  |---|---|---|---|---|
+  | statement | 143 | 4 | 39 | 113 |
+  | table | 63 | 0 | 0 | 4 |
+  | also | 2 | 0 | 0 | 4 |
+
+  - The table producer found PPE (DGPL sheet FA) and changes in equity.
+  - Ungated, the one-class producer gave 4 right / 6 wrong / 15 extra, which is why it now rides only on sure tags.
+- **C&I hand-checked key** (`src/evaluation/table_key_eval.py`, `tests/fixtures/hpl_table_key.json`, from Helmier's PDF): 13 / 13 right, 0 wrong.
+  - The filer put the workbook's "Computers" under *Plant and equipment*. Those 8 facts are listed apart (filer's choice).
+- **Tests:** `tests/test_table_suggestions.py` covers synthetic roll-forwards on Ind AS and C&I, changes in equity, the plain-note exclusion, the Dixon floors (table right ≥ 60, wrong ≤ 10%; also wrong 0) and the HPL key.
+
 ## Tagging-quality review (later)
 After mapping, an optional AI pass flags suspicious tags the MCA validator can't see:
 - lumping into residual "Other…" tags;

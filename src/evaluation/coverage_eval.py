@@ -6,9 +6,12 @@ For each filed fact (DGPL workbook ↔ Dixon's MCA-accepted instance, 2,666 fact
   value (zero, nil, Yes/No) (workbook_index.py);
 - whether we produce it (same concept, period end and dimensions) and, if so, whether our value is the filed one.
 
-"Produced" facts come from producers: today the Phase 8 statement tagger's suggestions (`produced_from_suggestions`).
-Table tagging, text tagging and the filing-details form add producers of their own. A produced fact that Dixon did not
-file is counted as `extra` (a wrong element, or a figure the filer left out).
+"Produced" facts come from producers, each scored on its own (right / near / wrong / extra):
+- `statement`: the Phase 8 statement tagger's suggestions (`produced_from_suggestions`);
+- `table`: the table suggester's blocks, cell by cell (`produced_from_blocks`, ADR-0013);
+- `also`: "also report as" facts attached to statement suggestions (the one class of a classes axis).
+Text tagging and the filing-details form add producers of their own. A produced fact that Dixon did not file is counted
+as `extra` (a wrong element, or a figure the filer left out). When two producers give the same fact, the first wins.
 
 Runs with the LLM off: data/ fixtures never go to an AI service. CLI: `uv run python -m src.evaluation.coverage_eval`
 (`--tables` adds the note tables ranked by their non-zero amounts).
@@ -43,6 +46,7 @@ class ProducedFact:
     dims: tuple[tuple[str, str], ...]
     value: Decimal | str  # rupees for an amount, text otherwise
     source: str  # "sheet!A1" (or "form:<field>" later)
+    producer: str = "statement"
 
     @property
     def key(self) -> Key:
@@ -80,6 +84,7 @@ class CoverageReport:
     by_kind_section: dict[tuple[FactKind, str], Bucket]
     by_table: dict[str, Bucket]  # table id → bucket of its amounts
     extra: Counter  # produced facts Dixon didn't file, by kind of the produced concept
+    by_producer: dict[str, Counter] = field(default_factory=lambda: defaultdict(Counter))  # producer → right/near/wrong/extra
     total: int = 0
     produced_total: int = 0
     wrong_examples: list[str] = field(default_factory=list)
@@ -97,6 +102,7 @@ class CoverageReport:
                 if b and b.total:
                     lines.append(row("", section, b))
         lines += ["", "not filed (extra) by kind: " + ", ".join(f"{k.value} {v}" for k, v in sorted(self.extra.items())) or "none"]
+        lines += ["", "BY PRODUCER:", *(f"  {p:<10} right {c['right']:>4}  near {c['near']:>3}  wrong {c['wrong']:>3}  extra {c['extra']:>3}" for p, c in sorted(self.by_producer.items()))]
         if self.wrong_examples:
             lines += ["", "WRONG VALUES (first 20):", *(f"  {w}" for w in self.wrong_examples[:20])]
         if tables:
@@ -147,6 +153,37 @@ def produced_from_suggestions(result: SuggestResult, cy_end: dt.date, py_end: dt
         dims = tuple(sorted((d["axis"], d.get("member") or d.get("typed")) for d in s.get("dims") or []))
         rupees = filed_amount(v, scale_of.get(sheet, SCALES[level]), level, places) * s.get("sign", 1)
         out.append(ProducedFact(s["concept"], end, dims, rupees, f"{sheet.strip()}!{ref}"))
+        for a in s.get("also", []):
+            also_end = period_end(s["scope"], a.get("preferredLabel"), cy_end, py_end)
+            also_dims = tuple(sorted((d["axis"], d.get("member") or d.get("typed")) for d in a["dims"]))
+            if also_end:
+                out.append(ProducedFact(a["concept"], also_end, also_dims, rupees, f"{sheet.strip()}!{ref}", "also"))
+    return out
+
+
+def period_end(scope: str, preferred_label: str | None, cy_end: dt.date, py_end: dt.date | None) -> dt.date | None:
+    """The instant / end date of a table cell: an opening balance is the day before the year starts."""
+    if preferred_label == "periodStartLabel":
+        return py_end if scope == "CY" else (py_end.replace(year=py_end.year - 1) if py_end else None)
+    return cy_end if scope == "CY" else py_end
+
+
+def produced_from_blocks(result: SuggestResult, sheets: list[dict], cy_end: dt.date, py_end: dt.date | None, level: str,
+                         places: int = 2) -> list[ProducedFact]:
+    """The table suggester's cells as facts (each block cell × its sheet's scale, as the app would file it)."""
+    from src.services.tagging.layout import a1
+
+    values = {(s["name"], a1(c["r"], c["c"])): c["v"] for s in sheets for c in s["cells"] if isinstance(c["v"], (int, float)) and not isinstance(c["v"], bool)}
+    scale_of = {l.sheet: SCALES[l.scale or level] for l in result.layouts}
+    out = []
+    for b in result.blocks:
+        for c in b.cells:
+            v = values.get((b.sheet, c.ref))
+            end = period_end(c.scope, c.preferred_label, cy_end, py_end)
+            if v is None or end is None:
+                continue
+            dims = tuple(sorted((d["axis"], d.get("member") or d.get("typed")) for d in c.dims))
+            out.append(ProducedFact(c.concept, end, dims, filed_amount(v, scale_of.get(b.sheet, SCALES[level]), level, places), f"{b.sheet.strip()}!{c.ref}", "table"))
     return out
 
 
@@ -168,6 +205,8 @@ def coverage(facts: list[FiledFact], classifier: FactClassifier, index: Workbook
             b.add(loc, zero, p is not None, v)
         if cls.kind is FactKind.TABLE_AMOUNT:
             report.by_table[cls.table_id or "?"].add(loc, zero, p is not None, v)
+        if p is not None:
+            report.by_producer[p.producer][v] += 1
         if v == "wrong":
             report.wrong_examples.append(f"{p.source}: {f.concept} {f.end} filed {f.text.strip()[:20]}, ours {p.value}")
         report.total += 1
@@ -175,6 +214,7 @@ def coverage(facts: list[FiledFact], classifier: FactClassifier, index: Workbook
     for k, p in by_key.items():
         if k in filed_keys:
             continue
+        report.by_producer[p.producer]["extra"] += 1
         pseudo = FiledFact(p.concept, p.end, True, p.dims, "INR" if isinstance(p.value, Decimal) else None, None, str(p.value))
         report.extra[classifier.classify(pseudo).kind] += 1
     return report
@@ -187,7 +227,7 @@ def run_dgpl_dixon() -> tuple[CoverageReport, SuggestResult]:
     with SPECS["ind_as_taxonomy"].output.open(encoding="utf-8") as fh:
         classifier = FactClassifier(json.load(fh))
     result = suggest(catalog_for("ind_as_taxonomy"), sheets, cy_end, py_end)  # LLM off: fixtures stay local
-    produced = produced_from_suggestions(result, cy_end, py_end, level)
+    produced = produced_from_suggestions(result, cy_end, py_end, level) + produced_from_blocks(result, sheets, cy_end, py_end, level)
     report = coverage(read_facts(DIXON), classifier, WorkbookIndex(sheets, layouts, level), produced)
     return report, result
 

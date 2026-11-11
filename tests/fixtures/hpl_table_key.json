@@ -1,0 +1,33 @@
+{
+  "source": "data/Instance_Helmier_Private_Limited__2025-26.xml.pdf, [201000] Notes - Tangible assets, tables ..(1)-(6) (PDF pages 39-41), read by hand 2026-11-11. Only facts whose element, members and period are unambiguous in the PDF layout. Values in lakhs as printed (2 decimals). The sub-classes axis is at its default (Owned and leased assets) unless stated.",
+  "workbook": "HPL -M26 - Financials_final cross checked with print_8th sep (3).xlsx",
+  "taxonomy": "ci_taxonomy",
+  "periods": { "cyEnd": "2026-03-31", "pyEnd": "2025-03-31" },
+  "notes": [
+    "The filer reported the workbook's 'Computers' column under Plant and equipment [Member], not Computer equipments [Member]: a filer's choice the workbook does not show, kept here as filed.",
+    "Accumulated-depreciation disposals were filed as 'Disposals tangible assets through demergers'; not in the key (filer's choice, and the PDF row wrapping is ambiguous)."
+  ],
+  "facts": [
+    { "concept": "in-gaap:AdditionsOtherThanThroughBusinessCombinationsTangibleAssets", "end": "2026-03-31", "members": ["GrossCarryingAmountMember"], "value": "87.29" },
+    { "concept": "in-gaap:AdditionsOtherThanThroughBusinessCombinationsTangibleAssets", "end": "2025-03-31", "members": ["GrossCarryingAmountMember"], "value": "253.33" },
+    { "concept": "in-gaap:TangibleAssets", "end": "2026-03-31", "members": ["GrossCarryingAmountMember"], "value": "492.57" },
+    { "concept": "in-gaap:TangibleAssets", "end": "2025-03-31", "members": ["GrossCarryingAmountMember"], "value": "406.10" },
+    { "concept": "in-gaap:TangibleAssets", "end": "2024-03-31", "members": ["GrossCarryingAmountMember"], "value": "162.10" },
+    { "concept": "in-gaap:TangibleAssets", "end": "2026-03-31", "members": ["AccumulatedDepreciationAndImpairmentMember"], "value": "121.77" },
+    { "concept": "in-gaap:TangibleAssets", "end": "2025-03-31", "members": ["AccumulatedDepreciationAndImpairmentMember"], "value": "80.14" },
+    { "concept": "in-gaap:TangibleAssets", "end": "2024-03-31", "members": ["AccumulatedDepreciationAndImpairmentMember"], "value": "49.74" },
+    { "concept": "in-gaap:TangibleAssets", "end": "2026-03-31", "members": ["LandMember"], "value": "207" },
+    { "concept": "in-gaap:TangibleAssets", "end": "2025-03-31", "members": ["LandMember"], "value": "207" },
+    { "concept": "in-gaap:AdditionsOtherThanThroughBusinessCombinationsTangibleAssets", "end": "2025-03-31", "members": ["LandMember", "GrossCarryingAmountMember"], "value": "207" },
+    { "concept": "in-gaap:TangibleAssets", "end": "2026-03-31", "members": ["LandMember", "GrossCarryingAmountMember"], "value": "207" },
+    { "concept": "in-gaap:TangibleAssets", "end": "2025-03-31", "members": ["LandMember", "GrossCarryingAmountMember"], "value": "207" },
+    { "concept": "in-gaap:AdditionsOtherThanThroughBusinessCombinationsTangibleAssets", "end": "2026-03-31", "members": ["PlantAndEquipmentMember", "GrossCarryingAmountMember"], "value": "26.85", "filerChoice": true },
+    { "concept": "in-gaap:AdditionsOtherThanThroughBusinessCombinationsTangibleAssets", "end": "2025-03-31", "members": ["PlantAndEquipmentMember", "GrossCarryingAmountMember"], "value": "10.56", "filerChoice": true },
+    { "concept": "in-gaap:TangibleAssets", "end": "2026-03-31", "members": ["PlantAndEquipmentMember", "GrossCarryingAmountMember"], "value": "81.24", "filerChoice": true },
+    { "concept": "in-gaap:TangibleAssets", "end": "2025-03-31", "members": ["PlantAndEquipmentMember", "GrossCarryingAmountMember"], "value": "54.40", "filerChoice": true },
+    { "concept": "in-gaap:TangibleAssets", "end": "2024-03-31", "members": ["PlantAndEquipmentMember", "GrossCarryingAmountMember"], "value": "43.84", "filerChoice": true },
+    { "concept": "in-gaap:TangibleAssets", "end": "2026-03-31", "members": ["PlantAndEquipmentMember", "AccumulatedDepreciationAndImpairmentMember"], "value": "47.81", "filerChoice": true },
+    { "concept": "in-gaap:TangibleAssets", "end": "2025-03-31", "members": ["PlantAndEquipmentMember", "AccumulatedDepreciationAndImpairmentMember"], "value": "35.06", "filerChoice": true },
+    { "concept": "in-gaap:TangibleAssets", "end": "2024-03-31", "members": ["PlantAndEquipmentMember", "AccumulatedDepreciationAndImpairmentMember"], "value": "23.21", "filerChoice": true }
+  ]
+}
