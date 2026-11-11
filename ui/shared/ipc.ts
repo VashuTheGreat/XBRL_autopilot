@@ -25,6 +25,7 @@ import type {
   XmlView,
 } from './editor'
 import type { CellRef, WorkbookModel } from './workbook'
+import type { McaLaunchResult, ValidationView } from './validation'
 
 /**
  * Every fallible IPC call returns a Result instead of throwing: Electron flattens thrown errors into
@@ -121,6 +122,13 @@ export const IPC = {
   editorXml: 'editor:xml',
   editorFillMandatoryZeros: 'editor:fill-mandatory-zeros',
   taxonomySearch: 'taxonomy:search',
+  validationGet: 'validation:get',
+  validationRun: 'validation:run',
+  validationFix: 'validation:fix',
+  validationImportMca: 'validation:import-mca',
+  validationClearMca: 'validation:clear-mca',
+  validationChanged: 'validation:changed',
+  toolsLaunchMca: 'tools:launch-mca',
 } as const
 
 /** The API exposed on window.xap by the preload script. */
@@ -191,5 +199,19 @@ export interface XapApi {
     rejectSuggestion(id: string): Promise<Result<MappingView>>
     /** accepts every suggestion with confidence ≥ `min` (default 0.9) */
     acceptAllSuggestions(min?: number): Promise<Result<AcceptAllResult>>
+  }
+  /** Phase 9: live validation, quick fixes, MCA Validation Tool */
+  validation: {
+    /** the latest run (revalidated automatically after every change) */
+    get(): Promise<ValidationView>
+    run(): Promise<Result<ValidationView>>
+    /** applies the deterministic quick fix of a problem of the latest run */
+    fix(problemId: string): Promise<Result<ValidationView>>
+    /** the MCA tool's error list: pasted text, or a file dialog when omitted; `null` = cancelled */
+    importMca(text?: string): Promise<Result<ValidationView | null>>
+    clearMca(): Promise<Result<ValidationView>>
+    /** writes output/NNN.xml and starts the MCA XBRL Validation Tool */
+    launchMca(): Promise<Result<McaLaunchResult>>
+    onChanged(cb: (v: ValidationView) => void): () => void
   }
 }

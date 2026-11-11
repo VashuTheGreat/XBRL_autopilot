@@ -32,7 +32,7 @@ engine/
   src/instance-import.ts   importXbrl (xmldom), canonicalFacts / compareInstanceFacts / verifyRoundTrip (semantic), instanceConventions
   src/core/authority-bundle.js  assembleAuthority(taxonomy, rules|null): joins the two halves (ADR-0010)
   scripts/assemble-authority.mjs   joins knowledge_base/<kb>_engine_authority.json + <kb>_engine_rules.json (no compiling)
-  compiler/taxonomy-source.mjs, xsd-validate.mjs   test-side Arelle XSD check on a patched taxonomy copy
+  compiler/taxonomy-source.mjs, xsd-validate.mjs   test-side Arelle XSD check on a patched taxonomy copy (Arelle: dev extra)
   authority/              generated (git-ignored): ci-2016.authority.json, ind-as-2017.authority.json (taxonomy + rules,
                           for tests/tools; the app loads both halves through the sidecar)
   test/fixtures/ci-2016-example.golden.xml   golden XML of the example filing (TS-compiled authority, 2026-11-10)

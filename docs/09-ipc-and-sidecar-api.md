@@ -30,10 +30,15 @@
 | autotag | `autotag:accept` | invoke | `id, concept?` → `MappingView`. `MappingService.tag` with the suggestion's origin and confidence; `concept` picks one of its alternatives (origin `manual`). Teaches `mapping_memory` |
 | autotag | `autotag:reject` | invoke | `id` → `MappingView` (status `rejected`; not suggested again for that element) |
 | autotag | `autotag:accept-all` | invoke | `min?` (default 0.9) → `AcceptAllResult` `{accepted, problems[]}`; a suggestion the engine refuses stays suggested |
-| engine | `engine:set-value` / `engine:validate` / `engine:export-xml` / `engine:apply-fix` | invoke | (Phase 2+) |
+| validation | `validation:get` | invoke | → `ValidationView` (latest run; revalidated 400 ms after every change) |
+| validation | `validation:changed` | event | `ValidationView` (after every run; the renderer keeps the highest `revision`) |
+| validation | `validation:run` | invoke | → `ValidationView` (now) |
+| validation | `validation:fix` | invoke | `problemId` → `ValidationView` (engine `fixFor` on an issue of the latest run, then revalidates) |
+| validation | `validation:import-mca` | invoke | `text?` (file dialog when omitted, ≤ 2 MB) → `ValidationView` (kept in `mca-errors/`) |
+| validation | `validation:clear-mca` | invoke | → `ValidationView` |
 | settings | `settings:get` / `settings:set` | invoke | non-secret settings |
 | settings | `settings:set-groq-key` / `settings:has-groq-key` | invoke | the key is stored with safeStorage; it is never returned to the renderer |
-| tools | `tools:open-mca-validator` | invoke | `xmlPath?` → `{launched}` |
+| tools | `tools:launch-mca` | invoke | → `McaLaunchResult` `{xmlPath, toolPath, validated}`: writes `output/NNN.xml`, starts the MCA tool detached (Phase 9; `McaToolService`). The menu command `tools:open-mca-validator` calls it |
 
 ```ts
 type SidecarStatus =

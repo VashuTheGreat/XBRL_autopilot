@@ -127,16 +127,23 @@ Matching failures are reported as **warnings with the evidence attached**, never
 
 **Ind AS acceptance (Phase 9):** the Dixon instance gives **0 ERRORs** (`engine/test/ind-as-rules.test.ts`). Six exceptions are curated: SR-L1304-1, ML-7, SR-L5417-2 (PY), SR-L6075-1 and SR-L6392-1 (PY), GR-1 (EquityShareCapital at the previous-year opening). The test also checks that each of them appears as a warning.
 
+## In the app: live validation and the Problems panel (Phase 9)
+- **`ValidationService`** (`ui/electron/main/services/validation-service.ts`, Electron-free) runs the engine's gate for the open filing **debounced 400 ms after every project change** (`ProjectService` "changed"; Accept all is one change through `ProjectHandle.batch`). Measured: about 0.3 s per run on the 2,666-fact Dixon filing, so it runs on the main process (no worker).
+- Each gate issue becomes a `Problem` (`ui/shared/validation.ts`): severity, family (document, fact, dimension, calculation, rule, review, coverage, mca), rule id, message, **location** from the gate (statement, row, table, period, fact key) and the **Excel cell** of the fact. Only `approved` mapping entries count; `suggested` / `rejected` entries carry no fact and are never a source.
+- **Problems panel** (bottom panel, `ProblemsPanel.tsx`): grouped by statement / note, error / warning / info filters, source filter (this app / MCA tool), the taxonomy's rule coverage ("Rules 95.4% executable"), and counts in the status bar. **Double-click** locates: it opens the statement in the XBRL Form, selects the fact, and reveals and selects the Excel cell.
+- **Quick fixes:** where the engine's `fixFor` (`engine/src/core/fixes.js`) has a deterministic fix (total = sum of parts, nil for a missing current year, mandatory → 0, V3 schemaRef …) the row shows **Fix**. It applies through the session, then revalidates. Generic rules are matched by handler, so the fixes work for Ind AS too.
+- **Ask AI** is shown disabled until the AI fix agent (Phase 10). No filing data goes to an AI service in Phase 9.
+- XML export still refuses a filing with ERRORs unless the user forces it (written with a "NOT VALIDATED" comment).
+
 ## Layer 3: MCA Validation Tool v5.1
 - It is GUI-only (see [01-research](01-research-webxbrl-and-mca-tool.md)), so it can't be embedded.
-- **Settings:** the user sets the path to `MCA_XBRL_Valiation_Tool_V5.1.exe`. We auto-detect common folders and `data/validation_tool` in dev.
-- **Tools → Validate in MCA Tool:**
-  1. The app writes the latest XML to `output/NNN.xml`.
-  2. It launches the tool.
-  3. It shows instructions: choose the C&I taxonomy, File → Open, Validate.
-- **Problems → Import MCA errors:** paste the text, or load a saved report. `mca-errors.ts` then:
-  1. Parses each line: code, element in `'quotes'`, value in `[brackets]`.
-  2. Maps it to facts and cells.
-  3. Explains it in plain language.
-  4. Offers a quick fix or "Ask AI".
+- **Finding the tool** (`McaToolService`, `infra/mca-tool.ts`): the path in Settings, else `MCA_XBRL_Valiation_Tool_V*.exe` two folders deep under `data/validation_tool` (dev), `C:\MCA`, `%LOCALAPPDATA%\Programs` or Program Files.
+- **Problems → MCA tool** (also Tools → Validate in MCA Tool):
+  1. The app writes the latest XML to `output/NNN.xml`, both inside the `.axbrl` and on disk next to the saved project (else under the app's data folder). A filing with open errors is still written, marked "NOT VALIDATED".
+  2. It starts the tool detached.
+  3. A toast says what to do: choose the taxonomy, File → Open that XML, Validate, and copy the error list back.
+- **Problems → Import MCA errors:** paste the text, or load a saved report. `explainMcaErrors` (`engine/src/core/mca-errors.js`) explains each line (meaning, likely cause, fix) and resolves its element. The list is kept in the project (`mca-errors/mca-<time>-<name>.txt`), shown as MCA problems linked to the element's statement and cell, and can be cleared.
 - **Future spike:** check whether the `com/mca/xbrl` classes can run headless through the bundled JRE. Investigate only; check licensing before any use.
+
+## Test-side XML Schema check (Arelle)
+`arelle-release` is a **dev extra** (`uv sync --extra dev`); it is not shipped. `engine/compiler/xsd-validate.mjs` runs it offline against the patched C&I taxonomy copy and is used by the legacy XSD tests (8 tests). Fixed in Phase 9: on Windows the absolute `file:///D:/…%20…` schemaRef failed to load (now a temporary instance next to the entry point, named relatively), and CRLF log lines hid every message code (so even broken instances passed).

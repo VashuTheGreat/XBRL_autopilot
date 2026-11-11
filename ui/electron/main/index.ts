@@ -12,6 +12,9 @@ import { DirAutosaveStore } from './infra/dir-autosave-store'
 import { sidecarXlsReader, workbookParser } from './infra/workbook-parser'
 import { readXlsx } from './infra/xlsx-reader'
 import { SidecarAuthoritySource, SidecarRuleBundleSource } from './infra/sidecar-authority-source'
+import { DetachedLauncher, FileOutputWriter, findMcaTool } from './infra/mca-tool'
+import { McaToolService } from './services/mca-tool-service'
+import { ValidationService } from './services/validation-service'
 import { AuthorityService } from './services/authority-service'
 import { InstanceImportService } from './services/instance-import-service'
 import { SidecarTaxonomyCatalog } from './infra/sidecar-taxonomy-catalog'
@@ -84,6 +87,20 @@ const catalog = new SidecarTaxonomyCatalog(sidecar)
 const taxonomy = new TaxonomyService(projects, catalog)
 const editor = new EditorQueryService(projects, () => mapping.list(), catalog)
 
+// Phase 9: live validation for the Problems panel (debounced after every change) and the MCA Validation Tool
+const validation = new ValidationService(projects, () => mapping.list(), (v) => mainWindow?.webContents.send(IPC.validationChanged, v))
+const mcaTool = new McaToolService(
+  projects,
+  () => {
+    const set = settings.get().mcaToolPath
+    if (set && existsSync(set)) return set
+    const roots = [isDev ? join(repoRoot, 'data', 'validation_tool') : '', 'C:\\MCA', join(process.env.LOCALAPPDATA ?? '', 'Programs'), process.env.ProgramFiles ?? '']
+    return findMcaTool(roots)
+  },
+  new FileOutputWriter(join(userData, 'output')),
+  new DetachedLauncher(),
+)
+
 // ---------------------------------------------------------------- window
 function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -144,6 +161,7 @@ function createWindow(): void {
 
 function wireEvents(): void {
   projects.on('changed', (s) => {
+    validation.schedule()
     mainWindow?.setTitle(windowTitle(s))
     mainWindow?.setDocumentEdited(Boolean(s?.dirty))
     mainWindow?.webContents.send(IPC.projectChanged, s)
@@ -195,6 +213,8 @@ if (!app.requestSingleInstanceLock()) {
       statements,
       taxonomy,
       autoTag,
+      validation,
+      mcaTool,
       getWindow,
     })
     wireEvents()

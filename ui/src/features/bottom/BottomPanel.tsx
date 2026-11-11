@@ -1,10 +1,12 @@
-import { RotateCw, Sparkles, TriangleAlert } from 'lucide-react'
+import { RotateCw, Sparkles } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { EmptyState } from '@/components/EmptyState'
 import { Tabs } from '@/components/Tabs'
 import { cn } from '@/lib/cn'
 import { useSidecar } from '@/stores/sidecar'
 import { useUi } from '@/stores/ui'
+import { useValidation } from '@/stores/validation'
+import { ProblemsPanel } from './ProblemsPanel'
 
 function OutputLog() {
   const logs = useSidecar((s) => s.logs)
@@ -30,13 +32,14 @@ function OutputLog() {
 
 export function BottomPanel() {
   const { bottomTab, setBottomTab } = useUi()
+  const errors = useValidation((s) => s.view?.summary.errors ?? 0)
   return (
     <section className="flex h-full flex-col bg-panel" aria-label="Bottom panel">
       <Tabs
         value={bottomTab}
         onChange={setBottomTab}
         tabs={[
-          { id: 'problems', label: 'Problems', badge: 0 },
+          { id: 'problems', label: 'Problems', badge: errors },
           { id: 'ai', label: 'AI Agent' },
           { id: 'output', label: 'Output' },
         ]}
@@ -53,13 +56,9 @@ export function BottomPanel() {
         }
       />
       <div className="min-h-0 flex-1">
-        {bottomTab === 'problems' && (
-          <EmptyState icon={TriangleAlert} title="No problems detected" phase="Phase 6">
-            Double-click a problem to jump to the cell or fact (global error locator).
-          </EmptyState>
-        )}
+        {bottomTab === 'problems' && <ProblemsPanel />}
         {bottomTab === 'ai' && (
-          <EmptyState icon={Sparkles} title="AI agent idle" phase="Phase 7">
+          <EmptyState icon={Sparkles} title="AI agent idle" phase="Phase 10">
             Proposed fixes appear here as reviewable patches. Nothing is changed until you accept.
           </EmptyState>
         )}

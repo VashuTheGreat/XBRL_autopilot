@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
 import { IPC, type MenuCommand, type SidecarLogLine, type SidecarStatus, type XapApi } from '@shared/ipc'
 import type { ProjectSummary, SettingsState } from '@shared/project'
+import type { ValidationView } from '@shared/validation'
 
 const invoke = <T>(channel: string, ...args: unknown[]) => ipcRenderer.invoke(channel, ...args) as Promise<T>
 
@@ -68,6 +69,15 @@ const api: XapApi = {
     acceptSuggestion: (id, concept) => invoke(IPC.autotagAccept, id, concept),
     rejectSuggestion: (id) => invoke(IPC.autotagReject, id),
     acceptAllSuggestions: (min) => invoke(IPC.autotagAcceptAll, min),
+  },
+  validation: {
+    get: () => invoke(IPC.validationGet),
+    run: () => invoke(IPC.validationRun),
+    fix: (id) => invoke(IPC.validationFix, id),
+    importMca: (text) => invoke(IPC.validationImportMca, text),
+    clearMca: () => invoke(IPC.validationClearMca),
+    launchMca: () => invoke(IPC.toolsLaunchMca),
+    onChanged: (cb) => subscribe<ValidationView>(IPC.validationChanged, cb),
   },
 }
 

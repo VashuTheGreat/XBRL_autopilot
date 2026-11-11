@@ -10,6 +10,7 @@ import { useSettings } from '@/stores/settings'
 import { useSidecar } from '@/stores/sidecar'
 import { toast } from '@/stores/toast'
 import { useUi } from '@/stores/ui'
+import { useValidation } from '@/stores/validation'
 import { ActivityBar } from './ActivityBar'
 import { StatusBar } from './StatusBar'
 import { Workbench } from './Workbench'
@@ -38,9 +39,12 @@ function runCommand(cmd: MenuCommand): void {
     case 'tools:settings':
       return ui.setActivity('settings')
     case 'filing:validate':
-      return ui.setBottomTab('problems')
+      ui.setBottomTab('problems')
+      return void (project.summary ? useValidation.getState().run() : undefined)
+    case 'tools:open-mca-validator':
+      return void (project.summary ? useValidation.getState().launchMca() : toast.info('Open a filing first.'))
     default:
-      // view:quick-switch, filing:generate-xml, tools:open-mca-validator arrive with Phases 4–6
+      // view:quick-switch, filing:generate-xml arrive with later phases
       return toast.info('Coming in a later phase of the build.')
   }
 }
@@ -49,10 +53,12 @@ export function App() {
   const initSidecar = useSidecar((s) => s.init)
   const initProject = useProject((s) => s.init)
   const initSettings = useSettings((s) => s.init)
+  const initValidation = useValidation((s) => s.init)
 
   useEffect(() => initSidecar(), [initSidecar])
   useEffect(() => initProject(), [initProject])
   useEffect(() => initSettings(), [initSettings])
+  useEffect(() => initValidation(), [initValidation])
   useEffect(() => window.xap?.menu.onCommand(runCommand), [])
   useEditorSync()
 

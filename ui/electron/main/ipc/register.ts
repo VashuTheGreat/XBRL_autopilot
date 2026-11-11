@@ -15,6 +15,8 @@ import type { MappingService } from '../services/mapping-service'
 import type { SourceService } from '../services/source-service'
 import type { StatementService } from '../services/statement-service'
 import type { TaxonomyService } from '../services/taxonomy-service'
+import type { McaToolService } from '../services/mca-tool-service'
+import type { ValidationService } from '../services/validation-service'
 import type { ProjectService } from '../services/project-service'
 import type { SettingsService } from '../services/settings-service'
 import type { SidecarManager } from '../sidecar'
@@ -34,6 +36,8 @@ export interface IpcDeps {
   statements: StatementService
   taxonomy: TaxonomyService
   autoTag: AutoTagService
+  validation: ValidationService
+  mcaTool: McaToolService
   getWindow: () => BrowserWindow | null
 }
 
@@ -44,6 +48,7 @@ export function registerIpc(d: IpcDeps): void {
   registerSettingsIpc(d)
   registerEditorIpc(d)
   registerAutoTagIpc(d)
+  registerValidationIpc(d)
 }
 
 function registerAppIpc(d: IpcDeps): void {
@@ -164,4 +169,34 @@ function registerAutoTagIpc({ autoTag }: IpcDeps): void {
     if (min !== undefined && (typeof min !== 'number' || !(min >= 0 && min <= 1))) throw new Error('Invalid confidence')
     return autoTag.acceptAll(min as number | undefined)
   })
+}
+
+/** MCA error lists are text reports; anything larger is not one. */
+const MAX_MCA_TEXT = 2_000_000
+
+function registerValidationIpc({ validation, mcaTool, getWindow }: IpcDeps): void {
+  handleQuery(IPC.validationGet, () => validation.view())
+  handleResult(IPC.validationRun, () => validation.run())
+  handleResult(IPC.validationFix, (_e, id: unknown) => validation.applyFix(requireString(id, 'problem')))
+  handleResult(IPC.validationImportMca, async (_e, text?: unknown) => {
+    if (text !== undefined && text !== null) {
+      const t = requireString(text, 'error list')
+      if (t.length > MAX_MCA_TEXT) throw new Error('The error list is too large.')
+      return validation.importMcaErrors(t, 'pasted')
+    }
+    const win = getWindow()
+    const opts = {
+      title: 'Import the MCA Validation Tool error list',
+      properties: ['openFile' as const],
+      filters: [{ name: 'Error list', extensions: ['txt', 'log'] }, { name: 'All files', extensions: ['*'] }],
+    }
+    const { canceled, filePaths } = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
+    const file = canceled ? null : filePaths[0]
+    if (!file) return null
+    const content = await readFile(file, 'utf8')
+    if (content.length > MAX_MCA_TEXT) throw new Error('The error list is too large.')
+    return validation.importMcaErrors(content, basename(file))
+  })
+  handleResult(IPC.validationClearMca, () => validation.clearMcaErrors())
+  handleResult(IPC.toolsLaunchMca, () => mcaTool.launch())
 }

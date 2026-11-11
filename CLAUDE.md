@@ -29,7 +29,7 @@ make engine-authority                # data/ → knowledge_base/*_engine_authori
 make engine-rules                    # MCA rule workbooks → knowledge_base/*_engine_rules.json + coverage (Python; committed)
 pnpm --filter @xap/engine test       # engine tests only (vitest + ported legacy node:test suite; joins the KB files first)
 pnpm typecheck
-uv sync                              # Python deps
+uv sync --extra dev                  # Python deps (dev extra: pytest, Arelle for the XSD tests)
 make dev                             # sidecar alone on :7860
 make test                            # pytest
 make rebuild                         # regenerate knowledge_base + Chroma index

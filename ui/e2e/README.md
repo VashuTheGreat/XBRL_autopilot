@@ -10,6 +10,8 @@ XAP_USER_DATA="$TEMP/xap-e2e-$RANDOM" env -u ELECTRON_RUN_AS_NODE \
 node e2e/phase4-editor.mjs 9350 <screenshotDir> "../data/sample_financials.xlsx"
 ```
 
+`phase9-validation.mjs` (dev app): C&I filing + sample workbook → live problems and status-bar counts, rule coverage → a PY-only share capital tag gives a problem on BS!D9 → double-click locates D9 and opens [100100] → Fix clears it → pasted MCA errors are explained and linked to their element. Usage: `node e2e/phase9-validation.mjs <port> <screenshotDir> "<path>/data/sample_financials.xlsx"`.
+
 `phase8-autotag.mjs` (dev app): Ind AS filing → import DGPL (.xls) → Auto-tag button → amber suggestions → inspector Accept (real click on I24) / Reject (I25) → Accept all ≥ 90% → the Form shows Total assets 1,904.45. LLM off (no AI consent). Usage: `node e2e/phase8-autotag.mjs <port> <screenshotDir> "<path>/data/BS DGPL Mar-2026-V1.xls"`.
 
 `phase7-import.mjs` (dev app): Import XBRL dialog → Dixon import report (round trip, conventions) → Ind AS filing open. Usage: `node e2e/phase7-import.mjs <port> <screenshotDir> <instance.xml>` (the native file dialog is bypassed through the store's path argument).
