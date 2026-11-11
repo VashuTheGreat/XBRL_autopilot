@@ -11,6 +11,8 @@ import { toast } from './toast'
 export interface Selection {
   cell: CellRef | null
   factKey: string | null
+  /** the element of the selected cell's tag or suggestion: the Form row to show (also for a suggestion, which has no fact) */
+  concept?: string | null
 }
 
 interface EditorState {
@@ -20,6 +22,8 @@ interface EditorState {
   byCell: Map<string, MappingView>
   byFact: Map<string, MappingView>
   selection: Selection
+  /** bumped on every cell / fact selection, also a repeat click: the Form scrolls the row back into view */
+  focusSeq: number
   /** amount + column period of the selected cell (inspector) */
   cellInfo: CellInfo | null
   /** a request for the Excel pane to show a cell; `seq` changes on every request */
@@ -75,6 +79,7 @@ const EMPTY = {
   byCell: new Map<string, MappingView>(),
   byFact: new Map<string, MappingView>(),
   selection: { cell: null, factKey: null },
+  focusSeq: 0,
   cellInfo: null,
   reveal: null,
   form: null,
@@ -144,15 +149,18 @@ export const useEditor = create<EditorState>((set, get) => {
 
     selectCell: (cell) => {
       const cur = get().selection.cell
-      if (cur && cellKey(cur) === cellKey(cell)) return
+      if (cur && cellKey(cur) === cellKey(cell)) return set((s) => ({ focusSeq: s.focusSeq + 1 })) // a repeat click: show the row again
       const m = get().byCell.get(cellKey(cell))
-      set({ selection: { cell, factKey: m?.factKey ?? null }, cellInfo: null })
+      set((s) => ({ selection: { cell, factKey: m?.factKey ?? null, concept: m && m.status !== 'rejected' ? m.fact.concept : null }, cellInfo: null, focusSeq: s.focusSeq + 1 }))
       void loadCellInfo()
+      // the Form follows the Excel selection: open a statement that shows the element (the current one if it does)
+      const target = m && m.status !== 'rejected' ? (m.elrUris.includes(get().activeElr ?? '') ? get().activeElr : m.elrUris[0]) : null
+      if (target && target !== get().activeElr) void get().setActiveElr(target)
     },
 
     selectFact: (factKey) => {
       const m = factKey ? get().byFact.get(factKey) : undefined
-      set({ selection: { cell: m?.cell ?? null, factKey }, cellInfo: null })
+      set({ selection: { cell: m?.cell ?? null, factKey, concept: m?.fact.concept ?? null }, cellInfo: null })
       void loadCellInfo()
       if (m) get().revealCell(m.cell)
     },
@@ -179,7 +187,7 @@ export const useEditor = create<EditorState>((set, get) => {
         onValidation: (p) => toast.error(p.join(' ')),
       })
       if (!m) return false
-      set({ selection: { cell, factKey: m.factKey } })
+      set({ selection: { cell, factKey: m.factKey, concept: m.fact.concept } })
       toast.success(`${cell.sheet}!${cell.ref} → ${m.conceptLabel} (${m.fact.scope})`)
       return true
     },

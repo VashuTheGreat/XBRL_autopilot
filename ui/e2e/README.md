@@ -10,6 +10,10 @@ XAP_USER_DATA="$TEMP/xap-e2e-$RANDOM" env -u ELECTRON_RUN_AS_NODE \
 node e2e/phase4-editor.mjs 9350 <screenshotDir> "../data/sample_financials.xlsx"
 ```
 
+`linkage-follow.mjs` (dev app): Excel → Form follows the selection. A statement that shows the element stays open; selecting a tagged cell while another note is open switches to the statement that shows its element; the row is in view (below the sticky header) and highlighted; a row scrolled away comes back on a repeat click; clicking a Form value selects and reveals its cell. Usage: `node e2e/linkage-follow.mjs <port> <screenshotDir> "<path>/data/sample_financials.xlsx"`.
+
+**Disk space:** each run's `XAP_USER_DATA` folder (~30–50 MB) stays in `%TEMP%`; delete old `xap-e2e-*` folders now and then. The unit tests clean up after themselves (`ui/test/global-setup.ts`).
+
 `phase10-ai-fix.mjs` (dev app, **mock LLM**): start the app with `GROQ_URL=http://127.0.0.1:8765/openai/v1/chat/completions` in its environment; the script runs the mock (`mock-groq.mjs`) on that port. AI off without consent → consent + a dummy `gsk_…` key → PY-only share capital on BS!D9 → Ask AI → diff card from Excel C9 that clears the problem (dry run) → Accept → problem gone, C9 tagged with origin ai → History shows the exact payload (no CIN, no company name) → a user-supplied value needs input + confirmation; Reject recorded → Fix all: round 1 of ≤ 10 problems, all rejected → "nothing accepted" → consent off: Ask AI disabled, quick fixes stay. Usage: `node e2e/phase10-ai-fix.mjs <port> <screenshotDir> "<path>/data/sample_financials.xlsx" 8765`.
 
 `phase10-live-groq.mjs` (dev app, **real Groq**, key from `.env`, no `GROQ_URL`): synthetic sample only; asks about the D9 problem and a few missing mandatory amounts and prints what the model proposed (cards, dropped, steps, tokens). Checks the contract only: a real model is not deterministic. Usage: `node e2e/phase10-live-groq.mjs <port> <screenshotDir> "<path>/data/sample_financials.xlsx" [problems=3]`.

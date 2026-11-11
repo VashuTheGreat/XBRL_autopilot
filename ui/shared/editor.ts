@@ -53,6 +53,8 @@ export interface AcceptAllResult {
 /** MappingEntry plus derived, non-persisted info for the UI. */
 export interface MappingView extends MappingEntry {
   conceptLabel: string
+  /** the statements / notes (ELR URIs) that show the element, by code: where the Form jumps when the cell is selected */
+  elrUris: string[]
   factKey: string | null
   /** the value that went into the filing, as displayed */
   value: string | null

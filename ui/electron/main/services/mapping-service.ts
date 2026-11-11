@@ -272,9 +272,12 @@ export class MappingService {
 
   private view(p: ProjectHandle, e: MappingEntry): MappingView {
     const fact = hasFact(e) ? this.fact(p, e) : null
+    const A = p.authority.authority as unknown as { conceptElrs(q: string): string[]; elr(u: string): { code: string } | null }
+    const code = (u: string) => A.elr(u)?.code ?? '~'
     return {
       ...e,
       conceptLabel: p.authority.authority.label(e.fact.concept),
+      elrUris: [...A.conceptElrs(e.fact.concept)].sort((a, b) => code(a).localeCompare(code(b))),
       factKey: fact?.key ?? null,
       value: fact ? String(p.session.displayOf(fact)) : null,
     }

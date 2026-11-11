@@ -1,5 +1,5 @@
 import { CircleSlash, FileSpreadsheet, Table2 } from 'lucide-react'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { formatIndian } from '@xap/engine/basics'
 import type { FormCell, FormRow } from '@shared/editor'
 import { cellKey } from '@shared/workbook'
@@ -11,12 +11,21 @@ import { useProject } from '@/stores/project'
 
 /** XBRL Form: one statement (ELR) with its CY/PY facts and the Excel cell each value came from. */
 export function FormView() {
-  const { form, activeElr, setActiveElr, selection, selectFact, fillMandatoryZeros } = useEditor()
+  const { form, activeElr, setActiveElr, selection, focusSeq, selectFact, fillMandatoryZeros } = useEditor()
   const { elrs, summary } = useProject()
   const selectedCellKey = selection.cell ? cellKey(selection.cell) : null
   const hasPy = !summary?.firstFinancialYear
 
   const options = useMemo(() => elrs.map((e) => ({ uri: e.uri, label: `[${e.code}] ${e.title}` })), [elrs])
+  const body = useRef<HTMLDivElement>(null)
+
+  // the row of the selected cell's element comes into view (after the statement switch, when the form arrives).
+  // Block body on purpose: scrollIntoView() returns a Promise in Electron's Chromium (see e2e/README gotchas).
+  useEffect(() => {
+    if (!form || !selection.concept) return
+    const row = body.current?.querySelector<HTMLElement>(`tr[data-concept="${CSS.escape(selection.concept)}"]`)
+    row?.scrollIntoView({ block: 'nearest' })
+  }, [form, selection.concept, focusSeq])
 
   return (
     <div className="flex h-full flex-col">
@@ -41,7 +50,7 @@ export function FormView() {
       {!form ? (
         <EmptyState icon={Table2} title="Loading statement…" />
       ) : (
-        <div className="min-h-0 flex-1 overflow-auto">
+        <div ref={body} className="min-h-0 flex-1 overflow-auto">
           <table className="w-full border-collapse text-[12px]" data-testid="form-table">
             <thead className="sticky top-0 z-10 bg-panel-2 text-[11px] text-muted">
               <tr>
@@ -52,7 +61,7 @@ export function FormView() {
             </thead>
             <tbody>
               {form.rows.map((r, i) => (
-                <Row key={`${r.concept ?? r.tableId ?? 'h'}-${i}`} row={r} hasPy={hasPy} selectedFact={selection.factKey} selectedCell={selectedCellKey} onPick={selectFact} />
+                <Row key={`${r.concept ?? r.tableId ?? 'h'}-${i}`} row={r} hasPy={hasPy} selectedFact={selection.factKey} selectedConcept={selection.concept ?? null} selectedCell={selectedCellKey} onPick={selectFact} />
               ))}
             </tbody>
           </table>
@@ -67,7 +76,7 @@ export function FormView() {
   )
 }
 
-function Row(props: { row: FormRow; hasPy: boolean; selectedFact: string | null; selectedCell: string | null; onPick(factKey: string | null): void }) {
+function Row(props: { row: FormRow; hasPy: boolean; selectedFact: string | null; selectedConcept: string | null; selectedCell: string | null; onPick(factKey: string | null): void }) {
   const { row: r } = props
   const indent = { paddingLeft: `${0.75 + r.depth * 0.9}rem` }
   if (r.kind !== 'item') {
@@ -93,8 +102,11 @@ function Row(props: { row: FormRow; hasPy: boolean; selectedFact: string | null;
     )
   }
   const active = [r.cy, r.py].some((c) => c?.factKey && c.factKey === props.selectedFact)
+  // a suggested (not yet accepted) tag has no fact: its row is marked by the element
+  const suggested = !active && !!r.concept && r.concept === props.selectedConcept
   return (
-    <tr className={cn('border-b border-border/50 hover:bg-panel-2', active && 'bg-accent/10')}>
+    // scroll-mt: a row scrolled into view stops below the sticky column header, not behind it
+    <tr className={cn('scroll-mt-9 scroll-mb-2 border-b border-border/50 hover:bg-panel-2', active && 'bg-accent/10', suggested && 'bg-warn/10')} data-concept={r.concept ?? undefined} data-testid="form-row">
       <td style={indent} className="py-1 pr-3" title={r.concept}>
         {r.label}
       </td>

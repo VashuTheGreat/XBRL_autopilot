@@ -45,6 +45,10 @@ import { ProjectService } from './services/project-service'
 import { SettingsService } from './services/settings-service'
 import { SidecarManager } from './sidecar'
 import { findProjectArg, parseDotEnv, windowTitle } from './util/launch'
+import { hardenConsole } from './util/safe-console'
+
+// first: a log write that fails (full disk, closed pipe) must never crash the main process
+hardenConsole()
 
 const isDev = !app.isPackaged
 // In dev, app.getAppPath() is <repo>/ui; the Python sidecar, engine and .env live at the repo root.

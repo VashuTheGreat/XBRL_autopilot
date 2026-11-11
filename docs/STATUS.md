@@ -229,3 +229,12 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
     - ui 156 (+11 `fix-agent-service.test.ts`, +4 `fixture-guard.test.ts`).
   - **E2E `ui/e2e/phase10-ai-fix.mjs` green** (22 checks, dev app + mock LLM through `GROQ_URL`).
   - **Next:** Phase 11, packaging.
+- **2026-11-11, linkage follow + robustness:**
+  - **Excel → XBRL Form follows the selection:**
+    - selecting a tagged or suggested cell opens a statement that shows its element (the open one if it does);
+    - the row scrolls into view below the sticky header, highlighted;
+    - a repeat click brings it back.
+  - The E2E found two bugs, both fixed: the row was scrolled behind the sticky header, and a repeat click did nothing. E2E `ui/e2e/linkage-follow.mjs` is green (6 checks).
+  - **A full C: drive crashed the main process** (`ENOSPC` while writing a sidecar log line to stdout). `hardenConsole()` (`ui/electron/main/util/safe-console.ts`) drops a log line that can't be written; it never throws.
+  - **Root cause of the clutter:** every `pnpm test` left ~70 temp folders in `%TEMP%` (870 folders, 1.2 GB). `ui/test/global-setup.ts` now gives each run one temp folder and removes it at the end. The 870 old folders are still there; delete `%TEMP%\xap-*` by hand.
+  - **Tests:** ui 157 (+1 `safe-console.test.ts`).

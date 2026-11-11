@@ -45,7 +45,11 @@ The layout is IDE-like, built for accountants: dense, keyboard-friendly and calm
 On the right, the XBRL Form shows the reverse: the source cell ref shows as a chip next to each fact, and clicking it selects the cell on the left.
 
 ## Linkage interactions
-- **Selecting a cell** → the Inspector shows its mapping. The right pane scrolls to the fact in the XBRL Form, and in the XML tab the `<fact>` line is highlighted.
+- **Selecting a cell** → the Inspector shows its mapping, and the right pane follows it (2026-11-11, `ui/e2e/linkage-follow.mjs`):
+  - **XBRL Form:** if the open statement doesn't show the cell's element, the Form opens one that does (`MappingView.elrUris`, by code). If the open statement shows the element, it stays open.
+  - The element's row scrolls into view, below the sticky column header, and is highlighted: blue for a tagged fact, amber for a suggestion.
+  - Clicking the same cell again brings the row back after the Form was scrolled away.
+  - **XML tab:** the `<fact>` line is highlighted and scrolled into view.
 - **Amounts in the Inspector** are shown as they go into the filing. Excel float noise is rounded to the cell's number format, or to the filing's "decimal places as presented" when the cell has none. A `rounded` badge appears, and its tooltip shows the stored number (e.g. `5443.466337358575` → 5,443.47). A shown digit beyond the filing's decimal places is never rounded away: tagging is refused with a message.
 - **Ranges:** dragging over cells in one column selects a range. The inspector shows "sum of N cells" and the total, and tagging files the sum as one figure (a line with no total cell, e.g. Trade payables = MSME + others). A cell inside a tagged range belongs to that tag.
 - **XBRL Form → "Empty mandatory → 0"** reports the statement's mandatory amounts that are still empty as 0 and lists them in a toast. Text fields are left to the user, who reviews the list (a line the company has inside another line, e.g. CSR inside Other expenses, must be corrected).
