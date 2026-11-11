@@ -5,18 +5,13 @@
 import type { TaxonomyId } from '@xap/engine/basics'
 import type { ElrInfo } from '@shared/project'
 import type { CatalogConcept, ElrTree, SidecarClient, TaxonomyCatalog } from '../services/ports'
+import { sidecarCall } from './sidecar-call'
 
 /** App taxonomy ids → knowledge-base ids used by the FastAPI routes. */
 export const KB_TAXONOMY_ID: Record<TaxonomyId, string> = {
   'ci-2016': 'ci_taxonomy',
   'ind-as-2017': 'ind_as_taxonomy',
   'costing-2019': 'costing_taxonomy',
-}
-
-interface Envelope<T> {
-  data: T
-  success: boolean
-  message: string
 }
 
 export class SidecarTaxonomyCatalog implements TaxonomyCatalog {
@@ -60,12 +55,7 @@ export class SidecarTaxonomyCatalog implements TaxonomyCatalog {
     return res.items
   }
 
-  private async get<T>(path: string): Promise<T> {
-    await this.sidecar.whenReady(this.readyTimeoutMs)
-    const res = await this.sidecar.request<Envelope<T>>('GET', path)
-    if (res.status !== 200 || !res.data?.success) {
-      throw new Error(res.data?.message || `Taxonomy service error (${res.status})`)
-    }
-    return res.data.data
+  private get<T>(path: string): Promise<T> {
+    return sidecarCall<T>(this.sidecar, 'GET', path, { readyTimeoutMs: this.readyTimeoutMs, what: 'Taxonomy service' })
   }
 }

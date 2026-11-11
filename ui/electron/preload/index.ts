@@ -29,6 +29,7 @@ const api: XapApi = {
     current: () => invoke(IPC.projectCurrent),
     create: (input) => invoke(IPC.projectCreate, input),
     open: (path) => invoke(IPC.projectOpen, path),
+    importXbrl: (mode, path) => invoke(IPC.projectImportXbrl, mode, path),
     save: () => invoke(IPC.projectSave),
     saveAs: () => invoke(IPC.projectSaveAs),
     close: () => invoke(IPC.projectClose),
@@ -38,6 +39,7 @@ const api: XapApi = {
     recover: (id) => invoke(IPC.projectRecover, id),
     discardRecovery: (id) => invoke(IPC.projectDiscardRecovery, id),
     elrs: () => invoke(IPC.projectElrs),
+    setStatementPlaces: (places) => invoke(IPC.projectSetStatementPlaces, places),
     onChanged: (cb) => subscribe<ProjectSummary | null>(IPC.projectChanged, cb),
   },
   settings: {
@@ -56,9 +58,16 @@ const api: XapApi = {
     untag: (id) => invoke(IPC.mappingUntag, id),
     setScope: (id, scope) => invoke(IPC.mappingSetScope, id, scope),
     setStatus: (id, status) => invoke(IPC.mappingSetStatus, id, status),
+    cellInfo: (cell) => invoke(IPC.mappingCellInfo, cell),
+    setColumnPeriod: (cell, scope) => invoke(IPC.mappingSetColumnPeriod, cell, scope),
     form: (elrUri) => invoke(IPC.editorForm, elrUri),
     xml: () => invoke(IPC.editorXml),
+    fillMandatoryZeros: (elrUri) => invoke(IPC.editorFillMandatoryZeros, elrUri),
     searchConcepts: (query) => invoke(IPC.taxonomySearch, query),
+    autoTag: () => invoke(IPC.autotagRun),
+    acceptSuggestion: (id, concept) => invoke(IPC.autotagAccept, id, concept),
+    rejectSuggestion: (id) => invoke(IPC.autotagReject, id),
+    acceptAllSuggestions: (min) => invoke(IPC.autotagAcceptAll, min),
   },
 }
 

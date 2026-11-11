@@ -117,3 +117,37 @@ export function Section(props: { title: string; children: ReactNode; className?:
     </section>
   )
 }
+
+/** Mutually exclusive choice shown as cards (role=radiogroup): title + one-line explanation each. */
+export function ChoiceCards<T extends string>(props: {
+  label: string
+  value: T
+  options: ReadonlyArray<{ id: T; label: string; hint: string }>
+  onChange(v: T): void
+  testIdPrefix?: string
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={props.label}>
+      {props.options.map((o) => {
+        const on = props.value === o.id
+        return (
+          <button
+            key={o.id}
+            type="button"
+            role="radio"
+            aria-checked={on}
+            data-testid={props.testIdPrefix ? `${props.testIdPrefix}-${o.id}` : undefined}
+            onClick={() => props.onChange(o.id)}
+            className={cn(
+              'rounded border px-3 py-2 text-left transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent/40',
+              on ? 'border-accent bg-accent/10' : 'border-border hover:bg-panel-2',
+            )}
+          >
+            <div className="text-[13px] font-medium">{o.label}</div>
+            <div className="text-[11px] text-muted">{o.hint}</div>
+          </button>
+        )
+      })}
+    </div>
+  )
+}

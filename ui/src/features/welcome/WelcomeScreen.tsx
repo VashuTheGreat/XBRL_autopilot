@@ -1,4 +1,4 @@
-import { FilePlus2, FolderOpen, History, LifeBuoy, Trash2, X } from 'lucide-react'
+import { FileCode2, FilePlus2, FolderOpen, History, LifeBuoy, Trash2, X } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/primitives'
 import { cn } from '@/lib/cn'
@@ -20,7 +20,7 @@ function Card(props: { title: string; icon: ReactNode; children: ReactNode; clas
 
 /** Shown when no filing is open: start, open, recent, recover. */
 export function WelcomeScreen() {
-  const { recent, recovery, openNewFiling, open, recover, discardRecovery, forgetRecent } = useProject()
+  const { recent, recovery, openNewFiling, openImportXbrl, open, recover, discardRecovery, forgetRecent } = useProject()
   return (
     <div className="h-full overflow-auto bg-bg">
       <div className="mx-auto flex max-w-3xl flex-col gap-6 px-6 py-12">
@@ -35,6 +35,9 @@ export function WelcomeScreen() {
           </Button>
           <Button onClick={() => void open()}>
             <FolderOpen size={15} /> Open…
+          </Button>
+          <Button onClick={openImportXbrl} data-testid="welcome-import-xbrl">
+            <FileCode2 size={15} /> Import XBRL…
           </Button>
         </div>
 

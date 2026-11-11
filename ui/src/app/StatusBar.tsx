@@ -1,3 +1,4 @@
+import { taxonomyLabel } from '@xap/engine/basics'
 import { cn } from '@/lib/cn'
 import { useProject } from '@/stores/project'
 import { useSidecar } from '@/stores/sidecar'
@@ -25,7 +26,7 @@ export function StatusBar() {
           <span className="font-mono">{filing.company.cin}</span>
           <span>{filing.fyLabel}</span>
           <span>{filing.reportType}</span>
-          <span>C&amp;I 2016</span>
+          <span data-testid="filing-taxonomy">{taxonomyLabel(filing.taxonomy)}</span>
           <span className={filing.dirty ? 'text-warn' : ''} data-testid="save-state">
             {filing.readOnlyReason ? 'Read-only' : filing.dirty ? (filing.path ? 'Unsaved changes' : 'Not saved yet') : 'Saved'}
           </span>

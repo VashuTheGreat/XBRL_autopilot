@@ -10,11 +10,12 @@ export * from './basics'
 // below is the stable API the app uses.
 // ---------------------------------------------------------------------------------------------
 export { Authority } from './core/authority.js'
+export { assembleAuthority, emptyRuleModel, AuthorityMismatchError } from './core/authority-bundle.js'
 export { Session, DimensionError, CalculatedCellError, PyLockedError } from './core/session.js'
 export { Filing, FactValueError, factKey, dimKey, normDims, defaultMeta } from './core/model.js'
 export { generateInstance, buildContexts } from './core/generator.js'
 export { importInstance, CashFlowChoiceError, detectCashFlow } from './core/importer.js'
-export { Gate, GateError, exportXml, htmlGuidelineIssues } from './core/gate.js'
+export { Gate, GateError, exportXml, htmlGuidelineIssues, SHARE_CAPITAL } from './core/gate.js'
 export { RuleEngine } from './core/rules.js'
 export { runCalculations, calculationNetworks } from './core/calculation.js'
 export { explainMcaErrors } from './core/mca-errors.js'
@@ -28,4 +29,18 @@ export { carryForwardPlan, carryForward } from './core/carry-forward.js'
 export { buildExample, completeMandatory } from './core/example.js'
 export * as decimal from './core/decimal.js'
 export { indexFactLines } from './xml-index'
+export {
+  importXbrl,
+  readSchemaRef,
+  canonicalFacts,
+  compareInstanceFacts,
+  verifyRoundTrip,
+  instanceConventions,
+  type ImportMode,
+  type ImportedInstance,
+  type InstanceComparison,
+  type InstanceConventions,
+  type FactDifference,
+} from './instance-import'
 export { nondimAllowed } from './core/dimensions.js'
+export { mandatoryZeroPlan, fillMandatoryZeros, type ZeroFill } from './mandatory-zeros'

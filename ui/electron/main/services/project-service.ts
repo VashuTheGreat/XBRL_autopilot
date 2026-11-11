@@ -8,8 +8,18 @@ import { randomUUID } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import { basename } from 'node:path'
 import { Filing, Session } from '@xap/engine'
-import { fyLabel, isValidCin, ROUNDING_LEVELS, validateFilingPeriods } from '@xap/engine/basics'
-import type { NewFilingInput, ProjectSummary, RecentProject, RecoveryItem } from '@shared/project'
+import {
+  DEFAULT_TAXONOMY,
+  defaultStatementPlaces,
+  fyLabel,
+  isFilingTaxonomy,
+  isValidCin,
+  maxDisplayPlaces,
+  ROUNDING_LEVELS,
+  validateFilingPeriods,
+  type TaxonomyId,
+} from '@xap/engine/basics'
+import type { NewFilingInput, Period, ProjectSummary, RecentProject, RecoveryItem } from '@shared/project'
 import {
   AXBRL_FORMAT,
   AXBRL_FORMAT_VERSION,
@@ -76,19 +86,22 @@ export class ProjectService extends EventEmitter<ProjectEvents> implements Proje
       periods: { cy: { start: string; end: string }; py: { start: string; end: string } }
       firstFinancialYear: boolean
       level: ProjectSummary['level']
+      displayPlaces?: number
+      statementPlaces?: number | null
     }
     return {
       id: p.id,
       path: p.path,
       fileName: p.path ? basename(p.path) : null,
       dirty: this.isDirty(),
-      taxonomy: 'ci-2016',
+      taxonomy: p.loaded.taxonomyId,
       company: { name: m.name, cin: m.cin },
       reportType: m.reportType,
       cy: { ...m.periods.cy },
       py: m.firstFinancialYear ? null : { ...m.periods.py },
       firstFinancialYear: m.firstFinancialYear,
       level: m.level,
+      statementPlaces: Number(m.statementPlaces ?? m.displayPlaces) || 0,
       fyLabel: fyLabel(m.periods.cy),
       factCount: p.session.filing.facts.size,
       revision: p.session.filing.revision + p.contentRevision * 1_000_000,
@@ -124,10 +137,25 @@ export class ProjectService extends EventEmitter<ProjectEvents> implements Proje
         if (this.current !== p) return // the project was closed/replaced meanwhile
         p.extraDirty = true
         p.contentRevision++
-        this.emitChanged()
+        if (this.batchDepth === 0) this.emitChanged()
+        else this.batchTouched = true
+      },
+      batch: async <T>(fn: () => Promise<T>): Promise<T> => {
+        this.batchDepth++
+        try {
+          return await fn()
+        } finally {
+          if (--this.batchDepth === 0 && this.batchTouched) {
+            this.batchTouched = false
+            if (this.current === p) this.emitChanged()
+          }
+        }
       },
     }
   }
+
+  private batchDepth = 0
+  private batchTouched = false
 
   /** The live engine session, for engine-level features (Phase 4+). */
   session(): Session {
@@ -146,7 +174,7 @@ export class ProjectService extends EventEmitter<ProjectEvents> implements Proje
   async newFiling(input: NewFilingInput): Promise<ProjectSummary> {
     const problems = validateNewFiling(input)
     if (problems.length) throw new ValidationError(problems)
-    const loaded = await this.deps.authority.load()
+    const loaded = await this.deps.authority.load(input.taxonomy ?? DEFAULT_TAXONOMY)
     const session = new Session(loaded.authority)
     const first = input.py === null
     session.setMeta({
@@ -155,11 +183,54 @@ export class ProjectService extends EventEmitter<ProjectEvents> implements Proje
       reportType: input.reportType,
       firstFinancialYear: first,
       level: input.level,
+      // statement figures at the places presented; any amount may be finer, down to paise (share capital to the rupee)
+      statementPlaces: input.statementPlaces ?? defaultStatementPlaces(input.level),
+      displayPlaces: maxDisplayPlaces(input.level),
       periods: { cy: { ...input.cy }, py: first ? { ...BLANK_PERIOD } : { ...input.py! } },
     })
     const nameOfCompany = loaded.authority.qnameOfLocal('NameOfCompany')
     if (nameOfCompany) session.setValue(nameOfCompany, 'CY', input.companyName.trim())
 
+    await this.startUnsaved(loaded, session, { reportType: input.reportType, cy: input.cy, py: input.py, firstFinancialYear: first, roundingLevel: input.level })
+    return this.summary()!
+  }
+
+  /**
+   * A new, unsaved project around a filing read from an existing XBRL instance (InstanceImportService).
+   * The instance and its import report are kept in the project (import/…), unchanged.
+   */
+  async adoptImported(input: {
+    loaded: LoadedAuthority
+    filing: unknown
+    fileName: string
+    sourceXml: string
+    report: unknown
+    mode: 'both' | 'next'
+  }): Promise<ProjectSummary> {
+    const session = new Session(input.loaded.authority, input.filing as Filing)
+    const m = session.filing.meta as { reportType: string; level: string; firstFinancialYear: boolean; periods: { cy: Period; py: Period } }
+    const base = input.fileName.replace(/\.xml$/i, '').replace(/[^\w.-]+/g, '_').slice(0, 80) || 'instance'
+    const entry = `${base}.xml`
+    await this.startUnsaved(
+      input.loaded,
+      session,
+      { reportType: m.reportType, cy: m.periods.cy, py: m.firstFinancialYear ? null : m.periods.py, firstFinancialYear: m.firstFinancialYear, roundingLevel: m.level },
+      (content, now) => {
+        content.imports[entry] = input.sourceXml
+        content.imports[`${base}.report.json`] = JSON.stringify(input.report, null, 1)
+        content.manifest.importedFrom = { fileName: input.fileName, entry, mode: input.mode, importedAt: now }
+      },
+    )
+    return this.summary()!
+  }
+
+  /** Makes `session` the current project, new and unsaved (it starts dirty: revision -1 never matches). */
+  private async startUnsaved(
+    loaded: LoadedAuthority,
+    session: Session,
+    filing: AxbrlManifest['filing'],
+    decorate?: (content: AxbrlContent, now: string) => void,
+  ): Promise<void> {
     const now = this.clock.now().toISOString()
     const id = this.newId()
     const manifest: AxbrlManifest = {
@@ -171,13 +242,13 @@ export class ProjectService extends EventEmitter<ProjectEvents> implements Proje
       updatedAt: now,
       taxonomy: { id: loaded.taxonomyId, authorityHash: loaded.hash },
       company: { name: '', cin: '' },
-      filing: { reportType: input.reportType, cy: input.cy, py: input.py, firstFinancialYear: first, roundingLevel: input.level },
+      filing,
     }
-    // A new filing starts dirty: it exists only in memory until saved (revision -1 never matches).
+    const content = emptyContent(manifest, null)
+    decorate?.(content, now)
     await this.replaceCurrent({
-      id, path: null, session, content: emptyContent(manifest, null), savedRevision: -1, extraDirty: false, contentRevision: 0, readOnlyReason: null, loaded,
+      id, path: null, session, content, savedRevision: -1, extraDirty: false, contentRevision: 0, readOnlyReason: null, loaded,
     })
-    return this.summary()!
   }
 
   async open(path: string): Promise<ProjectSummary> {
@@ -246,10 +317,11 @@ export class ProjectService extends EventEmitter<ProjectEvents> implements Proje
   }
 
   private async projectFrom(content: AxbrlContent, path: string | null, readOnlyReason: string | null): Promise<OpenProject> {
-    const loaded = await this.deps.authority.load()
-    if (content.manifest.taxonomy.id !== loaded.taxonomyId) {
-      throw new ValidationError([`This filing uses the ${content.manifest.taxonomy.id} taxonomy, which this version does not support yet.`])
+    const taxonomy = content.manifest.taxonomy.id as TaxonomyId
+    if (!isFilingTaxonomy(taxonomy)) {
+      throw new ValidationError([`This filing uses the ${taxonomy} taxonomy, which this version does not support yet.`])
     }
+    const loaded = await this.deps.authority.load(taxonomy)
     const filing = Filing.fromJSON(loaded.authority, content.filing)
     const session = new Session(loaded.authority, filing)
     return {
@@ -326,10 +398,17 @@ export class ProjectService extends EventEmitter<ProjectEvents> implements Proje
 /** Pure validation of the New Filing form; returns user-facing problems. */
 export function validateNewFiling(input: NewFilingInput): string[] {
   const problems: string[] = []
+  if (input.taxonomy !== undefined && !isFilingTaxonomy(input.taxonomy)) problems.push('Choose a taxonomy: C&I 2016 or Ind AS 2017.')
   if (!input.companyName?.trim()) problems.push('Enter the company name.')
   if (!isValidCin(input.cin ?? '')) problems.push('Enter a valid 21-character CIN (e.g. U72200KA2010PTC123456).')
   if (input.reportType !== 'Standalone' && input.reportType !== 'Consolidated') problems.push('Choose Standalone or Consolidated.')
   if (!ROUNDING_LEVELS.includes(input.level)) problems.push('Choose a level of rounding.')
+  else if (input.statementPlaces !== undefined) {
+    const max = maxDisplayPlaces(input.level)
+    if (!Number.isInteger(input.statementPlaces) || input.statementPlaces < 0 || input.statementPlaces > max) {
+      problems.push(`Decimal places as presented must be a whole number from 0 to ${max} for amounts in ${input.level}.`)
+    }
+  }
   problems.push(...validateFilingPeriods(input.cy, input.py))
   return problems
 }

@@ -3,23 +3,32 @@
  * It creates the adapters (database, secret store, autosave dir, authority file), injects them
  * into the services, and wires services ↔ window ↔ IPC.
  */
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { app, BrowserWindow, Menu, shell } from 'electron'
 import { IPC } from '@shared/ipc'
 import { AppDatabase } from './infra/app-database'
 import { DirAutosaveStore } from './infra/dir-autosave-store'
+import { sidecarXlsReader, workbookParser } from './infra/workbook-parser'
 import { readXlsx } from './infra/xlsx-reader'
-import { FileAuthorityProvider } from './infra/file-authority-provider'
+import { FileRuleBundleSource } from './infra/file-authority-provider'
+import { SidecarAuthoritySource } from './infra/sidecar-authority-source'
+import { AuthorityService } from './services/authority-service'
+import { InstanceImportService } from './services/instance-import-service'
 import { SidecarTaxonomyCatalog } from './infra/sidecar-taxonomy-catalog'
 import { SafeStorageSecretStore } from './infra/safe-storage-secret-store'
 import { registerIpc } from './ipc/register'
 import { buildMenu } from './menu'
 import { ProjectController } from './project/project-controller'
 import { AutosaveScheduler } from './services/autosave-scheduler'
+import { AutoTagService } from './services/auto-tag-service'
+import { SidecarMappingSuggester } from './infra/sidecar-mapping-suggester'
+import { ColumnPeriodService } from './services/column-period-service'
 import { EditorQueryService } from './services/editor-query-service'
+import { FilingPropertiesService } from './services/filing-properties-service'
 import { MappingService } from './services/mapping-service'
 import { SourceService } from './services/source-service'
+import { StatementService } from './services/statement-service'
 import { TaxonomyService } from './services/taxonomy-service'
 import { ProjectService } from './services/project-service'
 import { SettingsService } from './services/settings-service'
@@ -38,21 +47,11 @@ const getWindow = () => mainWindow
 
 // ---------------------------------------------------------------- adapters + services
 const userData = app.getPath('userData')
+// Electron creates userData lazily (after ready); the database opens before that, e.g. on a first launch.
+mkdirSync(userData, { recursive: true })
 const db = new AppDatabase(join(userData, 'app.db'))
 const devEnv = isDev && existsSync(join(repoRoot, '.env')) ? parseDotEnv(readFileSync(join(repoRoot, '.env'), 'utf8')) : {}
 const settings = new SettingsService(db, new SafeStorageSecretStore(join(userData, 'secrets.bin')), devEnv.GROQ_API_KEY || null)
-const projects = new ProjectService({
-  authority: new FileAuthorityProvider(
-    isDev ? join(repoRoot, 'engine', 'authority', 'ci-2016.authority.json') : join(process.resourcesPath, 'authority', 'ci-2016.authority.json'),
-  ),
-  recents: db,
-  autosave: new DirAutosaveStore(join(userData, 'autosave')),
-  appVersion: app.getVersion(),
-})
-const projectController = new ProjectController(projects, getWindow)
-const sources = new SourceService(projects, readXlsx)
-const mapping = new MappingService(projects, sources)
-const autosave = new AutosaveScheduler(projects, () => settings.get().autosaveSeconds)
 const sidecar = new SidecarManager({
   isPackaged: app.isPackaged,
   repoRoot,
@@ -60,6 +59,29 @@ const sidecar = new SidecarManager({
   // Settings win over the dev .env (pydantic-settings gives env vars priority over .env).
   extraEnv: async () => ({ GROQ_API_KEY: (await settings.groqKey()) ?? undefined, GROQ_MODEL: settings.get().groqModel }),
 })
+// Engine authority (ADR-0010): the taxonomy half from the knowledge base through the sidecar route, the compiled
+// business rules from engine/authority (dev) or resources/authority (packaged).
+const authorities = new AuthorityService(
+  new SidecarAuthoritySource(sidecar),
+  new FileRuleBundleSource(isDev ? join(repoRoot, 'engine', 'authority') : join(process.resourcesPath, 'authority')),
+)
+const projects = new ProjectService({
+  authority: authorities,
+  recents: db,
+  autosave: new DirAutosaveStore(join(userData, 'autosave')),
+  appVersion: app.getVersion(),
+})
+const projectController = new ProjectController(projects, getWindow, new InstanceImportService(authorities, projects))
+const autosave = new AutosaveScheduler(projects, () => settings.get().autosaveSeconds)
+
+// .xlsx in process (exceljs); old .xls through the sidecar's python-calamine route
+const sources = new SourceService(projects, workbookParser({ xlsx: readXlsx, xls: sidecarXlsReader(sidecar) }))
+const columns = new ColumnPeriodService(projects, sources)
+const mapping = new MappingService(projects, sources, columns, db)
+// Auto-tagging (docs/06): suggestions from the sidecar's tagger; the LLM rerank only with the user's AI consent
+const autoTag = new AutoTagService(projects, sources, mapping, new SidecarMappingSuggester(sidecar), db, () => settings.get().aiConsent)
+const filing = new FilingPropertiesService(projects, mapping)
+const statements = new StatementService(projects)
 
 // Taxonomy browsing comes from the knowledge base through the FastAPI routes (docs/02-architecture.md).
 const catalog = new SidecarTaxonomyCatalog(sidecar)
@@ -103,6 +125,13 @@ function createWindow(): void {
       mainWindow?.close()
     })
   })
+
+  // A renderer crash used to leave a black window. The filing lives in main, so reloading the page restores the editor.
+  mainWindow.webContents.on('render-process-gone', (_e, details) => {
+    console.error(`[main] renderer gone: ${details.reason} (exit ${details.exitCode})`)
+    if (details.reason !== 'clean-exit' && mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.reload()
+  })
+  mainWindow.on('unresponsive', () => console.error('[main] renderer unresponsive'))
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https:\/\//i.test(url)) void shell.openExternal(url)
@@ -165,7 +194,11 @@ if (!app.requestSingleInstanceLock()) {
       sources,
       mapping,
       editor,
+      columns,
+      filing,
+      statements,
       taxonomy,
+      autoTag,
       getWindow,
     })
     wireEvents()

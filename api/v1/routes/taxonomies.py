@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Query
+from fastapi.responses import Response
 from src.core.logger import logger
 from typing import Annotated, Any, Dict, List, Optional
 from api.v1.schemas.taxonomies import RecommendTaxonomies as RecommendTaxonomiesSchema
@@ -7,6 +8,7 @@ from src.core.authority import Authority
 from src.constants import CI_TAXONOMY_VDB, IND_AS_TAXONOMY_VDB, COSTING_TAXONOMY_VDB
 from api.responses import success_response, error_response
 from api.helper.build_tree import build_role_tree
+from src.services.engine_authority.store import AuthorityNotAvailable, default_store as engine_authorities
 router = APIRouter()
 
 _authority_cache: dict[str, Authority] = {}
@@ -650,3 +652,50 @@ def get_role_tree(taxonomy_id: str, role_id: str):
                 message=f"Failed to retrieve tree for taxonomy '{taxonomy_id}' and '{role_id}'",
                 status_code=500,
             )
+
+
+@router.get("/{id}/authority")
+async def get_engine_authority(id: str):
+    """The engine authority of a taxonomy (ADR-0010): concepts, ELRs, presentation/calculation/definition networks,
+    tables, hypercubes, dimension defaults and the filing conventions (schemaRef, CIN scheme).
+
+    Built by src.ingestion.build_engine_authorities from the official MCA taxonomy. Several MB, so the file is
+    wrapped in the usual {data, success, message} envelope as bytes, without being parsed.
+    """
+    with logger.span("taxonomies.authority", taxonomy_id=id):
+        try:
+            raw = engine_authorities.raw(id)
+        except AuthorityNotAvailable as e:
+            return error_response(message=str(e), status_code=404)
+        body = b'{"data":' + raw + b',"message":"Engine authority","success":true,"errors":null}'
+        return Response(content=body, media_type="application/json")
+
+
+@router.get("/{id}/elrs")
+async def get_taxonomy_elrs(id: str):
+    """Statements, notes and disclosures (presentation ELRs) with code, title and group."""
+    with logger.span("taxonomies.elrs.list", taxonomy_id=id):
+        try:
+            elrs = get_authority(id).list_elrs()
+            return success_response(data=elrs, message=f"{len(elrs)} ELRs in taxonomy '{id}'", status_code=200)
+        except ValueError as ve:
+            return error_response(message=str(ve), status_code=404)
+        except Exception:
+            logger.exception("taxonomies.elrs.list.failed", taxonomy_id=id)
+            return error_response(message=f"Failed to list ELRs for taxonomy '{id}'", status_code=500)
+
+
+@router.get("/{id}/elrs/{key}/tree")
+async def get_taxonomy_elr_tree(id: str, key: str):
+    """Presentation tree of one ELR; key = code ('100100'), role id or role URI."""
+    with logger.span("taxonomies.elrs.tree", taxonomy_id=id, key=key):
+        try:
+            tree = get_authority(id).elr_tree(key)
+            if tree is None:
+                return error_response(message=f"ELR '{key}' not found in taxonomy '{id}'", status_code=404)
+            return success_response(data=tree, message=f"Presentation tree of '{key}'", status_code=200)
+        except ValueError as ve:
+            return error_response(message=str(ve), status_code=404)
+        except Exception:
+            logger.exception("taxonomies.elrs.tree.failed", taxonomy_id=id, key=key)
+            return error_response(message=f"Failed to build the tree of '{key}'", status_code=500)

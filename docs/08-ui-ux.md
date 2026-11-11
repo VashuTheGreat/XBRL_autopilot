@@ -46,22 +46,31 @@ On the right, the XBRL Form shows the reverse: the source cell ref shows as a ch
 
 ## Linkage interactions
 - **Selecting a cell** → the Inspector shows its mapping. The right pane scrolls to the fact in the XBRL Form, and in the XML tab the `<fact>` line is highlighted.
+- **Amounts in the Inspector** are shown as they go into the filing. Excel float noise is rounded to the cell's number format, or to the filing's "decimal places as presented" when the cell has none. A `rounded` badge appears, and its tooltip shows the stored number (e.g. `5443.466337358575` → 5,443.47). A shown digit beyond the filing's decimal places is never rounded away: tagging is refused with a message.
+- **Ranges:** dragging over cells in one column selects a range. The inspector shows "sum of N cells" and the total, and tagging files the sum as one figure (a line with no total cell, e.g. Trade payables = MSME + others). A cell inside a tagged range belongs to that tag.
+- **XBRL Form → "Empty mandatory → 0"** reports the statement's mandatory amounts that are still empty as 0 and lists them in a toast. Text fields are left to the user, who reviews the list (a line the company has inside another line, e.g. CSR inside Other expenses, must be corrected).
+- **Decimal places as presented** are chosen in the New Filing wizard and can be changed in the Filing explorer header ("2 dp"). Changing them re-reads every tagged figure from Excel.
+- **Column period** (untagged cells): "Column C: CY" with the reason in the tooltip (header, layout, or your choice). The CY/PY buttons set the period for that column of that sheet, and the choice is remembered in `mapping.json`. "auto" goes back to the header. When a header names a period outside the filing (a 3rd-year column, or stale text like "As at 30th September, 2019"), the strip says "Column C isn't part of this filing" and never guesses. Changing a tagged cell's CY/PY also sets its column.
 - **Selecting a fact (Form or XML)** → the source cell is selected and scrolled into view on the left.
 - **Hovering a cell** → tooltip: concept label + qname, period, dimensions, confidence, rule status.
 - **Drag** a taxonomy concept onto a cell → creates a manual mapping, `origin: manual`.
 
 ## Screens
-1. **Welcome:** New filing · Open… · Recent projects (company, FY, last opened) · Recover unsaved work (if any).
+1. **Welcome:** New filing · Open… · Import XBRL… · Recent projects (company, FY, last opened) · Recover unsaved work (if any).
 2. **New filing wizard:**
-   1. Taxonomy & form: C&I 2016 → AOC-4 XBRL.
+   1. Taxonomy: C&I 2016 or Ind AS 2017 (cards; AOC-4 XBRL).
    2. Company name and CIN, validated live against the CIN format.
    3. Report type: standalone / consolidated.
    4. FY dates; first financial year?
    5. Rounding level (Actual / Thousands / Lakhs / Millions / Crores).
    6. Import Excel (optional) → **Auto-tag now?**
-3. **Workbench:** the main window above.
-4. **Generate XML dialog:** blocking errors are summarised, with "Fix first" or "Generate anyway". Output path; option to open the MCA tool.
-5. **Settings.**
+3. **Import XBRL instance** (welcome button, File → Import XBRL Instance…; Phase 7):
+   - Choose *Open that filing* (every fact as filed) or *Start next year's filing* (its current year becomes the previous year), then the file.
+   - The taxonomy, company and periods come from the file.
+   - The **import report** follows: counts, the round-trip proof (every fact regenerated with the same element, period, dimensions, unit, decimals and value), anything not imported, and a "their conventions vs ours" table (generator, context-id style, duplicate contexts, fact ids, units, decimals, footnotes). The report is kept in the project (`import/`).
+4. **Workbench:** the main window above.
+5. **Generate XML dialog:** blocking errors are summarised, with "Fix first" or "Generate anyway". Output path; option to open the MCA tool.
+6. **Settings.**
 
 ## Keyboard shortcuts
 | Keys | Action |

@@ -1,4 +1,4 @@
-import { FileSpreadsheet, Upload } from 'lucide-react'
+import { CheckCheck, FileSpreadsheet, Loader2, Sparkles, Upload } from 'lucide-react'
 import { lazy, Suspense } from 'react'
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/primitives'
@@ -31,6 +31,7 @@ export function ExcelPane() {
           </button>
         ))}
         <div className="flex-1" />
+        {workbooks.length > 0 && <AutoTagButtons />}
         {workbooks.length > 0 && (
           <button className="flex items-center gap-1 px-3 text-muted hover:text-fg" onClick={() => void importWorkbook()} title="Import another workbook">
             <Upload size={12} /> Import
@@ -44,7 +45,7 @@ export function ExcelPane() {
           </Suspense>
         ) : (
           <EmptyState icon={FileSpreadsheet} title="No workbook imported">
-            <p>Import the company&apos;s Excel financial statements (.xlsx). Tagged cells are coloured: green = approved, amber = AI suggestion.</p>
+            <p>Import the company&apos;s Excel financial statements (.xlsx or .xls). Tagged cells are coloured: green = approved, amber = AI suggestion.</p>
             <div className="mt-3">
               <Button variant="primary" disabled={busy} onClick={() => void importWorkbook()}>
                 <Upload size={14} /> Import Excel…
@@ -55,5 +56,37 @@ export function ExcelPane() {
       </div>
       {active && <MappingInspector />}
     </section>
+  )
+}
+
+const ACCEPT_ALL_MIN = 0.9
+
+/** "Auto-tag" (suggest tags for every imported workbook) and "Accept all ≥ 90%" once there are suggestions. */
+function AutoTagButtons() {
+  const { autoTag, autoTagging, acceptAllSuggestions, mappings } = useEditor()
+  const open = mappings.filter((m) => m.status === 'suggested')
+  const sure = open.filter((m) => (m.confidence ?? 0) >= ACCEPT_ALL_MIN).length
+  return (
+    <>
+      {sure > 0 && (
+        <button
+          className="flex shrink-0 items-center gap-1 whitespace-nowrap border-l border-border px-3 text-muted hover:text-fg"
+          onClick={() => void acceptAllSuggestions(ACCEPT_ALL_MIN)}
+          title={`Tag the ${sure} suggested cells with confidence of 90% or more (${open.length} suggested in all)`}
+          data-testid="accept-all"
+        >
+          <CheckCheck size={12} /> Accept all ≥ 90% ({sure})
+        </button>
+      )}
+      <button
+        className="flex shrink-0 items-center gap-1 whitespace-nowrap border-l border-border px-3 text-muted hover:text-fg disabled:opacity-50"
+        onClick={() => void autoTag()}
+        disabled={autoTagging}
+        title="Suggest a taxonomy element for every figure of the statements and notes. Nothing is tagged until you accept."
+        data-testid="auto-tag"
+      >
+        {autoTagging ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />} {autoTagging ? 'Auto-tagging…' : 'Auto-tag'}
+      </button>
+    </>
   )
 }

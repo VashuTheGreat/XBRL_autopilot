@@ -1,0 +1,14 @@
+# ADR-0009 · How an Excel figure becomes a fact value
+- **Status:** accepted (2026-11-10). Driven by the Phase 5 run on HPL (C&I, ₹ lakhs), checked against its filed instance.
+- **Context:** Excel stores binary floats (`5443.466337358575` lakhs where the statement prints 5,443.47). MCA wants the figures as presented, except share capital, which must be the actual value (`4.1783` lakhs = ₹4,17,830, although the cell shows 4.18). The engine already models this: `meta.statementPlaces` holds the places of the statement figures, `meta.displayPlaces` the finest places allowed, and the gate's `SHARE_CAPITAL` set lists the amounts compared at their actual value.
+- **Decision:**
+  - **Filing precision.** The New Filing wizard asks for "decimal places as presented", which sets `statementPlaces`. It defaults to 0 for Actual and 2 for scaled levels, and can be changed later from the Filing explorer header. `displayPlaces` is always `maxDisplayPlaces(level)` (paise), so no real digit is refused or rounded away.
+  - **Statement figures.** A numeric cell is rounded once, half away from zero with engine decimals, to its number format's places, or to `statementPlaces` when it has no format (`.xls` via calamine never has one). Text cells are taken as typed.
+  - **Actual values.** Amounts in the engine's `SHARE_CAPITAL` are rounded only to exact rupees (`10^-scalePower`) and declared to that accuracy (`decimals="0"`), whatever the cell format shows.
+  - **Ranges.** A one-column range is tagged as the exact sum of its cells, rounded once. HPL's Trade payables has no total cell; it is D22 + D23.
+  - **Totals.** Tags go through `Session.setValue(..., { recalc: true })`. A calculation total with no cell follows its tagged parts (HPL's Total fixed assets). A tagged total is the filer's figure and is kept; GR-1 reports any difference.
+  - **Changing the places** re-pulls every tagged figure from Excel (`MappingService.reapply`), so values and `decimals` follow the setting.
+- **Consequences:**
+  - The 52 BS and P&L figures of HPL (CY and PY) equal the filed instance, except where the filer adjusted figures by hand (`ui/test/hpl-real-data.test.ts`).
+  - Share capital is the only "actual value" family for now. If MCA adds others, extend the engine's `SHARE_CAPITAL`, not the app.
+  - `mapping.json` `cell.ref` may be an A1 range (`D22:D23`). Older files with single cells read unchanged.

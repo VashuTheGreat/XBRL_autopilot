@@ -13,6 +13,8 @@ const prefersDark = () => window.matchMedia?.('(prefers-color-scheme: dark)').ma
 export function XmlView() {
   const { xml, selection, selectFact, setXmlWanted } = useEditor()
   const editorRef = useRef<Ed | null>(null)
+  // state, not only the ref: the highlight effect must re-run once Monaco has mounted (it mounts after the XML arrives)
+  const [mounted, setMounted] = useState(false)
   const decorations = useRef<Monaco.editor.IEditorDecorationsCollection | null>(null)
   const [dark, setDark] = useState(prefersDark)
 
@@ -39,10 +41,11 @@ export function XmlView() {
       { range: { startLineNumber: selectedLine, startColumn: 1, endLineNumber: selectedLine, endColumn: 1 }, options: { isWholeLine: true, className: 'xap-xml-line', linesDecorationsClassName: 'xap-xml-gutter' } },
     ])
     ed.revealLineInCenterIfOutsideViewport(selectedLine)
-  }, [selectedLine, xml])
+  }, [selectedLine, xml, mounted])
 
   const onMount: OnMount = (ed) => {
     editorRef.current = ed
+    setMounted(true)
     ed.onMouseDown((e) => {
       const line = e.target.position?.lineNumber
       const key = line ? factByLineRef.current.get(line) : undefined

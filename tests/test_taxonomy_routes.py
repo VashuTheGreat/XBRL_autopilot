@@ -86,3 +86,11 @@ def test_unknown_things_are_404():
     assert client.get(f"{PREFIX}/nope/elrs").status_code == 404
     assert client.get(f"{PREFIX}/ci_taxonomy/elrs/999999/tree").status_code == 404
     assert client.get(f"{PREFIX}/ci_taxonomy/concepts/in-gaap:DoesNotExist").status_code == 404
+
+
+def test_role_tree_route_by_role_id():
+    """The team's /roles/{role_id}/tree route (build_role_tree): kept alongside /elrs/{code}/tree."""
+    role_id = next(r["id"] for r in data(client.get(f"{PREFIX}/ci_taxonomy/roles")).values() if r.get("code") == "100100")
+    body = client.get(f"{PREFIX}/ci_taxonomy/roles/{role_id}/tree").json()
+    assert body["role"]["code"] == "100100"
+    assert body["tree"] and body["tree"][0]["children"]

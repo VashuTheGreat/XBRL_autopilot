@@ -5,17 +5,17 @@
  */
 import type { Scope } from '@shared/editor'
 import type { SheetModel } from '@shared/workbook'
+import { parseAmount } from './amounts'
 
 export interface Periods {
   cy: { start: string; end: string }
   py: { start: string; end: string } | null
 }
 
-export interface ScopeGuess {
-  scope: Scope
-  /** what the decision was based on, shown in the UI */
-  reason: string
-}
+export type ScopeGuess =
+  | { basis: 'header' | 'layout'; scope: Scope; reason: string }
+  /** a header names a period that is neither CY nor PY: a 3rd-year column, or stale header text. Never guessed. */
+  | { basis: 'outside'; scope: null; reason: string }
 
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
 
@@ -45,7 +45,8 @@ function datesIn(text: string): { iso: string[]; fyEndYears: number[] } {
   return { iso, fyEndYears }
 }
 
-function classify(text: string, p: Periods): Scope | null {
+/** CY / PY, 'outside' when the text names some other period, null when it names no period at all. */
+function classify(text: string, p: Periods): Scope | 'outside' | null {
   const t = text.toLowerCase()
   if (/\b(current|this)\s+(year|period)\b/.test(t)) return 'CY'
   if (/\b(previous|prior|last|preceding)\s+(year|period)\b/.test(t)) return 'PY'
@@ -56,20 +57,24 @@ function classify(text: string, p: Periods): Scope | null {
   const pyYear = p.py ? Number(p.py.end.slice(0, 4)) : null
   if (fyEndYears.includes(cyYear) || iso.some((d) => Number(d.slice(0, 4)) === cyYear)) return 'CY'
   if (pyYear !== null && (fyEndYears.includes(pyYear) || iso.some((d) => Number(d.slice(0, 4)) === pyYear))) return 'PY'
-  return null
+  return iso.length || fyEndYears.length ? 'outside' : null
 }
 
 /**
- * 1. The nearest header text above the cell in the same column that names a period of this filing.
+ * 1. The nearest header text above the cell in the same column that names a period: CY, PY, or 'outside' when it names
+ *    another period (then the layout is never used to guess: the user is asked).
  * 2. Otherwise the two value columns of the sheet: the left one is CY, the right one PY (the Schedule III layout).
+ * Amount-like text ("2,000", "(2019)") is not a header.
  */
 export function inferScope(sheet: SheetModel, at: { r: number; c: number }, periods: Periods): ScopeGuess | null {
   const above = sheet.cells
-    .filter((x) => x.c === at.c && x.r < at.r && typeof x.v === 'string')
+    .filter((x) => x.c === at.c && x.r < at.r && typeof x.v === 'string' && parseAmount(x.v) === null)
     .sort((a, b) => b.r - a.r)
   for (const h of above) {
     const s = classify(String(h.v), periods)
-    if (s) return { scope: s, reason: `column header “${String(h.v).trim()}”` }
+    const reason = `column header “${String(h.v).trim()}”`
+    if (s === 'outside') return { basis: 'outside', scope: null, reason }
+    if (s) return { basis: 'header', scope: s, reason }
   }
   // value columns = columns with at least 3 numbers that are not small integers (note numbers)
   const counts = new Map<number, number>()
@@ -77,7 +82,7 @@ export function inferScope(sheet: SheetModel, at: { r: number; c: number }, peri
   const valueCols = [...counts.entries()].filter(([, n]) => n >= 3).map(([c]) => c).sort((a, b) => a - b)
   if (valueCols.length === 2 && valueCols.includes(at.c)) {
     if (!periods.py && at.c === valueCols[1]) return null
-    return { scope: at.c === valueCols[0] ? 'CY' : 'PY', reason: 'first value column = current year, second = previous year' }
+    return { basis: 'layout', scope: at.c === valueCols[0] ? 'CY' : 'PY', reason: 'first value column = current year, second = previous year' }
   }
   return null
 }

@@ -1,7 +1,7 @@
 /**
  * Reads an .xlsx into the WorkbookModel the Excel pane renders. Every non-empty cell is kept with its position,
  * so layout heuristics (and the AI in Phase 5) see the sheet as the accountant laid it out.
- * .xls (BIFF) is not supported by exceljs; users get a clear message to re-save as .xlsx.
+ * .xls (BIFF) is not supported by exceljs: workbook-parser.ts sends those to the sidecar.
  */
 import ExcelJS from 'exceljs'
 import type { CellModel, CellValue, SheetModel, WorkbookModel } from '@shared/workbook'
@@ -9,7 +9,8 @@ import { fromA1 } from '@shared/workbook'
 
 export class UnsupportedWorkbookError extends Error {}
 
-const isoDate = (d: Date) => d.toISOString().slice(0, 10)
+/** yyyy-mm-dd; null for an invalid date (exceljs yields Invalid Date for a date-formatted cell out of range, seen in HPL). */
+const isoDate = (d: Date): string | null => (Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10))
 
 /** Normalises the many exceljs value shapes to a plain value + optional formula. */
 function plainValue(v: ExcelJS.CellValue): { v: CellValue; f?: string } {
@@ -38,9 +39,6 @@ function parseMerge(range: string): SheetModel['merges'][number] | null {
 }
 
 export async function readXlsx(source: string, fileName: string, bytes: Uint8Array): Promise<WorkbookModel> {
-  if (/\.xls$/i.test(fileName)) {
-    throw new UnsupportedWorkbookError('Old .xls workbooks are not supported yet. Open it in Excel and save it as .xlsx, then import again.')
-  }
   const wb = new ExcelJS.Workbook()
   try {
     await wb.xlsx.load(bytes as unknown as ArrayBuffer)

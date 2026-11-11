@@ -25,7 +25,8 @@
 pnpm install                         # JS deps (pnpm only, never npm/yarn)
 pnpm dev                             # Electron app in dev (also starts the Python sidecar via uv)
 pnpm test                            # all JS tests (engine + ui)
-pnpm --filter @xap/engine compile:authority  # data/ → engine/authority/ci-2016.*.json (run once before engine tests)
+make engine-authority                # data/ → knowledge_base/*_engine_authority.json (Python; committed)
+pnpm --filter @xap/engine compile:authority  # C&I rule workbook → engine/authority/ci-2016.*.json (run once before engine tests)
 pnpm --filter @xap/engine test       # engine tests only (vitest + ported legacy node:test suite)
 pnpm typecheck
 uv sync                              # Python deps
@@ -54,5 +55,5 @@ make rebuild                         # regenerate knowledge_base + Chroma index
 8. **Taxonomy data comes from the FastAPI routes** (`/api/v1/taxonomies/{id}/…`, `id` = `ci_taxonomy` | `ind_as_taxonomy` | `costing_taxonomy`, see `src/constants.py`), backed by `knowledge_base/*.json`:
    - Everything the UI shows about a taxonomy goes through the `TaxonomyCatalog` port: statement list (`/elrs`), Form structure (`/elrs/{code}/tree`), element search and details.
    - Never hardcode taxonomy data. `lagacy_js/` is reference reading only.
-   - The engine authority is used only for what the knowledge base can't do yet (facts, XML generation, validation), see [ADR-0008](docs/decisions/ADR-0008-taxonomy-data-via-routes.md).
+   - The engine authority's taxonomy half is built by the Python ingestion too and served by `/{id}/authority` ([ADR-0010](docs/decisions/ADR-0010-engine-authority-from-knowledge-base.md)); only the business-rule ASTs are still compiled in `engine/compiler` (until Phase 9).
 9. **Scope:** v1 is C&I 2016 **and** Ind AS 2017 (AOC-4 XBRL). Keep code taxonomy-generic (Costing later). Real client fixtures are in `data/` (see `docs/12-reference-data.md`); never send them to an AI service.

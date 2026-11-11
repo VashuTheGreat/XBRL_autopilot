@@ -1,17 +1,17 @@
-import { FileSpreadsheet, Table2 } from 'lucide-react'
+import { CircleSlash, FileSpreadsheet, Table2 } from 'lucide-react'
 import { useMemo } from 'react'
 import { formatIndian } from '@xap/engine/basics'
 import type { FormCell, FormRow } from '@shared/editor'
 import { cellKey } from '@shared/workbook'
 import { EmptyState } from '@/components/EmptyState'
-import { Select } from '@/components/ui/primitives'
+import { Button, Select } from '@/components/ui/primitives'
 import { cn } from '@/lib/cn'
 import { useEditor } from '@/stores/editor'
 import { useProject } from '@/stores/project'
 
 /** XBRL Form: one statement (ELR) with its CY/PY facts and the Excel cell each value came from. */
 export function FormView() {
-  const { form, activeElr, setActiveElr, selection, selectFact } = useEditor()
+  const { form, activeElr, setActiveElr, selection, selectFact, fillMandatoryZeros } = useEditor()
   const { elrs, summary } = useProject()
   const selectedCellKey = selection.cell ? cellKey(selection.cell) : null
   const hasPy = !summary?.firstFinancialYear
@@ -28,6 +28,15 @@ export function FormView() {
             </option>
           ))}
         </Select>
+        <Button
+          variant="ghost"
+          className="h-7 shrink-0 px-2 text-[11px]"
+          disabled={!activeElr}
+          onClick={() => void fillMandatoryZeros()}
+          title="Report the mandatory amounts this statement leaves empty (lines the company doesn't have) as 0. Text fields are left to you."
+        >
+          <CircleSlash size={13} /> Empty mandatory → 0
+        </Button>
       </div>
       {!form ? (
         <EmptyState icon={Table2} title="Loading statement…" />

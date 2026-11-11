@@ -69,7 +69,7 @@ export function importInstance(A, xmlText, { DOMParserImpl = globalThis.DOMParse
   report.schemaRefMatches = accepted.includes(report.schemaRef);
   if (!report.schemaRefMatches) report.warnings.push((A.meta.retiredSchemaRefs || []).includes(report.schemaRef)
     ? `schemaRef '${report.schemaRef}' is the old V2 address, which the MCA XBRL Validator no longer accepts; the export will use the V3 address '${A.meta.schemaRef}'`
-    : `schemaRef '${report.schemaRef}' is not an accepted C&I 2016 entry point; the export will use '${A.meta.schemaRef}'`);
+    : `schemaRef '${report.schemaRef}' is not an accepted entry point of ${A.meta.taxonomyVersion || 'this taxonomy'}; the export will use '${A.meta.schemaRef}'`);
 
   // ---- contexts
   const contexts = new Map();
@@ -154,7 +154,7 @@ export function importInstance(A, xmlText, { DOMParserImpl = globalThis.DOMParse
     };
     if (!concept || !A.concept(concept)) {
       report.unknownConcepts.push(src.element);
-      report.unresolvedFacts.push({ ...src, reason: 'Unknown concept (not in the C&I 2016 taxonomy)' });
+      report.unresolvedFacts.push({ ...src, reason: `Unknown concept (not in ${A.meta.taxonomyVersion || 'the taxonomy'})` });
       continue;
     }
     const ctx = contexts.get(src.contextRef);

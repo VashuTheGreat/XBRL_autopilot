@@ -18,6 +18,9 @@ my-company_FY2025-26_standalone.axbrl
 │  └─ history.jsonl       # one line per AI suggestion / patch proposal + user decision
 ├─ output/
 │  └─ 001.xml, 002.xml    # generated instances (numbered; latest = highest)
+├─ import/                # only for filings created from an XBRL instance (Phase 7)
+│  ├─ <name>.xml          # the source instance, unchanged
+│  └─ <name>.report.json  # import report: counts, round-trip comparison, vendor conventions, raw importer report
 └─ ui-state.json          # open tabs, selected ELR, pane sizes (optional, cosmetic)
 ```
 
@@ -33,9 +36,11 @@ my-company_FY2025-26_standalone.axbrl
   "company": { "name": "Acme Pvt Ltd", "cin": "U12345MH2010PTC123456" },
   "filing": { "reportType": "standalone", "cy": { "start": "2025-04-01", "end": "2026-03-31" },
               "py": { "start": "2024-04-01", "end": "2025-03-31" }, "firstFinancialYear": false,
-              "roundingLevel": "Lakhs" }
+              "roundingLevel": "Lakhs" },
+  "importedFrom": { "fileName": "Instance_Dixon….xml", "entry": "Instance_Dixon….xml", "mode": "both", "importedAt": "…" }
 }
 ```
+`taxonomy.id` is `ci-2016` or `ind-as-2017`; opening a file loads that taxonomy's authority. `importedFrom` is optional: it is present only when the filing came from an XBRL instance (`mode`: `both` = that year as filed, `next` = the following year started from it).
 
 ### `mapping.json`
 ```json
@@ -53,8 +58,12 @@ my-company_FY2025-26_standalone.axbrl
       "rationale": "Row label matches standard label; balance credit; ELR 100100",
       "status": "approved"       // suggested | approved | rejected
     }
-  ]
+  ],
+  "columns": { "workbook-1.xlsx|BS|C": "CY" }   // period the user chose per value column (optional)
 }
+```
+`cell.ref` is a single cell (`"C5"`) or a one-column range (`"D22:D23"`) whose cells are summed ([ADR-0009](decisions/ADR-0009-amounts-from-excel.md)). Sources keep their real extension (`source/workbook-2.xls`).
+```text
 ```
 
 ## Rules

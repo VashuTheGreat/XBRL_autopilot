@@ -2,6 +2,8 @@ import { useEffect } from 'react'
 import type { MenuCommand } from '@shared/ipc'
 import { Toasts } from '@/components/Toasts'
 import { NewFilingDialog } from '@/features/new-filing/NewFilingDialog'
+import { ImportReportDialog } from '@/features/import-xbrl/ImportReportDialog'
+import { ImportXbrlDialog } from '@/features/import-xbrl/ImportXbrlDialog'
 import { useEditor } from '@/stores/editor'
 import { useProject } from '@/stores/project'
 import { useSettings } from '@/stores/settings'
@@ -25,6 +27,8 @@ function runCommand(cmd: MenuCommand): void {
       return void (project.summary ? project.save() : undefined)
     case 'file:save-as':
       return void (project.summary ? project.saveAs() : undefined)
+    case 'file:import-xbrl':
+      return project.openImportXbrl()
     case 'file:import-excel':
       return void (project.summary ? useEditor.getState().importWorkbook() : project.openNewFiling())
     case 'view:toggle-sidebar':
@@ -60,6 +64,8 @@ export function App() {
       </div>
       <StatusBar />
       <NewFilingDialog />
+      <ImportXbrlDialog />
+      <ImportReportDialog />
       <Toasts />
     </div>
   )

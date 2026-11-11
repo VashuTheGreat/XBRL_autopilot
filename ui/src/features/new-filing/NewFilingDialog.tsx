@@ -1,19 +1,25 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
+  DEFAULT_TAXONOMY,
+  FILING_TAXONOMIES,
+  defaultStatementPlaces,
   defaultReportingYear,
   fyLabel,
   isValidCin,
+  maxDisplayPlaces,
   previousYearOf,
   ROUNDING_LEVELS,
   validateFilingPeriods,
   type ReportType,
   type RoundingLevel,
+  type TaxonomyId,
 } from '@xap/engine/basics'
 import type { NewFilingInput } from '@shared/project'
-import { Button, Checkbox, Dialog, Field, Input, Section, Select } from '@/components/ui/primitives'
+import { Button, Checkbox, ChoiceCards, Dialog, Field, Input, Section, Select } from '@/components/ui/primitives'
 import { useProject } from '@/stores/project'
 
 interface FormState {
+  taxonomy: TaxonomyId
   companyName: string
   cin: string
   reportType: ReportType
@@ -25,22 +31,25 @@ interface FormState {
   /** once the user edits PY dates we stop deriving them from CY */
   pyTouched: boolean
   level: RoundingLevel
+  statementPlaces: number
 }
 
 function initialForm(): FormState {
   const cy = defaultReportingYear(new Date())
   const py = previousYearOf(cy)!
-  return { companyName: '', cin: '', reportType: 'Standalone', cyStart: cy.start, cyEnd: cy.end, firstYear: false, pyStart: py.start, pyEnd: py.end, pyTouched: false, level: 'Lakhs' }
+  return { taxonomy: DEFAULT_TAXONOMY, companyName: '', cin: '', reportType: 'Standalone', cyStart: cy.start, cyEnd: cy.end, firstYear: false, pyStart: py.start, pyEnd: py.end, pyTouched: false, level: 'Lakhs', statementPlaces: defaultStatementPlaces('Lakhs') }
 }
 
 export function toInput(f: FormState): NewFilingInput {
   return {
+    taxonomy: f.taxonomy,
     companyName: f.companyName,
     cin: f.cin.trim().toUpperCase(),
     reportType: f.reportType,
     cy: { start: f.cyStart, end: f.cyEnd },
     py: f.firstYear ? null : { start: f.pyStart, end: f.pyEnd },
     level: f.level,
+    statementPlaces: f.statementPlaces,
   }
 }
 
@@ -87,7 +96,7 @@ export function NewFilingDialog() {
   return (
     <Dialog
       open={newFilingOpen}
-      title="New filing — AOC-4 XBRL (C&I 2016)"
+      title="New filing — AOC-4 XBRL"
       onClose={closeNewFiling}
       width={620}
       footer={
@@ -108,6 +117,10 @@ export function NewFilingDialog() {
           void submit()
         }}
       >
+        <Section title="Taxonomy">
+          <ChoiceCards label="Taxonomy" value={f.taxonomy} options={FILING_TAXONOMIES} onChange={(taxonomy) => patch({ taxonomy })} testIdPrefix="taxonomy" />
+        </Section>
+
         <Section title="Company">
           <div className="grid grid-cols-2 gap-3">
             <Field label="Company name" error={nameError} className="col-span-2">
@@ -158,10 +171,25 @@ export function NewFilingDialog() {
 
         <Section title="Presentation">
           <Field label="Level of rounding used in the financial statements" hint="As printed in the statements (e.g. ₹ in lakhs).">
-            <Select value={f.level} onChange={(e) => patch({ level: e.target.value as RoundingLevel })}>
+            <Select
+              value={f.level}
+              onChange={(e) => {
+                const level = e.target.value as RoundingLevel
+                patch({ level, statementPlaces: defaultStatementPlaces(level) })
+              }}
+            >
               {ROUNDING_LEVELS.map((l) => (
                 <option key={l} value={l}>
                   {l}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Decimal places as presented" hint="As printed (₹ 5,443.47 lakhs = 2). Excel figures are rounded to the cell's format, never past these places.">
+            <Select value={f.statementPlaces} onChange={(e) => patch({ statementPlaces: Number(e.target.value) })} data-testid="statement-places">
+              {Array.from({ length: maxDisplayPlaces(f.level) + 1 }, (_, n) => (
+                <option key={n} value={n}>
+                  {n}
                 </option>
               ))}
             </Select>

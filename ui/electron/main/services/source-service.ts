@@ -3,7 +3,7 @@
  * Parsing is cached per project+source; the parser is injected (the xlsx adapter in production).
  */
 import type { CellModel, CellRef, SheetModel, WorkbookModel } from '@shared/workbook'
-import { fromA1 } from '@shared/workbook'
+import { MAX_RANGE_CELLS, rangeCells, rangeOf, rangeSize } from '@shared/workbook'
 import { ValidationError } from './errors'
 import type { ProjectAccess } from './ports'
 
@@ -21,7 +21,8 @@ export class SourceService {
   async importWorkbook(fileName: string, bytes: Uint8Array): Promise<WorkbookModel> {
     const p = this.projects.project()
     const n = Object.keys(p.content.sources).length + 1
-    const source = `workbook-${n}.xlsx`
+    // keep the real extension: the .axbrl stores the bytes unchanged, and an .xls is not an .xlsx
+    const source = `workbook-${n}.${/\.xls$/i.test(fileName) ? 'xls' : 'xlsx'}`
     let model: WorkbookModel
     try {
       model = await this.parse(source, fileName, bytes)
@@ -61,11 +62,18 @@ export class SourceService {
     return sheet
   }
 
-  async cell(ref: CellRef): Promise<{ sheet: SheetModel; at: { r: number; c: number }; cell: CellModel | null }> {
-    const at = fromA1(ref.ref)
-    if (!at) throw new ValidationError([`"${ref.ref}" is not a cell reference.`])
+  /** A cell, or a range's top-left cell (its anchor), plus every cell of the reference (null where empty). */
+  async cell(ref: CellRef): Promise<{ sheet: SheetModel; at: { r: number; c: number }; cell: CellModel | null; cells: (CellModel | null)[] }> {
+    const g = rangeOf(ref.ref)
+    if (!g) throw new ValidationError([`"${ref.ref}" is not a cell reference.`])
+    if (rangeSize(ref.ref) > MAX_RANGE_CELLS) throw new ValidationError([`Select at most ${MAX_RANGE_CELLS} cells to tag their sum.`])
     const sheet = await this.sheet(ref)
-    return { sheet, at, cell: sheet.cells.find((c) => c.r === at.r && c.c === at.c) ?? null }
+    const find = (r: number, c: number) => sheet.cells.find((x) => x.r === r && x.c === c) ?? null
+    const cells = rangeCells(ref.ref).map((a1) => {
+      const q = rangeOf(a1)!
+      return find(q.r1, q.c1)
+    })
+    return { sheet, at: { r: g.r1, c: g.c1 }, cell: cells[0] ?? null, cells }
   }
 
   /** The row's label: the leftmost text cell left of `ref` (the "Particulars" column). */

@@ -33,3 +33,6 @@ sidecar-dist/
 # Engine: generated authority + working taxonomy copy
 engine/.taxonomy/
 engine/authority/*.json
+
+# electron-vite temp bundles of its config
+*.vite.config.ts.*.mjs

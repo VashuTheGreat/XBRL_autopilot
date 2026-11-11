@@ -1,0 +1,2 @@
+# golden fixtures are compared byte for byte: never convert line endings
+engine/test/fixtures/** -text

@@ -19,6 +19,10 @@ COST_TAXONOMY_DIR = COST_ROOT / "Costing Taxonomy 2019 Version 1.1@31-03-2019" /
 COST_RULES_EXCEL = COST_ROOT / "Business rule based on Costing taxonomy 2019 V1.1@06-10-2019" / "Final_BusinessRules_based_on_CostingTaxonomy2019_V1.1.xlsx"
 COST_OUTPUT_JSON = BASE_DIR / "knowledge_base" / "cost_knowledge_base.json"
 
+# Engine authorities (DTS-resolved concepts, networks and dimensional model), served by /{id}/authority
+CI_ENGINE_AUTHORITY_JSON = BASE_DIR / "knowledge_base" / "ci_engine_authority.json"
+INDAS_ENGINE_AUTHORITY_JSON = BASE_DIR / "knowledge_base" / "ind_as_engine_authority.json"
+
 
 # ===================== TAXONOMIES_NAME ============
 IND_AS_TAXONOMY_VDB: str = "ind_as_taxonomy"

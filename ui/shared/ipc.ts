@@ -2,14 +2,29 @@
 import type {
   AppSettings,
   ElrInfo,
+  ImportReportView,
+  InstanceImportMode,
   NewFilingInput,
   ProjectSummary,
   RecentProject,
   RecoveryItem,
   SettingsState,
 } from './project'
-import type { ConceptHit, FormView, MappingStatus, MappingView, Scope, TagCellInput, XmlView } from './editor'
-import type { WorkbookModel } from './workbook'
+import type {
+  AcceptAllResult,
+  AutoTagSummary,
+  CellInfo,
+  ColumnPeriod,
+  ZeroFilled,
+  ConceptHit,
+  FormView,
+  MappingStatus,
+  MappingView,
+  Scope,
+  TagCellInput,
+  XmlView,
+} from './editor'
+import type { CellRef, WorkbookModel } from './workbook'
 
 /**
  * Every fallible IPC call returns a Result instead of throwing: Electron flattens thrown errors into
@@ -50,6 +65,7 @@ export type MenuCommand =
   | 'file:save'
   | 'file:save-as'
   | 'file:import-excel'
+  | 'file:import-xbrl'
   | 'filing:validate'
   | 'filing:generate-xml'
   | 'view:toggle-sidebar'
@@ -70,6 +86,7 @@ export const IPC = {
   projectCurrent: 'project:current',
   projectCreate: 'project:create',
   projectOpen: 'project:open',
+  projectImportXbrl: 'project:import-xbrl',
   projectSave: 'project:save',
   projectSaveAs: 'project:save-as',
   projectClose: 'project:close',
@@ -79,6 +96,7 @@ export const IPC = {
   projectRecover: 'project:recover',
   projectDiscardRecovery: 'project:discard-recovery',
   projectElrs: 'project:elrs',
+  projectSetStatementPlaces: 'project:set-statement-places',
   projectChanged: 'project:changed',
   settingsGet: 'settings:get',
   settingsUpdate: 'settings:update',
@@ -93,8 +111,15 @@ export const IPC = {
   mappingUntag: 'mapping:untag',
   mappingSetScope: 'mapping:set-scope',
   mappingSetStatus: 'mapping:set-status',
+  mappingCellInfo: 'mapping:cell-info',
+  mappingSetColumnPeriod: 'mapping:set-column-period',
+  autotagRun: 'autotag:run',
+  autotagAccept: 'autotag:accept',
+  autotagReject: 'autotag:reject',
+  autotagAcceptAll: 'autotag:accept-all',
   editorForm: 'editor:form',
   editorXml: 'editor:xml',
+  editorFillMandatoryZeros: 'editor:fill-mandatory-zeros',
   taxonomySearch: 'taxonomy:search',
 } as const
 
@@ -115,6 +140,8 @@ export interface XapApi {
     create(input: NewFilingInput): Promise<Result<ProjectSummary | null>>
     /** no path → file dialog; `null` value = cancelled */
     open(path?: string): Promise<Result<ProjectSummary | null>>
+    /** a filing from an existing XBRL instance; no path → file dialog; `null` value = cancelled */
+    importXbrl(mode: InstanceImportMode, path?: string): Promise<Result<{ summary: ProjectSummary; report: ImportReportView } | null>>
     /** Save As dialog when the filing was never saved; `null` value = cancelled */
     save(): Promise<Result<ProjectSummary | null>>
     saveAs(): Promise<Result<ProjectSummary | null>>
@@ -126,6 +153,8 @@ export interface XapApi {
     recover(id: string): Promise<Result<ProjectSummary | null>>
     discardRecovery(id: string): Promise<void>
     elrs(): Promise<Result<ElrInfo[]>>
+    /** "decimal places as presented"; re-pulls tagged figures from Excel. Value = tags that kept their old value */
+    setStatementPlaces(places: number): Promise<Result<string[]>>
     onChanged(cb: (s: ProjectSummary | null) => void): () => void
   }
   settings: {
@@ -146,8 +175,21 @@ export interface XapApi {
     untag(id: string): Promise<Result<void>>
     setScope(id: string, scope: Scope): Promise<Result<MappingView>>
     setStatus(id: string, status: MappingStatus): Promise<Result<MappingView>>
+    /** the cell's amount (rounded to the statement's precision) and its column's period */
+    cellInfo(cell: CellRef): Promise<Result<CellInfo>>
+    /** remembers the period of the cell's column on its sheet; null forgets the choice */
+    setColumnPeriod(cell: CellRef, scope: Scope | null): Promise<Result<ColumnPeriod>>
     form(elrUri: string): Promise<Result<FormView>>
     xml(): Promise<Result<XmlView>>
+    /** reports the statement's empty mandatory amounts as 0; returns what was filled */
+    fillMandatoryZeros(elrUri: string): Promise<Result<ZeroFilled[]>>
     searchConcepts(query: string): Promise<Result<ConceptHit[]>>
+    /** asks the tagger for every imported workbook; stores suggestions (status 'suggested'), writes no fact */
+    autoTag(): Promise<Result<AutoTagSummary>>
+    /** tags a suggested cell with its suggestion, or with `concept` (one of its alternatives) */
+    acceptSuggestion(id: string, concept?: string): Promise<Result<MappingView>>
+    rejectSuggestion(id: string): Promise<Result<MappingView>>
+    /** accepts every suggestion with confidence ≥ `min` (default 0.9) */
+    acceptAllSuggestions(min?: number): Promise<Result<AcceptAllResult>>
   }
 }

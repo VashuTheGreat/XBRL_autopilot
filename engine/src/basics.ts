@@ -42,11 +42,23 @@ export interface Issue {
   location?: IssueLocation
 }
 
-export const SUPPORTED_TAXONOMIES: ReadonlyArray<{ id: TaxonomyId; label: string; v1: boolean }> = [
-  { id: 'ci-2016', label: 'C&I 2016 (AOC-4 XBRL, non-Ind AS)', v1: true },
-  { id: 'ind-as-2017', label: 'Ind AS 2017', v1: false },
-  { id: 'costing-2019', label: 'Costing 2019 (CRA-4)', v1: false },
+export const SUPPORTED_TAXONOMIES: ReadonlyArray<{ id: TaxonomyId; label: string; hint: string; v1: boolean }> = [
+  { id: 'ci-2016', label: 'C&I 2016', hint: 'AOC-4 XBRL, companies not on Ind AS (Schedule III Division I)', v1: true },
+  { id: 'ind-as-2017', label: 'Ind AS 2017', hint: 'AOC-4 XBRL, companies on Ind AS (Schedule III Division II)', v1: true },
+  { id: 'costing-2019', label: 'Costing 2019', hint: 'CRA-4', v1: false },
 ]
+
+/** The taxonomies a new filing can use in this version (AOC-4 XBRL). */
+export const FILING_TAXONOMIES = SUPPORTED_TAXONOMIES.filter((t) => t.v1)
+export const DEFAULT_TAXONOMY: TaxonomyId = 'ci-2016'
+
+export function isFilingTaxonomy(id: unknown): id is TaxonomyId {
+  return FILING_TAXONOMIES.some((t) => t.id === id)
+}
+
+export function taxonomyLabel(id: TaxonomyId): string {
+  return SUPPORTED_TAXONOMIES.find((t) => t.id === id)?.label ?? id
+}
 
 /** CIN format: e.g. U12345MH2010PTC123456 (21 chars). Ported from lagacy_js/expr.js FORMATS. */
 export const CIN_PATTERN = /^[LU]\d{5}[A-Z]{2}\d{4}[A-Z]{3}\d{6}$/
@@ -60,6 +72,21 @@ export type ReportType = 'Standalone' | 'Consolidated'
 /** Levels of rounding accepted by the engine (scaling.js SCALE_POWERS). */
 export const ROUNDING_LEVELS = ['Actual', 'Thousands', 'Lakhs', 'Millions', 'Crores', 'Billions'] as const
 export type RoundingLevel = (typeof ROUNDING_LEVELS)[number]
+
+/**
+ * The finest decimal places an amount can have at a level of rounding: places that reach paise (Actual 2, Lakhs 7).
+ * The engine's `displayPlaces`, and the upper bound of "decimal places as presented" (`statementPlaces`). Mirrors scaling.js SCALE_POWERS for the renderer, which doesn't load the engine core
+ * (a test keeps the two in step).
+ */
+export function maxDisplayPlaces(level: RoundingLevel): number {
+  const power: Record<RoundingLevel, number> = { Actual: 0, Thousands: 3, Lakhs: 5, Millions: 6, Crores: 7, Billions: 9 }
+  return power[level] + 2
+}
+
+/** The usual places for a level: whole rupees for Actual, two places for scaled statements (₹ 5,443.47 lakhs). */
+export function defaultStatementPlaces(level: RoundingLevel): number {
+  return level === 'Actual' ? 0 : 2
+}
 
 /** yyyy-mm-dd → Date (UTC) or null. */
 function utc(iso: string): Date | null {
