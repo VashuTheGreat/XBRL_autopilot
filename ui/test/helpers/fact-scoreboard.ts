@@ -60,12 +60,13 @@ export function verdict(ours: ScoredFact, filed: ScoredFact | undefined): Verdic
  */
 export function scoreFacts(ours: ScoredFact[], filed: ScoredFact[], originOf: (f: ScoredFact) => string | null, sourceOf: (f: ScoredFact) => string = () => ''): Scoreboard {
   const byKey = new Map(filed.filter(numeric).map((f) => [factKey(f), f]))
+  const placeholder = placeholderMatcher(filed.filter(numeric))
   const board: Scoreboard = { byOrigin: {}, filedNonZero: { amount: 0, table: 0 }, rightNonZero: { amount: 0, table: 0 }, wrong: [] }
   for (const f of filed.filter(numeric)) if (Number(f.value) !== 0) board.filedNonZero[kindOf(f)]++
   for (const f of ours.filter(numeric)) {
     const origin = originOf(f)
     if (!origin) continue
-    const filedFact = byKey.get(factKey(f))
+    const filedFact = placeholder(f) ?? byKey.get(factKey(f))
     const v = verdict(f, filedFact)
     const kind = kindOf(f)
     const t = ((board.byOrigin[origin] ??= { amount: empty(), table: empty() })[kind])
@@ -74,6 +75,37 @@ export function scoreFacts(ours: ScoredFact[], filed: ScoredFact[], originOf: (f
     if (v === 'wrong') board.wrong.push(`${origin} ${kind} ${sourceOf(f)} ${f.concept} ${f.period.date ?? f.period.end} ${JSON.stringify(f.dims.map((d) => d.member ?? d.typed))}: ${f.value} vs ${filedFact!.value}`)
   }
   return board
+}
+
+const NUMBERED = /^(.*?)(\d+)Member$/
+
+/**
+ * Numbered members ("Other financial assets at amortised cost, class 1 … 10") are placeholders: MCA accepts any
+ * numbering, so a fact of ours under one is compared with the filer's fact of the same family, element, period and
+ * other members that has its value (each filed fact once). As src/evaluation/coverage_eval.py align_placeholders.
+ */
+function placeholderMatcher(filed: ScoredFact[]): (f: ScoredFact) => ScoredFact | undefined {
+  const groupOf = (f: ScoredFact): string | null => {
+    const i = f.dims.findIndex((d) => d.member && NUMBERED.test(d.member.split(':').pop()!))
+    if (i < 0) return null
+    const d = f.dims[i]!
+    const rest = f.dims.filter((_, j) => j !== i)
+    return `${factKey({ ...f, dims: rest })}|${d.axis}|${NUMBERED.exec(d.member!.split(':').pop()!)![1]}`
+  }
+  const groups = new Map<string, ScoredFact[]>()
+  for (const f of filed) {
+    const g = groupOf(f)
+    if (g) groups.set(g, [...(groups.get(g) ?? []), f])
+  }
+  const taken = new Set<ScoredFact>()
+  return (f) => {
+    const g = groupOf(f)
+    // the filed fact of the same member first, when it has our value
+    const same = g ? groups.get(g)?.filter((x) => !taken.has(x) && verdict(f, x) === 'right') : undefined
+    const hit = same?.find((x) => factKey(x) === factKey(f)) ?? same?.[0]
+    if (hit) taken.add(hit)
+    return hit
+  }
 }
 
 /** The scoreboard as a text table (for the test log and docs/06). */

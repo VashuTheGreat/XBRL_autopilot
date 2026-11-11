@@ -91,6 +91,60 @@ def test_changes_in_equity_by_component():
         ("OtherEquityBalances", "periodEndLabel", "PY"), ("ProfitLossForPeriod", None, "CY"), ("OtherEquityBalances", "periodEndLabel", "CY")]
 
 
+# a financial-instruments note laid out like DGPL's: categories in the columns under a stale year header, the classes
+# of financial assets in the rows, then the liabilities after the assets' total; the balance sheet gives the figures
+BALANCE_SHEET = {
+    1: {1: "BALANCE SHEET"},
+    2: {1: "Particulars", 3: "As at 31 March 2026", 4: "As at 31 March 2025"},
+    4: {1: "Trade receivables", 3: 672.3, 4: 94.7},
+    5: {1: "Cash and cash equivalents", 3: 119.87, 4: 326.55},
+    6: {1: "Loans", 3: 1020.0, 4: 900.0},
+}
+INSTRUMENTS = {
+    0: {0: "Financial instrument by category"},
+    1: {0: "Particulars", 3: "As at March 31, 2025", 6: "As at March 31, 2024"},  # stale: one year early
+    2: {3: "FVTPL", 4: "FVTOCI", 5: "Amortised cost", 6: "FVTPL", 7: "FVTOCI", 8: "Amortised cost"},
+    3: {0: "Financial assets"},
+    4: {0: "Trade receivables", 3: 0.0, 4: 0.0, 5: 672.3, 6: 0.0, 7: 0.0, 8: 94.7},
+    5: {0: "Loans", 3: 0.0, 4: 0.0, 5: 1020.0, 6: 0.0, 7: 0.0, 8: 900.0},
+    6: {0: "Cash and cash equivalents", 3: 0.0, 4: 0.0, 5: 119.87, 6: 0.0, 7: 0.0, 8: 326.55},
+    7: {0: "Security deposits", 3: 0.0, 4: 0.0, 5: 0.0, 6: 0.0, 7: 0.0, 8: 0.0},
+    8: {0: "Total of financial assets", 3: 0.0, 4: 0.0, 5: 1812.17, 6: 0.0, 7: 0.0, 8: 1321.25},
+    9: {0: "Financial liabilities"},
+    10: {0: "Trade payables", 3: 0.0, 4: 0.0, 5: 88.79, 6: 0.0, 7: 0.0, 8: 127.59},
+    11: {0: "Total of financial liabilities", 3: 0.0, 4: 0.0, 5: 88.79, 6: 0.0, 7: 0.0, 8: 127.59},
+}
+
+
+def test_financial_assets_by_category_rows_are_members_years_from_the_statements():
+    bs, notes = sheet("Balance Sheet", BALANCE_SHEET), sheet("Notes to accounts", INSTRUMENTS)
+    layouts = [analyse_sheet(bs, CY, PY), analyse_sheet(notes, CY, PY)]
+    blocks = [b.to_json() for b in suggest_tables(table_catalog_for("ind_as_taxonomy"), [bs, notes], layouts, CY, PY)]
+    assets = next(b for b in blocks if b["tableId"] == "611100a:DisclosureOfFinancialAssetsTable")
+    # the assets' total ends that table: the liabilities are not part of it
+    assert max(r["r"] for r in assets["rows"]) < 9
+    # only the amortised-cost columns have figures: they are the columns, and their years come from the balance sheet
+    # (the header says 2025 / 2024)
+    amortised = {"axis": "ind-as:CategoriesOfFinancialAssetsAxis", "member": "ind-as:FinancialAssetsAtAmortisedCostCategoryMember"}
+    assert assets["cols"] == [{"c": 5, "members": [amortised], "scope": "CY"}, {"c": 8, "members": [amortised], "scope": "PY"}]
+    # rows: a named class takes its member, the others the numbered placeholders in row order; zeros and totals none
+    members = {r["r"]: r["members"][0]["member"].split(":")[1] for r in assets["rows"]}
+    assert members == {4: "TradeReceivablesMember", 5: "OtherFinancialAssetsAtAmortisedCostClass1Member", 6: "OtherFinancialAssetsAtAmortisedCostClass2Member"}
+    assert {r["concept"] for r in assets["rows"]} == {"ind-as:FinancialAssets"}
+
+
+def test_maturity_buckets_are_not_twelve_month_credit_losses():
+    rows = {
+        0: {0: "Maturities of financial assets", 9: "(Rs. in Lakh unless otherwise stated)"},
+        2: {0: "Financial Assets", 3: "<12 months", 6: ">12 months", 9: "Total"},
+        3: {0: "Trade Receivables", 3: 672.3, 6: 0.0, 9: 672.3},
+        4: {0: "Loans", 3: 1020.0, 6: 0.0, 9: 1020.0},
+        5: {0: "Total", 3: 1692.3, 6: 0.0, 9: 1692.3},
+    }
+    s = sheet("Notes", rows)
+    assert suggest_tables(table_catalog_for("ind_as_taxonomy"), [s], [analyse_sheet(s, CY, PY)], CY, PY) == []
+
+
 # ------------------------------------------------------------------ real data
 real = pytest.mark.skipif(not (DGPL.exists() and DIXON.exists()), reason="real-data fixtures not present")
 
@@ -101,12 +155,13 @@ def test_dixon_table_producer_floors():
     t = report.by_producer["table"]
     produced = t["right"] + t["near"] + t["wrong"]
     print(report.text())
-    assert t["right"] >= 60, t  # 63 on 2026-11-11 (PPE, changes in equity)
+    assert t["right"] >= 75, t  # 75 on 2026-11-11 (PPE, changes in equity, financial assets by category)
     assert t["wrong"] <= 0.1 * produced, t  # ADR-0013: table amounts wrong ≤ 10% of those produced
     assert t["extra"] <= 10, t
     also = report.by_producer["also"]  # one-class "also report as", only on sure statement tags: 2 right, 0 wrong
-    assert also["right"] >= 2 and also["wrong"] == 0, also
-    assert {b.table_id for b in result.blocks} >= {"400600:DisclosureOfPropertyPlantAndEquipmentTable", "400200:StatementOfChangesInEquityTable"}
+    assert also["right"] >= 2 and also["wrong"] == 0 and also["extra"] <= 2, also
+    assert {b.table_id for b in result.blocks} == {"400600:DisclosureOfPropertyPlantAndEquipmentTable", "400200:StatementOfChangesInEquityTable",
+                                                    "611100a:DisclosureOfFinancialAssetsTable"}
 
 
 @pytest.mark.skipif(not (HPL_KEY.exists() and any((ROOT / "data").glob("HPL*.xlsx"))), reason="HPL workbook not present")

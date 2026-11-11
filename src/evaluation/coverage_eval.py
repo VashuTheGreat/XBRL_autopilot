@@ -18,8 +18,10 @@ Runs with the LLM off: data/ fixtures never go to an AI service. CLI: `uv run py
 """
 from __future__ import annotations
 
+import dataclasses
 import datetime as dt
 import json
+import re
 import sys
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
@@ -187,8 +189,45 @@ def produced_from_blocks(result: SuggestResult, sheets: list[dict], cy_end: dt.d
     return out
 
 
+_NUMBERED = re.compile(r"^(.*?)(\d+)Member$")
+
+
+def align_placeholders(produced: list[ProducedFact], facts: list[FiledFact]) -> list[ProducedFact]:
+    """Numbered members ("Other financial assets at amortised cost, class 1 … 10") are placeholders: MCA accepts any
+    numbering, so ours is compared with the filer's by value. A produced fact under a numbered member takes the filed
+    member of the same family whose fact (same element, period, other members) has its value, when one is free."""
+    def split(dims):
+        for i, (axis, m) in enumerate(dims):
+            hit = _NUMBERED.match(m.split(":")[-1]) if isinstance(m, str) else None
+            if hit:
+                return i, (axis, hit.group(1)), dims[:i] + dims[i + 1:]
+        return None
+
+    filed: dict[tuple, list[FiledFact]] = defaultdict(list)
+    for f in facts:
+        s = split(f.dims)
+        if s and f.numeric:
+            filed[(f.concept, f.end, s[1], s[2])].append(f)
+    taken: set[Key] = set()
+    out = []
+    for p in produced:
+        s = split(p.dims)
+        if not s or not isinstance(p.value, Decimal):
+            out.append(p)
+            continue
+        i, family, rest = s
+        match = next((f for f in filed.get((p.concept, p.end, family, rest), []) if f.key not in taken and verdict(f, p) == "right"), None)
+        if match is None:
+            out.append(p)
+            continue
+        taken.add(match.key)
+        out.append(dataclasses.replace(p, dims=match.dims))
+    return out
+
+
 def coverage(facts: list[FiledFact], classifier: FactClassifier, index: WorkbookIndex,
              produced: list[ProducedFact]) -> CoverageReport:
+    produced = align_placeholders(produced, facts)
     by_key: dict[Key, ProducedFact] = {}
     for p in produced:
         by_key.setdefault(p.key, p)

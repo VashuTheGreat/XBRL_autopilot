@@ -89,10 +89,13 @@ def suggest(
         tables = None
     blocks = suggest_tables(tables, sheets, layouts, cy_end, py_end) if tables else []
     if tables:
+        mapped = {b.table_id for b in blocks}
         for s in suggestions:  # "also report as": the same figure under the one class of a classes axis
             if s["confidence"] < ALSO_FROM:
                 continue  # only on sure tags: a wrong cell would be filed twice
-            also = one_class_also(tables, s["concept"])
+            # a table a suggested block maps is reported from its own cells: the figure again under one of its
+            # members would be counted twice by the parent-member roll-ups (changes in equity)
+            also = [a for a in one_class_also(tables, s["concept"]) if a["tableId"] not in mapped]
             if also:
                 s["also"] = also
     return SuggestResult(layouts=layouts, suggestions=suggestions, rows=rows, llm_used=llm_used, blocks=blocks)

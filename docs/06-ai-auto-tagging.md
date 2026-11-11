@@ -183,14 +183,23 @@ The keyed-cell evaluation above only scores statement-level amounts. `src/evalua
   - **Movement rows:** each takes the year of the next closing balance below it.
   - **Cells:** a cell with no member at all is left out; that's a statement figure.
   - **Phrases:** "gross block", "net block", "charge for the year" and "profit/(loss) for the year" are mapped to the taxonomy's wording.
+- **Step 3b.4 (2026-11-11), measured on Dixon, the HPL key and synthetic tests:**
+  - **Column years from the statements' figures** (`Figures`): a column whose non-zero values are 2 or more of one year's balance-sheet, P&L or cash-flow figures (and more than the other year's) is that year, whatever its header says. DGPL's financial-instruments note is headed "As at March 31, 2025" over FY 2026 figures. Only the main statements count as evidence: notes next to a stale one often carry the same stale header.
+  - **Sections** (`sections`): a block is split where a heading follows a total row ("Total of financial assets", then "Financial liabilities"). Each part can be another table.
+  - **Rows that are members** (`_member_rows`): once a row label names a member of another axis exactly ("Trade receivables"), the block's rows are members. The other rows with figures take the next **numbered placeholder** of the family the column members name ("Other financial assets at amortised cost, class 1 …" under "Amortised cost"), in row order. Rows of zeros take none, and total rows are left to the engine's parent-member roll-ups. The line item is the one the section heading names.
+  - **Member matching** ignores the axis's domain words ("financial assets"). A header that contains all of a member's own words (2+) names it. "FVTPL" / "FVTOCI" are expanded.
+  - **No zeros from Excel:** a column holding only zeros gives no cells (zeros come from the rules).
+  - **Guards against false matches:** years side by side must repeat a group of 2+ different members ("<12 months" and ">12 months" are not both the 12-month expected credit losses). The minimum table score is now 0.6 (every DGPL block under it was noise; real ones score 0.76+).
+  - **"Also" vs blocks:** an "also" item into a table that a suggested block maps is dropped. The block reports that table, and the roll-ups would count the figure twice (profit under Retained earnings and under "Other equity other 1").
+  - **Evaluation:** numbered members are placeholders (MCA accepts any numbering), so both scoreboards compare ours with the filer's by value within the same family, element, period and other members (`align_placeholders`; `fact-scoreboard.ts`).
 - **One class** (`one_class_also`): a statement suggestion of 0.9 or more whose element is a line item of a table with exactly one numbered "classes" axis (Equity shares 1), all other axes defaultable, gets `also: [{concept, tableId, dims, preferredLabel, confidence 0.7}]`.
 - **Scoreboard** (2026-11-11, `coverage_eval`, per producer):
 
   | producer | right | near | wrong | extra |
   |---|---|---|---|---|
   | statement | 143 | 4 | 39 | 113 |
-  | table | 63 | 0 | 0 | 4 |
-  | also | 2 | 0 | 0 | 4 |
+  | table | 75 (63 in 3a) | 0 | 0 | 4 |
+  | also | 2 | 0 | 0 | 2 (4 in 3a) |
 
   - The table producer found PPE (DGPL sheet FA) and changes in equity.
   - Ungated, the one-class producer gave 4 right / 6 wrong / 15 extra, which is why it now rides only on sure tags.
@@ -207,23 +216,25 @@ The keyed-cell evaluation above only scores statement-level amounts. `src/evalua
 
 The filing it gives is compared with Dixon by (element, period, members) (`test/helpers/fact-scoreboard.ts`, pure). Verdicts use the filed `decimals`, as `coverage_eval`, and each fact is scored by origin: **excel** (a mapping's main or "also" fact), **derived** (calculated: totals, roll-ups, carrying amounts) or **zero** (added by the rule-driven fills). It takes about 11 s. Floors are in the test; raise them when a producer improves.
 
-**2026-11-11:** 299 cells and 3 blocks (64 cells) accepted, 6 "also" facts.
+**2026-11-11, after step 3b.4:** 299 cells and 4 blocks (76 cells) accepted, 4 "also" facts.
 
 | origin | kind | right | near | wrong | extra |
 |---|---|---|---|---|---|
 | excel | amount | 137 | 4 | 45 | 113 |
-| excel | table | 65 | 0 | 0 | 4 |
+| excel | table | 77 | 0 | 0 | 2 |
 | derived | amount | 31 | 1 | 23 | 36 |
-| derived | table | 78 | 0 | 8 | 14 |
+| derived | table | 84 | 0 | 2 | 8 |
 | zero | amount | 92 | 0 | 14 | 0 |
-| zero | table | 10 | 0 | 24 | 16 |
+| zero | table | 10 | 0 | 36 | 16 |
 
-- **Filed non-zero figures right:** amounts 116 of 275; table amounts 47 of 305. The filing has 309 ERRORs (GR-1 × 51, GR-5 × 17 …).
-- **ADR exit targets:** amounts right 168 (target ≥ 160 ✓); wrong 68 (target ≤ 25 ✗); non-zero table amounts right 47 (target ≥ 190 ✗). The table producers (step 3b.4) and the text / filing-details steps are next.
+- **Filed non-zero figures right:** amounts 116 of 275; table amounts 65 of 305 (47 before step 3b.4). The filing has 299 ERRORs (309 before).
+- **ADR exit targets:** amounts right 168 (target ≥ 160 ✓); wrong 68 (target ≤ 25 ✗); non-zero table amounts right 65 (target ≥ 190 ✗).
+- **Zero table wrong (36):** the share-class column, whose counts are in the note's text, and "Financial assets, at fair value". Dixon reports the latter equal to the carrying amount; the ML rule's 0 there is wrong in substance.
 - **Found by the pipeline, and fixed:**
   - **Sign from a negated label:** "Total expenses" matched only the negated-total role of Expenses, so it was suggested with `sign: -1` and filed negative. An exact match now takes the cell as shown: a negated role is the taxonomy's display, not the workbook's.
   - **Share capital zeroed by "Table zeros":** the fill wrote 0 into Paid-up value [Equity shares 1] (and its siblings), and the entered share capital "followed its empty note" to 0. Now the fill never zeroes an element a reported, non-zero statement figure is the sum of. A statement figure entered by the user no longer follows an empty note that sums to 0.
-- **Remaining misses (the report lists every wrong fact with its cell):** the filer's lumping (security deposit inside other financial assets), cash-flow lines DGPL shows as deductions (interest income), stale tax splits, and the computed profit lines that follow them.
+- **Full report:** `XAP_SCOREBOARD_OUT=<file>` writes every wrong fact with its cell.
+- **Remaining misses:** the filer's lumping (security deposit inside other financial assets), cash-flow lines DGPL shows as deductions (interest income), stale tax splits, and the computed profit lines that follow them.
 
 ## Tagging-quality review (later)
 After mapping, an optional AI pass flags suspicious tags the MCA validator can't see:

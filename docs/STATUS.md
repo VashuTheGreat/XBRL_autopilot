@@ -18,7 +18,7 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 | 8 | **AI auto-tagging** (`/mapping/suggest`: layout → memory → exact label → BM25 with heading context, filtered by period type / dimensions / statement → optional Groq rerank) plus an **evaluation harness** on the DGPL ↔ Dixon answer key (precision 0.738, recall 0.793; ≥ 0.9 right 93.6%); suggestions → Accept / Reject / Accept all ≥ 90% in the app; mapping memory. Embeddings (ONNX) deferred | ✅ done |
 | 9 | **Validation UI** ([ADR-0011](decisions/ADR-0011-business-rules-from-knowledge-base.md)): the executable rule ASTs are built in Python into `knowledge_base` and served by `/{id}/engine-rules`; C&I deep-equal to the retired TS compiler; **Ind AS formalized** (95.36% executable, Dixon 0 ERRORs); rule-coverage reports; live validation (gate, rules, calculation per taxonomy), Problems panel with locate and quick fixes, MCA Validation Tool v5.1 launcher + error import; Arelle XSD check (dev extra) working | ✅ done |
 | 10 | **AI fix agent** ([ADR-0012](decisions/ADR-0012-ai-fix-patches.md)): `/fix/propose` (Groq tool loop ≤ 6 calls, tools on the knowledge base + bundle, strict JSON patches), privacy checked twice + fixture guard, engine `checkPatch` / `applyFactPatch` / `dryRun`, diff cards with Accept / Edit / Reject, Fix all rounds with budgets, `ai/history.jsonl` with the exact payload; live Groq smoke 4/4 correct | ✅ done |
-| 11 | **Complete end-to-end tagging** ([ADR-0013](decisions/ADR-0013-table-tagging.md)): coverage evaluation of every filed fact ✅; ELR groups by title ✅; table blocks + figures reported twice + rule-driven table zeros (engine, app, UI) ✅; table suggestions in the sidecar + per-producer scoreboard + HPL key ✅ (3a); table and "also" suggestions in the app ✅ (3b.1); parent-member roll-ups ✅ (3b.2); engine-side scoreboard ✅ (3b.3); next: table-suggester yield, engine-side scoreboard, text + filing-details form, Excel parsing gaps | 🔄 steps 1–3b.3 done |
+| 11 | **Complete end-to-end tagging** ([ADR-0013](decisions/ADR-0013-table-tagging.md)): coverage evaluation of every filed fact ✅; ELR groups by title ✅; table blocks + figures reported twice + rule-driven table zeros (engine, app, UI) ✅; table suggestions in the sidecar + per-producer scoreboard + HPL key ✅ (3a); table and "also" suggestions in the app ✅ (3b.1); parent-member roll-ups ✅ (3b.2); engine-side scoreboard ✅ (3b.3); table-suggester yield (column years from the statements, rows that are members) ✅ (3b.4); next: related parties, share-class counts in text, engine-side scoreboard, text + filing-details form, Excel parsing gaps | 🔄 steps 1–3b.4 done |
 | 11b | **Packaging**: PyInstaller sidecar (check xlrd in the bundle) + electron-builder NSIS, `.axbrl` association. A packaging spike comes earlier only if a pilot install is needed | ⏳ |
 | 12 | Costing CRA-4 (its KB exists; no engine authority, rules or wizard entry yet), masters prefill, trial-balance mapping, Groq proxy, auto-update | ⏳ |
 
@@ -40,7 +40,12 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 - **Possible legacy-test flake:** one run of `pnpm test` (while a dev Electron app was also running) failed a `golden-DIVERGENCES.json` assertion; the next three runs passed (220/0). Watch for it.
 
 - **Table tagging (Phase 11 step 2) — open points:**
-  - table suggestions cover PPE and changes in equity only (financial instruments, related parties and share-class notes next, step 3b.4);
+  - table suggestions cover PPE, changes in equity and financial assets by category. Not yet:
+    - related parties (typed members, 610800);
+    - share-class counts in the note's text;
+    - loans (401100b);
+    - a second line item for the same cells ("Financial assets, at fair value" = the carrying amount, which the zero fill sets to 0).
+  - The numbered placeholders are filled in row order. Dixon numbered the non-current row last; MCA accepts any numbering.
   - the coverage scoreboard doesn't count table facts yet: no producer runs the engine (step 3);
   - "Also report as" takes one fact at a time;
   - the "Map as table" dialog lists all 200+ tables (searchable), not only those that fit the block;
@@ -331,3 +336,14 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
     - "Table zeros" zeroed the user's share capital (a 0 in the paid-up value of the class, then the statement "followed its empty note"). The fill now skips lines a reported statement figure is the sum of, and an entered statement figure no longer follows an empty note that sums to 0.
     - The tagger filed "Total expenses" negative (a sign taken from the negated-total label role). An exact match now takes the cell as shown.
   - **Tests:** engine 65 (+1 share capital vs table zeros); ui 177 (+1 scoreboard); pytest 134.
+- **2026-11-11, Phase 11 step 3b.4: table-suggester yield ([06](06-ai-auto-tagging.md#table-suggestions-phase-11-step-3a-adr-0013)):**
+  - **Column years:** checked against the main statements' figures. DGPL's stale "As at March 31, 2025" header is read as FY 2026.
+  - **Sections:** a block splits where a heading follows a total.
+  - **Rows that are members:** an exact member name, else the numbered placeholder of the column's family, in row order. Rows of zeros and totals are skipped.
+  - **Matching:** member matching on the member's own words; "FVTPL" / "FVTOCI" expanded; columns of zeros dropped.
+  - **Guards:** repeated member groups must have 2+ members; minimum table score 0.6; an "also" item into a table a block maps is dropped (it double-counted profit in changes in equity).
+  - **Evaluation:** numbered placeholders compared by value (both scoreboards).
+  - **Dixon:**
+    - table producer 75 / 0 / 4 extra (was 63 / 0 / 4); "also" 2 / 0 / 2 extra (was 4 extra); HPL key 13 / 13;
+    - app pipeline: non-zero table amounts right 65 (was 47); excel table 77 right / 0 wrong; derived table wrong 2 (was 8); ERRORs 299 (was 309).
+  - **Tests:** pytest 136 (+2 synthetic: financial assets by category with a stale header, maturity buckets); floors raised (table right ≥ 75, also extra ≤ 2; app scoreboard).
