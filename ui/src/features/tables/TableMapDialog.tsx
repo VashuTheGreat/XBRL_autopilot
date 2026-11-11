@@ -2,15 +2,17 @@
  * "Map as table" (ADR-0013): a dragged range → one taxonomy table. Each row of the range with figures gets a line item
  * (with opening / closing role), an optional year and members; each column with figures gets members and an optional
  * year. Preview shows what would be filed, cell by cell; Map tags the ready cells as one block.
+ * Opened on an auto-tagging block suggestion, the dialog starts from it (table, rows, columns); Map then accepts the
+ * suggestion as edited.
  */
 import { Eye, Table2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import type { DimRef, Scope, TableBlockInput, TableBlockPlan, TableStructure } from '@shared/editor'
+import type { BlockSuggestion, DimRef, Scope, TableBlockInput, TableBlockPlan, TableStructure } from '@shared/editor'
 import { columnLetter, rangeOf, type CellModel, type CellRef } from '@shared/workbook'
 import { Button, Dialog, Select } from '@/components/ui/primitives'
 import { useEditor } from '@/stores/editor'
 import { useTables } from '@/stores/tables'
-import { MemberChips, roleSuffix, rowKey, TablePicker } from './pickers'
+import { lineItemKey, MemberChips, roleSuffix, rowKey, TablePicker } from './pickers'
 
 interface RowChoice {
   key: string // "concept|role", '' = skip
@@ -22,10 +24,10 @@ interface ColChoice {
   members: DimRef[]
 }
 
-export function TableMapDialog({ range, onClose }: { range: CellRef; onClose(): void }) {
+export function TableMapDialog({ range, suggestion, onClose }: { range: CellRef; suggestion?: BlockSuggestion; onClose(): void }) {
   const workbooks = useEditor((s) => s.workbooks)
-  const { structure: loadStructure, plan: planTable, apply } = useTables()
-  const [tableId, setTableId] = useState<string | null>(null)
+  const { structure: loadStructure, plan: planTable, apply, acceptBlock } = useTables()
+  const [tableId, setTableId] = useState<string | null>(suggestion?.tableId ?? null)
   const [structure, setStructure] = useState<TableStructure | null>(null)
   const [rows, setRows] = useState<Record<number, RowChoice>>({})
   const [cols, setCols] = useState<Record<number, ColChoice>>({})
@@ -38,11 +40,12 @@ export function TableMapDialog({ range, onClose }: { range: CellRef; onClose(): 
     if (!tableId) return
     void loadStructure(tableId).then((s) => {
       setStructure(s)
-      setRows({})
-      setCols({})
+      const start = s && suggestion?.tableId === tableId ? suggested(s, suggestion) : { rows: {}, cols: {} }
+      setRows(start.rows)
+      setCols(start.cols)
       setPlan(null)
     })
-  }, [tableId, loadStructure])
+  }, [tableId, loadStructure, suggestion])
 
   const lineItems = (structure?.lineItems ?? []).filter((l) => !l.abstract)
   const input = (): TableBlockInput | null => {
@@ -75,7 +78,7 @@ export function TableMapDialog({ range, onClose }: { range: CellRef; onClose(): 
     const i = input()
     if (!i) return
     setBusy(true)
-    const r = await apply(i)
+    const r = suggestion ? await acceptBlock(suggestion.id, i) : await apply(i)
     setBusy(false)
     if (r?.tagged) onClose()
   }
@@ -91,7 +94,7 @@ export function TableMapDialog({ range, onClose }: { range: CellRef; onClose(): 
   return (
     <Dialog
       open
-      title={`Map ${range.sheet}!${range.ref} as a table`}
+      title={suggestion ? `Review the suggested table for ${range.sheet}!${range.ref}` : `Map ${range.sheet}!${range.ref} as a table`}
       onClose={onClose}
       width={920}
       footer={
@@ -164,6 +167,15 @@ export function TableMapDialog({ range, onClose }: { range: CellRef; onClose(): 
       </div>
     </Dialog>
   )
+}
+
+/** The dialog's starting choices from a suggested block (its rows' line items matched to the table's rows). */
+function suggested(structure: TableStructure, s: BlockSuggestion): { rows: Record<number, RowChoice>; cols: Record<number, ColChoice> } {
+  const rows: Record<number, RowChoice> = {}
+  for (const r of s.rows) rows[r.r] = { key: lineItemKey(structure, r.concept, r.preferredLabel), scope: r.scope ?? '', members: r.members ?? [] }
+  const cols: Record<number, ColChoice> = {}
+  for (const c of s.cols) cols[c.c] = { scope: c.scope ?? '', members: c.members ?? [] }
+  return { rows, cols }
 }
 
 function ColumnRow(props: { c: { c: number; label: string }; structure: TableStructure; choice: ColChoice | undefined; onChange(p: Partial<ColChoice>): void }) {

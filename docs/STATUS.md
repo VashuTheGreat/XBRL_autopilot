@@ -18,7 +18,7 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 | 8 | **AI auto-tagging** (`/mapping/suggest`: layout → memory → exact label → BM25 with heading context, filtered by period type / dimensions / statement → optional Groq rerank) plus an **evaluation harness** on the DGPL ↔ Dixon answer key (precision 0.738, recall 0.793; ≥ 0.9 right 93.6%); suggestions → Accept / Reject / Accept all ≥ 90% in the app; mapping memory. Embeddings (ONNX) deferred | ✅ done |
 | 9 | **Validation UI** ([ADR-0011](decisions/ADR-0011-business-rules-from-knowledge-base.md)): the executable rule ASTs are built in Python into `knowledge_base` and served by `/{id}/engine-rules`; C&I deep-equal to the retired TS compiler; **Ind AS formalized** (95.36% executable, Dixon 0 ERRORs); rule-coverage reports; live validation (gate, rules, calculation per taxonomy), Problems panel with locate and quick fixes, MCA Validation Tool v5.1 launcher + error import; Arelle XSD check (dev extra) working | ✅ done |
 | 10 | **AI fix agent** ([ADR-0012](decisions/ADR-0012-ai-fix-patches.md)): `/fix/propose` (Groq tool loop ≤ 6 calls, tools on the knowledge base + bundle, strict JSON patches), privacy checked twice + fixture guard, engine `checkPatch` / `applyFactPatch` / `dryRun`, diff cards with Accept / Edit / Reject, Fix all rounds with budgets, `ai/history.jsonl` with the exact payload; live Groq smoke 4/4 correct | ✅ done |
-| 11 | **Complete end-to-end tagging** ([ADR-0013](decisions/ADR-0013-table-tagging.md)): coverage evaluation of every filed fact ✅; ELR groups by title ✅; table blocks + figures reported twice + rule-driven table zeros (engine, app, UI) ✅; table suggestions in the sidecar + per-producer scoreboard + HPL key ✅ (3a); next: suggestions in the app, parent-member roll-ups, engine-side scoreboard, text + filing-details form, Excel parsing gaps | 🔄 steps 1–3a done |
+| 11 | **Complete end-to-end tagging** ([ADR-0013](decisions/ADR-0013-table-tagging.md)): coverage evaluation of every filed fact ✅; ELR groups by title ✅; table blocks + figures reported twice + rule-driven table zeros (engine, app, UI) ✅; table suggestions in the sidecar + per-producer scoreboard + HPL key ✅ (3a); table and "also" suggestions in the app ✅ (3b.1); next: parent-member roll-ups, engine-side scoreboard, text + filing-details form, Excel parsing gaps | 🔄 steps 1–3b.1 done |
 | 11b | **Packaging**: PyInstaller sidecar (check xlrd in the bundle) + electron-builder NSIS, `.axbrl` association. A packaging spike comes earlier only if a pilot install is needed | ⏳ |
 | 12 | Costing CRA-4 (its KB exists; no engine authority, rules or wizard entry yet), masters prefill, trial-balance mapping, Groq proxy, auto-update | ⏳ |
 
@@ -40,7 +40,7 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 - **Possible legacy-test flake:** one run of `pnpm test` (while a dev Electron app was also running) failed a `golden-DIVERGENCES.json` assertion; the next three runs passed (220/0). Watch for it.
 
 - **Table tagging (Phase 11 step 2) — open points:**
-  - there are no suggestions yet: the user maps every row and column (step 3 adds them);
+  - table suggestions cover PPE and changes in equity only (financial instruments, related parties and share-class notes next, step 3b.4);
   - the coverage scoreboard doesn't count table facts yet: no producer runs the engine (step 3);
   - "Also report as" takes one fact at a time;
   - the "Map as table" dialog lists all 200+ tables (searchable), not only those that fit the block;
@@ -307,3 +307,15 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
     - parent-member roll-ups (changes in equity, loans and share classes file one value under several nested members) need an engine derivation;
     - related parties, financial instruments by category and share-capital notes (counts in text) aren't suggested;
     - DGPL's financial-instruments header is stale ("As at March 31, 2025" over FY 2026 figures): a figures-vs-statement check for column years is needed.
+- **2026-11-11, Phase 11 step 3b.1: table and "also" suggestions in the app:**
+  - **App services (Electron-free):**
+    - `TableSuggestionService` keeps the sidecar's blocks in `mapping.json` `blockSuggestions`. Accept applies a block through `TableMappingService` (origin `table`, its confidence), or applies the edited version from "Map as table" (origin `manual`); Reject. A rejected block, and a range that already holds a block, aren't suggested again. A block that tags nothing changes nothing and gives the reasons.
+    - `MappingService` keeps the statement suggestions' `also` items as `alsoSuggested`: carried on accept, moved with a change of year, `acceptAlso` / `rejectAlso` one by one.
+    - `AutoTagService` only orchestrates. "Accept all" takes cells and blocks at ≥ the bar, never "also" items.
+    - Applicability refusals now carry the rule's reason (SR-L694-1 …).
+  - **Engine:** `planTableBlock` refuses a cell with no member (`NO_MEMBER`, the statement figure of a Total column).
+  - **IPC:** `autotag:blocks|accept-block|reject-block|accept-also|reject-also`.
+  - **UI:** dashed amber outline on suggested blocks; a block bar (table, confidence, Accept / Review… / Reject); "Map as table" prefilled from a suggestion; "also: … (suggested)" chips with ✓ / ✗.
+  - **White window (reported by the user during the E2E):** a reveal right after a sheet change made Univer's `scrollToCell` throw inside a React effect, and the whole tree unmounted. The reveal now retries until the sheet has rendered and never throws. An `ErrorBoundary` around the grid shows "The Excel view stopped working" with Try again instead of a white window. The E2E checks it.
+  - **Tests:** engine 57 (+1 no-member cell); ui 176 (+7 `table-suggestion-service.test.ts`; the synthetic Ind AS filing moved to `test/helpers/synthetic-ind-as.ts`).
+  - **E2E `ui/e2e/phase11-suggestions.mjs` green** (22 checks, DGPL, no AI).

@@ -85,11 +85,18 @@ sheets ─▶ 1 layout ─▶ 2 candidates (memory → exact → BM25) + filters
   - A run replaces the previous run's suggestions.
   - A run skips cells and facts already tagged, and (cell, element) pairs the user rejected.
 - **Accept** = `MappingService.tag(…, provenance)`: the engine checks everything a manual tag gets checked for, and the entry keeps its origin and confidence. Picking an alternative is a manual choice. **Reject** sets status `rejected`. **Accept all ≥ 90%** accepts each in turn inside `ProjectHandle.batch()` (one view refresh at the end); a suggestion the engine refuses stays suggested and is reported.
+- **Table and "also" suggestions (Phase 11 step 3b):**
+  - The sidecar's `blocks` are kept by `TableSuggestionService` (Electron-free) in `mapping.json` `blockSuggestions` (status `suggested` / `rejected`). A run replaces the open ones. A rejected block (same range, same table) isn't suggested again, and neither is a range that already holds a table block.
+  - **Accept** applies the block through `TableMappingService.apply` with origin `table` and the block's confidence. The engine re-plans every cell, and a cell it refuses stays untagged and is reported. **Review…** opens "Map as table" prefilled; **Map cells** then accepts it as edited (origin `manual`). If no cell can be tagged, nothing changes and the reasons are given (e.g. the changes-in-equity table stays closed until the balance sheet's Other equity is entered, SR-L694-1).
+  - The planner refuses a block cell with no member at all (`NO_MEMBER`): that's the statement figure, e.g. a Total column's net row.
+  - A statement suggestion's `also` items become the entry's `alsoSuggested`. They are kept when the suggestion is accepted and move with a change of year. Each is accepted (`MappingService.acceptAlso` → `addAlso`) or rejected one by one. **"Accept all ≥ 90%"** takes cell suggestions and blocks at or above the bar, **never** the "also" items.
 - **Deterministic:** the same workbook, memory and taxonomy give the same suggestions (ties are broken by qname), as long as the LLM is off.
 - **UI:**
   - "Auto-tag" in the Excel pane toolbar; amber cells = suggestions, red = rejected.
   - The inspector of a suggested cell shows the element, its confidence and origin (with the rationale as a tooltip), the period, "Other suggestions…", Accept and Reject.
   - "Accept all ≥ 90% (n)" in the toolbar.
+  - Suggested table blocks have a dashed amber outline; selecting a cell inside one shows the block bar (table, confidence, range, cells; Accept / Review… / Reject).
+  - A suggested "also" fact is an amber dashed chip, "also: Equity shares 1 (suggested)", with ✓ / ✗ once the cell is tagged.
 
 ## Learning loop (mapping memory)
 - **When:** every approved tag, manual or accepted, upserts `mapping_memory(taxonomy_id, norm_label, concept, approvals++)` in app.db (`MappingService.tag`).

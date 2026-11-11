@@ -31,6 +31,7 @@ import {
   type MappingStatus,
   type MappingView,
   type Scope,
+  type SuggestedAlso,
   type SuggestionAlternative,
   type TagCellInput,
 } from '@shared/editor'
@@ -62,12 +63,18 @@ export interface NewSuggestion {
   confidence: number
   rationale: string
   alternatives: SuggestionAlternative[]
+  /** "also reported as" facts proposed for the same figure */
+  also?: SuggestedAlso[]
 }
 
-/** Options of a tag made by another service: the block that creates it, the "also reported as" facts it keeps. */
+/**
+ * Options of a tag made by another service: the block that creates it, the "also reported as" facts it keeps, and
+ * the suggested ones it carries (an accepted suggestion keeps its proposals for review).
+ */
 export interface TagOptions {
   blockId?: string
   also?: MappedFact[]
+  alsoSuggested?: SuggestedAlso[]
 }
 
 type TargetInput = Pick<TagCellInput, 'concept' | 'dims' | 'tableId' | 'preferredLabel'>
@@ -129,8 +136,10 @@ export class MappingService {
     const entries = this.entries(p)
     const clash = (e: MappingEntry) =>
       overlaps(e.cell, input.cell) || (hasFact(e) ? factsOf(e).some((f) => sameFact(f, fact)) : sameFact(e.fact, fact))
-    const kept = opts.also ?? entries.find((e) => hasFact(e) && sameCell(e.cell, input.cell))?.also ?? []
+    const previous = entries.find((e) => hasFact(e) && sameCell(e.cell, input.cell))
+    const kept = opts.also ?? previous?.also ?? []
     const also = kept.filter((f) => !sameFact(f, fact))
+    const alsoSuggested = (opts.alsoSuggested ?? previous?.alsoSuggested ?? []).filter((f) => ![fact, ...also].some((x) => sameFact(x, f)))
     for (const old of entries.filter(clash)) if (hasFact(old)) this.removeFacts(p, old, [fact, ...also])
     for (const f of also) this.applyFact(p, f, this.displayValue(p, f.concept, input.cell, cells, sign))
     const label = await this.sources.rowLabel(input.cell)
@@ -140,6 +149,7 @@ export class MappingService {
       label,
       fact,
       ...(also.length ? { also } : {}),
+      ...(alsoSuggested.length ? { alsoSuggested } : {}),
       ...(opts.blockId ? { blockId: opts.blockId } : {}),
       sign,
       origin: provenance?.origin ?? 'manual',
@@ -170,6 +180,33 @@ export class MappingService {
     const { cells } = await this.sources.cell(e.cell)
     this.applyFact(p, fact, this.displayValue(p, fact.concept, e.cell, cells, e.sign))
     e.also = [...(e.also ?? []), fact]
+    p.touch()
+    return this.view(p, e)
+  }
+
+  /**
+   * Accepts a suggested "also reported as" fact (by its position in `alsoSuggested`) of a tagged cell: it is filed
+   * like any addAlso, and leaves the suggestions.
+   */
+  async acceptAlso(mappingId: string, index: number): Promise<MappingView> {
+    const p = this.projects.project()
+    const e = this.find(p, mappingId)
+    const s = e.alsoSuggested?.[index]
+    if (!s) throw new ValidationError(['That suggestion is no longer open.'])
+    if (!hasFact(e)) throw new ValidationError(['Accept the cell’s own tag first.'])
+    await this.addAlso({ mappingId, concept: s.concept, dims: s.dims, scope: s.scope, ...(s.tableId ? { tableId: s.tableId } : {}), preferredLabel: s.preferredLabel ?? null })
+    this.dropAlsoSuggestion(e, s)
+    p.touch()
+    return this.view(p, e)
+  }
+
+  /** Drops a suggested "also reported as" fact (by its position in `alsoSuggested`). */
+  rejectAlso(mappingId: string, index: number): MappingView {
+    const p = this.projects.project()
+    const e = this.find(p, mappingId)
+    const s = e.alsoSuggested?.[index]
+    if (!s) throw new ValidationError(['That suggestion is no longer open.'])
+    this.dropAlsoSuggestion(e, s)
     p.touch()
     return this.view(p, e)
   }
@@ -207,6 +244,9 @@ export class MappingService {
         rejected.some((e) => sameCell(e.cell, s.cell) && e.fact.concept === s.concept)
       if (skip) continue
       taken.push(fact)
+      // a proposed "also" fact another cell already supplies (or this one twice) is not proposed
+      const alsoSuggested = (s.also ?? []).filter((f) => !taken.some((t) => sameFact(t, f)))
+      taken.push(...alsoSuggested)
       added.push({
         id: this.newId(),
         cell: { ...s.cell },
@@ -217,6 +257,7 @@ export class MappingService {
         confidence: s.confidence,
         rationale: s.rationale,
         alternatives: s.alternatives,
+        ...(alsoSuggested.length ? { alsoSuggested } : {}),
         status: 'suggested',
       })
     }
@@ -254,17 +295,22 @@ export class MappingService {
     const p = this.projects.project()
     const e = this.find(p, id)
     if (e.fact.scope === scope) return this.view(p, e)
+    // the "also reported as" facts of the same year (filed or suggested) move with it
+    const move = <T extends MappedFact>(f: T): T => (f.scope === e.fact.scope ? { ...f, scope } : f)
     if (!hasFact(e)) {
-      e.fact = { ...e.fact, scope } // a suggestion: correct it before accepting
+      // a suggestion: correct it before accepting
+      if (e.alsoSuggested) e.alsoSuggested = e.alsoSuggested.map(move)
+      e.fact = { ...e.fact, scope }
       p.touch()
       return this.view(p, e)
     }
-    // the "also reported as" facts of the same year move with it
-    const also = (e.also ?? []).map((f) => (f.scope === e.fact.scope ? { ...f, scope } : f))
+    const also = (e.also ?? []).map(move)
+    const alsoSuggested = (e.alsoSuggested ?? []).map(move)
     this.untag(id)
     const { concept, dims, tableId, preferredLabel } = e.fact
     const view = await this.tag({ cell: e.cell, concept, dims, tableId: tableId ?? undefined, preferredLabel, scope, sign: e.sign }, provenance, {
       also,
+      alsoSuggested,
       ...(e.blockId ? { blockId: e.blockId } : {}),
     })
     // correcting a cell's period corrects its column: later cells of the column follow
@@ -361,6 +407,7 @@ export class MappingService {
       table(id: string): { presentationElr: string } | null
     }
     const code = (u: string) => A.elr(u)?.code ?? '~'
+    const memberLabels = (dims: DimRef[]) => dims.map((d) => (d.member ? displayLabel(A.label(d.member)) : String(d.typed)))
     // a table fact is shown in its table's statement / note; a plain fact wherever its element is presented
     const tableElr = e.fact.tableId ? A.table(e.fact.tableId)?.presentationElr : null
     const alsoViews: AlsoReportedView[] = (e.also ?? []).map((f) => {
@@ -368,11 +415,12 @@ export class MappingService {
       return {
         fact: f,
         conceptLabel: A.label(f.concept),
-        memberLabels: f.dims.map((d) => (d.member ? displayLabel(A.label(d.member)) : String(d.typed))),
+        memberLabels: memberLabels(f.dims),
         factKey: x?.key ?? null,
         value: x ? String(p.session.displayOf(x)) : null,
       }
     })
+    const alsoSuggestedViews = (e.alsoSuggested ?? []).map((f) => ({ fact: f, conceptLabel: A.label(f.concept), memberLabels: memberLabels(f.dims) }))
     return {
       ...e,
       conceptLabel: A.label(e.fact.concept),
@@ -381,7 +429,14 @@ export class MappingService {
       factKeys: [fact?.key, ...alsoViews.map((a) => a.factKey)].filter((k): k is string => !!k),
       value: fact ? String(p.session.displayOf(fact)) : null,
       alsoViews,
+      alsoSuggestedViews,
     }
+  }
+
+  private dropAlsoSuggestion(e: MappingEntry, s: SuggestedAlso): void {
+    const rest = (e.alsoSuggested ?? []).filter((x) => x !== s)
+    if (rest.length) e.alsoSuggested = rest
+    else delete e.alsoSuggested
   }
 
   /** The fact a tag input names, without its year: checked, members normalised, its table found. */
@@ -456,7 +511,10 @@ export class MappingService {
       // a total that is itself tagged is kept, and the calculation check shows any difference
       this.write(p, f, display, true)
     } catch (err) {
-      throw new ValidationError([err instanceof Error ? err.message : String(err)])
+      // an applicability refusal carries the rule's reason (e.g. "SR-L694-1: condition not determinable"): say it
+      const reasons = (err as { reasons?: unknown }).reasons
+      const why = Array.isArray(reasons) && reasons.length ? ` (${reasons.slice(0, 2).join('; ')})` : ''
+      throw new ValidationError([`${err instanceof Error ? err.message : String(err)}${why}`])
     }
   }
 

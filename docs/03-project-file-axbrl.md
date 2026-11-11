@@ -84,7 +84,8 @@ my-company_FY2025-26_standalone.axbrl
                "cols": [{ "c": 1, "members": […] }], "origin": "manual", "confidence": null }]
 }
 ```
-- **Old files:** they read unchanged. `fact.dims` was always present (empty), and `also`, `blockId`, `tableId`, `preferredLabel` and `blocks` are optional.
+- **Auto-tagging suggestions (Phase 11 step 3b):** `blockSuggestions: [{ id, cell, tableId, tableTitle, rows, cols, confidence, cellCount, status: "suggested" | "rejected" }]` (the block shape plus the tagger's confidence), and on an entry `alsoSuggested: [{ concept, scope, dims, tableId, preferredLabel, confidence, reason }]` (proposed "also reported as" facts, not filed). Origin `table` = a cell tagged by an accepted block suggestion.
+- **Old files:** they read unchanged. `fact.dims` was always present (empty), and `also`, `alsoSuggested`, `blockId`, `tableId`, `preferredLabel`, `blocks` and `blockSuggestions` are optional.
 - **Rows and columns** are 0-based sheet indexes.
 - **Block cells:** each is an ordinary entry, so linkage, reapply and untag work cell by cell. Removing the block untags them all.
 ```text

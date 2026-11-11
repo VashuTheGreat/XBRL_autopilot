@@ -79,6 +79,11 @@ const api: XapApi = {
     acceptSuggestion: (id, concept) => invoke(IPC.autotagAccept, id, concept),
     rejectSuggestion: (id) => invoke(IPC.autotagReject, id),
     acceptAllSuggestions: (min) => invoke(IPC.autotagAcceptAll, min),
+    blockSuggestions: () => invoke(IPC.autotagBlocks),
+    acceptBlock: (id, edited) => invoke(IPC.autotagAcceptBlock, id, edited),
+    rejectBlock: (id) => invoke(IPC.autotagRejectBlock, id),
+    acceptAlso: (mappingId, index) => invoke(IPC.autotagAcceptAlso, mappingId, index),
+    rejectAlso: (mappingId, index) => invoke(IPC.autotagRejectAlso, mappingId, index),
   },
   validation: {
     get: () => invoke(IPC.validationGet),

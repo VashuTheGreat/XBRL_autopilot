@@ -44,6 +44,8 @@ export interface AxbrlContent {
     columns?: Record<string, 'CY' | 'PY'>
     /** table blocks: an Excel range mapped to one taxonomy table (ADR-0013); their cells are entries with a blockId */
     blocks?: unknown[]
+    /** table blocks auto-tagging suggested, not yet applied (status suggested / rejected) */
+    blockSuggestions?: unknown[]
   }
   validation: unknown | null
   /** source/<name>.xlsx, byte-identical */

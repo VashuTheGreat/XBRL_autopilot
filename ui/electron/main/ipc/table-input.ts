@@ -25,6 +25,9 @@ const index = (v: unknown, what: string): number => {
   if (!Number.isInteger(v) || (v as number) < 0) throw new Error(`Invalid ${what}`)
   return v as number
 }
+
+/** A position in a list (an "also reported as" fact of a cell). */
+export const requireIndex = (v: unknown): number => index(v, 'index')
 const list = <T>(v: unknown, what: string, item: (x: unknown) => T): T[] => {
   if (v === undefined || v === null) return []
   if (!Array.isArray(v) || v.length > MAX_ITEMS) throw new Error(`Invalid ${what}`)

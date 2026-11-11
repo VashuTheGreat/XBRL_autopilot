@@ -174,11 +174,38 @@ export interface Suggestion {
   rationale: string
   needsReview: boolean
   alternatives: { concept: string; label: string; score: number }[]
+  /** "also report as" the same figure under a table's members (e.g. the one class of shares) */
+  also?: SuggestedAlsoItem[]
+}
+
+export interface SuggestedAlsoItem {
+  concept: string
+  tableId: string
+  preferredLabel: string | null
+  dims: { axis: string; member?: string; typed?: string }[]
+  confidence: number
+  reason?: string
+}
+
+/** A block of a note sheet mapped to one taxonomy table (src/services/tagging/tables.py, ADR-0013). */
+export interface SuggestedBlock {
+  sheet: string
+  /** "B11:G33" */
+  range: string
+  tableId: string
+  tableTitle: string
+  confidence: number
+  rows: { r: number; concept: string; preferredLabel?: string | null; scope?: 'CY' | 'PY'; members?: { axis: string; member?: string; typed?: string }[] }[]
+  cols: { c: number; members?: { axis: string; member?: string; typed?: string }[]; scope?: 'CY' | 'PY' }[]
+  /** the cells the tagger planned (with a member); the app re-plans with the engine */
+  cells: { ref: string }[]
 }
 
 export interface SuggestResponse {
   layout: { sheet: string; kind: string; rows: number; note: string | null }[]
   suggestions: Suggestion[]
+  /** table suggestions (absent from older sidecars) */
+  blocks?: SuggestedBlock[]
   llmUsed: boolean
 }
 

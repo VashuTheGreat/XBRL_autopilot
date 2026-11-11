@@ -69,7 +69,9 @@ On the right, the XBRL Form shows the reverse: the source cell ref shows as a ch
 
     Selecting a table cell in Excel opens its table's note on that value; clicking a value selects and reveals its cell.
   - **Also reported as:** the inspector of a tagged cell shows "also: Equity shares 1" chips and an "Also as…" button. The dialog lists the tables that report the cell's element first (★), preselects the element and asks for the members. The extra fact follows the cell on every value change. In the Form its chip is marked "also reported from I39".
+  - **Suggested tables (auto-tagging):** a block the tagger matched to a taxonomy table has a dashed amber outline. Selecting one of its cells shows a bar above the inspector: the table, its confidence, the range and the number of cells, plus **Accept** (tag as suggested), **Review…** ("Map as table" prefilled; Map cells accepts it as edited) and **Reject**. A suggested "also reported as" fact shows in the inspector as "also: … (suggested)", with ✓ / ✗ once the cell is tagged. "Accept all ≥ 90%" never files those.
   - **Table zeros → 0** (Form toolbar, for statements with tables): reports as 0 what the mandatory-line-items rules require, in columns that already have a value, and lists what it filled in a toast.
+- **A failing Excel view** shows "The Excel view stopped working" with Try again (`ErrorBoundary`), never a white window. Reveal requests wait until Univer has rendered the sheet (2026-11-11: a reveal right after a sheet change threw and blanked the app).
 - **Hovering a cell** → tooltip: concept label + qname, period, dimensions, confidence, rule status.
 - **Drag** a taxonomy concept onto a cell → creates a manual mapping, `origin: manual`.
 

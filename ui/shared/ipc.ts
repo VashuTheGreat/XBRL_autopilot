@@ -14,6 +14,7 @@ import type {
   AcceptAllResult,
   AlsoReportInput,
   AutoTagSummary,
+  BlockSuggestion,
   CellInfo,
   ColumnPeriod,
   ZeroFilled,
@@ -135,6 +136,11 @@ export const IPC = {
   autotagAccept: 'autotag:accept',
   autotagReject: 'autotag:reject',
   autotagAcceptAll: 'autotag:accept-all',
+  autotagBlocks: 'autotag:blocks',
+  autotagAcceptBlock: 'autotag:accept-block',
+  autotagRejectBlock: 'autotag:reject-block',
+  autotagAcceptAlso: 'autotag:accept-also',
+  autotagRejectAlso: 'autotag:reject-also',
   editorForm: 'editor:form',
   editorXml: 'editor:xml',
   editorFillMandatoryZeros: 'editor:fill-mandatory-zeros',
@@ -239,6 +245,14 @@ export interface XapApi {
     rejectSuggestion(id: string): Promise<Result<MappingView>>
     /** accepts every suggestion with confidence ≥ `min` (default 0.9) */
     acceptAllSuggestions(min?: number): Promise<Result<AcceptAllResult>>
+    /** the table blocks auto-tagging suggested (open and rejected) */
+    blockSuggestions(): Promise<Result<BlockSuggestion[]>>
+    /** applies a suggested block as suggested, or as edited in "Map as table" */
+    acceptBlock(id: string, edited?: TableBlockInput): Promise<Result<TableBlockResult>>
+    rejectBlock(id: string): Promise<Result<BlockSuggestion>>
+    /** files / drops one suggested "also reported as" fact of a tagged cell (by its index in `alsoSuggested`) */
+    acceptAlso(mappingId: string, index: number): Promise<Result<MappingView>>
+    rejectAlso(mappingId: string, index: number): Promise<Result<MappingView>>
   }
   /** Phase 9: live validation, quick fixes, MCA Validation Tool */
   validation: {

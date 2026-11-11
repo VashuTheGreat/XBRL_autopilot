@@ -20,6 +20,8 @@ node e2e/phase4-editor.mjs 9350 <screenshotDir> "../data/sample_financials.xlsx"
 
 Usage: `node e2e/phase11-tables.mjs <port> <screenshotDir> "<path>/data/BS DGPL Mar-2026-V1.xls"`.
 
+`phase11-suggestions.mjs` (dev app, Ind AS + DGPL `.xls`, no AI): auto-tag stores 3 suggested blocks (FA → PPE, two changes-in-equity years → SOCIE) and tags nothing; an immediate reveal keeps the Excel view alive (the white-window bug); the block bar on FA!E18 → Accept tags its cells (origin `table`, E18 = 0.73); Other equity accepted (it opens SOCIE, SR-L694-1), then Review… opens "Map as table" prefilled → Map cells (origin `manual`); the second year rejected and not suggested again on a re-run; Accept all ≥ 90% files no "also" fact; I39's suggested "Equity shares 1" accepted from the inspector. Usage: `node e2e/phase11-suggestions.mjs <port> <screenshotDir> "<path>/data/BS DGPL Mar-2026-V1.xls"`.
+
 `linkage-follow.mjs` (dev app): Excel → Form follows the selection. A statement that shows the element stays open; selecting a tagged cell while another note is open switches to the statement that shows its element; the row is in view (below the sticky header) and highlighted; a row scrolled away comes back on a repeat click; clicking a Form value selects and reveals its cell. Usage: `node e2e/linkage-follow.mjs <port> <screenshotDir> "<path>/data/sample_financials.xlsx"`.
 
 **Disk space:** each run's `XAP_USER_DATA` folder (~30–50 MB) stays in `%TEMP%`; delete old `xap-e2e-*` folders now and then. The unit tests clean up after themselves (`ui/test/global-setup.ts`).

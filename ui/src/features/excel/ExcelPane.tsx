@@ -1,10 +1,12 @@
 import { CheckCheck, FileSpreadsheet, Loader2, Sparkles, Table2, Upload } from 'lucide-react'
 import { lazy, Suspense } from 'react'
 import { EmptyState } from '@/components/EmptyState'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Button } from '@/components/ui/primitives'
 import { cn } from '@/lib/cn'
 import { useEditor } from '@/stores/editor'
 import { useTables } from '@/stores/tables'
+import { BlockSuggestionBar } from '@/features/tables/BlockSuggestionBar'
 import { MappingInspector } from './MappingInspector'
 
 // Univer is large: load it only when a workbook is shown, keeping app start-up fast.
@@ -42,9 +44,11 @@ export function ExcelPane() {
       </div>
       <div className="min-h-0 flex-1">
         {active ? (
-          <Suspense fallback={<EmptyState icon={FileSpreadsheet} title="Loading workbook…" />}>
-            <UniverGrid key={active.source} model={active} />
-          </Suspense>
+          <ErrorBoundary key={active.source} what="The Excel view">
+            <Suspense fallback={<EmptyState icon={FileSpreadsheet} title="Loading workbook…" />}>
+              <UniverGrid model={active} />
+            </Suspense>
+          </ErrorBoundary>
         ) : (
           <EmptyState icon={FileSpreadsheet} title="No workbook imported">
             <p>Import the company&apos;s Excel financial statements (.xlsx or .xls). Tagged cells are coloured: green = approved, amber = AI suggestion.</p>
@@ -56,6 +60,7 @@ export function ExcelPane() {
           </EmptyState>
         )}
       </div>
+      {active && <BlockSuggestionBar />}
       {active && <MappingInspector />}
     </section>
   )
@@ -82,16 +87,17 @@ const ACCEPT_ALL_MIN = 0.9
 
 /** "Auto-tag" (suggest tags for every imported workbook) and "Accept all ≥ 90%" once there are suggestions. */
 function AutoTagButtons() {
-  const { autoTag, autoTagging, acceptAllSuggestions, mappings } = useEditor()
+  const { autoTag, autoTagging, acceptAllSuggestions, mappings, blockSuggestions } = useEditor()
   const open = mappings.filter((m) => m.status === 'suggested')
-  const sure = open.filter((m) => (m.confidence ?? 0) >= ACCEPT_ALL_MIN).length
+  const sureBlocks = blockSuggestions.filter((b) => b.status === 'suggested' && b.confidence >= ACCEPT_ALL_MIN).length
+  const sure = open.filter((m) => (m.confidence ?? 0) >= ACCEPT_ALL_MIN).length + sureBlocks
   return (
     <>
       {sure > 0 && (
         <button
           className="flex shrink-0 items-center gap-1 whitespace-nowrap border-l border-border px-3 text-muted hover:text-fg"
           onClick={() => void acceptAllSuggestions(ACCEPT_ALL_MIN)}
-          title={`Tag the ${sure} suggested cells with confidence of 90% or more (${open.length} suggested in all)`}
+          title={`Tag the ${sure} suggestions with confidence of 90% or more${sureBlocks ? ` (${sureBlocks} of them tables)` : ''}; ${open.length} cells suggested in all. Suggested “also reported as” facts are accepted one by one.`}
           data-testid="accept-all"
         >
           <CheckCheck size={12} /> Accept all ≥ 90% ({sure})

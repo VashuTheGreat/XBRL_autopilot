@@ -1,6 +1,7 @@
 import { CalendarRange, Check, Copy, Link2, Search, Sparkles, Table2, Unlink, X } from 'lucide-react'
 import { formatIndian } from '@xap/engine/basics'
-import type { CellAmount, ColumnPeriod, MappingView, Scope } from '@shared/editor'
+import type { ReactNode } from 'react'
+import type { CellAmount, ColumnPeriod, MappingView, Scope, SuggestedAlsoView } from '@shared/editor'
 import { cellKey, rangeOf, rangeSize } from '@shared/workbook'
 import { Button } from '@/components/ui/primitives'
 import { cn } from '@/lib/cn'
@@ -82,9 +83,12 @@ export function MappingInspector() {
   )
 }
 
-/** "Also reported as": the other facts this cell's figure is filed as, each removable; and a way to add one. */
+/**
+ * "Also reported as": the other facts this cell's figure is filed as, each removable; the suggested ones, each to
+ * accept or reject; and a way to add one.
+ */
 function AlsoReported({ m }: { m: MappingView }) {
-  const { removeAlso, selectFact } = useEditor()
+  const { removeAlso, selectFact, acceptAlso, rejectAlso } = useEditor()
   const open = useTables((s) => s.open)
   return (
     <span className="flex min-w-0 items-center gap-1" data-testid="also-reported">
@@ -98,6 +102,16 @@ function AlsoReported({ m }: { m: MappingView }) {
           </button>
         </span>
       ))}
+      {m.alsoSuggestedViews.map((a, i) => (
+        <SuggestedAlsoChip key={`s${i}`} a={a}>
+          <button aria-label="Also report this fact" title="Also report this figure as that fact" onClick={() => void acceptAlso(m.id, i)} data-testid="also-accept">
+            <Check size={11} />
+          </button>
+          <button aria-label="Don’t report this fact" onClick={() => void rejectAlso(m.id, i)} data-testid="also-reject">
+            <X size={10} />
+          </button>
+        </SuggestedAlsoChip>
+      ))}
       <button
         className="flex shrink-0 items-center gap-0.5 text-[11px] text-muted hover:text-fg"
         onClick={() => open({ kind: 'also', mappingId: m.id, concept: m.fact.concept })}
@@ -110,11 +124,27 @@ function AlsoReported({ m }: { m: MappingView }) {
   )
 }
 
+/** A suggested "also reported as" fact: amber, with its confidence; the actions are the caller's. */
+function SuggestedAlsoChip({ a, children }: { a: SuggestedAlsoView; children?: ReactNode }) {
+  const what = a.memberLabels.join(' · ') || a.conceptLabel
+  return (
+    <span
+      className="flex min-w-0 items-center gap-0.5 rounded border border-dashed border-warn/60 px-1 text-[11px] text-warn"
+      title={`Suggested: also report as ${a.conceptLabel} [${a.memberLabels.join(', ')}] ${a.fact.scope}, ${Math.round(a.fact.confidence * 100)}%${a.fact.reason ? ` (${a.fact.reason})` : ''}`}
+      data-testid="also-suggested"
+    >
+      <span className="truncate">also: {what} (suggested)</span>
+      {children}
+    </span>
+  )
+}
+
 const ORIGIN_TEXT: Record<string, string> = {
   memory: 'tagged so before',
   exact: 'label match',
   lexical: 'word match',
   ai: 'AI',
+  table: 'table match',
 }
 
 /** An auto-tagging suggestion for the cell: the element, its confidence and why; accept, pick an alternative, or reject. */
@@ -134,6 +164,10 @@ function SuggestionControls({ m, onScope }: { m: MappingView; onScope: (s: Scope
       </span>
       <Segmented label="Period" value={m.fact.scope} onPick={onScope} />
       {m.sign === -1 && <span className="text-[11px] text-warn">sign reversed</span>}
+      {/* offered for review once the cell is tagged */}
+      {m.alsoSuggestedViews.map((a, i) => (
+        <SuggestedAlsoChip key={i} a={a} />
+      ))}
       {alternatives.length > 0 && (
         <select
           className="h-6 max-w-44 shrink rounded border border-border bg-panel px-1 text-[11px] text-muted"

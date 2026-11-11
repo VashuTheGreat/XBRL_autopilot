@@ -39,6 +39,7 @@ import { EditorQueryService } from './services/editor-query-service'
 import { FilingPropertiesService } from './services/filing-properties-service'
 import { MappingService } from './services/mapping-service'
 import { TableMappingService } from './services/table-mapping-service'
+import { TableSuggestionService } from './services/table-suggestion-service'
 import { SourceService } from './services/source-service'
 import { StatementService } from './services/statement-service'
 import { TaxonomyService } from './services/taxonomy-service'
@@ -93,7 +94,8 @@ const columns = new ColumnPeriodService(projects, sources)
 const mapping = new MappingService(projects, sources, columns, db)
 const tables = new TableMappingService(projects, sources, columns, mapping)
 // Auto-tagging (docs/06): suggestions from the sidecar's tagger; the LLM rerank only with the user's AI consent
-const autoTag = new AutoTagService(projects, sources, mapping, new SidecarMappingSuggester(sidecar), db, () => settings.get().aiConsent)
+const tableSuggestions = new TableSuggestionService(projects, tables)
+const autoTag = new AutoTagService(projects, sources, mapping, new SidecarMappingSuggester(sidecar), db, tableSuggestions, () => settings.get().aiConsent)
 const filing = new FilingPropertiesService(projects, mapping)
 const statements = new StatementService(projects)
 
@@ -270,6 +272,7 @@ if (!app.requestSingleInstanceLock()) {
       statements,
       taxonomy,
       autoTag,
+      tableSuggestions,
       validation,
       mcaTool,
       fixAgent,

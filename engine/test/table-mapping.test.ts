@@ -6,7 +6,7 @@
  */
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { assembleAuthority, Authority, planTableBlock, Session, tableOfFact, UnknownTableError, type TableBlockSpec } from '../src/index'
+import { assembleAuthority, Authority, NO_MEMBER, planTableBlock, Session, tableOfFact, UnknownTableError, type TableBlockSpec } from '../src/index'
 
 const KB = (f: string) => new URL(`../../knowledge_base/${f}`, import.meta.url)
 const json = (u: URL) => JSON.parse(readFileSync(u, 'utf8'))
@@ -81,6 +81,20 @@ describe('Ind AS: a PPE roll-forward block (DGPL sheet FA layout)', () => {
     expect(at(4, 2)).toMatch(/has no opening balance row for/)
     const conflict = planTableBlock(A, { tableId: T, rows: [{ r: 5, concept: `${P}AdditionsOtherThanThroughBusinessCombinationsPropertyPlantAndEquipment`, members: GROSS }], cols: [{ c: 2, members: ACC }] }, { hasValue: all, columnScope: () => 'CY' })
     expect(conflict[0]!.problems.join(' ')).toMatch(/different members/)
+  })
+
+  it('a cell with no member at all is a statement figure, not a table value (a Total column’s net row)', () => {
+    const total: TableBlockSpec = {
+      tableId: T,
+      rows: [
+        { r: 17, concept: `${P}PropertyPlantAndEquipment`, preferredLabel: 'periodEndLabel', scope: 'CY', members: GROSS },
+        { r: 30, concept: `${P}PropertyPlantAndEquipment`, preferredLabel: 'periodEndLabel', scope: 'CY' },
+      ],
+      cols: [{ c: 6, members: [] }],
+    }
+    const plan = planTableBlock(A, total, { hasValue: all, columnScope: () => null })
+    expect(plan.find((p) => p.r === 17)!.problems).toEqual([])
+    expect(plan.find((p) => p.r === 30)!.problems).toEqual([NO_MEMBER])
   })
 
   it('refuses two cells that would be the same fact', () => {

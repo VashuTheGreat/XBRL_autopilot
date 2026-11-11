@@ -107,5 +107,16 @@ export function MemberChips(props: { structure: TableStructure; value: DimRef[];
 
 /** "concept|role" ⇄ a table row; only the opening / closing roles change the fact. */
 export const rowKey = (concept: string, preferredLabel: string | null) => `${concept}|${preferredLabel ?? ''}`
+
+/**
+ * The table row (its rowKey) a block row stands for, as the engine's planner reads it: same element and, for opening /
+ * closing balances, the same role; otherwise the element's first row that isn't an opening balance. '' = none.
+ */
+export function lineItemKey(structure: TableStructure, concept: string, preferredLabel: string | null | undefined): string {
+  const rows = structure.lineItems.filter((l) => !l.abstract && l.concept === concept)
+  const role = preferredLabel === 'periodStartLabel' || preferredLabel === 'periodEndLabel' ? preferredLabel : null
+  const match = role ? rows.find((l) => l.preferredLabel === role) : (rows.find((l) => l.preferredLabel !== 'periodStartLabel') ?? rows[0])
+  return match ? rowKey(match.concept, match.preferredLabel) : ''
+}
 export const roleSuffix = (preferredLabel: string | null) =>
   preferredLabel === 'periodStartLabel' ? ' (opening)' : preferredLabel === 'periodEndLabel' ? ' (closing)' : ''

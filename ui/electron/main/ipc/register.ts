@@ -14,6 +14,7 @@ import type { MappingService } from '../services/mapping-service'
 import type { SourceService } from '../services/source-service'
 import type { StatementService } from '../services/statement-service'
 import type { TableMappingService } from '../services/table-mapping-service'
+import type { TableSuggestionService } from '../services/table-suggestion-service'
 import type { TaxonomyService } from '../services/taxonomy-service'
 import type { McaToolService } from '../services/mca-tool-service'
 import type { ValidationService } from '../services/validation-service'
@@ -22,7 +23,7 @@ import type { ProjectService } from '../services/project-service'
 import type { SettingsService } from '../services/settings-service'
 import type { SidecarManager } from '../sidecar'
 import { handleQuery, handleResult, requireString } from './handle'
-import { requireAlsoInput, requireBlockInput, requireCell, requireTagInput } from './table-input'
+import { requireAlsoInput, requireBlockInput, requireCell, requireIndex, requireTagInput } from './table-input'
 
 export interface IpcDeps {
   appInfo: () => AppInfo
@@ -39,6 +40,7 @@ export interface IpcDeps {
   statements: StatementService
   taxonomy: TaxonomyService
   autoTag: AutoTagService
+  tableSuggestions: TableSuggestionService
   validation: ValidationService
   mcaTool: McaToolService
   fixAgent: FixAgentService
@@ -135,10 +137,7 @@ function registerEditorIpc({ sources, mapping, tables, columns, editor, statemen
   handleResult(IPC.mappingList, () => mapping.list())
   handleResult(IPC.mappingTag, (_e, input: unknown) => mapping.tag(requireTagInput(input)))
   handleResult(IPC.mappingAlsoAdd, (_e, input: unknown) => mapping.addAlso(requireAlsoInput(input)))
-  handleResult(IPC.mappingAlsoRemove, (_e, id: unknown, i: unknown) => {
-    if (!Number.isInteger(i) || (i as number) < 0) throw new Error('Invalid index')
-    return mapping.removeAlso(requireString(id, 'id'), i as number)
-  })
+  handleResult(IPC.mappingAlsoRemove, (_e, id: unknown, i: unknown) => mapping.removeAlso(requireString(id, 'id'), requireIndex(i)))
   handleResult(IPC.tableCatalog, () => tables.tables())
   handleResult(IPC.tableStructure, (_e, id: unknown) => tables.structure(requireString(id, 'table')))
   handleResult(IPC.tablePlan, (_e, input: unknown) => tables.plan(requireBlockInput(input)))
@@ -166,7 +165,7 @@ function registerEditorIpc({ sources, mapping, tables, columns, editor, statemen
   handleResult(IPC.taxonomySearch, (_e, q: unknown) => taxonomy.searchConcepts(typeof q === 'string' ? q.slice(0, 200) : ''))
 }
 
-function registerAutoTagIpc({ autoTag }: IpcDeps): void {
+function registerAutoTagIpc({ autoTag, mapping, tableSuggestions }: IpcDeps): void {
   handleResult(IPC.autotagRun, () => autoTag.run())
   handleResult(IPC.autotagAccept, (_e, id: unknown, concept?: unknown) =>
     autoTag.accept(requireString(id, 'id'), concept === undefined || concept === null ? undefined : requireString(concept, 'concept')),
@@ -176,6 +175,13 @@ function registerAutoTagIpc({ autoTag }: IpcDeps): void {
     if (min !== undefined && (typeof min !== 'number' || !(min >= 0 && min <= 1))) throw new Error('Invalid confidence')
     return autoTag.acceptAll(min as number | undefined)
   })
+  handleResult(IPC.autotagBlocks, () => tableSuggestions.list())
+  handleResult(IPC.autotagAcceptBlock, (_e, id: unknown, edited?: unknown) =>
+    tableSuggestions.accept(requireString(id, 'id'), edited === undefined || edited === null ? undefined : requireBlockInput(edited)),
+  )
+  handleResult(IPC.autotagRejectBlock, (_e, id: unknown) => tableSuggestions.reject(requireString(id, 'id')))
+  handleResult(IPC.autotagAcceptAlso, (_e, id: unknown, i: unknown) => mapping.acceptAlso(requireString(id, 'id'), requireIndex(i)))
+  handleResult(IPC.autotagRejectAlso, (_e, id: unknown, i: unknown) => mapping.rejectAlso(requireString(id, 'id'), requireIndex(i)))
 }
 
 /** MCA error lists are text reports; anything larger is not one. */

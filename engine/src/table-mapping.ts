@@ -64,6 +64,8 @@ type View = ReturnType<typeof buildTableView>
 
 export class UnknownTableError extends Error {}
 
+export const NO_MEMBER = 'This cell has no member, so it is a statement figure, not a table value: tag the cell itself, or give its row or column a member.'
+
 export function planTableBlock(A: Authority, spec: TableBlockSpec, opts: PlanOptions): PlannedTableFact[] {
   const t = A.table(spec.tableId)
   if (!t) throw new UnknownTableError(`Unknown table ${spec.tableId}`)
@@ -78,6 +80,8 @@ export function planTableBlock(A: Authority, spec: TableBlockSpec, opts: PlanOpt
       const problems = [...rowProblems]
       const { dims, conflicts } = mergeMembers(row.members ?? [], col.members ?? [])
       problems.push(...conflicts)
+      // a table value has a member on some axis; with none it is the statement figure (e.g. a Total column's net row)
+      if (!dims.length) problems.push(NO_MEMBER)
       for (const d of dims) if (!tableAxes.has(d.axis)) problems.push(`${A.label(d.axis)} is not an axis of this table.`)
       problems.push(...checkDimensionSyntax(A, dims).map((e: { msg: string }) => e.msg))
       const nd = normDims(dims) as DimensionRef[]

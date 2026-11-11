@@ -56,6 +56,7 @@ export {
   planTableBlock,
   tableOfFact,
   UnknownTableError,
+  NO_MEMBER,
   type TableBlockSpec,
   type TableBlockRow,
   type TableBlockColumn,

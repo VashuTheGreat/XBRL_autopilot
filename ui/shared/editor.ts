@@ -3,8 +3,11 @@ import type { CellRef } from './workbook'
 
 export type Scope = 'CY' | 'PY'
 export type MappingStatus = 'suggested' | 'approved' | 'rejected'
-/** who chose the concept: the user, or auto-tagging's evidence (memory, exact label, lexical match, AI rerank) */
-export type MappingOrigin = 'manual' | 'ai' | 'memory' | 'exact' | 'lexical'
+/**
+ * who chose the concept: the user, or auto-tagging's evidence (memory, exact label, lexical match, AI rerank, a table
+ * block matched to a taxonomy table)
+ */
+export type MappingOrigin = 'manual' | 'ai' | 'memory' | 'exact' | 'lexical' | 'table'
 
 export interface DimRef {
   axis: string
@@ -50,6 +53,11 @@ export interface MappingEntry {
   rationale?: string
   /** an auto-tagging suggestion's runner-up elements */
   alternatives?: SuggestionAlternative[]
+  /**
+   * "Also reported as" facts auto-tagging proposes for this cell (e.g. share capital under the one class of shares).
+   * Not filed: each is accepted (→ `also`) or rejected one by one, never in bulk.
+   */
+  alsoSuggested?: SuggestedAlso[]
   status: MappingStatus
 }
 
@@ -59,19 +67,44 @@ export interface SuggestionAlternative {
   score: number
 }
 
+/** A suggested "also reported as" fact: the fact, how sure the tagger is and why. */
+export interface SuggestedAlso extends MappedFact {
+  confidence: number
+  reason?: string
+}
+
 /** What one auto-tagging run found (suggestions are stored as mapping entries with status 'suggested'). */
 export interface AutoTagSummary {
   suggested: number
   /** suggestions not stored: the cell or the fact is already tagged, or the user rejected it before */
   skipped: number
+  /** table blocks suggested (mapping.json `blockSuggestions`) */
+  blocks: number
   sheets: { workbook: string; sheet: string; kind: string; rows: number; note: string | null }[]
   llmUsed: boolean
 }
 
 export interface AcceptAllResult {
   accepted: number
+  /** table blocks applied (their cells are counted in `cells`) */
+  blocks: number
+  /** table cells tagged by those blocks */
+  cells: number
   /** suggestions that could not be tagged (they stay suggested), with the reason */
   problems: string[]
+}
+
+/**
+ * An auto-tagging table suggestion (ADR-0013): an Excel range mapped to one taxonomy table, in the shape "Map as
+ * table" takes. Persisted in mapping.json `blockSuggestions`; nothing is tagged until it is accepted.
+ */
+export interface BlockSuggestion extends TableBlockInput {
+  id: string
+  tableTitle: string
+  confidence: number
+  /** cells the tagger planned as table values */
+  cellCount: number
+  status: 'suggested' | 'rejected'
 }
 
 /** MappingEntry plus derived, non-persisted info for the UI. */
@@ -88,6 +121,8 @@ export interface MappingView extends MappingEntry {
   /** the value that went into the filing, as displayed */
   value: string | null
   alsoViews: AlsoReportedView[]
+  /** the suggested "also reported as" facts (`alsoSuggested`), labelled */
+  alsoSuggestedViews: SuggestedAlsoView[]
 }
 
 export interface AlsoReportedView {
@@ -97,6 +132,12 @@ export interface AlsoReportedView {
   memberLabels: string[]
   factKey: string | null
   value: string | null
+}
+
+export interface SuggestedAlsoView {
+  fact: SuggestedAlso
+  conceptLabel: string
+  memberLabels: string[]
 }
 
 export interface TagCellInput {
