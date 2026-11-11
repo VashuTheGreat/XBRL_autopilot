@@ -12,6 +12,7 @@ import type {
 } from './project'
 import type {
   AcceptAllResult,
+  AlsoReportInput,
   AutoTagSummary,
   CellInfo,
   ColumnPeriod,
@@ -21,6 +22,13 @@ import type {
   MappingStatus,
   MappingView,
   Scope,
+  TableBlock,
+  TableBlockInput,
+  TableBlockPlan,
+  TableBlockResult,
+  TableInfo,
+  TableStructure,
+  TableZeroFilled,
   TagCellInput,
   XmlView,
 } from './editor'
@@ -115,6 +123,14 @@ export const IPC = {
   mappingSetStatus: 'mapping:set-status',
   mappingCellInfo: 'mapping:cell-info',
   mappingSetColumnPeriod: 'mapping:set-column-period',
+  mappingAlsoAdd: 'mapping:also-add',
+  mappingAlsoRemove: 'mapping:also-remove',
+  tableCatalog: 'table:catalog',
+  tableStructure: 'table:structure',
+  tablePlan: 'table:plan',
+  tableApply: 'table:apply',
+  tableList: 'table:list',
+  tableRemove: 'table:remove',
   autotagRun: 'autotag:run',
   autotagAccept: 'autotag:accept',
   autotagReject: 'autotag:reject',
@@ -122,6 +138,7 @@ export const IPC = {
   editorForm: 'editor:form',
   editorXml: 'editor:xml',
   editorFillMandatoryZeros: 'editor:fill-mandatory-zeros',
+  editorFillTableZeros: 'editor:fill-table-zeros',
   taxonomySearch: 'taxonomy:search',
   validationGet: 'validation:get',
   validationRun: 'validation:run',
@@ -201,6 +218,19 @@ export interface XapApi {
     xml(): Promise<Result<XmlView>>
     /** reports the statement's empty mandatory amounts as 0; returns what was filled */
     fillMandatoryZeros(elrUri: string): Promise<Result<ZeroFilled[]>>
+    /** in the statement's tables, reports the line items the rules require as 0 in columns that have a value */
+    fillTableZeros(elrUri: string): Promise<Result<TableZeroFilled[]>>
+    /** "also reported as": files the tagged cell's figure as one more fact */
+    addAlso(input: AlsoReportInput): Promise<Result<MappingView>>
+    removeAlso(mappingId: string, index: number): Promise<Result<MappingView>>
+    /** the taxonomy's tables with axes, and one table's line items and members (Map as table) */
+    tables(): Promise<Result<TableInfo[]>>
+    tableStructure(tableId: string): Promise<Result<TableStructure>>
+    /** what mapping a range to a table would file, cell by cell (no changes) */
+    planTable(input: TableBlockInput): Promise<Result<TableBlockPlan>>
+    applyTable(input: TableBlockInput): Promise<Result<TableBlockResult>>
+    tableBlocks(): Promise<Result<TableBlock[]>>
+    removeTable(blockId: string): Promise<Result<void>>
     searchConcepts(query: string): Promise<Result<ConceptHit[]>>
     /** asks the tagger for every imported workbook; stores suggestions (status 'suggested'), writes no fact */
     autoTag(): Promise<Result<AutoTagSummary>>

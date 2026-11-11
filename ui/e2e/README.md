@@ -10,6 +10,16 @@ XAP_USER_DATA="$TEMP/xap-e2e-$RANDOM" env -u ELECTRON_RUN_AS_NODE \
 node e2e/phase4-editor.mjs 9350 <screenshotDir> "../data/sample_financials.xlsx"
 ```
 
+`phase11-tables.mjs` (dev app, Ind AS + DGPL `.xls`, no AI): the steps are
+1. Map as table on FA!B10:F29: real selects for the table, 9 rows (line item, role, year, gross / accumulated member) and 4 class columns; Preview reports 36 ready; Map tags 36 cells.
+2. FA!E18 = PPE closing, computers, gross, CY, 0.73.
+3. Excel → Form opens [400600] on that value, with its source chip and highlight. Form → Excel reveals E18.
+4. Also as… (dialog, ★ tables first, element preselected): Equity share capital I39 is also reported as class "Equity shares 1"; the inspector chip and the Form's "also reported from I39" chip show it.
+5. Table zeros → 0 clears the PPE ML-13 errors.
+6. Removing the block untags its cells.
+
+Usage: `node e2e/phase11-tables.mjs <port> <screenshotDir> "<path>/data/BS DGPL Mar-2026-V1.xls"`.
+
 `linkage-follow.mjs` (dev app): Excel → Form follows the selection. A statement that shows the element stays open; selecting a tagged cell while another note is open switches to the statement that shows its element; the row is in view (below the sticky header) and highlighted; a row scrolled away comes back on a repeat click; clicking a Form value selects and reveals its cell. Usage: `node e2e/linkage-follow.mjs <port> <screenshotDir> "<path>/data/sample_financials.xlsx"`.
 
 **Disk space:** each run's `XAP_USER_DATA` folder (~30–50 MB) stays in `%TEMP%`; delete old `xap-e2e-*` folders now and then. The unit tests clean up after themselves (`ui/test/global-setup.ts`).

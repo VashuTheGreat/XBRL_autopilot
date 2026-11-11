@@ -1,9 +1,10 @@
-import { CheckCheck, FileSpreadsheet, Loader2, Sparkles, Upload } from 'lucide-react'
+import { CheckCheck, FileSpreadsheet, Loader2, Sparkles, Table2, Upload } from 'lucide-react'
 import { lazy, Suspense } from 'react'
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/primitives'
 import { cn } from '@/lib/cn'
 import { useEditor } from '@/stores/editor'
+import { useTables } from '@/stores/tables'
 import { MappingInspector } from './MappingInspector'
 
 // Univer is large: load it only when a workbook is shown, keeping app start-up fast.
@@ -31,6 +32,7 @@ export function ExcelPane() {
           </button>
         ))}
         <div className="flex-1" />
+        {workbooks.length > 0 && <MapAsTableButton />}
         {workbooks.length > 0 && <AutoTagButtons />}
         {workbooks.length > 0 && (
           <button className="flex items-center gap-1 px-3 text-muted hover:text-fg" onClick={() => void importWorkbook()} title="Import another workbook">
@@ -56,6 +58,23 @@ export function ExcelPane() {
       </div>
       {active && <MappingInspector />}
     </section>
+  )
+}
+
+/** "Map as table": enabled after dragging over a block of rows and columns (ADR-0013). */
+function MapAsTableButton() {
+  const blockRange = useEditor((s) => s.blockRange)
+  const open = useTables((s) => s.open)
+  return (
+    <button
+      className="flex shrink-0 items-center gap-1 whitespace-nowrap border-l border-border px-3 text-muted hover:text-fg disabled:opacity-40"
+      disabled={!blockRange}
+      onClick={() => blockRange && open({ kind: 'map', range: blockRange })}
+      title={blockRange ? `Map ${blockRange.sheet}!${blockRange.ref} to a taxonomy table: rows → line items, columns → members and year` : 'Drag over a block of rows and columns (a note table) to map it to a taxonomy table'}
+      data-testid="map-as-table"
+    >
+      <Table2 size={12} /> Map as table
+    </button>
   )
 }
 

@@ -38,6 +38,7 @@ import { ColumnPeriodService } from './services/column-period-service'
 import { EditorQueryService } from './services/editor-query-service'
 import { FilingPropertiesService } from './services/filing-properties-service'
 import { MappingService } from './services/mapping-service'
+import { TableMappingService } from './services/table-mapping-service'
 import { SourceService } from './services/source-service'
 import { StatementService } from './services/statement-service'
 import { TaxonomyService } from './services/taxonomy-service'
@@ -90,6 +91,7 @@ const autosave = new AutosaveScheduler(projects, () => settings.get().autosaveSe
 const sources = new SourceService(projects, workbookParser({ xlsx: readXlsx, xls: sidecarXlsReader(sidecar) }))
 const columns = new ColumnPeriodService(projects, sources)
 const mapping = new MappingService(projects, sources, columns, db)
+const tables = new TableMappingService(projects, sources, columns, mapping)
 // Auto-tagging (docs/06): suggestions from the sidecar's tagger; the LLM rerank only with the user's AI consent
 const autoTag = new AutoTagService(projects, sources, mapping, new SidecarMappingSuggester(sidecar), db, () => settings.get().aiConsent)
 const filing = new FilingPropertiesService(projects, mapping)
@@ -261,6 +263,7 @@ if (!app.requestSingleInstanceLock()) {
       settings,
       sources,
       mapping,
+      tables,
       editor,
       columns,
       filing,

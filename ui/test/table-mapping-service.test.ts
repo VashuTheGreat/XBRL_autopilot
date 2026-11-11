@@ -11,11 +11,14 @@ import type { CellModel, CellRef, SheetModel } from '@shared/workbook'
 import { AppDatabase } from '../electron/main/infra/app-database'
 import { DirAutosaveStore } from '../electron/main/infra/dir-autosave-store'
 import { ColumnPeriodService } from '../electron/main/services/column-period-service'
+import { EditorQueryService } from '../electron/main/services/editor-query-service'
 import { ValidationError } from '../electron/main/services/errors'
 import { FilingPropertiesService } from '../electron/main/services/filing-properties-service'
 import { MappingService } from '../electron/main/services/mapping-service'
 import { ProjectService } from '../electron/main/services/project-service'
+import type { TaxonomyCatalog } from '../electron/main/services/ports'
 import { SourceService } from '../electron/main/services/source-service'
+import { StatementService } from '../electron/main/services/statement-service'
 import { TableMappingService } from '../electron/main/services/table-mapping-service'
 import { kbAuthorityService, kbReady } from './helpers/kb-authorities'
 
@@ -25,6 +28,13 @@ const COMPUTERS = { axis: `${P}ClassesOfPropertyPlantAndEquipmentAxis`, member: 
 const OFFICE = { axis: `${P}ClassesOfPropertyPlantAndEquipmentAxis`, member: `${P}OfficeEquipmentMember` }
 const SHARES1 = { axis: `${P}ClassesOfEquityShareCapitalAxis`, member: `${P}EquityShares1Member` }
 const PPE_TABLE = '400600:DisclosureOfPropertyPlantAndEquipmentTable'
+const PPE_NOTE = 'http://www.icai.org/xbrl/taxonomy/2017-03-31/ind-as-roles/NotesPropertyPlantAndEquipment_400600'
+/** The Form's statement list and tree come from the FastAPI routes; the table grids need only the ELR itself. */
+const catalog: TaxonomyCatalog = {
+  elrs: async () => [{ uri: PPE_NOTE, code: '400600', title: 'Notes - Property, plant and equipment', group: 'Notes' }],
+  elrTree: async () => ({ uri: PPE_NOTE, code: '400600', title: 'Notes - Property, plant and equipment', group: 'Notes', tree: [] }),
+  searchConcepts: async () => [],
+}
 
 const sheet = (name: string, rows: Record<number, Record<number, string | number>>): SheetModel => {
   const cells: CellModel[] = []
@@ -167,7 +177,7 @@ describe.skipIf(!kbReady)('table tagging (Ind AS)', () => {
       expect(value(`${P}PropertyPlantAndEquipment`, 'PY', [GROSS, COMPUTERS], 'periodStartLabel')).toBe('73000')
       expect(value(`${P}PropertyPlantAndEquipment`, 'CY', [GROSS, COMPUTERS], 'periodEndLabel')).toBe('123000')
       const byCell = mapping.byCell()
-      expect(byCell.get('workbook-1.xlsx|FA|B10')).toMatchObject({ blockId: r.block.id, fact: { tableId: PPE_TABLE, scope: 'CY' } })
+      expect(byCell.get('workbook-1.xlsx|FA|B10')).toMatchObject({ blockId: r.block.id, fact: { tableId: PPE_TABLE, scope: 'CY' }, elrUris: [PPE_NOTE] })
       expect(tables.list()).toHaveLength(1)
 
       // mapping the same range again replaces the block
@@ -183,6 +193,39 @@ describe.skipIf(!kbReady)('table tagging (Ind AS)', () => {
     it('refuses rows or columns outside the range, and unknown tables', async () => {
       await expect(tables.plan({ ...block(), cols: [{ c: 6, members: [COMPUTERS] }] })).rejects.toThrow(/inside the selected range/)
       await expect(tables.plan({ ...block(), tableId: 'nope' })).rejects.toThrow(/Unknown table/)
+    })
+
+    it('the Form shows the table: a column per class and year, each value with its source cell (also-reported marked)', async () => {
+      await tables.apply(block())
+      const m = await mapping.tag({ cell: cell('BS', 'C3'), concept: `${P}PropertyPlantAndEquipment` })
+      await mapping.addAlso({ mappingId: m.id, concept: `${P}PropertyPlantAndEquipment`, dims: [COMPUTERS], preferredLabel: 'periodEndLabel' })
+      const form = await new EditorQueryService(projects, () => mapping.list(), catalog).form(PPE_NOTE)
+      const t = form.tables.find((x) => x.tableId === PPE_TABLE)!
+      expect(t.closed).toBe(false)
+      const col = (label: RegExp, scope: string) => t.columns.find((c) => label.test(c.label) && c.scope === scope)!
+      const grossComputersCy = col(/Computer.*Gross|Gross.*Computer/, 'CY')
+      const additions = t.rows.find((r) => r.concept === `${P}AdditionsOtherThanThroughBusinessCombinationsPropertyPlantAndEquipment`)!
+      expect(additions.cells[grossComputersCy.key]).toMatchObject({ display: '0.5', source: { sheet: 'FA', ref: 'B9' } })
+      const closing = t.rows.find((r) => r.concept === `${P}PropertyPlantAndEquipment` && r.preferredLabel === 'periodEndLabel')!
+      expect(closing.cells[col(/^Computer equipments$/i, 'CY').key]).toMatchObject({ display: '1.23', source: { sheet: 'BS', ref: 'C3' }, also: true })
+    })
+
+    it('Table zeros → 0 fills what the rules require in columns that have a value, and lists it', async () => {
+      await tables.apply(block())
+      const filled = new StatementService(projects).fillTableZeros(PPE_NOTE)
+      expect(filled.length).toBeGreaterThan(0)
+      expect(new Set(filled.map((z) => z.concept))).toContain(`${P}ChangesInPropertyPlantAndEquipment`)
+      expect(filled.every((z) => z.tableId === PPE_TABLE && z.memberLabels.length > 0)).toBe(true)
+      expect(new StatementService(projects).fillTableZeros(PPE_NOTE)).toEqual([]) // nothing left
+    })
+
+    it('lists the taxonomy’s tables and a table’s rows and members for the picker', () => {
+      const all = tables.tables()
+      expect(all.length).toBeGreaterThan(150)
+      expect(all.find((t) => t.id === PPE_TABLE)).toMatchObject({ elrCode: '400600', concepts: expect.arrayContaining([`${P}PropertyPlantAndEquipment`]) })
+      const s = tables.structure(PPE_TABLE)
+      expect(s.lineItems.filter((l) => l.concept === `${P}PropertyPlantAndEquipment`).map((l) => l.preferredLabel)).toEqual(['periodStartLabel', 'periodEndLabel'])
+      expect(s.axes.find((a) => a.axis === COMPUTERS.axis)!.members.some((m) => m.member === COMPUTERS.member)).toBe(true)
     })
 
     it('blocks and also-reported facts survive save → reopen', async () => {

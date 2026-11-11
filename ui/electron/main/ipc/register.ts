@@ -2,9 +2,8 @@
 import { readFile } from 'node:fs/promises'
 import { basename } from 'node:path'
 import { dialog, type BrowserWindow } from 'electron'
-import type { MappingStatus, Scope, TagCellInput } from '@shared/editor'
+import type { MappingStatus, Scope } from '@shared/editor'
 import { IPC, type AppInfo, type HttpMethod } from '@shared/ipc'
-import type { CellRef } from '@shared/workbook'
 import type { AppSettings, NewFilingInput } from '@shared/project'
 import type { ProjectController } from '../project/project-controller'
 import type { AutoTagService } from '../services/auto-tag-service'
@@ -14,6 +13,7 @@ import type { FilingPropertiesService } from '../services/filing-properties-serv
 import type { MappingService } from '../services/mapping-service'
 import type { SourceService } from '../services/source-service'
 import type { StatementService } from '../services/statement-service'
+import type { TableMappingService } from '../services/table-mapping-service'
 import type { TaxonomyService } from '../services/taxonomy-service'
 import type { McaToolService } from '../services/mca-tool-service'
 import type { ValidationService } from '../services/validation-service'
@@ -22,6 +22,7 @@ import type { ProjectService } from '../services/project-service'
 import type { SettingsService } from '../services/settings-service'
 import type { SidecarManager } from '../sidecar'
 import { handleQuery, handleResult, requireString } from './handle'
+import { requireAlsoInput, requireBlockInput, requireCell, requireTagInput } from './table-input'
 
 export interface IpcDeps {
   appInfo: () => AppInfo
@@ -31,6 +32,7 @@ export interface IpcDeps {
   settings: SettingsService
   sources: SourceService
   mapping: MappingService
+  tables: TableMappingService
   editor: EditorQueryService
   columns: ColumnPeriodService
   filing: FilingPropertiesService
@@ -112,14 +114,7 @@ function registerSettingsIpc({ settings, getWindow }: IpcDeps): void {
 const SCOPES: Scope[] = ['CY', 'PY']
 const STATUSES: MappingStatus[] = ['suggested', 'approved', 'rejected']
 
-/** A CellRef from the renderer: three non-empty strings, nothing else kept. */
-function requireCell(v: unknown): CellRef {
-  const c = v as Partial<CellRef> | null
-  if (!c || typeof c !== 'object') throw new Error('Invalid cell')
-  return { workbook: requireString(c.workbook, 'workbook'), sheet: requireString(c.sheet, 'sheet'), ref: requireString(c.ref, 'cell reference') }
-}
-
-function registerEditorIpc({ sources, mapping, columns, editor, statements, taxonomy, getWindow }: IpcDeps): void {
+function registerEditorIpc({ sources, mapping, tables, columns, editor, statements, taxonomy, getWindow }: IpcDeps): void {
   handleResult(IPC.workbookImport, async (_e, path?: unknown) => {
     if (path !== undefined) {
       const file = requireString(path, 'path')
@@ -138,10 +133,18 @@ function registerEditorIpc({ sources, mapping, columns, editor, statements, taxo
   })
   handleResult(IPC.workbookList, () => sources.workbooks())
   handleResult(IPC.mappingList, () => mapping.list())
-  handleResult(IPC.mappingTag, (_e, input: TagCellInput) => {
-    if (!input?.cell || typeof input.concept !== 'string') throw new Error('Invalid tag request')
-    return mapping.tag(input)
+  handleResult(IPC.mappingTag, (_e, input: unknown) => mapping.tag(requireTagInput(input)))
+  handleResult(IPC.mappingAlsoAdd, (_e, input: unknown) => mapping.addAlso(requireAlsoInput(input)))
+  handleResult(IPC.mappingAlsoRemove, (_e, id: unknown, i: unknown) => {
+    if (!Number.isInteger(i) || (i as number) < 0) throw new Error('Invalid index')
+    return mapping.removeAlso(requireString(id, 'id'), i as number)
   })
+  handleResult(IPC.tableCatalog, () => tables.tables())
+  handleResult(IPC.tableStructure, (_e, id: unknown) => tables.structure(requireString(id, 'table')))
+  handleResult(IPC.tablePlan, (_e, input: unknown) => tables.plan(requireBlockInput(input)))
+  handleResult(IPC.tableApply, (_e, input: unknown) => tables.apply(requireBlockInput(input)))
+  handleResult(IPC.tableList, () => tables.list())
+  handleResult(IPC.tableRemove, (_e, id: unknown) => tables.remove(requireString(id, 'table mapping')))
   handleResult(IPC.mappingUntag, (_e, id: unknown) => mapping.untag(requireString(id, 'id')))
   handleResult(IPC.mappingSetScope, (_e, id: unknown, scope: Scope) => {
     if (!SCOPES.includes(scope)) throw new Error('Invalid scope')
@@ -159,6 +162,7 @@ function registerEditorIpc({ sources, mapping, columns, editor, statements, taxo
   handleResult(IPC.editorForm, (_e, uri: unknown) => editor.form(requireString(uri, 'statement')))
   handleResult(IPC.editorXml, () => editor.xml())
   handleResult(IPC.editorFillMandatoryZeros, (_e, uri: unknown) => statements.fillMandatoryZeros(requireString(uri, 'statement')))
+  handleResult(IPC.editorFillTableZeros, (_e, uri: unknown) => statements.fillTableZeros(requireString(uri, 'statement')))
   handleResult(IPC.taxonomySearch, (_e, q: unknown) => taxonomy.searchConcepts(typeof q === 'string' ? q.slice(0, 200) : ''))
 }
 

@@ -1,10 +1,11 @@
-import { CalendarRange, Check, Link2, Search, Sparkles, Unlink, X } from 'lucide-react'
+import { CalendarRange, Check, Copy, Link2, Search, Sparkles, Table2, Unlink, X } from 'lucide-react'
 import { formatIndian } from '@xap/engine/basics'
 import type { CellAmount, ColumnPeriod, MappingView, Scope } from '@shared/editor'
 import { cellKey, rangeOf, rangeSize } from '@shared/workbook'
 import { Button } from '@/components/ui/primitives'
 import { cn } from '@/lib/cn'
 import { useEditor } from '@/stores/editor'
+import { useTables } from '@/stores/tables'
 import { useUi } from '@/stores/ui'
 
 const SCOPES: Scope[] = ['CY', 'PY']
@@ -55,11 +56,13 @@ export function MappingInspector() {
       ) : m ? (
         <>
           <button className="flex min-w-0 items-center gap-1.5 hover:underline" title={m.fact.concept} onClick={() => selectFact(m.factKey)}>
-            <Link2 size={13} className="shrink-0 text-ok" />
+            {m.fact.dims.length ? <Table2 size={13} className="shrink-0 text-ok" /> : <Link2 size={13} className="shrink-0 text-ok" />}
             <span className="truncate">{m.conceptLabel}</span>
+            {m.fact.dims.length > 0 && <span className="shrink-0 text-[11px] text-muted">in table</span>}
           </button>
           <Segmented label="Period" value={m.fact.scope} onPick={(s) => void setScope(m.id, s)} />
           {m.sign === -1 && <span className="text-[11px] text-warn">sign reversed</span>}
+          <AlsoReported m={m} />
           <div className="flex-1" />
           <Button variant="ghost" className="h-6 px-2" onClick={() => void untag(m.id)} title="Remove this tag">
             <Unlink size={13} /> Untag
@@ -76,6 +79,34 @@ export function MappingInspector() {
         </>
       )}
     </footer>
+  )
+}
+
+/** "Also reported as": the other facts this cell's figure is filed as, each removable; and a way to add one. */
+function AlsoReported({ m }: { m: MappingView }) {
+  const { removeAlso, selectFact } = useEditor()
+  const open = useTables((s) => s.open)
+  return (
+    <span className="flex min-w-0 items-center gap-1" data-testid="also-reported">
+      {m.alsoViews.map((a, i) => (
+        <span key={i} className="flex min-w-0 items-center gap-0.5 rounded bg-ok/10 px-1 text-[11px] text-ok" title={`Also reported as ${a.conceptLabel} [${a.memberLabels.join(', ')}] ${a.fact.scope}`}>
+          <button className="truncate hover:underline" onClick={() => selectFact(a.factKey)}>
+            also: {a.memberLabels.join(' · ') || a.conceptLabel}
+          </button>
+          <button aria-label="Stop reporting this fact" onClick={() => void removeAlso(m.id, i)}>
+            <X size={10} />
+          </button>
+        </span>
+      ))}
+      <button
+        className="flex shrink-0 items-center gap-0.5 text-[11px] text-muted hover:text-fg"
+        onClick={() => open({ kind: 'also', mappingId: m.id, concept: m.fact.concept })}
+        title="Also report this figure as a table fact (e.g. a share class or an asset class column)"
+        data-testid="also-add"
+      >
+        <Copy size={11} /> Also as…
+      </button>
+    </span>
   )
 }
 

@@ -4,8 +4,8 @@
  * (TaxonomyCatalog). The engine only supplies the *values* (facts, CY/PY, source cells) and whether an element can be
  * reported outside a dimensional table. Queries only; changes go through MappingService / the engine session.
  */
-import { indexFactLines, nondimAllowed } from '@xap/engine'
-import type { FormCell, FormRow, FormView, MappingView, XmlView } from '@shared/editor'
+import { dimKey, indexFactLines, nondimAllowed } from '@xap/engine'
+import { displayLabel, type DimRef, type FormCell, type FormRow, type FormTable, type FormTableColumn, type FormView, type MappingView, type Scope, type XmlView } from '@shared/editor'
 import type { CellRef } from '@shared/workbook'
 import { ValidationError } from './errors'
 import type { ElrTreeNode, ProjectAccess, TaxonomyCatalog } from './ports'
@@ -33,14 +33,15 @@ export class EditorQueryService {
     for (const m of this.mappings()) for (const k of m.factKeys ?? []) byFact.set(k, m)
     const hasPy = p.periods().py !== null
 
-    const cellFor = (concept: string, scope: 'CY' | 'PY'): FormCell => {
-      const fact = p.session.getValue(concept, scope, []) as { key: string } | null
+    const cellFor = (concept: string, scope: Scope, dims: DimRef[] = [], preferredLabel: string | null = null): FormCell => {
+      const fact = p.session.getValue(concept, scope, dims, preferredLabel) as { key: string } | null
       const m = fact ? byFact.get(fact.key) : undefined
       return {
         factKey: fact?.key ?? null,
         display: fact ? String(p.session.displayOf(fact)) : '',
         source: (m?.cell as CellRef | undefined) ?? null,
         mappingId: m?.id ?? null,
+        ...(m && fact && m.factKey !== fact.key ? { also: true } : {}),
       }
     }
 
@@ -67,7 +68,48 @@ export class EditorQueryService {
       for (const child of n.children) visit(child, depth + 1)
     }
     for (const root of tree.tree) visit(root, 0)
-    return { elrUri, code: elr.code, title: elr.title, rows, tableCount }
+    return { elrUri, code: elr.code, title: elr.title, rows, tableCount, tables: this.tables(elrUri, hasPy, cellFor) }
+  }
+
+  /**
+   * The ELR's dimensional tables with their values: a column per member combination that holds a value, per year
+   * (Session.openTable), a row per line item (the engine's table view, from the knowledge-base authority).
+   */
+  private tables(elrUri: string, hasPy: boolean, cellFor: (q: string, s: Scope, d: DimRef[], pl: string | null) => FormCell): FormTable[] {
+    const p = this.projects.project()
+    const A = p.authority.authority as unknown as { tables: { id: string; presentationElr: string; axes: unknown[] }[]; label(q: string): string }
+    const S = p.session as unknown as {
+      tableView(id: string): { title: string; lineItems: { concept: string; label: string; depth: number; abstract: boolean; preferredLabel: string | null }[] }
+      openTable(id: string, scope: Scope): { slices: DimRef[][] }
+    }
+    const out: FormTable[] = []
+    for (const t of A.tables.filter((x) => x.presentationElr === elrUri && x.axes.length)) {
+      const view = S.tableView(t.id)
+      const columns: FormTableColumn[] = []
+      let closed = true
+      for (const scope of (hasPy ? ['CY', 'PY'] : ['CY']) as Scope[]) {
+        let slices: DimRef[][]
+        try {
+          slices = S.openTable(t.id, scope).slices
+          closed = false
+        } catch {
+          continue // the table isn't applicable for that year
+        }
+        for (const dims of slices) {
+          columns.push({ key: `${scope}|${dimKey(dims)}`, scope, dims, label: dims.map((d) => (d.member ? displayLabel(A.label(d.member)) : String(d.typed))).join(' · ') || 'Total' })
+        }
+      }
+      const rows = view.lineItems.map((l) => ({
+        concept: l.concept,
+        label: l.label,
+        depth: l.depth,
+        abstract: l.abstract,
+        preferredLabel: l.preferredLabel ?? null,
+        cells: l.abstract ? {} : Object.fromEntries(columns.map((c) => [c.key, cellFor(l.concept, c.scope, c.dims, l.preferredLabel ?? null)])),
+      }))
+      out.push({ tableId: t.id, title: displayLabel(view.title), closed, columns, rows })
+    }
+    return out
   }
 
   xml(): XmlView {

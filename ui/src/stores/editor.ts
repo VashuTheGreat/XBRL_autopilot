@@ -3,7 +3,7 @@
  * Source of truth stays in main; this store caches read-models and refreshes when the project revision changes.
  */
 import { create } from 'zustand'
-import type { CellInfo, FormView, MappingView, Scope, XmlView } from '@shared/editor'
+import type { AlsoReportInput, CellInfo, FormView, MappingView, Scope, XmlView } from '@shared/editor'
 import { cellKey, rangeCells, type CellRef, type WorkbookModel } from '@shared/workbook'
 import { unwrap } from '@/lib/result'
 import { toast } from './toast'
@@ -26,6 +26,8 @@ interface EditorState {
   focusSeq: number
   /** amount + column period of the selected cell (inspector) */
   cellInfo: CellInfo | null
+  /** the last range dragged over several rows and columns ("Map as table"); the selection itself is its first cell */
+  blockRange: CellRef | null
   /** a request for the Excel pane to show a cell; `seq` changes on every request */
   reveal: { cell: CellRef; seq: number } | null
   activeElr: string | null
@@ -50,6 +52,11 @@ interface EditorState {
   setScope(id: string, scope: Scope): Promise<void>
   /** reports the active statement's empty mandatory amounts as 0 */
   fillMandatoryZeros(): Promise<void>
+  /** in the active statement's tables, reports the amounts the rules require as 0 (columns with a value only) */
+  fillTableZeros(): Promise<void>
+  setBlockRange(range: CellRef | null): void
+  addAlso(input: AlsoReportInput): Promise<boolean>
+  removeAlso(mappingId: string, index: number): Promise<void>
   /** remembers the period of the selected cell's column (null forgets it) */
   setColumnPeriod(scope: Scope | null): Promise<void>
   /** an auto-tagging run is in progress */
@@ -69,7 +76,8 @@ const index = (mappings: MappingView[]) => ({
   mappings,
   // keyed by the mapping's own reference and by every cell a summed range covers
   byCell: new Map(mappings.flatMap((m) => [[cellKey(m.cell), m] as const, ...rangeCells(m.cell.ref).map((a1) => [cellKey({ ...m.cell, ref: a1 }), m] as const)])),
-  byFact: new Map(mappings.filter((m) => m.factKey).map((m) => [m.factKey!, m])),
+  // every fact a cell supplies (its main tag and its "also reported as" facts) leads back to the cell
+  byFact: new Map(mappings.flatMap((m) => (m.factKeys ?? (m.factKey ? [m.factKey] : [])).map((k) => [k, m] as const))),
 })
 
 const EMPTY = {
@@ -81,6 +89,7 @@ const EMPTY = {
   selection: { cell: null, factKey: null },
   focusSeq: 0,
   cellInfo: null,
+  blockRange: null,
   reveal: null,
   form: null,
   xml: null,
@@ -210,6 +219,27 @@ export const useEditor = create<EditorState>((set, get) => {
       if (!filled) return
       if (!filled.length) toast.info('No empty mandatory amounts in this statement.')
       else toast.success(`Reported as 0: ${filled.map((z) => `${z.label} (${z.scope})`).join(', ')}`)
+    },
+
+    fillTableZeros: async () => {
+      const uri = get().activeElr
+      if (!uri) return
+      const filled = await unwrap(api().fillTableZeros(uri), { onValidation: (p) => toast.error(p.join(' ')) })
+      if (!filled) return
+      if (!filled.length) toast.info('Nothing to fill: no table column with a value misses an amount the rules require.')
+      else toast.success(`Reported as 0 in tables: ${filled.length} amount${filled.length === 1 ? '' : 's'} (${[...new Set(filled.map((z) => z.label))].slice(0, 4).join(', ')}${filled.length > 4 ? '…' : ''}).`)
+    },
+
+    setBlockRange: (range) => set({ blockRange: range }),
+
+    addAlso: async (input) => {
+      const m = await unwrap(api().addAlso(input), { onValidation: (p) => toast.error(p.join(' ')) })
+      if (m) toast.success(`${m.cell.sheet}!${m.cell.ref} is also reported as ${m.alsoViews.at(-1)?.conceptLabel ?? 'that fact'}.`)
+      return !!m
+    },
+
+    removeAlso: async (mappingId, index) => {
+      await unwrap(api().removeAlso(mappingId, index), { onValidation: (p) => toast.error(p.join(' ')) })
     },
 
     setColumnPeriod: async (scope) => {

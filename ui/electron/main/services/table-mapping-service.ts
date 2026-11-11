@@ -9,15 +9,35 @@
  */
 import { randomUUID } from 'node:crypto'
 import { planTableBlock, UnknownTableError, type TableBlockSpec } from '@xap/engine'
-import type { MappingEntry, TableBlock, TableBlockCellPlan, TableBlockInput, TableBlockPlan, TableBlockResult } from '@shared/editor'
-import { rangeOf, toA1, type CellRef } from '@shared/workbook'
+import {
+  displayLabel,
+  type MappingEntry,
+  type TableBlock,
+  type TableBlockCellPlan,
+  type TableBlockInput,
+  type TableBlockPlan,
+  type TableBlockResult,
+  type TableInfo,
+  type TableStructure,
+} from '@shared/editor'
+import { MAX_BLOCK_CELLS, rangeOf, toA1, type CellRef } from '@shared/workbook'
 import type { ColumnPeriodService } from './column-period-service'
 import { ValidationError } from './errors'
 import type { MappingService, TagProvenance } from './mapping-service'
 import type { ProjectAccess, ProjectHandle } from './ports'
 import type { SourceService } from './source-service'
 
-const MAX_BLOCK_CELLS = 5_000
+interface AuthorityTables {
+  tables: { id: string; hypercube: string; presentationElr: string; axes: unknown[]; lineItems: string[] }[]
+  table(id: string): { id: string; hypercube: string; presentationElr: string; lineItems: string[] } | null
+  concept(q: string): { abstract?: boolean } | null
+  elr(uri: string): { code: string; title: string } | null
+  label(q: string): string
+}
+interface TableView {
+  lineItems: { concept: string; label: string; preferredLabel: string | null; depth: number; abstract: boolean; periodType?: string | null }[]
+  axes: { axis: string; label: string; typed: boolean; default: string | null; members: { member: string; label: string; depth: number; usable: boolean }[] }[]
+}
 
 export class TableMappingService {
   constructor(
@@ -57,7 +77,7 @@ export class TableMappingService {
     }
     const ready = cells.filter((c) => !c.problems.length).length
     const table = A.table(input.tableId) as { hypercube: string }
-    return { tableId: input.tableId, tableTitle: A.label(table.hypercube), cells, ready, blocked: cells.length - ready }
+    return { tableId: input.tableId, tableTitle: displayLabel(A.label(table.hypercube)), cells, ready, blocked: cells.length - ready }
   }
 
   /**
@@ -98,6 +118,42 @@ export class TableMappingService {
 
   list(): TableBlock[] {
     return this.blocks(this.projects.project())
+  }
+
+  /** The taxonomy's tables with axes (what a block can be mapped to), by statement code then title. */
+  tables(): TableInfo[] {
+    const p = this.projects.project()
+    const A = p.authority.authority as unknown as AuthorityTables
+    return A.tables
+      .filter((t) => t.axes.length)
+      .map((t) => this.info(A, t))
+      .sort((a, b) => a.elrCode.localeCompare(b.elrCode) || a.title.localeCompare(b.title))
+  }
+
+  /** A table's line items and axes with their members (the engine's table view). */
+  structure(tableId: string): TableStructure {
+    const p = this.projects.project()
+    const A = p.authority.authority as unknown as AuthorityTables
+    const t = A.table(tableId)
+    if (!t) throw new ValidationError([`Unknown table ${tableId}`])
+    const view = (p.session as unknown as { tableView(id: string): TableView }).tableView(tableId)
+    return {
+      ...this.info(A, t),
+      lineItems: view.lineItems.map((l) => ({ concept: l.concept, label: l.label, preferredLabel: l.preferredLabel ?? null, depth: l.depth, abstract: l.abstract, periodType: l.periodType ?? null })),
+      axes: view.axes.map((a) => ({
+        axis: a.axis,
+        label: displayLabel(a.label),
+        typed: a.typed,
+        default: a.default ?? null,
+        members: a.members.map((m) => ({ member: m.member, label: displayLabel(m.label), depth: m.depth, usable: m.usable })),
+      })),
+    }
+  }
+
+  private info(A: AuthorityTables, t: { id: string; hypercube: string; presentationElr: string; lineItems: string[] }): TableInfo {
+    const elr = A.elr(t.presentationElr)
+    const concepts = t.lineItems.filter((q) => !A.concept(q)?.abstract)
+    return { id: t.id, title: displayLabel(A.label(t.hypercube)), elrCode: elr?.code ?? '', elrTitle: elr?.title ?? '', concepts }
   }
 
   /** Untags every cell of the block (each removes its facts) and forgets the block. */

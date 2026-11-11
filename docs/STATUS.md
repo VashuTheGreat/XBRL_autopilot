@@ -18,7 +18,7 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 | 8 | **AI auto-tagging** (`/mapping/suggest`: layout → memory → exact label → BM25 with heading context, filtered by period type / dimensions / statement → optional Groq rerank) plus an **evaluation harness** on the DGPL ↔ Dixon answer key (precision 0.738, recall 0.793; ≥ 0.9 right 93.6%); suggestions → Accept / Reject / Accept all ≥ 90% in the app; mapping memory. Embeddings (ONNX) deferred | ✅ done |
 | 9 | **Validation UI** ([ADR-0011](decisions/ADR-0011-business-rules-from-knowledge-base.md)): the executable rule ASTs are built in Python into `knowledge_base` and served by `/{id}/engine-rules`; C&I deep-equal to the retired TS compiler; **Ind AS formalized** (95.36% executable, Dixon 0 ERRORs); rule-coverage reports; live validation (gate, rules, calculation per taxonomy), Problems panel with locate and quick fixes, MCA Validation Tool v5.1 launcher + error import; Arelle XSD check (dev extra) working | ✅ done |
 | 10 | **AI fix agent** ([ADR-0012](decisions/ADR-0012-ai-fix-patches.md)): `/fix/propose` (Groq tool loop ≤ 6 calls, tools on the knowledge base + bundle, strict JSON patches), privacy checked twice + fixture guard, engine `checkPatch` / `applyFactPatch` / `dryRun`, diff cards with Accept / Edit / Reject, Fix all rounds with budgets, `ai/history.jsonl` with the exact payload; live Groq smoke 4/4 correct | ✅ done |
-| 11 | **Complete end-to-end tagging** ([ADR-0013](decisions/ADR-0013-table-tagging.md)): coverage evaluation of every filed fact ✅; then ELR groups by title, table blocks + figures reported twice + rule-driven table zeros, table suggestions (Ind AS on Dixon, C&I on HPL), text + filing-details form, Excel parsing gaps | 🔄 step 1 done |
+| 11 | **Complete end-to-end tagging** ([ADR-0013](decisions/ADR-0013-table-tagging.md)): coverage evaluation of every filed fact ✅; ELR groups by title ✅; table blocks + figures reported twice + rule-driven table zeros (engine, app, UI) ✅; next: table suggestions (Ind AS on Dixon, C&I on HPL), text + filing-details form, Excel parsing gaps | 🔄 steps 1–2 done |
 | 11b | **Packaging**: PyInstaller sidecar (check xlrd in the bundle) + electron-builder NSIS, `.axbrl` association. A packaging spike comes earlier only if a pilot install is needed | ⏳ |
 | 12 | Costing CRA-4 (its KB exists; no engine authority, rules or wizard entry yet), masters prefill, trial-balance mapping, Groq proxy, auto-update | ⏳ |
 
@@ -36,9 +36,15 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 - **E2E can't switch projects:** a dirty project triggers the native "Save changes?" box, which CDP can't click. The statement-list fix for switching taxonomies has no E2E yet.
 - **Rebel Marketplace (Ind AS) gives 7 ERRORs** (pinned in `engine/test/rebel-known.test.ts`): ML-40 ×4, SR-L1097-1 ×2, SR-L6487-2 ×1. Not a golden until MCA acceptance of that exact instance is shown; triage then (rule or filing).
 - **Ind AS parent/child member exemptions** (from Phase 9): still read but unused; confirm with the MCA tool whether it enforces parent members for Ind AS.
-- **AI fix agent limits (Phase 10):** no patches on table (dimensional) values yet (`setDims` with table tagging); `addFootnote` / `editText` / `setMeta` deferred; MCA tool problems get no dry-run verdict; the live quality was measured on 4 synthetic problems only, so measure it on a larger non-client set; Fix all asks one problem per request (no batching).
+- **AI fix agent limits (Phase 10):** no patches on table (dimensional) values yet (`setDims`: table facts can now be tagged, Phase 11 step 2, but the patch model doesn't cover them); `addFootnote` / `editText` / `setMeta` deferred; MCA tool problems get no dry-run verdict; the live quality was measured on 4 synthetic problems only, so measure it on a larger non-client set; Fix all asks one problem per request (no batching).
 - **Possible legacy-test flake:** one run of `pnpm test` (while a dev Electron app was also running) failed a `golden-DIVERGENCES.json` assertion; the next three runs passed (220/0). Watch for it.
 
+- **Table tagging (Phase 11 step 2) — open points:**
+  - there are no suggestions yet: the user maps every row and column (step 3 adds them);
+  - the coverage scoreboard doesn't count table facts yet: no producer runs the engine (step 3);
+  - "Also report as" takes one fact at a time;
+  - the "Map as table" dialog lists all 200+ tables (searchable), not only those that fit the block;
+  - `phase11-tables.mjs` failed the inspector-chip check once (the "also" chip wasn't shown for I39), then passed three runs in a row; watch it.
 - **Ask the team** for Helmier's instance XML (an exact C&I golden; today only the PDF) and the Rebel workbook (a second Ind AS before/after pair).
 
 ## Log
@@ -265,3 +271,29 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
   - **Ind AS:** 26 of 66 ELRs were regrouped; the rules are unchanged (`taxonomyHash` is the same). There are now 38 statement ↔ note links.
   - **Dixon:** 0 ERRORs, no statement/note differences, nothing re-derived. Rebel: 7 known ERRORs, unchanged.
   - **Tests:** engine 46 (+4 `elr-groups.test.ts`, which fails 2 of 4 without the fix); legacy 226/0; pytest 128; ui 157.
+- **2026-11-11, Phase 11 step 2: table tagging in the app ([ADR-0013](decisions/ADR-0013-table-tagging.md)):**
+  - **Engine:**
+    - `tableZeroPlan` / `fillTableMandatoryZeros`: rule-driven zeros, only in columns that already have a value, run to a fixpoint. "Filled column" is shared with the rule engine (`core/table-columns.js`). **Golden:** Dixon without its 1,260 zero table facts (73 ERRORs) + the fill → 0 ERRORs, and the 163 facts added are all zeros Dixon filed.
+    - `planTableBlock` / `tableOfFact`: a block → one planned fact per cell. Only period roles choose the row, and problems are given per cell.
+    - `setValue` / `setTableValue` options are typed.
+  - **App services (Electron-free):**
+    - `MappingService` tags table facts (members, table, opening role) through `setTableValue`.
+    - **Also reported as** (`addAlso` / `removeAlso`): the facts follow the cell on tag, re-tag, change of year and reapply / decimal places (tested), and go with untag. One fact ← one cell is kept.
+    - Views carry `factKeys` and `alsoViews`, and a table fact's `elrUris` is its table's note.
+    - `TableMappingService`: plan, apply (one block, a cell per tag with `blockId`, replaces a block on the same range), list, remove, `tables()`, `structure()`.
+    - `StatementService.fillTableZeros`.
+    - `EditorQueryService` builds the Form's table grids (`FormView.tables`). The linkage consumers (validation, AI bundle) use every fact key.
+    - `mapping.json` gains `also`, `blockId`, `fact.tableId` / `preferredLabel` and `blocks` (docs/03); old files read unchanged.
+  - **IPC:** `mapping:also-*`, `table:*`, `editor:fill-table-zeros`, with input validators in `ipc/table-input.ts` (docs/09).
+  - **UI (docs/08):**
+    - "Map as table" (a dragged block → `TableMapDialog`: table search, rows → line item / role / year / members, columns → members / year, Preview, Map cells);
+    - the Form shows table grids with source chips (the "also" ones marked) and "Table zeros → 0";
+    - the inspector shows "also: …" chips and "Also as…" (`AlsoReportDialog`, ★ tables that report the element);
+    - `displayLabel` drops "[Member]" / "[Table]";
+    - the default statement is chosen by group, no longer by C&I code `100100`.
+  - **Tests:**
+    - engine 56 (+4 `table-zeros`, +6 `table-mapping` on Ind AS and C&I);
+    - ui 169 (+12 `table-mapping-service.test.ts` on a synthetic DGPL-like Ind AS workbook);
+    - legacy 226/0; pytest 128.
+  - **E2E `ui/e2e/phase11-tables.mjs` green** (25 checks, DGPL, no AI). Map as table on FA → 36 cells; FA!E18 = PPE closing, computers, gross, CY, 0.73; both-way linkage; Equity share capital also as "Equity shares 1"; Table zeros → 0 clears ML-13 (4 → 0); removing the block untags its cells.
+  - **Next:** step 3, table suggestions in the sidecar, and the table producers on the scoreboard (Dixon, HPL).

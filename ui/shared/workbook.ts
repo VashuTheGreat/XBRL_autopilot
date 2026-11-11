@@ -97,6 +97,9 @@ export function rangeA1(g: CellRange): string {
  */
 export const MAX_RANGE_CELLS = 1000
 
+/** The largest range "Map as table" maps to one taxonomy table (ADR-0013). */
+export const MAX_BLOCK_CELLS = 5_000
+
 /** Number of cells in a reference, computed (never expanded); 0 when it isn't one. */
 export function rangeSize(ref: string): number {
   const g = rangeOf(ref)

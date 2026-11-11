@@ -24,6 +24,11 @@ export interface MappedFact {
   preferredLabel?: string | null
 }
 
+/** "Computer equipments [Member]" → "Computer equipments": the taxonomy's structural suffix, dropped for display. */
+export function displayLabel(label: string): string {
+  return label.replace(/\s*\[(member|table|axis|domain|line items|abstract)\]\s*$/i, '')
+}
+
 /** Persisted in the project's mapping.json (docs/03-project-file-axbrl.md). */
 export interface MappingEntry {
   id: string
@@ -72,7 +77,10 @@ export interface AcceptAllResult {
 /** MappingEntry plus derived, non-persisted info for the UI. */
 export interface MappingView extends MappingEntry {
   conceptLabel: string
-  /** the statements / notes (ELR URIs) that show the element, by code: where the Form jumps when the cell is selected */
+  /**
+   * the statements / notes (ELR URIs) that show the element, by code: where the Form jumps when the cell is selected.
+   * A table fact: its table's statement / note only.
+   */
   elrUris: string[]
   factKey: string | null
   /** the main fact and the "also reported as" facts: every fact this cell supplies (for linkage) */
@@ -233,6 +241,8 @@ export interface FormCell {
   display: string
   source: CellRef | null
   mappingId: string | null
+  /** the value is an "also reported as" fact of its source cell (the cell's main tag is another fact) */
+  also?: boolean
 }
 
 export interface FormRow {
@@ -253,8 +263,64 @@ export interface FormView {
   code: string
   title: string
   rows: FormRow[]
-  /** dimensional tables in this ELR (editing them arrives in a later phase) */
+  /** dimensional tables in this ELR */
   tableCount: number
+  /** the ELR's tables with their values (ADR-0013) */
+  tables: FormTable[]
+}
+
+/** One column of a table in the Form: a member combination (a "slice") in one year. */
+export interface FormTableColumn {
+  key: string
+  scope: Scope
+  dims: DimRef[]
+  /** member labels ("Computer equipments · Gross carrying amount"), "Total" without members */
+  label: string
+}
+
+export interface FormTableRow {
+  concept: string
+  label: string
+  depth: number
+  abstract: boolean
+  preferredLabel: string | null
+  /** column key → cell (none for abstract rows) */
+  cells: Record<string, FormCell>
+}
+
+export interface FormTable {
+  tableId: string
+  title: string
+  /** the year is closed for this table (not applicable): no columns */
+  closed: boolean
+  columns: FormTableColumn[]
+  rows: FormTableRow[]
+}
+
+/** A taxonomy table, for the "Map as table" picker. */
+export interface TableInfo {
+  id: string
+  title: string
+  /** the statement / note that shows it */
+  elrCode: string
+  elrTitle: string
+  /** its reportable line items (to offer the tables that report an element) */
+  concepts: string[]
+}
+
+/** A table's rows and axes, for mapping a block to it. */
+export interface TableStructure extends TableInfo {
+  lineItems: { concept: string; label: string; preferredLabel: string | null; depth: number; abstract: boolean; periodType: string | null }[]
+  axes: { axis: string; label: string; typed: boolean; default: string | null; members: { member: string; label: string; depth: number; usable: boolean }[] }[]
+}
+
+/** A table amount reported as 0 by "fill table zeros". */
+export interface TableZeroFilled {
+  tableId: string
+  concept: string
+  label: string
+  scope: Scope
+  memberLabels: string[]
 }
 
 export interface XmlView {

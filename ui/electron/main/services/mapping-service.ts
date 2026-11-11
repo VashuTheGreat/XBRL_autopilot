@@ -17,21 +17,22 @@
  */
 import { randomUUID } from 'node:crypto'
 import { decimal as Dec, dimKey, nondimAllowed, normDims, SCALE_POWERS, SHARE_CAPITAL, tableOfFact } from '@xap/engine'
-import type {
-  AlsoReportedView,
-  AlsoReportInput,
-  CellAmount,
-  CellInfo,
-  ColumnPeriod,
-  DimRef,
-  MappedFact,
-  MappingEntry,
-  MappingOrigin,
-  MappingStatus,
-  MappingView,
-  Scope,
-  SuggestionAlternative,
-  TagCellInput,
+import {
+  displayLabel,
+  type AlsoReportedView,
+  type AlsoReportInput,
+  type CellAmount,
+  type CellInfo,
+  type ColumnPeriod,
+  type DimRef,
+  type MappedFact,
+  type MappingEntry,
+  type MappingOrigin,
+  type MappingStatus,
+  type MappingView,
+  type Scope,
+  type SuggestionAlternative,
+  type TagCellInput,
 } from '@shared/editor'
 import { overlaps, rangeCells, rangeOf, sameCell, type CellModel, type CellRef } from '@shared/workbook'
 import { withSign } from '../mapping/amounts'
@@ -353,14 +354,21 @@ export class MappingService {
   private view(p: ProjectHandle, e: MappingEntry): MappingView {
     const approved = hasFact(e)
     const fact = approved ? this.fact(p, e.fact) : null
-    const A = p.authority.authority as unknown as { conceptElrs(q: string): string[]; elr(u: string): { code: string } | null; label(q: string): string }
+    const A = p.authority.authority as unknown as {
+      conceptElrs(q: string): string[]
+      elr(u: string): { code: string } | null
+      label(q: string): string
+      table(id: string): { presentationElr: string } | null
+    }
     const code = (u: string) => A.elr(u)?.code ?? '~'
+    // a table fact is shown in its table's statement / note; a plain fact wherever its element is presented
+    const tableElr = e.fact.tableId ? A.table(e.fact.tableId)?.presentationElr : null
     const alsoViews: AlsoReportedView[] = (e.also ?? []).map((f) => {
       const x = approved ? this.fact(p, f) : null
       return {
         fact: f,
         conceptLabel: A.label(f.concept),
-        memberLabels: f.dims.map((d) => (d.member ? A.label(d.member) : String(d.typed))),
+        memberLabels: f.dims.map((d) => (d.member ? displayLabel(A.label(d.member)) : String(d.typed))),
         factKey: x?.key ?? null,
         value: x ? String(p.session.displayOf(x)) : null,
       }
@@ -368,7 +376,7 @@ export class MappingService {
     return {
       ...e,
       conceptLabel: A.label(e.fact.concept),
-      elrUris: [...A.conceptElrs(e.fact.concept)].sort((a, b) => code(a).localeCompare(code(b))),
+      elrUris: tableElr ? [tableElr] : [...A.conceptElrs(e.fact.concept)].sort((a, b) => code(a).localeCompare(code(b))),
       factKey: fact?.key ?? null,
       factKeys: [fact?.key, ...alsoViews.map((a) => a.factKey)].filter((k): k is string => !!k),
       value: fact ? String(p.session.displayOf(fact)) : null,

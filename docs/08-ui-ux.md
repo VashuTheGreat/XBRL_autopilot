@@ -56,6 +56,20 @@ On the right, the XBRL Form shows the reverse: the source cell ref shows as a ch
 - **Decimal places as presented** are chosen in the New Filing wizard and can be changed in the Filing explorer header ("2 dp"). Changing them re-reads every tagged figure from Excel.
 - **Column period** (untagged cells): "Column C: CY" with the reason in the tooltip (header, layout, or your choice). The CY/PY buttons set the period for that column of that sheet, and the choice is remembered in `mapping.json`. "auto" goes back to the header. When a header names a period outside the filing (a 3rd-year column, or stale text like "As at 30th September, 2019"), the strip says "Column C isn't part of this filing" and never guesses. Changing a tagged cell's CY/PY also sets its column.
 - **Selecting a fact (Form or XML)** → the source cell is selected and scrolled into view on the left.
+- **Tables (Phase 11, [ADR-0013](decisions/ADR-0013-table-tagging.md)):**
+  - **Map as table:** drag over a note table in Excel, then click "Map as table" in the Excel toolbar. Pick the taxonomy table by searching its title or statement. Then:
+    - every row with figures gets a line item, with its opening / closing role, an optional year and members (e.g. "Gross carrying amount");
+    - every column gets members (e.g. "Computer equipments") and an optional year.
+
+    **Preview** lists what would be filed and the cells that can't be tagged, with the reason. **Map cells** tags the ready cells as one block. A block cell is an ordinary tag, linked both ways.
+  - **The Form shows the statement's tables** under its rows:
+    - one column per member combination and year that holds a value;
+    - each value with its source-cell chip;
+    - line items without a value are folded away.
+
+    Selecting a table cell in Excel opens its table's note on that value; clicking a value selects and reveals its cell.
+  - **Also reported as:** the inspector of a tagged cell shows "also: Equity shares 1" chips and an "Also as…" button. The dialog lists the tables that report the cell's element first (★), preselects the element and asks for the members. The extra fact follows the cell on every value change. In the Form its chip is marked "also reported from I39".
+  - **Table zeros → 0** (Form toolbar, for statements with tables): reports as 0 what the mandatory-line-items rules require, in columns that already have a value, and lists what it filled in a toast.
 - **Hovering a cell** → tooltip: concept label + qname, period, dimensions, confidence, rule status.
 - **Drag** a taxonomy concept onto a cell → creates a manual mapping, `origin: manual`.
 

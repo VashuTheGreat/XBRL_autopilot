@@ -8,7 +8,7 @@ import { UniverSheetsCorePreset } from '@univerjs/preset-sheets-core'
 import UniverPresetSheetsCoreEnUS from '@univerjs/preset-sheets-core/locales/en-US'
 import '@univerjs/preset-sheets-core/lib/index.css'
 import type { MappingView } from '@shared/editor'
-import { cellKey, MAX_RANGE_CELLS, rangeA1, rangeOf, type WorkbookModel } from '@shared/workbook'
+import { cellKey, MAX_BLOCK_CELLS, MAX_RANGE_CELLS, rangeA1, rangeOf, type WorkbookModel } from '@shared/workbook'
 import { registerTestHook } from '@/lib/test-hooks'
 import { useEditor } from '@/stores/editor'
 import { toUniverWorkbook } from './univer-data'
@@ -76,6 +76,9 @@ export function UniverGrid({ model }: { model: WorkbookModel }) {
         if (!range || !ws) return
         // a drag over several cells selects the range (tagged as their sum)
         let g = { r1: range.getRow(), c1: range.getColumn(), r2: range.getLastRow(), c2: range.getLastColumn() }
+        // a block over several rows and columns can be mapped to a table ("Map as table"); the selection is its first cell
+        const isBlock = g.c2 > g.c1 && g.r2 > g.r1 && (g.r2 - g.r1 + 1) * (g.c2 - g.c1 + 1) <= MAX_BLOCK_CELLS
+        useEditor.getState().setBlockRange(isBlock ? { workbook: model.source, sheet: ws.getSheetName(), ref: rangeA1(g) } : null)
         // only a one-column run of cells can be summed; a block, a whole column or the whole sheet means its first cell
         if (g.c2 !== g.c1 || g.r2 - g.r1 + 1 > MAX_RANGE_CELLS) g = { r1: g.r1, c1: g.c1, r2: g.r1, c2: g.c1 }
         useEditor.getState().selectCell({ workbook: model.source, sheet: ws.getSheetName(), ref: rangeA1(g) })

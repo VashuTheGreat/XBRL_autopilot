@@ -4,10 +4,12 @@ import { Toasts } from '@/components/Toasts'
 import { NewFilingDialog } from '@/features/new-filing/NewFilingDialog'
 import { ImportReportDialog } from '@/features/import-xbrl/ImportReportDialog'
 import { ImportXbrlDialog } from '@/features/import-xbrl/ImportXbrlDialog'
+import { TableDialogs } from '@/features/tables/TableDialogs'
 import { useEditor } from '@/stores/editor'
 import { useProject } from '@/stores/project'
 import { useSettings } from '@/stores/settings'
 import { useSidecar } from '@/stores/sidecar'
+import { useTables } from '@/stores/tables'
 import { toast } from '@/stores/toast'
 import { useUi } from '@/stores/ui'
 import { useValidation } from '@/stores/validation'
@@ -75,6 +77,7 @@ export function App() {
       <NewFilingDialog />
       <ImportXbrlDialog />
       <ImportReportDialog />
+      <TableDialogs />
       <Toasts />
     </div>
   )
@@ -85,18 +88,20 @@ function useEditorSync(): void {
   const summary = useProject((s) => s.summary)
   const elrs = useProject((s) => s.elrs)
   const { sync, reset, activeElr, setActiveElr } = useEditor()
+  const resetTables = useTables((s) => s.reset)
   const projectId = summary?.id ?? null
 
   useEffect(() => {
     reset()
-  }, [projectId, reset])
+    resetTables()
+  }, [projectId, reset, resetTables])
 
   useEffect(() => {
     if (summary) void sync(summary.revision, summary.sources.length)
   }, [summary, sync])
 
   useEffect(() => {
-    // open on the balance sheet by default
-    if (summary && !activeElr && elrs.length) void setActiveElr((elrs.find((e) => e.code === '100100') ?? elrs[0]!).uri)
+    // open on the first statement (the balance sheet) by default: by group, never by code (each taxonomy numbers differently)
+    if (summary && !activeElr && elrs.length) void setActiveElr((elrs.find((e) => e.group === 'Statements') ?? elrs[0]!).uri)
   }, [summary, elrs, activeElr, setActiveElr])
 }

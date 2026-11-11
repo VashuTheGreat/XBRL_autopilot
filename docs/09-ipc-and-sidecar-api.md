@@ -26,6 +26,15 @@
 | mapping | `mapping:cell-info` | invoke | `CellRef` → `CellInfo` (amount at the statement's precision + column period) |
 | mapping | `mapping:set-column-period` | invoke | `CellRef, 'CY' \| 'PY' \| null` → `ColumnPeriod` (remembered per sheet column in `mapping.json`) |
 | mapping | `mapping:set-status` | invoke | `id, 'suggested' \| 'rejected'` → `MappingView`. Approving goes through `autotag:accept` / `mapping:tag` (it writes the fact); a tagged entry can't change status |
+| mapping | `mapping:tag` | invoke | `TagCellInput` `{cell, concept, scope?, sign?, dims?, tableId?, preferredLabel?}` → `MappingView`. With `dims` the cell is a **table fact** (the table is found from the members unless given; written through `Session.setTableValue`). Validated field by field (`ipc/table-input.ts`) |
+| mapping | `mapping:also-add` | invoke | `AlsoReportInput` `{mappingId, concept, dims, scope?, tableId?, preferredLabel?}` → `MappingView`: the tagged cell's figure is also filed as that fact ("also reported as", ADR-0013). Refused when another cell supplies the fact |
+| mapping | `mapping:also-remove` | invoke | `mappingId, index` → `MappingView` (that fact is removed) |
+| table | `table:catalog` | invoke | → `TableInfo[]` (tables with axes: id, title, statement code / title, line-item concepts) |
+| table | `table:structure` | invoke | `tableId` → `TableStructure` (line items with period roles, axes with members) |
+| table | `table:plan` | invoke | `TableBlockInput` `{cell: range, tableId, rows[{r, concept, preferredLabel?, scope?, members}], cols[{c, members, scope?}], sign?}` → `TableBlockPlan` (one entry per non-empty cell: element, year, members, value, problems). No changes |
+| table | `table:apply` | invoke | `TableBlockInput` → `TableBlockResult` `{block, tagged, problems[]}`. Ready cells are tagged one by one (`blockId`); a block over the same range is replaced |
+| table | `table:list` / `table:remove` | invoke | → `TableBlock[]` / `blockId` → `void` (untags every cell of the block) |
+| editor | `editor:fill-table-zeros` | invoke | `elrUri` → `TableZeroFilled[]`: in the statement's tables, the line items the mandatory-line-items rules require are reported as 0 in columns that already hold a value (engine `fillTableMandatoryZeros`) |
 | autotag | `autotag:run` | invoke | → `AutoTagSummary` `{suggested, skipped, sheets[], llmUsed}`. Every imported workbook goes to `POST /api/v1/mapping/suggest`; the result is stored as `mapping.json` entries with status `suggested` (no fact). Skips cells and facts already tagged, and (cell, element) pairs the user rejected (Phase 8; `AutoTagService`) |
 | autotag | `autotag:accept` | invoke | `id, concept?` → `MappingView`. `MappingService.tag` with the suggestion's origin and confidence; `concept` picks one of its alternatives (origin `manual`). Teaches `mapping_memory` |
 | autotag | `autotag:reject` | invoke | `id` → `MappingView` (status `rejected`; not suggested again for that element) |

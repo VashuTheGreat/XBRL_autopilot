@@ -1,7 +1,7 @@
-import { CircleSlash, FileSpreadsheet, Table2 } from 'lucide-react'
+import { CircleSlash, Copy, FileSpreadsheet, Grid3x3, Table2 } from 'lucide-react'
 import { useEffect, useMemo, useRef } from 'react'
 import { formatIndian } from '@xap/engine/basics'
-import type { FormCell, FormRow } from '@shared/editor'
+import type { FormCell, FormRow, FormTable } from '@shared/editor'
 import { cellKey } from '@shared/workbook'
 import { EmptyState } from '@/components/EmptyState'
 import { Button, Select } from '@/components/ui/primitives'
@@ -11,7 +11,7 @@ import { useProject } from '@/stores/project'
 
 /** XBRL Form: one statement (ELR) with its CY/PY facts and the Excel cell each value came from. */
 export function FormView() {
-  const { form, activeElr, setActiveElr, selection, focusSeq, selectFact, fillMandatoryZeros } = useEditor()
+  const { form, activeElr, setActiveElr, selection, focusSeq, selectFact, fillMandatoryZeros, fillTableZeros } = useEditor()
   const { elrs, summary } = useProject()
   const selectedCellKey = selection.cell ? cellKey(selection.cell) : null
   const hasPy = !summary?.firstFinancialYear
@@ -23,7 +23,10 @@ export function FormView() {
   // Block body on purpose: scrollIntoView() returns a Promise in Electron's Chromium (see e2e/README gotchas).
   useEffect(() => {
     if (!form || !selection.concept) return
-    const row = body.current?.querySelector<HTMLElement>(`tr[data-concept="${CSS.escape(selection.concept)}"]`)
+    // a table cell's fact first (its row in the table), else the element's row on the statement
+    const row =
+      (selection.factKey && body.current?.querySelector<HTMLElement>(`[data-fact="${CSS.escape(selection.factKey)}"]`)?.closest('tr')) ||
+      body.current?.querySelector<HTMLElement>(`tr[data-concept="${CSS.escape(selection.concept)}"]`)
     row?.scrollIntoView({ block: 'nearest' })
   }, [form, selection.concept, focusSeq])
 
@@ -46,6 +49,17 @@ export function FormView() {
         >
           <CircleSlash size={13} /> Empty mandatory → 0
         </Button>
+        {!!form?.tables.length && (
+          <Button
+            variant="ghost"
+            className="h-7 shrink-0 px-2 text-[11px]"
+            onClick={() => void fillTableZeros()}
+            title="In this statement's tables, report as 0 the line items the MCA rules require in columns that already have a value. Columns with no value are never started."
+            data-testid="table-zeros"
+          >
+            <Grid3x3 size={13} /> Table zeros → 0
+          </Button>
+        )}
       </div>
       {!form ? (
         <EmptyState icon={Table2} title="Loading statement…" />
@@ -65,11 +79,9 @@ export function FormView() {
               ))}
             </tbody>
           </table>
-          {form.tableCount > 0 && (
-            <p className="px-3 py-3 text-[11px] text-muted">
-              Rows marked “in table” are reported inside one of this statement’s {form.tableCount} dimensional table(s); tagging tables is part of a later phase.
-            </p>
-          )}
+          {form.tables.map((t) => (
+            <TableGrid key={t.tableId} table={t} selectedFact={selection.factKey} selectedCell={selectedCellKey} onPick={selectFact} />
+          ))}
         </div>
       )}
     </div>
@@ -116,20 +128,74 @@ function Row(props: { row: FormRow; hasPy: boolean; selectedFact: string | null;
   )
 }
 
+/**
+ * One dimensional table of the statement: a column per member combination that holds a value, per year; rows with no
+ * value are folded away (their count is shown). Map a range with “Map as table” to fill it from Excel.
+ */
+function TableGrid(props: { table: FormTable; selectedFact: string | null; selectedCell: string | null; onPick(factKey: string | null): void }) {
+  const { table: t } = props
+  const filled = t.rows.filter((r) => !r.abstract && t.columns.some((c) => r.cells[c.key]?.factKey))
+  return (
+    <section className="border-t border-border" data-testid="form-table-grid" data-table={t.tableId}>
+      <h3 className="flex items-center gap-1.5 bg-panel-2 px-3 py-1.5 text-[11px] font-semibold">
+        <Table2 size={12} /> {t.title}
+        <span className="font-normal text-muted">
+          {t.closed ? '· not applicable this year' : t.columns.length ? `· ${t.columns.length} column${t.columns.length === 1 ? '' : 's'}` : '· no values yet — drag over the note in Excel and use “Map as table”'}
+        </span>
+      </h3>
+      {t.columns.length > 0 && (
+        <div className="overflow-x-auto">
+          <table className="border-collapse text-[12px]">
+            <thead className="text-[11px] text-muted">
+              <tr>
+                <th className="min-w-56 px-3 py-1 text-left font-medium">Line item</th>
+                {t.columns.map((c) => (
+                  <th key={c.key} className="min-w-32 px-3 py-1 text-right font-medium" title={c.dims.map((d) => d.member ?? d.typed).join('\n')}>
+                    {c.label} <span className="rounded bg-panel-2 px-1 text-[10px]">{c.scope}</span>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filled.map((r) => (
+                <tr key={`${r.concept}|${r.preferredLabel ?? ''}`} className="scroll-mt-9 border-b border-border/50 hover:bg-panel-2" data-concept={r.concept}>
+                  <td className="py-1 pr-3" style={{ paddingLeft: `${0.75 + Math.max(0, r.depth - 1) * 0.9}rem` }} title={r.concept}>
+                    {r.label}
+                  </td>
+                  {t.columns.map((c) => (
+                    <ValueCell key={c.key} cell={r.cells[c.key]} selectedFact={props.selectedFact} selectedCell={props.selectedCell} onPick={props.onPick} />
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {filled.length < t.rows.filter((r) => !r.abstract).length && (
+            <p className="px-3 py-1 text-[10px] text-muted">{t.rows.filter((r) => !r.abstract).length - filled.length} line items without a value are not shown.</p>
+          )}
+        </div>
+      )}
+    </section>
+  )
+}
+
 function ValueCell(props: { cell: FormCell | undefined; selectedFact: string | null; selectedCell: string | null; onPick(factKey: string | null): void }) {
   const c = props.cell
   if (!c) return <td />
   const selected = !!c.factKey && c.factKey === props.selectedFact
   return (
-    <td className="px-3 py-1 text-right">
+    <td className="px-3 py-1 text-right" data-fact={c.factKey ?? undefined}>
       <button
         disabled={!c.factKey}
         onClick={() => props.onPick(c.factKey)}
         className={cn('tabular inline-flex items-center gap-1.5 rounded px-1 disabled:cursor-default', selected && 'outline outline-1 outline-accent', c.factKey && 'hover:bg-panel')}
       >
         {c.source && (
-          <span className={cn('flex items-center gap-0.5 rounded bg-ok/15 px-1 font-mono text-[10px] text-ok', props.selectedCell === cellKey(c.source) && 'bg-accent/20 text-accent')} title={`From ${c.source.sheet}!${c.source.ref}`}>
-            <FileSpreadsheet size={9} />
+          <span
+            className={cn('flex items-center gap-0.5 rounded bg-ok/15 px-1 font-mono text-[10px] text-ok', props.selectedCell === cellKey(c.source) && 'bg-accent/20 text-accent')}
+            title={c.also ? `Also reported from ${c.source.sheet}!${c.source.ref} (the same figure as that cell’s tag)` : `From ${c.source.sheet}!${c.source.ref}`}
+            data-testid="source-chip"
+          >
+            {c.also ? <Copy size={9} /> : <FileSpreadsheet size={9} />}
             {c.source.ref}
           </span>
         )}
