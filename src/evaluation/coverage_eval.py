@@ -24,6 +24,7 @@ import json
 import re
 import sys
 from collections import Counter, defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
@@ -34,8 +35,9 @@ from src.evaluation.instance_facts import FiledFact, read_facts
 from src.evaluation.workbook_index import SCALES, Location, WorkbookIndex, _tolerance, norm_text
 from src.services.engine_authority.specs import SPECS
 from src.services.tagging.catalog import catalog_for
-from src.services.tagging.layout import analyse_sheet
+from src.services.tagging.layout import a1, analyse_sheet
 from src.services.tagging.suggest import SuggestResult, suggest
+from src.services.tagging.text import numbers_in_text
 from src.services.workbook.reader import read_workbook
 
 Key = tuple[str, dt.date, tuple]
@@ -136,30 +138,41 @@ def filed_amount(v: float, sheet_scale: int, level: str, places: int) -> Decimal
 
 
 def produced_from_suggestions(result: SuggestResult, cy_end: dt.date, py_end: dt.date | None, level: str,
-                              places: int = 2) -> list[ProducedFact]:
-    """The statement tagger's suggestions as facts: each suggested cell as the app would file it (`filed_amount`), at
-    its scope's period end. Accepting every suggestion is assumed (the user decides, in the app)."""
+                              places: int = 2, texts: dict[tuple[str, str], str] | None = None,
+                              data_type: Callable[[str], str] = lambda q: "monetary") -> list[ProducedFact]:
+    """The tagger's cell suggestions as facts: each suggested cell as the app would file it, at its scope's period end
+    (an opening balance at the previous one). Accepting every suggestion is assumed (the user decides, in the app).
+    - amounts are rounded once and scaled to rupees (`filed_amount`); counts, percentages and per-share figures are
+      filed as shown;
+    - a suggestion with a `pick` takes that number from the cell's text (a share count written in a note,
+      text.numbers_in_text);
+    - the share-capital note's suggestions (origin `table`) are scored as the producer `share`."""
     value_at = {}
     for rc in result.rows:
         for scope, ref in rc.row.cells.items():
             value_at[(rc.row.sheet, ref)] = rc.row.values[scope]
     scale_of = {l.sheet: SCALES[l.scale or level] for l in result.layouts}
-    ends = {"CY": cy_end, "PY": py_end}
     out = []
     for s in result.suggestions:
         sheet, ref = s["cell"]["sheet"], s["cell"]["ref"]
-        end = ends.get(s["scope"])
-        v = value_at.get((sheet, ref))
+        end = period_end(s["scope"], s.get("preferredLabel"), cy_end, py_end)
+        if "pick" in s:
+            nums = numbers_in_text((texts or {}).get((sheet, ref), ""))
+            v = float(nums[s["pick"]]) if s["pick"] < len(nums) else None
+        else:
+            v = value_at.get((sheet, ref))
         if end is None or v is None:
             continue
         dims = tuple(sorted((d["axis"], d.get("member") or d.get("typed")) for d in s.get("dims") or []))
-        rupees = filed_amount(v, scale_of.get(sheet, SCALES[level]), level, places) * s.get("sign", 1)
-        out.append(ProducedFact(s["concept"], end, dims, rupees, f"{sheet.strip()}!{ref}"))
+        scaled = data_type(s["concept"]) == "monetary" and "pick" not in s
+        value = (filed_amount(v, scale_of.get(sheet, SCALES[level]), level, places) if scaled else Decimal(repr(v))) * s.get("sign", 1)
+        producer = "share" if s.get("origin") == "table" else "statement"
+        out.append(ProducedFact(s["concept"], end, dims, value, f"{sheet.strip()}!{ref}", producer))
         for a in s.get("also", []):
-            also_end = period_end(s["scope"], a.get("preferredLabel"), cy_end, py_end)
+            also_end = period_end(a.get("scope", s["scope"]), a.get("preferredLabel"), cy_end, py_end)
             also_dims = tuple(sorted((d["axis"], d.get("member") or d.get("typed")) for d in a["dims"]))
             if also_end:
-                out.append(ProducedFact(a["concept"], also_end, also_dims, rupees, f"{sheet.strip()}!{ref}", "also"))
+                out.append(ProducedFact(a["concept"], also_end, also_dims, value, f"{sheet.strip()}!{ref}", "share" if producer == "share" else "also"))
     return out
 
 
@@ -269,9 +282,13 @@ def run_dgpl_dixon() -> tuple[CoverageReport, SuggestResult]:
     sheets = read_workbook(DGPL.read_bytes())["sheets"]
     layouts = [analyse_sheet(s, cy_end, py_end) for s in sheets]
     with SPECS["ind_as_taxonomy"].output.open(encoding="utf-8") as fh:
-        classifier = FactClassifier(json.load(fh))
-    result = suggest(catalog_for("ind_as_taxonomy"), sheets, cy_end, py_end)  # LLM off: fixtures stay local
-    produced = produced_from_suggestions(result, cy_end, py_end, level) + produced_from_blocks(result, sheets, cy_end, py_end, level)
+        authority = json.load(fh)
+    classifier = FactClassifier(authority)
+    catalog = catalog_for("ind_as_taxonomy")
+    result = suggest(catalog, sheets, cy_end, py_end)  # LLM off: fixtures stay local
+    texts = {(sh["name"], a1(c["r"], c["c"])): c["v"] for sh in sheets for c in sh["cells"] if isinstance(c["v"], str)}
+    data_type = lambda q: "monetary" if (authority["concepts"].get(q) or {}).get("type") == "xbrli:monetaryItemType" else "other"  # noqa: E731
+    produced = produced_from_suggestions(result, cy_end, py_end, level, texts=texts, data_type=data_type) + produced_from_blocks(result, sheets, cy_end, py_end, level)
     report = coverage(read_facts(DIXON), classifier, WorkbookIndex(sheets, layouts, level), produced)
     return report, result
 

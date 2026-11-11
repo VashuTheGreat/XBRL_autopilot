@@ -114,6 +114,7 @@ describe.skipIf(!kbReady || !existsSync(DGPL) || !existsSync(DIXON))('scoreboard
     const byRule = Object.entries(errors.reduce<Record<string, number>>((m, e) => ((m[e.ruleId ?? e.code ?? '?'] = (m[e.ruleId ?? e.code ?? '?'] ?? 0) + 1), m), {})).sort((a, b) => b[1] - a[1]).slice(0, 12)
     const head = [
       `suggested ${summary.suggested} cells, ${summary.blocks} blocks; accepted ${accepted.accepted} cells, ${accepted.blocks} blocks (${accepted.cells} cells), ${also} also; ${accepted.problems.length} refused`,
+      ...accepted.problems.map((x) => `  refused ${x}`),
       scoreboardText(board),
       `ERRORs: ${errors.length} — ${byRule.map(([r, n]) => `${r}×${n}`).join(', ')}`,
     ].join('\n')
@@ -127,10 +128,10 @@ describe.skipIf(!kbReady || !existsSync(DGPL) || !existsSync(DIXON))('scoreboard
     console.log(`ADR-0013 targets: amounts right ${amounts.right} (≥ 160), wrong ${amounts.wrong} (≤ 25); non-zero table amounts right ${board.rightNonZero.table} (≥ 190)`)
 
     // floors (2026-11-11): raise them when a producer improves; a drop is a regression
-    expect(summary).toMatchObject({ suggested: 299, blocks: 5 })
-    expect(o.excel!.amount.right).toBeGreaterThanOrEqual(137)
-    expect(o.excel!.amount.wrong).toBeLessThanOrEqual(45)
-    expect(o.excel!.table.right).toBeGreaterThanOrEqual(135)
+    expect(summary).toMatchObject({ suggested: 304, blocks: 5 })
+    expect(o.excel!.amount.right).toBeGreaterThanOrEqual(155)
+    expect(o.excel!.amount.wrong).toBeLessThanOrEqual(39)
+    expect(o.excel!.table.right).toBeGreaterThanOrEqual(157)
     expect(o.excel!.table.wrong).toBe(0)
     expect(o.derived!.amount.right).toBeGreaterThanOrEqual(31)
     expect(o.derived!.amount.wrong).toBeLessThanOrEqual(23)
@@ -139,11 +140,11 @@ describe.skipIf(!kbReady || !existsSync(DGPL) || !existsSync(DIXON))('scoreboard
     expect(o.zero!.amount.right).toBeGreaterThanOrEqual(92)
     expect(o.zero!.amount.wrong).toBeLessThanOrEqual(14)
     expect(o.zero!.table.right).toBeGreaterThanOrEqual(38)
-    // the share-class column (counts in the note's text)
-    expect(o.zero!.table.wrong).toBeLessThanOrEqual(24)
-    expect(board.rightNonZero.amount).toBeGreaterThanOrEqual(116)
-    expect(board.rightNonZero.table).toBeGreaterThanOrEqual(131)
-    // ML-39 ×3 asks the related parties now reported for their name, country and nature (text facts: step 5)
-    expect(errors.length).toBeLessThanOrEqual(298)
+    expect(o.zero!.table.wrong).toBeLessThanOrEqual(4)
+    expect(board.rightNonZero.amount).toBeGreaterThanOrEqual(134)
+    expect(board.rightNonZero.table).toBeGreaterThanOrEqual(153)
+    // ML-39 ×3 asks the related parties now reported for their name, country and nature (text facts: step 5); the
+    // holders over 5% (4 cells) are refused until the Yes/No SR-L621-1 asks for is answered (step 5)
+    expect(errors.length).toBeLessThanOrEqual(293)
   }, 600_000)
 })

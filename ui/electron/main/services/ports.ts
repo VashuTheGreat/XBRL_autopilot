@@ -171,19 +171,29 @@ export interface Suggestion {
   scope: 'CY' | 'PY'
   sign: 1 | -1
   confidence: number
-  origin: 'memory' | 'exact' | 'lexical' | 'ai'
+  /** `table`: the share-capital note producer (a table fact, possibly a number in a text cell) */
+  origin: 'memory' | 'exact' | 'lexical' | 'ai' | 'table'
   rationale: string
   needsReview: boolean
   alternatives: { concept: string; label: string; score: number }[]
   /** "also report as" the same figure under a table's members (e.g. the one class of shares) */
   also?: SuggestedAlsoItem[]
+  /** a table fact: its members, table and label role */
+  dims?: { axis: string; member?: string; typed?: string }[]
+  tableId?: string
+  preferredLabel?: string | null
+  /** the n-th number of the cell's text (MappingEntry.pick) */
+  pick?: number
 }
 
 export interface SuggestedAlsoItem {
   concept: string
-  tableId: string
+  /** absent for a plain (non-dimensional) fact */
+  tableId?: string
   preferredLabel: string | null
   dims: { axis: string; member?: string; typed?: string }[]
+  /** another year than the cell's (a par value stated once for both years) */
+  scope?: 'CY' | 'PY'
   confidence: number
   reason?: string
 }

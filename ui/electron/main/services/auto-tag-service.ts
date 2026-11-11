@@ -67,8 +67,10 @@ export class AutoTagService {
     const picked = chosen === s.fact.concept ? s : s.alternatives?.find((a) => a.concept === chosen)
     if (!picked) throw new ValidationError([`${chosen} is not one of this cell's suggestions.`])
     const own = chosen === s.fact.concept
+    // the suggested element keeps its members and its number in the cell's text; an alternative is a plain tag
+    const table = own && s.fact.dims.length ? { dims: s.fact.dims, tableId: s.fact.tableId ?? undefined, preferredLabel: s.fact.preferredLabel ?? null } : {}
     return this.mapping.tag(
-      { cell: s.cell, concept: chosen, scope: s.fact.scope, sign: own ? s.sign : 1 },
+      { cell: s.cell, concept: chosen, scope: s.fact.scope, sign: own ? s.sign : 1, ...table, ...(s.pick !== undefined ? { pick: s.pick } : {}) },
       own ? { origin: s.origin, confidence: s.confidence, rationale: s.rationale } : { origin: 'manual', confidence: null },
       // the proposed "also" facts are for the suggested element's figure: they stay open for review
       own && s.alsoSuggested ? { alsoSuggested: s.alsoSuggested } : {},
@@ -129,10 +131,10 @@ function toSheets(wb: WorkbookModel): SuggestRequest['sheets'] {
 }
 
 function toSuggestion(workbook: string, s: Suggestion): NewSuggestion {
-  // an "also" fact is the same figure: the same year as the cell's suggestion
+  // an "also" fact is the same figure: the same year as the cell's suggestion unless it says otherwise
   const also: SuggestedAlso[] = (s.also ?? []).map((a) => ({
     concept: a.concept,
-    scope: s.scope,
+    scope: a.scope ?? s.scope,
     dims: a.dims,
     tableId: a.tableId,
     preferredLabel: a.preferredLabel,
@@ -150,6 +152,8 @@ function toSuggestion(workbook: string, s: Suggestion): NewSuggestion {
     rationale: s.rationale,
     alternatives: s.alternatives,
     ...(also.length ? { also } : {}),
+    ...(s.dims?.length ? { dims: s.dims, ...(s.tableId ? { tableId: s.tableId } : {}), preferredLabel: s.preferredLabel ?? null } : {}),
+    ...(s.pick !== undefined ? { pick: s.pick } : {}),
   }
 }
 

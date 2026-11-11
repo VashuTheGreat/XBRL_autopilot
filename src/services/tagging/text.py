@@ -161,3 +161,23 @@ def scale_of(text: str) -> str | None:
         if rx.search(t):
             return level
     return None
+
+
+_MONTH = r"(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?"
+# dates written in text ("March 31, 2025", "31st March, 2025", "31.03.2025", "2025-03-31", "FY 2025-26"): not figures
+_DATES_IN_TEXT = re.compile("|".join([
+    r"\b\d{4}-\d{2}-\d{2}\b",
+    rf"\b{_MONTH}\s+\d{{1,2}}(?:st|nd|rd|th)?,?\s+\d{{2,4}}\b",
+    rf"\b\d{{1,2}}(?:st|nd|rd|th)?\s+(?:of\s+)?{_MONTH},?\s+\d{{2,4}}\b",
+    r"\b\d{1,2}[./-]\d{1,2}[./-]\d{2,4}\b",
+    r"\b(?:fy\s*)?\d{4}\s*[-–/]\s*\d{2,4}\b",
+]), re.I)
+_NUMBER_IN_TEXT = re.compile(r"\d{1,3}(?:,\d{2,3})+(?:\.\d+)?|\d+(?:\.\d+)?")
+
+
+def numbers_in_text(text: str) -> list[str]:
+    """The figures a text cell states, in order, with its dates removed and grouping commas dropped: "10,00,000 (March
+    31, 2025 : 10,00,000) Equity Shares of Rs. 10/- each" → ["1000000", "1000000", "10"]. The app's twin is the engine's
+    `numbersInText` (basics.ts); both are checked against tests/fixtures/numbers_in_text.json."""
+    plain = _DATES_IN_TEXT.sub(" ", text)
+    return [m.group(0).replace(",", "") for m in _NUMBER_IN_TEXT.finditer(plain)]

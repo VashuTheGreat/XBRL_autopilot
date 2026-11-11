@@ -52,3 +52,12 @@ describe('display places', () => {
     expect(defaultStatementPlaces('Lakhs')).toBe(2)
   })
 })
+
+describe('numbersInText', () => {
+  it('lists the figures of a text cell, dates removed (the fixture shared with the sidecar)', async () => {
+    const { readFileSync } = await import('node:fs')
+    const { numbersInText } = await import('../src/basics')
+    const { cases } = JSON.parse(readFileSync(new URL('../../tests/fixtures/numbers_in_text.json', import.meta.url), 'utf8')) as { cases: [string, string[]][] }
+    for (const [text, want] of cases) expect(numbersInText(text), text).toEqual(want)
+  })
+})

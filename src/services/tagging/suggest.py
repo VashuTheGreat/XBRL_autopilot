@@ -17,6 +17,7 @@ from src.services.tagging.candidates import Candidate, CandidateGenerator, Memor
 from src.services.tagging.catalog import ConceptInfo, TaggingCatalog
 from src.services.tagging.layout import SheetLayout, analyse_sheet
 from src.services.tagging.rerank import Reranker, RerankItem, RerankOption
+from src.services.tagging.share_capital import share_capital_suggestions
 from src.services.tagging.subclass_also import NoteEvidence, subclassification_also
 from src.services.tagging.table_catalog import one_class_also, table_catalog_for
 from src.services.tagging.table_suggest import suggest_tables
@@ -105,6 +106,9 @@ def suggest(
             also = [a for a in found if a["tableId"] not in mapped]
             if also:
                 s["also"] = also
+        # the share capital note's facts (counts in its text): they replace the statement tagger's guesses on those cells
+        note = share_capital_suggestions(tables, sheets, layouts, py_end)
+        suggestions = [s for s in suggestions if (s["cell"]["sheet"], s["cell"]["ref"]) not in note.cells] + note.suggestions
     return SuggestResult(layouts=layouts, suggestions=suggestions, rows=rows, llm_used=llm_used, blocks=blocks)
 
 

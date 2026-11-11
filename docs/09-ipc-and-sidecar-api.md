@@ -26,7 +26,7 @@
 | mapping | `mapping:cell-info` | invoke | `CellRef` → `CellInfo` (amount at the statement's precision + column period) |
 | mapping | `mapping:set-column-period` | invoke | `CellRef, 'CY' \| 'PY' \| null` → `ColumnPeriod` (remembered per sheet column in `mapping.json`) |
 | mapping | `mapping:set-status` | invoke | `id, 'suggested' \| 'rejected'` → `MappingView`. Approving goes through `autotag:accept` / `mapping:tag` (it writes the fact); a tagged entry can't change status |
-| mapping | `mapping:tag` | invoke | `TagCellInput` `{cell, concept, scope?, sign?, dims?, tableId?, preferredLabel?}` → `MappingView`. With `dims` the cell is a **table fact** (the table is found from the members unless given; written through `Session.setTableValue`). Validated field by field (`ipc/table-input.ts`) |
+| mapping | `mapping:tag` | invoke | `TagCellInput` `{cell, concept, scope?, sign?, dims?, tableId?, preferredLabel?, pick?}` → `MappingView`. `pick` = the n-th number of a text cell (counts and per-share figures only; one entry per number). With `dims` the cell is a **table fact** (the table is found from the members unless given; written through `Session.setTableValue`). Validated field by field (`ipc/table-input.ts`) |
 | mapping | `mapping:also-add` | invoke | `AlsoReportInput` `{mappingId, concept, dims, scope?, tableId?, preferredLabel?}` → `MappingView`: the tagged cell's figure is also filed as that fact ("also reported as", ADR-0013). Refused when another cell supplies the fact |
 | mapping | `mapping:also-remove` | invoke | `mappingId, index` → `MappingView` (that fact is removed) |
 | table | `table:catalog` | invoke | → `TableInfo[]` (tables with axes: id, title, statement code / title, line-item concepts) |

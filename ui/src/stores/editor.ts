@@ -77,10 +77,13 @@ interface EditorState {
 const api = () => window.xap.editor
 let revealSeq = 0
 
+/** A text cell holding several figures has one mapping per figure: the cell shows its first one. */
+const firstFigureLast = (mappings: MappingView[]) => [...mappings].sort((a, b) => (b.pick ?? -1) - (a.pick ?? -1))
+
 const index = (mappings: MappingView[]) => ({
   mappings,
   // keyed by the mapping's own reference and by every cell a summed range covers
-  byCell: new Map(mappings.flatMap((m) => [[cellKey(m.cell), m] as const, ...rangeCells(m.cell.ref).map((a1) => [cellKey({ ...m.cell, ref: a1 }), m] as const)])),
+  byCell: new Map(firstFigureLast(mappings).flatMap((m) => [[cellKey(m.cell), m] as const, ...rangeCells(m.cell.ref).map((a1) => [cellKey({ ...m.cell, ref: a1 }), m] as const)])),
   // every fact a cell supplies (its main tag and its "also reported as" facts) leads back to the cell
   byFact: new Map(mappings.flatMap((m) => (m.factKeys ?? (m.factKey ? [m.factKey] : [])).map((k) => [k, m] as const))),
 })

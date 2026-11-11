@@ -16,7 +16,7 @@
  * Every approved plain tag teaches the mapping memory (label → concept).
  */
 import { randomUUID } from 'node:crypto'
-import { decimal as Dec, dimKey, nondimAllowed, normDims, SCALE_POWERS, SHARE_CAPITAL, tableOfFact } from '@xap/engine'
+import { decimal as Dec, dimKey, nondimAllowed, normDims, numbersInText, SCALE_POWERS, SHARE_CAPITAL, tableOfFact } from '@xap/engine'
 import {
   displayLabel,
   type AlsoReportedView,
@@ -65,6 +65,12 @@ export interface NewSuggestion {
   alternatives: SuggestionAlternative[]
   /** "also reported as" facts proposed for the same figure */
   also?: SuggestedAlso[]
+  /** a table fact (the share-capital note): its members, table and label role */
+  dims?: DimRef[]
+  tableId?: string
+  preferredLabel?: string | null
+  /** the n-th number of the cell's text */
+  pick?: number
 }
 
 /**
@@ -123,27 +129,31 @@ export class MappingService {
     if (cells.every((c) => !c || c.v === null || c.v === '')) {
       throw new ValidationError([isRange ? 'The selected cells are empty.' : 'The selected cell is empty. Select the cell that holds the amount.'])
     }
+    if (input.pick !== undefined && (isRange || !A.isNumeric(input.concept) || A.dataType(input.concept) === 'monetary')) {
+      throw new ValidationError(['Only a share count or a per-share figure can be taken from a cell’s text: tag the amount’s own cell.'])
+    }
 
     const scope = input.scope ?? scopeOrExplain(await this.columns.of(input.cell))
     if (scope === 'PY' && !p.periods().py) throw new ValidationError(['This is the company’s first financial year: there are no previous-year figures.'])
 
     const sign = input.sign ?? 1
+    const pick = input.pick
     const fact: MappedFact = { ...target, scope }
-    this.applyFact(p, fact, this.displayValue(p, fact.concept, input.cell, cells, sign))
+    this.applyFact(p, fact, this.displayValue(p, fact.concept, input.cell, cells, sign, pick))
 
-    // one cell → one main fact and one fact ← one cell: older mappings that clash are replaced. Re-tagging the same
-    // cell keeps its "also reported as" facts: they follow the cell's figure.
+    // one cell (or one number of a cell's text) → one main fact, and one fact ← one cell: older mappings that clash
+    // are replaced. Re-tagging the same cell keeps its "also reported as" facts: they follow the cell's figure.
     const entries = this.entries(p)
-    const clash = (e: MappingEntry) =>
-      overlaps(e.cell, input.cell) || (hasFact(e) ? factsOf(e).some((f) => sameFact(f, fact)) : sameFact(e.fact, fact))
-    const previous = entries.find((e) => hasFact(e) && sameCell(e.cell, input.cell))
+    const samePlace = (e: MappingEntry) => overlaps(e.cell, input.cell) && e.pick === pick
+    const clash = (e: MappingEntry) => samePlace(e) || (hasFact(e) ? factsOf(e).some((f) => sameFact(f, fact)) : sameFact(e.fact, fact))
+    const previous = entries.find((e) => hasFact(e) && sameCell(e.cell, input.cell) && e.pick === pick)
     const kept = opts.also ?? previous?.also ?? []
     // one fact ← one cell: an "also" fact another (kept) cell already files stays that cell's
     const filedElsewhere = (f: MappedFact) => entries.some((e) => hasFact(e) && !clash(e) && factsOf(e).some((x) => sameFact(x, f)))
     const also = kept.filter((f) => !sameFact(f, fact) && !filedElsewhere(f))
     const alsoSuggested = (opts.alsoSuggested ?? previous?.alsoSuggested ?? []).filter((f) => ![fact, ...also].some((x) => sameFact(x, f)))
     for (const old of entries.filter(clash)) if (hasFact(old)) this.removeFacts(p, old, [fact, ...also])
-    for (const f of also) this.applyFact(p, f, this.displayValue(p, f.concept, input.cell, cells, sign))
+    for (const f of also) this.applyFact(p, f, this.displayValue(p, f.concept, input.cell, cells, sign, pick))
     const label = await this.sources.rowLabel(input.cell)
     const entry: MappingEntry = {
       id: this.newId(),
@@ -153,6 +163,7 @@ export class MappingService {
       ...(also.length ? { also } : {}),
       ...(alsoSuggested.length ? { alsoSuggested } : {}),
       ...(opts.blockId ? { blockId: opts.blockId } : {}),
+      ...(pick !== undefined ? { pick } : {}),
       sign,
       origin: provenance?.origin ?? 'manual',
       confidence: provenance?.confidence ?? null,
@@ -180,7 +191,7 @@ export class MappingService {
     const other = this.entries(p).find((x) => x.id !== e.id && hasFact(x) && factsOf(x).some((f) => sameFact(f, fact)))
     if (other) throw new ValidationError([`That fact already comes from ${other.cell.sheet}!${other.cell.ref}. Untag it there first.`])
     const { cells } = await this.sources.cell(e.cell)
-    this.applyFact(p, fact, this.displayValue(p, fact.concept, e.cell, cells, e.sign))
+    this.applyFact(p, fact, this.displayValue(p, fact.concept, e.cell, cells, e.sign, e.pick))
     e.also = [...(e.also ?? []), fact]
     p.touch()
     return this.view(p, e)
@@ -239,11 +250,11 @@ export class MappingService {
     const added: MappingEntry[] = []
     const taken = approved.flatMap(factsOf)
     for (const s of items) {
-      const fact: MappedFact = { concept: s.concept, scope: s.scope, dims: [] }
+      const fact: MappedFact = { concept: s.concept, scope: s.scope, dims: s.dims ?? [], ...(s.tableId ? { tableId: s.tableId } : {}), ...(s.dims?.length ? { preferredLabel: s.preferredLabel ?? null } : {}) }
       const skip =
-        approved.some((e) => overlaps(e.cell, s.cell)) ||
+        approved.some((e) => overlaps(e.cell, s.cell) && e.pick === s.pick) ||
         taken.some((f) => sameFact(f, fact)) ||
-        rejected.some((e) => sameCell(e.cell, s.cell) && e.fact.concept === s.concept)
+        rejected.some((e) => sameCell(e.cell, s.cell) && e.pick === s.pick && e.fact.concept === s.concept)
       if (skip) continue
       taken.push(fact)
       // a proposed "also" fact another cell already supplies (or this one twice) is not proposed
@@ -260,11 +271,12 @@ export class MappingService {
         rationale: s.rationale,
         alternatives: s.alternatives,
         ...(alsoSuggested.length ? { alsoSuggested } : {}),
+        ...(s.pick !== undefined ? { pick: s.pick } : {}),
         status: 'suggested',
       })
     }
     // a rejected entry on a cell that now has a different suggestion is superseded by it
-    const superseded = (e: MappingEntry) => e.status === 'rejected' && added.some((a) => sameCell(a.cell, e.cell))
+    const superseded = (e: MappingEntry) => e.status === 'rejected' && added.some((a) => sameCell(a.cell, e.cell) && a.pick === e.pick)
     this.setEntries(p, [...kept.filter((e) => !superseded(e)), ...added])
     p.touch()
     return { added: added.length, skipped: items.length - added.length }
@@ -310,7 +322,7 @@ export class MappingService {
     const alsoSuggested = (e.alsoSuggested ?? []).map(move)
     this.untag(id)
     const { concept, dims, tableId, preferredLabel } = e.fact
-    const view = await this.tag({ cell: e.cell, concept, dims, tableId: tableId ?? undefined, preferredLabel, scope, sign: e.sign }, provenance, {
+    const view = await this.tag({ cell: e.cell, concept, dims, tableId: tableId ?? undefined, preferredLabel, scope, sign: e.sign, ...(e.pick !== undefined ? { pick: e.pick } : {}) }, provenance, {
       also,
       alsoSuggested,
       ...(e.blockId ? { blockId: e.blockId } : {}),
@@ -331,7 +343,7 @@ export class MappingService {
     for (const e of this.entries(p).filter(hasFact)) {
       try {
         const { cells } = await this.sources.cell(e.cell)
-        for (const f of factsOf(e)) this.applyFact(p, f, this.displayValue(p, f.concept, e.cell, cells, e.sign))
+        for (const f of factsOf(e)) this.applyFact(p, f, this.displayValue(p, f.concept, e.cell, cells, e.sign, e.pick))
       } catch (err) {
         problems.push(`${e.cell.sheet}!${e.cell.ref}: ${err instanceof ValidationError ? err.problems.join(' ') : String(err)}`)
       }
@@ -376,7 +388,9 @@ export class MappingService {
   /** A1 of every cell a mapping covers → mapping, for the Excel overlay and the inspector. */
   byCell(): Map<string, MappingView> {
     const out = new Map<string, MappingView>()
-    for (const m of this.list()) for (const a1 of rangeCells(m.cell.ref)) out.set(`${m.cell.workbook}|${m.cell.sheet}|${a1}`, m)
+    // a text cell with several figures (picks) is keyed by its first one
+    const ordered = this.list().sort((a, b) => (b.pick ?? -1) - (a.pick ?? -1))
+    for (const m of ordered) for (const a1 of rangeCells(m.cell.ref)) out.set(`${m.cell.workbook}|${m.cell.sheet}|${a1}`, m)
     return out
   }
 
@@ -475,10 +489,16 @@ export class MappingService {
     return { kind: 'statement', fallbackPlaces: statementPlaces }
   }
 
-  private displayValue(p: ProjectHandle, concept: string, ref: CellRef, cells: (CellModel | null)[], sign: 1 | -1): string {
+  private displayValue(p: ProjectHandle, concept: string, ref: CellRef, cells: (CellModel | null)[], sign: 1 | -1, pick?: number): string {
     const A = p.authority.authority
     const first = cells.find((c) => c && c.v !== null && c.v !== '')
     const raw = first?.v as string | number | boolean
+    if (pick !== undefined) {
+      // a count or a per-share figure written in the text: filed as written (no rounding, no scale)
+      const n = numbersInText(String(raw ?? ''))[pick]
+      if (n === undefined) throw new ValidationError([`${ref.sheet}!${ref.ref} no longer states figure ${pick + 1} in its text.`])
+      return withSign(n, sign)
+    }
     if (A.isNumeric(concept)) {
       const isMonetary = A.dataType(concept) === 'monetary'
       const amount = rangeAmount(cells, this.precisionFor(p, concept))

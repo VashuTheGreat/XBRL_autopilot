@@ -1,6 +1,6 @@
 import { CalendarRange, Check, Copy, Link2, Search, Sparkles, Table2, Unlink, X } from 'lucide-react'
 import { formatIndian } from '@xap/engine/basics'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { CellAmount, ColumnPeriod, MappingView, Scope, SuggestedAlsoView } from '@shared/editor'
 import { cellKey, rangeOf, rangeSize } from '@shared/workbook'
 import { Button } from '@/components/ui/primitives'
@@ -13,8 +13,10 @@ const SCOPES: Scope[] = ['CY', 'PY']
 
 /** Strip under the grid: what the selected cell is tagged as, with quick actions (docs/08-ui-ux.md). */
 export function MappingInspector() {
-  const { selection, byCell, workbooks, cellInfo, untag, setScope, selectFact } = useEditor()
+  const { selection, byCell, mappings, workbooks, cellInfo, untag, setScope, selectFact } = useEditor()
   const setActivity = useUi((s) => s.setActivity)
+  // a text cell can hold several figures (share counts in a note), one mapping each: which one the strip shows
+  const [figure, setFigure] = useState<{ key: string; i: number }>({ key: '', i: 0 })
   const cell = selection.cell
   if (!cell) {
     return <footer className="flex h-9 shrink-0 items-center border-t border-border px-3 text-[11px] text-muted">Select a cell to see or set its tag.</footer>
@@ -25,7 +27,9 @@ export function MappingInspector() {
     .find((w) => w.source === cell.workbook)
     ?.sheets.find((s) => s.name === cell.sheet)
     ?.cells.find((c) => at && c.r === at.r1 && c.c === at.c1)?.v
-  const m = byCell.get(cellKey(cell))
+  const key = cellKey(cell)
+  const figures = mappings.filter((x) => x.pick !== undefined && cellKey(x.cell) === key).sort((a, b) => a.pick! - b.pick!)
+  const m = figures.length > 1 ? figures[figure.key === key ? Math.min(figure.i, figures.length - 1) : 0] : byCell.get(key)
   const info = cellInfo && cellKey(cellInfo.cell) === cellKey(cell) ? cellInfo : null
 
   return (
@@ -39,6 +43,20 @@ export function MappingInspector() {
       ) : (
         <span className="max-w-40 truncate tabular" title={raw == null ? '' : String(raw)}>
           {raw == null ? <span className="text-muted">empty</span> : typeof raw === 'number' ? formatIndian(String(raw)) : String(raw)}
+        </span>
+      )}
+      {figures.length > 1 && (
+        <span className="flex shrink-0 gap-0.5" data-testid="text-figures" title="The figures written in this cell’s text, one tag each">
+          {figures.map((x, i) => (
+            <button
+              key={x.id}
+              className={cn('rounded px-1 font-mono text-[10px]', x === m ? 'bg-accent text-accent-fg' : 'border border-border text-muted')}
+              title={`${x.conceptLabel} (${x.fact.scope})`}
+              onClick={() => setFigure({ key, i })}
+            >
+              #{x.pick! + 1}
+            </button>
+          ))}
         </span>
       )}
       <span className="h-4 w-px bg-border" />

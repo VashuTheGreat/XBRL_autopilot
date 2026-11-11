@@ -58,6 +58,7 @@ export function requireTagInput(v: unknown): TagCellInput {
     ...(x.dims !== undefined ? { dims: requireDims(x.dims) } : {}),
     ...(typeof x.tableId === 'string' ? { tableId: x.tableId } : {}),
     ...(preferredLabel !== undefined ? { preferredLabel } : {}),
+    ...(x.pick !== undefined ? { pick: index(x.pick, 'number in the text') } : {}),
   }
 }
 

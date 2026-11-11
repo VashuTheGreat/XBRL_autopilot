@@ -155,3 +155,28 @@ export function formatIndian(value: string): string {
   const grouped = rest ? `${rest.replace(/\B(?=(\d{2})+(?!\d))/g, ',')},${last3}` : last3
   return `${sign}${grouped}${frac}`
 }
+
+const MONTH = String.raw`(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?`
+/** Dates written in text ("March 31, 2025", "31st March, 2025", "31.03.2025", "2025-03-31", "FY 2025-26"): not figures. */
+const DATES_IN_TEXT = new RegExp(
+  [
+    String.raw`\b\d{4}-\d{2}-\d{2}\b`,
+    String.raw`\b${MONTH}\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{2,4}\b`,
+    String.raw`\b\d{1,2}(?:st|nd|rd|th)?\s+(?:of\s+)?${MONTH},?\s+\d{2,4}\b`,
+    String.raw`\b\d{1,2}[./-]\d{1,2}[./-]\d{2,4}\b`,
+    String.raw`\b(?:fy\s*)?\d{4}\s*[-–/]\s*\d{2,4}\b`,
+  ].join('|'),
+  'gi',
+)
+const NUMBER_IN_TEXT = /\d{1,3}(?:,\d{2,3})+(?:\.\d+)?|\d+(?:\.\d+)?/g
+
+/**
+ * The figures a text cell states, in order, with its dates removed and grouping commas dropped (ADR-0013: a share
+ * count written in a note's text). "10,00,000 (March 31, 2025 : 10,00,000) Equity Shares of Rs. 10/- each" →
+ * ["1000000", "1000000", "10"]. The sidecar's twin is src/services/tagging/text.py `numbers_in_text`; both are checked
+ * against tests/fixtures/numbers_in_text.json.
+ */
+export function numbersInText(text: string): string[] {
+  const plain = text.replace(DATES_IN_TEXT, ' ')
+  return [...plain.matchAll(NUMBER_IN_TEXT)].map((m) => m[0].replace(/,/g, ''))
+}

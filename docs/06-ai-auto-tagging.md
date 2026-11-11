@@ -214,6 +214,11 @@ A new kind of note table is a new producer `(Block, TableContext) → suggestion
   - **more members** from the note (`NoteEvidence`): a line of the note that shows the same figure, and whose heading names the line item ("NOTE 12 : LOANS"), names a member of another axis exactly ("(Unsecured, considered good)"). The financial-instruments note that lists the figure among others is not evidence;
   - **gross**: the table's "<label>, gross" item too, unless the note shows a non-zero allowance or impairment line.
   - Dixon: trade receivables 8 / 8, loans 8 / 16. Dixon also files the loan under *Loans given to other related parties* ("Loans given to holding company"), which no label names.
+- **Share capital note** (`share_capital.py`, step 3e, 2026-11-11), one class only (a note naming preference shares is left alone):
+  - a **count line** ("10,00,000 (March 31, 2025 : 10,00,000) Equity Shares of Rs. 10/- each") is tagged by number: `pick` = which figure of the text (`text.numbers_in_text`, the twin of the engine's `numbersInText`; shared fixture `tests/fixtures/numbers_in_text.json`). Its heading names the counts ("ISSUED, SUBSCRIBED AND PAID-UP" → issued, subscribed, subscribed and fully paid, paid-up) and its amount cells the values; "of Rs. 10/- each" is the par value;
+  - the **reconciliation** gives the shares outstanding (PY opening, both closings); the **holders over 5%** each holder's shares and percentage;
+  - every fact under the class member and, with one class, also without it (Dixon files both). Its cells' statement guesses are dropped.
+  - Dixon: 50 right / 0 wrong / 0 extra (producer `share`). In the app the holders' 4 cells are refused until the Yes/No of SR-L621-1 is answered (step 5).
 - **One class** (`one_class_also`): a statement suggestion of 0.9 or more whose element is a line item of a table with exactly one numbered "classes" axis (Equity shares 1), all other axes defaultable, gets `also: [{concept, tableId, dims, preferredLabel, confidence 0.7}]`.
 - **Scoreboard** (2026-11-11, `coverage_eval`, per producer):
 

@@ -46,6 +46,12 @@ export interface MappingEntry {
   also?: MappedFact[]
   /** the table block that created this entry (mapping.json `blocks`) */
   blockId?: string
+  /**
+   * The figure is the n-th number written in the cell's text (engine `numbersInText`, dates removed): a share count
+   * in a note ("10,00,000 (March 31, 2025 : 10,00,000) Equity Shares of Rs. 10/- each" holds the CY count, the PY
+   * count and the par value). One text cell can hold one entry per number. Counts and per-share figures only.
+   */
+  pick?: number
   /** applied to the cell's number (e.g. an expense shown as a negative) */
   sign: 1 | -1
   origin: MappingOrigin
@@ -150,6 +156,8 @@ export interface TagCellInput {
   dims?: DimRef[]
   tableId?: string
   preferredLabel?: string | null
+  /** the n-th number of the cell's text (MappingEntry.pick) */
+  pick?: number
 }
 
 /** One more fact for a tagged cell's figure (same year as the cell's tag unless given). */

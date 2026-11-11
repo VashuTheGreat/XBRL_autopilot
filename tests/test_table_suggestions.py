@@ -270,6 +270,8 @@ def test_dixon_table_producer_floors():
     assert t["extra"] <= 10, t
     also = report.by_producer["also"]  # "also report as" on sure statement tags: one class (2), sub-classification (16)
     assert also["right"] >= 18 and also["wrong"] == 0 and also["extra"] <= 4, also
+    share = report.by_producer["share"]  # the share capital note: counts in its text, values, reconciliation, holders
+    assert share["right"] >= 50 and share["wrong"] == 0 and share["extra"] == 0, share
     assert {b.table_id for b in result.blocks} == {"400600:DisclosureOfPropertyPlantAndEquipmentTable", "400200:StatementOfChangesInEquityTable",
                                                     "611100a:DisclosureOfFinancialAssetsTable", "610800:DisclosureOfTransactionsBetweenRelatedPartiesTable"}
 
