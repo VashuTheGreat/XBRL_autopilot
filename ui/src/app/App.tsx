@@ -11,6 +11,7 @@ import { useSidecar } from '@/stores/sidecar'
 import { toast } from '@/stores/toast'
 import { useUi } from '@/stores/ui'
 import { useValidation } from '@/stores/validation'
+import { useAi } from '@/stores/ai'
 import { ActivityBar } from './ActivityBar'
 import { StatusBar } from './StatusBar'
 import { Workbench } from './Workbench'
@@ -54,11 +55,13 @@ export function App() {
   const initProject = useProject((s) => s.init)
   const initSettings = useSettings((s) => s.init)
   const initValidation = useValidation((s) => s.init)
+  const initAi = useAi((s) => s.init)
 
   useEffect(() => initSidecar(), [initSidecar])
   useEffect(() => initProject(), [initProject])
   useEffect(() => initSettings(), [initSettings])
   useEffect(() => initValidation(), [initValidation])
+  useEffect(() => initAi(), [initAi])
   useEffect(() => window.xap?.menu.onCommand(runCommand), [])
   useEditorSync()
 

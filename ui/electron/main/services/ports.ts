@@ -4,6 +4,7 @@
  */
 import type { Authority, Session } from '@xap/engine'
 import type { TaxonomyId } from '@xap/engine/basics'
+import type { AiPatch } from '@shared/ai'
 import type { HttpMethod, SidecarResponse } from '@shared/ipc'
 import type { ElrInfo, RecentProject } from '@shared/project'
 import type { AxbrlContent, AxbrlManifest } from '../project/axbrl'
@@ -56,7 +57,7 @@ export interface TaxonomyCatalog {
 /** The part of the sidecar manager that HTTP adapters need. */
 export interface SidecarClient {
   whenReady(timeoutMs: number): Promise<void>
-  request<T>(method: HttpMethod, path: string, body?: unknown): Promise<SidecarResponse<T>>
+  request<T>(method: HttpMethod, path: string, body?: unknown, timeoutMs?: number): Promise<SidecarResponse<T>>
 }
 
 /** Supplies the engine authority of a taxonomy (loaded once per taxonomy, cached by the implementation). */
@@ -191,3 +192,84 @@ export interface Clock {
 }
 
 export const systemClock: Clock = { now: () => new Date() }
+
+// ------------------------------------------------------------------ AI fix agent (docs/07, ADR-0012)
+
+/** The context bundle of one problem, as POST /api/v1/fix/propose takes it (src/services/fix_agent/bundle.py). */
+export interface FixBundle {
+  taxonomy: TaxonomyId
+  problem: {
+    id: string
+    severity: 'error' | 'warning' | 'info'
+    family: string
+    code: string
+    ruleId: string | null
+    message: string
+    elrCode: string | null
+    elrTitle: string | null
+    concept: string | null
+    scope: string | null
+    factKey: string | null
+    cell: { workbook: string; sheet: string; ref: string } | null
+    rule: { id: string; text: string; implementation: string | null; ast: unknown } | null
+    mcaText: string | null
+    explanation: { title: string; meaning: string; cause: string; fix: string } | null
+  }
+  facts: FixBundleFact[]
+  sources: FixBundleSource[]
+  meta: { reportType: string | null; cyStart: string; cyEnd: string; pyStart: string | null; pyEnd: string | null; level: string; firstFinancialYear: boolean }
+  options: { maxSteps: number; maxTokens: number }
+}
+
+export interface FixBundleFact {
+  key: string
+  concept: string
+  label: string
+  dataType: string
+  scope: 'CY' | 'PY' | 'PYO' | 'OTHER' | null
+  period: string
+  dims: { axis: string; member: string }[]
+  value: string | null
+  display: string | null
+  nil: boolean
+  decimals: string | null
+  origin: string | null
+  cell: { workbook: string; sheet: string; ref: string } | null
+  elrs: string[]
+}
+
+export interface FixBundleSource {
+  cell: { workbook: string; sheet: string; ref: string }
+  label: string | null
+  value: string | number | boolean | null
+  neighbours: { ref: string; value: string | number | boolean | null; column: 'CY' | 'PY' | null }[]
+}
+
+export interface FixProposal {
+  summary: string
+  patches: AiPatch[]
+  dropped: { patch: unknown; reason: string }[]
+  resolves: string[]
+  needsHuman: boolean
+  steps: number
+  usage: { promptTokens: number; completionTokens: number; totalTokens: number }
+  toolCalls: { name: string; arguments: unknown }[]
+  stop: string
+  model: string | null
+}
+
+/** Proposes patches for one problem (the sidecar's POST /api/v1/fix/propose). Never writes anything. */
+export interface FixProposer {
+  propose(bundle: FixBundle): Promise<FixProposal>
+}
+
+/** What decides whether AI may run right now (Settings consent, Groq key, sidecar state). */
+export interface AiAvailability {
+  state(): { consent: boolean; sidecar: 'ready' | 'starting' | 'down'; keyConfigured: boolean; model: string | null }
+}
+
+/** Refuses AI for projects built from the repository's client fixtures (dev only; a no-op in the packaged app). */
+export interface FixtureGuard {
+  /** the fixture's file name when the project's workbook or imported XML is one of them, else null */
+  match(content: AxbrlContent): string | null
+}

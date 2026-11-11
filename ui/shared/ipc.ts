@@ -26,6 +26,7 @@ import type {
 } from './editor'
 import type { CellRef, WorkbookModel } from './workbook'
 import type { McaLaunchResult, ValidationView } from './validation'
+import type { AiHistoryEntry, AiView } from './ai'
 
 /**
  * Every fallible IPC call returns a Result instead of throwing: Electron flattens thrown errors into
@@ -129,6 +130,15 @@ export const IPC = {
   validationClearMca: 'validation:clear-mca',
   validationChanged: 'validation:changed',
   toolsLaunchMca: 'tools:launch-mca',
+  aiGet: 'ai:get',
+  aiPropose: 'ai:propose',
+  aiFixAll: 'ai:fix-all',
+  aiStop: 'ai:stop',
+  aiAccept: 'ai:accept',
+  aiReject: 'ai:reject',
+  aiClear: 'ai:clear',
+  aiHistory: 'ai:history',
+  aiChanged: 'ai:changed',
 } as const
 
 /** The API exposed on window.xap by the preload script. */
@@ -213,5 +223,22 @@ export interface XapApi {
     /** writes output/NNN.xml and starts the MCA XBRL Validation Tool */
     launchMca(): Promise<Result<McaLaunchResult>>
     onChanged(cb: (v: ValidationView) => void): () => void
+  }
+  /** Phase 10: AI fix agent (proposals only; the user accepts each patch) */
+  ai: {
+    get(): Promise<AiView>
+    /** Ask AI about one problem of the latest validation run */
+    propose(problemId: string): Promise<Result<AiView>>
+    /** starts the Fix all loop (runs in the background; progress arrives through onChanged) */
+    fixAll(): Promise<Result<AiView>>
+    stop(): Promise<Result<AiView>>
+    /** applies a patch; `input` = the value the user typed / edited, `confirmed` = explicit confirmation */
+    accept(cardId: string, opts?: { input?: string; confirmed?: boolean }): Promise<Result<AiView>>
+    reject(cardId: string, reason?: string): Promise<Result<AiView>>
+    /** removes proposals that have no open patch */
+    clear(): Promise<Result<AiView>>
+    /** the newest ai/history.jsonl entries (what was sent, what came back, decisions) */
+    history(): Promise<Result<AiHistoryEntry[]>>
+    onChanged(cb: (v: AiView) => void): () => void
   }
 }

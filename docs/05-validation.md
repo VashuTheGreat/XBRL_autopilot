@@ -132,7 +132,7 @@ Matching failures are reported as **warnings with the evidence attached**, never
 - Each gate issue becomes a `Problem` (`ui/shared/validation.ts`): severity, family (document, fact, dimension, calculation, rule, review, coverage, mca), rule id, message, **location** from the gate (statement, row, table, period, fact key) and the **Excel cell** of the fact. Only `approved` mapping entries count; `suggested` / `rejected` entries carry no fact and are never a source.
 - **Problems panel** (bottom panel, `ProblemsPanel.tsx`): grouped by statement / note, error / warning / info filters, source filter (this app / MCA tool), the taxonomy's rule coverage ("Rules 95.4% executable"), and counts in the status bar. **Double-click** locates: it opens the statement in the XBRL Form, selects the fact, and reveals and selects the Excel cell.
 - **Quick fixes:** where the engine's `fixFor` (`engine/src/core/fixes.js`) has a deterministic fix (total = sum of parts, nil for a missing current year, mandatory → 0, V3 schemaRef …) the row shows **Fix**. It applies through the session, then revalidates. Generic rules are matched by handler, so the fixes work for Ind AS too.
-- **Ask AI** is shown disabled until the AI fix agent (Phase 10). No filing data goes to an AI service in Phase 9.
+- **Ask AI** (✦ on a problem) and **Fix all with AI** (Phase 10): the AI fix agent proposes patches that the engine checks and the user accepts or rejects in the AI Agent tab. See [07](07-ai-fix-agent.md). Off without consent or a key; the quick fixes never depend on it.
 - XML export still refuses a filing with ERRORs unless the user forces it (written with a "NOT VALIDATED" comment).
 
 ## Layer 3: MCA Validation Tool v5.1

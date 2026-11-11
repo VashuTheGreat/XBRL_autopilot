@@ -17,6 +17,7 @@ import type { StatementService } from '../services/statement-service'
 import type { TaxonomyService } from '../services/taxonomy-service'
 import type { McaToolService } from '../services/mca-tool-service'
 import type { ValidationService } from '../services/validation-service'
+import type { FixAgentService } from '../services/fix-agent-service'
 import type { ProjectService } from '../services/project-service'
 import type { SettingsService } from '../services/settings-service'
 import type { SidecarManager } from '../sidecar'
@@ -38,6 +39,7 @@ export interface IpcDeps {
   autoTag: AutoTagService
   validation: ValidationService
   mcaTool: McaToolService
+  fixAgent: FixAgentService
   getWindow: () => BrowserWindow | null
 }
 
@@ -49,6 +51,7 @@ export function registerIpc(d: IpcDeps): void {
   registerEditorIpc(d)
   registerAutoTagIpc(d)
   registerValidationIpc(d)
+  registerAiIpc(d)
 }
 
 function registerAppIpc(d: IpcDeps): void {
@@ -199,4 +202,22 @@ function registerValidationIpc({ validation, mcaTool, getWindow }: IpcDeps): voi
   })
   handleResult(IPC.validationClearMca, () => validation.clearMcaErrors())
   handleResult(IPC.toolsLaunchMca, () => mcaTool.launch())
+}
+
+/** Values typed in a review card are short (an amount or a text of at most 200 characters). */
+const MAX_AI_INPUT = 400
+
+function registerAiIpc({ fixAgent }: IpcDeps): void {
+  handleQuery(IPC.aiGet, () => fixAgent.view())
+  handleResult(IPC.aiPropose, (_e, id: unknown) => fixAgent.ask(requireString(id, 'problem')))
+  handleResult(IPC.aiFixAll, () => fixAgent.fixAll())
+  handleResult(IPC.aiStop, () => fixAgent.stop())
+  handleResult(IPC.aiAccept, (_e, id: unknown, opts?: unknown) => {
+    const o = (opts ?? {}) as { input?: unknown; confirmed?: unknown }
+    if (o.input !== undefined && o.input !== null && (typeof o.input !== 'string' || o.input.length > MAX_AI_INPUT)) throw new Error('Invalid value')
+    return fixAgent.accept(requireString(id, 'patch'), { input: (o.input as string | undefined) ?? null, confirmed: o.confirmed === true })
+  })
+  handleResult(IPC.aiReject, (_e, id: unknown, reason?: unknown) => fixAgent.reject(requireString(id, 'patch'), typeof reason === 'string' ? reason.slice(0, 300) : undefined))
+  handleResult(IPC.aiClear, () => fixAgent.clear())
+  handleResult(IPC.aiHistory, () => fixAgent.historyEntries())
 }

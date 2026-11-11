@@ -4,6 +4,7 @@
  * into the services, and wires services ↔ window ↔ IPC.
  */
 import { existsSync, mkdirSync, readFileSync } from 'node:fs'
+import { userInfo } from 'node:os'
 import { join, resolve } from 'node:path'
 import { app, BrowserWindow, Menu, shell } from 'electron'
 import { IPC } from '@shared/ipc'
@@ -15,6 +16,14 @@ import { SidecarAuthoritySource, SidecarRuleBundleSource } from './infra/sidecar
 import { DetachedLauncher, FileOutputWriter, findMcaTool } from './infra/mca-tool'
 import { McaToolService } from './services/mca-tool-service'
 import { ValidationService } from './services/validation-service'
+import { AiHistory } from './services/ai-history'
+import { ContextBundleBuilder } from './services/context-bundle-builder'
+import { FixAgentService } from './services/fix-agent-service'
+import { NO_FIXTURE_GUARD } from './services/fixture-guard'
+import { PatchApplier } from './services/patch-applier'
+import { PatchVerifier } from './services/patch-verifier'
+import { fixtureGuardFrom } from './infra/fixture-hashes'
+import { SidecarFixProposer } from './infra/sidecar-fix-proposer'
 import { AuthorityService } from './services/authority-service'
 import { InstanceImportService } from './services/instance-import-service'
 import { SidecarTaxonomyCatalog } from './infra/sidecar-taxonomy-catalog'
@@ -101,6 +110,41 @@ const mcaTool = new McaToolService(
   new DetachedLauncher(),
 )
 
+// Phase 10: AI fix agent. Proposals only; every patch is checked by the engine and applied by the user. The fixture
+// guard reads data/ in development (client files never go to an AI service); the packaged app has no data/.
+const fixtureGuard = isDev ? fixtureGuardFrom(join(repoRoot, 'data')) : NO_FIXTURE_GUARD
+const today = () => new Date().toISOString().slice(0, 10)
+const fixAgent = new FixAgentService(
+  projects,
+  validation,
+  new ContextBundleBuilder(sources, columns, () => mapping.list()),
+  new SidecarFixProposer(sidecar),
+  new PatchVerifier(mapping, columns, today),
+  new PatchApplier(mapping),
+  new AiHistory({ now: () => new Date() }, () => safeUserName()),
+  {
+    state: () => {
+      const st = sidecar.getStatus()
+      return {
+        consent: settings.get().aiConsent,
+        sidecar: st.state === 'ready' ? 'ready' : st.state === 'starting' ? 'starting' : 'down',
+        keyConfigured: st.state === 'ready' && st.aiEnabled,
+        model: st.state === 'ready' ? st.model : null,
+      }
+    },
+  },
+  fixtureGuard,
+  (v) => mainWindow?.webContents.send(IPC.aiChanged, v),
+)
+
+function safeUserName(): string {
+  try {
+    return userInfo().username
+  } catch {
+    return 'user'
+  }
+}
+
 // ---------------------------------------------------------------- window
 function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -160,16 +204,22 @@ function createWindow(): void {
 }
 
 function wireEvents(): void {
+  const pushAi = () => mainWindow?.webContents.send(IPC.aiChanged, fixAgent.view())
   projects.on('changed', (s) => {
     validation.schedule()
+    pushAi()
     mainWindow?.setTitle(windowTitle(s))
     mainWindow?.setDocumentEdited(Boolean(s?.dirty))
     mainWindow?.webContents.send(IPC.projectChanged, s)
   })
   settings.on('changed', (s) => mainWindow?.webContents.send(IPC.settingsChanged, s))
+  settings.on('changed', pushAi)
   settings.on('ai-config-changed', () => void sidecar.restart())
   settings.on('changed', () => autosave.start()) // re-arm with a possibly new interval
-  sidecar.on('status', (s) => mainWindow?.webContents.send(IPC.sidecarStatusChanged, s))
+  sidecar.on('status', (s) => {
+    mainWindow?.webContents.send(IPC.sidecarStatusChanged, s)
+    pushAi()
+  })
   sidecar.on('log', (l) => {
     if (isDev) console.log(`[sidecar:${l.stream}] ${l.text}`)
     mainWindow?.webContents.send(IPC.sidecarLog, l)
@@ -215,6 +265,7 @@ if (!app.requestSingleInstanceLock()) {
       autoTag,
       validation,
       mcaTool,
+      fixAgent,
       getWindow,
     })
     wireEvents()

@@ -17,7 +17,7 @@ import { NoProjectError, ValidationError } from './errors'
 import type { ProjectAccess, ProjectHandle } from './ports'
 
 /** An issue as the engine's gate reports it (engine/src/core/gate.js). */
-interface GateIssue {
+export interface GateIssue {
   severity: 'ERROR' | 'WARNING' | 'INFO'
   code: string
   message: string
@@ -111,7 +111,7 @@ export class ValidationService {
     const seen = new Map<string, number>()
     this.issues.clear()
     for (const issue of gate.issues) {
-      const base = [issue.code, issue.factKey ?? issue.location?.cellId ?? '', issue.concept ?? '', issue.scope ?? '', issue.tableId ?? ''].join('|')
+      const base = issueSignature(issue)
       const n = (seen.get(base) ?? 0) + 1
       seen.set(base, n)
       const id = `engine:${base}#${n}`
@@ -258,6 +258,18 @@ export class ValidationService {
       }
     })
   }
+}
+
+/** What identifies an issue across runs (code, fact, element, year, table); problem ids are `engine:<signature>#n`. */
+export function issueSignature(issue: Pick<GateIssue, 'code' | 'factKey' | 'concept' | 'scope' | 'tableId' | 'location'>): string {
+  return [issue.code, issue.factKey ?? issue.location?.cellId ?? '', issue.concept ?? '', issue.scope ?? '', issue.tableId ?? ''].join('|')
+}
+
+/** The signature inside an engine problem id; null for MCA problems. */
+export function problemSignature(problemId: string): string | null {
+  if (!problemId.startsWith('engine:')) return null
+  const i = problemId.lastIndexOf('#')
+  return problemId.slice('engine:'.length, i < 0 ? undefined : i)
 }
 
 function emptyView(revision: number): ValidationView {

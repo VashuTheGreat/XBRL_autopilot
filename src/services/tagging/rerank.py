@@ -1,4 +1,4 @@
-"""Optional LLM rerank of undecided rows (Groq, OpenAI-compatible chat API, stdlib urllib: no new dependency).
+"""Optional LLM rerank of undecided rows (Groq through the shared client, src/services/llm/groq.py).
 
 Only labels travel: the row label, its headings, the sheet kind and the candidate elements. Never amounts, company
 names or CINs (docs/11-security-privacy.md). The model may only pick one of the given candidates or none; the
@@ -7,12 +7,11 @@ caller treats its answer as one more suggestion, never as a fact (CLAUDE.md non-
 from __future__ import annotations
 
 import json
-import urllib.error
-import urllib.request
 from dataclasses import dataclass
 from typing import Protocol
 
-GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+from src.services.llm.groq import ChatModel, GroqClient, GroqError
+
 BATCH = 30
 LLM_CONFIDENCE_CAP = 0.9
 
@@ -92,26 +91,16 @@ def parse_choices(text: str, items: list[RerankItem]) -> dict[int, RerankChoice]
 
 
 class GroqReranker:
-    def __init__(self, api_key: str, model: str, timeout_s: float = 30.0, url: str = GROQ_URL):
-        self._key, self._model, self._timeout, self._url = api_key, model, timeout_s, url
+    def __init__(self, api_key: str, model: str, timeout_s: float = 30.0, url: str | None = None, client: ChatModel | None = None):
+        self._client = client or GroqClient(api_key, model, url=url, timeout_s=timeout_s)
 
     def rerank(self, items: list[RerankItem]) -> dict[int, RerankChoice]:
         out: dict[int, RerankChoice] = {}
         for i in range(0, len(items), BATCH):
             batch = items[i : i + BATCH]
             try:
-                out.update(parse_choices(self._complete(build_messages(batch)), batch))
-            except (urllib.error.URLError, TimeoutError, OSError, KeyError, ValueError):
+                reply = self._client.chat(build_messages(batch), response_format={"type": "json_object"})
+                out.update(parse_choices(reply.content, batch))
+            except (GroqError, KeyError, ValueError):
                 continue  # the LLM is optional: those rows keep their lexical suggestion
         return out
-
-    def _complete(self, messages: list[dict]) -> str:
-        body = json.dumps({
-            "model": self._model, "messages": messages, "temperature": 0,
-            "response_format": {"type": "json_object"},
-        }).encode()
-        req = urllib.request.Request(self._url, data=body, method="POST", headers={
-            "Authorization": f"Bearer {self._key}", "Content-Type": "application/json", "User-Agent": "xbrl-autopilot",
-        })
-        with urllib.request.urlopen(req, timeout=self._timeout) as resp:  # noqa: S310 (fixed https URL)
-            return json.loads(resp.read())["choices"][0]["message"]["content"]

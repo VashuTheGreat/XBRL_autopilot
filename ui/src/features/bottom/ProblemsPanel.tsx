@@ -1,9 +1,11 @@
 import { ChevronDown, ChevronRight, CircleAlert, ExternalLink, Info, ListChecks, RefreshCw, Sparkles, TriangleAlert, Upload, Wrench, X } from 'lucide-react'
 import { useState } from 'react'
+import { aiEligible } from '@shared/ai'
 import type { Problem, ProblemSeverity } from '@shared/validation'
 import { EmptyState } from '@/components/EmptyState'
 import { Button, Dialog } from '@/components/ui/primitives'
 import { cn } from '@/lib/cn'
+import { useAi } from '@/stores/ai'
 import { useProject } from '@/stores/project'
 import { groupByStatement, useValidation, visibleProblems, type SourceFilter } from '@/stores/validation'
 
@@ -28,7 +30,17 @@ function SeverityToggle({ s, count }: { s: ProblemSeverity; count: number }) {
 
 function ProblemRow({ p }: { p: Problem }) {
   const { selected, locate, fix, select } = useValidation()
+  const ai = useAi((s) => s.view)
+  const ask = useAi((s) => s.ask)
   const [open, setOpen] = useState(false)
+  const aiReady = !!ai?.status.enabled && ai.run.state !== 'proposing'
+  const aiTitle = !aiEligible(p)
+    ? 'Identity data is never sent to the AI'
+    : !ai?.status.enabled
+      ? ai?.status.message ?? 'AI is off'
+      : ai.run.state === 'proposing'
+        ? 'The AI is working on another request'
+        : 'Ask AI: propose a fix you can review'
   const Icon = ICON[p.severity]
   return (
     <div
@@ -68,7 +80,16 @@ function ProblemRow({ p }: { p: Problem }) {
               <Wrench size={11} /> Fix
             </Button>
           )}
-          <button className="cursor-not-allowed text-muted opacity-50" disabled title="Ask AI arrives with the AI fix agent (Phase 10)">
+          <button
+            className={cn('text-muted', aiReady && aiEligible(p) ? 'hover:text-accent' : 'cursor-not-allowed opacity-40')}
+            disabled={!aiReady || !aiEligible(p)}
+            title={aiTitle}
+            onClick={(e) => {
+              e.stopPropagation()
+              void ask(p)
+            }}
+            data-testid="problem-ask-ai"
+          >
             <Sparkles size={12} />
           </button>
         </div>
@@ -120,6 +141,8 @@ function PasteMcaDialog() {
 export function ProblemsPanel() {
   const hasProject = useProject((s) => s.summary !== null)
   const { view, severities, source, setSource, run, setPasteOpen, launchMca, clearMca } = useValidation()
+  const ai = useAi((s) => s.view)
+  const fixAll = useAi((s) => s.fixAll)
   if (!hasProject) {
     return (
       <EmptyState icon={TriangleAlert} title="No filing open">
@@ -152,6 +175,16 @@ export function ProblemsPanel() {
           </span>
         )}
         <div className="flex-1" />
+        <Button
+          variant="ghost"
+          className="h-6 px-2 text-[11px]"
+          disabled={!ai?.status.enabled || ai.run.state === 'proposing' || ai.run.state === 'reviewing' || !(view?.summary.errors ?? 0)}
+          onClick={() => void fixAll()}
+          title={ai?.status.enabled ? 'Fix all with AI: rounds of up to 10 errors, each patch reviewed by you' : ai?.status.message ?? 'AI is off'}
+          data-testid="problems-fix-all"
+        >
+          <Sparkles size={11} /> Fix all with AI
+        </Button>
         <Button variant="ghost" className="h-6 px-2 text-[11px]" onClick={() => void run()} title="Validate now" data-testid="problems-run">
           <RefreshCw size={11} /> Validate
         </Button>

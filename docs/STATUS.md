@@ -17,8 +17,8 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 | 7 | **Import an existing XBRL instance** (any vendor) into a project: golden test Dixon → regenerate → all 2,666 facts semantically equal (also after save → reopen); import report with the round-trip proof and Webtel's conventions vs ours; next year's filing started from last year's XML | ✅ done |
 | 8 | **AI auto-tagging** (`/mapping/suggest`: layout → memory → exact label → BM25 with heading context, filtered by period type / dimensions / statement → optional Groq rerank) plus an **evaluation harness** on the DGPL ↔ Dixon answer key (precision 0.738, recall 0.793; ≥ 0.9 right 93.6%); suggestions → Accept / Reject / Accept all ≥ 90% in the app; mapping memory. Embeddings (ONNX) deferred | ✅ done |
 | 9 | **Validation UI** ([ADR-0011](decisions/ADR-0011-business-rules-from-knowledge-base.md)): the executable rule ASTs are built in Python into `knowledge_base` and served by `/{id}/engine-rules`; C&I deep-equal to the retired TS compiler; **Ind AS formalized** (95.36% executable, Dixon 0 ERRORs); rule-coverage reports; live validation (gate, rules, calculation per taxonomy), Problems panel with locate and quick fixes, MCA Validation Tool v5.1 launcher + error import; Arelle XSD check (dev extra) working | ✅ done |
-| 10 | **AI fix agent** (⏭ next: `/fix/propose`, patch review, audit log; "Ask AI" in the Problems panel) | ⏳ |
-| 11 | **Packaging**: PyInstaller sidecar + electron-builder NSIS, `.axbrl` association | ⏳ |
+| 10 | **AI fix agent** ([ADR-0012](decisions/ADR-0012-ai-fix-patches.md)): `/fix/propose` (Groq tool loop ≤ 6 calls, tools on the knowledge base + bundle, strict JSON patches), privacy checked twice + fixture guard, engine `checkPatch` / `applyFactPatch` / `dryRun`, diff cards with Accept / Edit / Reject, Fix all rounds with budgets, `ai/history.jsonl` with the exact payload; live Groq smoke 4/4 correct | ✅ done |
+| 11 | **Packaging** (⏭ next): PyInstaller sidecar + electron-builder NSIS, `.axbrl` association | ⏳ |
 | 12 | Costing CRA-4, masters prefill, trial-balance mapping, Groq proxy, auto-update | ⏳ |
 
 ## Known issues / debt
@@ -33,6 +33,9 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 - **Hardcoded C&I ELR codes left in the engine** (outside the rules): `carry-forward.js` disclosure tabs [400100]–[400500] and some importer comments. Applicability now finds cash-flow ELRs by title and general information by the rule's `elrCode`; review the rest when Ind AS next-year carry-forward is exercised.
 - **Webtel's conventions** are reported by the Phase 7 import (descriptive context ids, `TAB…` fact ids, duplicate contexts). Dixon's amounts are rupees with `decimals="-3"`/`"2"` as filed; imported facts keep their own `decimals`, so the regenerated XML reports them unchanged.
 - **E2E can't switch projects:** a dirty project triggers the native "Save changes?" box, which CDP can't click. The statement-list fix for switching taxonomies has no E2E yet.
+- **Rebel Marketplace (Ind AS) gives 7 ERRORs** (pinned in `engine/test/rebel-known.test.ts`): ML-40 ×4, SR-L1097-1 ×2, SR-L6487-2 ×1. Not a golden until MCA acceptance of that exact instance is shown; triage then (rule or filing).
+- **Ind AS parent/child member exemptions** (from Phase 9): still read but unused; confirm with the MCA tool whether it enforces parent members for Ind AS.
+- **AI fix agent limits (Phase 10):** no patches on table (dimensional) values yet (`setDims` with table tagging); `addFootnote` / `editText` / `setMeta` deferred; MCA tool problems get no dry-run verdict; the live quality was measured on 4 synthetic problems only, so measure it on a larger non-client set; Fix all asks one problem per request (no batching).
 - **Possible legacy-test flake:** one run of `pnpm test` (while a dev Electron app was also running) failed a `golden-DIVERGENCES.json` assertion; the next three runs passed (220/0). Watch for it.
 
 ## Log
@@ -197,4 +200,32 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
   - **Tests:** ui 141 (+9 `validation-service.test.ts`: empty view, C&I rules + coverage, approved-only source cells, quick fix, MCA import → save → clear, debounce, MCA launch numbering, missing tool); legacy 226/0 (+7 XSD); engine 33; pytest 98.
   - **E2E `ui/e2e/phase9-validation.mjs` green** (13 checks): live problems + status-bar counts, rule coverage 95.2%, a PY-only share capital tag gives a problem on BS!D9, double-click selects D9 and opens [100100], Fix clears it, two pasted MCA errors explained and linked to ShareCapital, no renderer errors. Phase 6 and 7 E2E also green with the rules loaded through the route.
   - **Next:** Phase 10, the AI fix agent.
-
+- **2026-11-11, Phase 10 done: AI fix agent ([ADR-0012](decisions/ADR-0012-ai-fix-patches.md), [07](07-ai-fix-agent.md)):**
+  - **Sidecar:**
+    - `src/services/llm/groq.py` is the one Groq client: 60 s timeout, backoff on 429/5xx, `GROQ_URL` only as https or loopback, the API's error code kept. The tagging rerank now uses it too.
+    - `src/services/fix_agent/` (`bundle.py`, `privacy.py`, `tools.py`, `agent.py`, `patches.py`) and route `POST /api/v1/fix/propose`: tool loop of at most 6 calls with a token budget, repair prompt, recovery from Groq `tool_use_failed`, structural patch check.
+    - Responses: 409 without a key, 422 for identity data (nothing sent), 502 when Groq fails.
+  - **Engine:** `src/patches.ts` (`checkPatch`, `applyFactPatch`, `dryRun`) for the ops setValue (sources cell / identity / user), setNil, remap, setScope, removeFact, setText.
+  - **Electron** (Electron-free services):
+    - `ContextBundleBuilder`: no identity data, opaque fact ids, label-matched Excel rows for untagged elements.
+    - `PatchVerifier`: engine + Excel checks + dry run.
+    - `PatchApplier`: Session / MappingService, origin `ai`.
+    - `FixAgentService`: Ask AI; Fix all with ≤ 10 problems per round, ≤ 5 rounds, token / time budgets, stop reasons.
+    - `AiHistory`: `ai/history.jsonl`.
+    - `HashFixtureGuard` + `infra/fixture-hashes.ts`: `data/` hashed at dev startup, a no-op when packaged.
+    - `SidecarFixProposer`.
+    - IPC `ai:*`.
+    - `MappingService.setScope` keeps provenance.
+    - `SidecarClient.request` takes a timeout.
+  - **UI:** ✦ Ask AI per problem and Fix all with AI (Problems and AI Agent); the AI Agent tab with diff cards (before → after, source, confidence, dry-run verdict, locate, Accept / Edit / Reject, confirmation for removals and typed values), dropped proposals with reasons, History with the exact payload, the "AI off" reason; review badge on the tab.
+  - **Live Groq** (`openai/gpt-oss-120b`, synthetic sample only, `ui/e2e/phase10-live-groq.mjs`): 4 of 4 correct Excel-sourced cards, each clearing its problem on the dry run, in 2–6 s and about 2,200 tokens each. The first live runs found three issues, all fixed with tests:
+    - `confidence: "high"` dropped every patch;
+    - a made-up fact id for a new fact;
+    - a "Note No." cell cited as the amount (caught by the Excel check; label-matched rows are now named by their year cell).
+  - **Rebel Marketplace** (Ind AS, FY 2025-26) committed as an offline fixture (XML + 2 PDFs, docs/12) with its 7 ERRORs pinned as known; the screenshot stays out of git. `knowledge_base/ci_engine_authority.json` reverted (it had been pretty-printed with the same content).
+  - **Tests:**
+    - pytest 120 (+22 `test_fix_agent.py`: Groq client retries / timeouts / URL, rerank through the shared client, privacy and the TS/Python pattern parity, tools, loop, patch checks, confidence words, made-up ids, `tool_use_failed`, route);
+    - engine 42 (+8 `patches.test.ts`, +1 `rebel-known.test.ts`); legacy 226/0;
+    - ui 156 (+11 `fix-agent-service.test.ts`, +4 `fixture-guard.test.ts`).
+  - **E2E `ui/e2e/phase10-ai-fix.mjs` green** (22 checks, dev app + mock LLM through `GROQ_URL`).
+  - **Next:** Phase 11, packaging.

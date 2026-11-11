@@ -39,6 +39,15 @@
 | settings | `settings:get` / `settings:set` | invoke | non-secret settings |
 | settings | `settings:set-groq-key` / `settings:has-groq-key` | invoke | the key is stored with safeStorage; it is never returned to the renderer |
 | tools | `tools:launch-mca` | invoke | → `McaLaunchResult` `{xmlPath, toolPath, validated}`: writes `output/NNN.xml`, starts the MCA tool detached (Phase 9; `McaToolService`). The menu command `tools:open-mca-validator` calls it |
+| ai | `ai:get` | invoke | → `AiView` `{revision, status, run, proposals}` (`ui/shared/ai.ts`; Phase 10, `FixAgentService`) |
+| ai | `ai:changed` | event | `AiView` (after every proposal / decision, and when consent, key, sidecar or project change) |
+| ai | `ai:propose` | invoke | `problemId` → `AiView`: Ask AI on one problem of the latest validation run (one sidecar request) |
+| ai | `ai:fix-all` | invoke | → `AiView`: starts the Fix all loop in the background (rounds of ≤ 10 errors, ≤ 5 rounds, token / time budget) |
+| ai | `ai:stop` | invoke | → `AiView` (stop reason `stopped`) |
+| ai | `ai:accept` | invoke | `cardId, {input?, confirmed?}` → `AiView`: checks again, applies through Session / MappingService, revalidates. `input` = the value typed in the card (Edit, or a user-supplied value, ≤ 400 chars); `confirmed` is required for removals and user-supplied values |
+| ai | `ai:reject` | invoke | `cardId, reason?` → `AiView` (recorded in `ai/history.jsonl`) |
+| ai | `ai:clear` | invoke | → `AiView` (drops proposals with no open card) |
+| ai | `ai:history` | invoke | → `AiHistoryEntry[]` (the newest 200 lines of `ai/history.jsonl`) |
 
 ```ts
 type SidecarStatus =
@@ -48,7 +57,7 @@ type SidecarStatus =
 
 ## Main ↔ sidecar (HTTP)
 - **Address and auth:** `http://127.0.0.1:<port>`. Every request except `/health` needs `Authorization: Bearer <token>`.
-- **Configuration:** the port and token are passed as env vars `XAP_PORT`, `XAP_TOKEN`. `XAP_PARENT_PID` (Electron main's PID) makes the sidecar exit when the app is gone, even after a crash or force-kill. The Groq key is passed as `GROQ_API_KEY` from safeStorage, or from `.env` in dev.
+- **Configuration:** the port and token are passed as env vars `XAP_PORT`, `XAP_TOKEN`. `GROQ_URL` (optional, inherited) points the shared Groq client at another endpoint; only https or loopback http is accepted (the E2E's mock LLM). `XAP_PARENT_PID` (Electron main's PID) makes the sidecar exit when the app is gone, even after a crash or force-kill. The Groq key is passed as `GROQ_API_KEY` from safeStorage, or from `.env` in dev.
 - **Response envelope** (existing, `api/responses.py`): `{data, message, success, errors[]}`.
 
 | Method & path | Purpose | Status |
@@ -69,7 +78,7 @@ type SidecarStatus =
 | `POST /api/v1/workbooks/read` | `{fileName, contentBase64}` → `{sheets:[{name,rowCount,colCount,cells,merges,colWidths}]}` (the `WorkbookModel` shape). python-calamine reads `.xls`; there are no number formats, so amounts round to the filing's decimal places. 422 for unreadable files | **used by the UI** (Phase 5) |
 | `POST /api/v1/mapping/suggest` | Auto-tagging: `{taxonomy, sheets:[{name, cells:[{r,c,v}]}], periods:{cyEnd, pyEnd}, level, memory:[{label, concept, approvals}], options:{useLlm, maxCandidates}}` → `{layout[], suggestions[], llmUsed, level}`. `ci_taxonomy`, `ind_as_taxonomy` (others 422). Stateless; LLM rerank only with `useLlm` **and** a Groq key. See [06](06-ai-auto-tagging.md) | **used by the app** (Phase 8, `SidecarMappingSuggester`) |
 | `POST /api/v1/mapping/review` | Tagging-quality review | later |
-| `POST /api/v1/fix/propose` | Fix agent, see [07](07-ai-fix-agent.md) | Phase 7 |
+| `POST /api/v1/fix/propose` | Fix agent ([07](07-ai-fix-agent.md), [ADR-0012](decisions/ADR-0012-ai-fix-patches.md)): `{taxonomy, problem, facts[], sources[], meta, options:{maxSteps ≤ 6, maxTokens}}` (`src/services/fix_agent/bundle.py`) → `{summary, patches[], dropped[], resolves[], needsHuman, steps, usage, toolCalls[], stop, model}`. 409 `ai.disabled` (no key), 422 `privacy` (identity data in the bundle; nothing sent), 502 `ai.failed`. The app calls it with a 6.5 min timeout (`SidecarClient.request(…, timeoutMs)`) | **used by the app** (Phase 10, `SidecarFixProposer`) |
 
 **Rules:**
 1. Validate every request with a Pydantic schema in `api/v1/schemas/`.

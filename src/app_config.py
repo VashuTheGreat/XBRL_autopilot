@@ -13,6 +13,8 @@ class AppConfig(BaseSettings):
     # AI (Groq). Dev: from .env. Packaged app: injected by Electron main from safeStorage.
     groq_api_key: Optional[str] = Field(None, validation_alias="GROQ_API_KEY")
     groq_model: str = Field(DEFAULT_GROQ_MODEL, validation_alias="GROQ_MODEL")
+    # Tests / E2E point this at a local mock LLM (src/services/llm/groq.py accepts https or loopback http only).
+    groq_url: Optional[str] = Field(None, validation_alias="GROQ_URL")
 
     # Sidecar runtime (set by Electron main when it spawns us).
     xap_port: int = Field(7860, validation_alias="XAP_PORT")

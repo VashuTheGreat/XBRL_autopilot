@@ -165,6 +165,13 @@ export class MappingService {
     return { added: added.length, skipped: items.length - added.length }
   }
 
+  /** The approved tag of exactly this cell (or range), if any. */
+  approvedAt(cell: CellRef): MappingView | null {
+    const p = this.projects.project()
+    const e = this.entries(p).find((x) => hasFact(x) && sameCell(x.cell, cell))
+    return e ? this.view(p, e) : null
+  }
+
   /** A stored entry by id (for AutoTagService's accept / reject). */
   get(id: string): MappingView {
     const p = this.projects.project()
@@ -179,7 +186,8 @@ export class MappingService {
     p.touch()
   }
 
-  async setScope(id: string, scope: Scope): Promise<MappingView> {
+  /** Moves a tag to the other year. `provenance`: who decided (an accepted AI patch keeps origin 'ai' and its confidence). */
+  async setScope(id: string, scope: Scope, provenance?: TagProvenance): Promise<MappingView> {
     const p = this.projects.project()
     const e = this.find(p, id)
     if (e.fact.scope === scope) return this.view(p, e)
@@ -189,7 +197,7 @@ export class MappingService {
       return this.view(p, e)
     }
     this.untag(id)
-    const view = await this.tag({ cell: e.cell, concept: e.fact.concept, scope, sign: e.sign })
+    const view = await this.tag({ cell: e.cell, concept: e.fact.concept, scope, sign: e.sign }, provenance)
     // correcting a cell's period corrects its column: later cells of the column follow
     await this.columns.set(e.cell, scope)
     return view

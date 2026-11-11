@@ -44,3 +44,18 @@ export {
 } from './instance-import'
 export { nondimAllowed } from './core/dimensions.js'
 export { mandatoryZeroPlan, fillMandatoryZeros, type ZeroFill } from './mandatory-zeros'
+export {
+  checkPatch,
+  applyFactPatch,
+  dryRun,
+  isFactPatch,
+  PatchError,
+  type FixPatch,
+  type FactPatch,
+  type PatchCheck,
+  type PatchCell,
+  type PatchFactTarget,
+  type PatchScope,
+  type PatchSource,
+  type DryRunResult,
+} from './patches'

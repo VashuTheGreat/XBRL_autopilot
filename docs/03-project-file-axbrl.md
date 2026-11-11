@@ -15,7 +15,7 @@ my-company_FY2025-26_standalone.axbrl
 ├─ mca-errors/
 │  └─ 2026-11-10T1015.txt # raw text imported from the MCA Validation Tool
 ├─ ai/
-│  └─ history.jsonl       # one line per AI suggestion / patch proposal + user decision
+│  └─ history.jsonl       # AI audit trail: request (exact payload sent) / response / accept / reject / failed / error / run, with time and user (Phase 10)
 ├─ output/
 │  └─ 001.xml, 002.xml    # generated instances (numbered; latest = highest)
 ├─ import/                # only for filings created from an XBRL instance (Phase 7)

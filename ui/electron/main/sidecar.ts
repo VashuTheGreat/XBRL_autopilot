@@ -151,7 +151,8 @@ export class SidecarManager extends EventEmitter {
   }
 
   /** Proxy a request from the renderer. The token never leaves the main process. */
-  async request<T>(method: HttpMethod, path: string, body?: unknown): Promise<SidecarResponse<T>> {
+  /** `timeoutMs`: default 120 s; the AI fix agent (several LLM calls) asks for longer. */
+  async request<T>(method: HttpMethod, path: string, body?: unknown, timeoutMs = 120_000): Promise<SidecarResponse<T>> {
     if (!isAllowedSidecarPath(path)) throw new Error(`Sidecar path not allowed: ${path}`)
     if (this.status.state !== 'ready') throw new Error('AI engine (sidecar) is not ready')
     const res = await fetch(`http://127.0.0.1:${this.port}${path}`, {
@@ -161,7 +162,7 @@ export class SidecarManager extends EventEmitter {
         ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
-      signal: AbortSignal.timeout(120_000),
+      signal: AbortSignal.timeout(timeoutMs),
     })
     const text = await res.text()
     let data: unknown = text

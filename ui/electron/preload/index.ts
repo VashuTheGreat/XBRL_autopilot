@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
 import { IPC, type MenuCommand, type SidecarLogLine, type SidecarStatus, type XapApi } from '@shared/ipc'
 import type { ProjectSummary, SettingsState } from '@shared/project'
 import type { ValidationView } from '@shared/validation'
+import type { AiView } from '@shared/ai'
 
 const invoke = <T>(channel: string, ...args: unknown[]) => ipcRenderer.invoke(channel, ...args) as Promise<T>
 
@@ -78,6 +79,17 @@ const api: XapApi = {
     clearMca: () => invoke(IPC.validationClearMca),
     launchMca: () => invoke(IPC.toolsLaunchMca),
     onChanged: (cb) => subscribe<ValidationView>(IPC.validationChanged, cb),
+  },
+  ai: {
+    get: () => invoke(IPC.aiGet),
+    propose: (id) => invoke(IPC.aiPropose, id),
+    fixAll: () => invoke(IPC.aiFixAll),
+    stop: () => invoke(IPC.aiStop),
+    accept: (id, opts) => invoke(IPC.aiAccept, id, opts),
+    reject: (id, reason) => invoke(IPC.aiReject, id, reason),
+    clear: () => invoke(IPC.aiClear),
+    history: () => invoke(IPC.aiHistory),
+    onChanged: (cb) => subscribe<AiView>(IPC.aiChanged, cb),
   },
 }
 

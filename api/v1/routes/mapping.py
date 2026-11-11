@@ -22,7 +22,7 @@ async def suggest_mappings(body: SuggestRequest):
     except LookupError as exc:
         return error_response(str(exc), status_code=404)
     cfg = get_app_config()
-    reranker = GroqReranker(cfg.groq_api_key, cfg.groq_model) if body.options.useLlm and cfg.groq_api_key else None
+    reranker = GroqReranker(cfg.groq_api_key, cfg.groq_model, url=cfg.groq_url) if body.options.useLlm and cfg.groq_api_key else None
     sheets = [{"name": s.name, "cells": [c.model_dump() for c in s.cells]} for s in body.sheets]
     memory = [MemoryItem(m.label, m.concept, m.approvals) for m in body.memory]
     with logger.span("mapping.suggest", sheets=len(sheets), memory=len(memory), llm=reranker is not None):

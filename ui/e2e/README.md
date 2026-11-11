@@ -10,6 +10,10 @@ XAP_USER_DATA="$TEMP/xap-e2e-$RANDOM" env -u ELECTRON_RUN_AS_NODE \
 node e2e/phase4-editor.mjs 9350 <screenshotDir> "../data/sample_financials.xlsx"
 ```
 
+`phase10-ai-fix.mjs` (dev app, **mock LLM**): start the app with `GROQ_URL=http://127.0.0.1:8765/openai/v1/chat/completions` in its environment; the script runs the mock (`mock-groq.mjs`) on that port. AI off without consent → consent + a dummy `gsk_…` key → PY-only share capital on BS!D9 → Ask AI → diff card from Excel C9 that clears the problem (dry run) → Accept → problem gone, C9 tagged with origin ai → History shows the exact payload (no CIN, no company name) → a user-supplied value needs input + confirmation; Reject recorded → Fix all: round 1 of ≤ 10 problems, all rejected → "nothing accepted" → consent off: Ask AI disabled, quick fixes stay. Usage: `node e2e/phase10-ai-fix.mjs <port> <screenshotDir> "<path>/data/sample_financials.xlsx" 8765`.
+
+`phase10-live-groq.mjs` (dev app, **real Groq**, key from `.env`, no `GROQ_URL`): synthetic sample only; asks about the D9 problem and a few missing mandatory amounts and prints what the model proposed (cards, dropped, steps, tokens). Checks the contract only: a real model is not deterministic. Usage: `node e2e/phase10-live-groq.mjs <port> <screenshotDir> "<path>/data/sample_financials.xlsx" [problems=3]`.
+
 `phase9-validation.mjs` (dev app): C&I filing + sample workbook → live problems and status-bar counts, rule coverage → a PY-only share capital tag gives a problem on BS!D9 → double-click locates D9 and opens [100100] → Fix clears it → pasted MCA errors are explained and linked to their element. Usage: `node e2e/phase9-validation.mjs <port> <screenshotDir> "<path>/data/sample_financials.xlsx"`.
 
 `phase8-autotag.mjs` (dev app): Ind AS filing → import DGPL (.xls) → Auto-tag button → amber suggestions → inspector Accept (real click on I24) / Reject (I25) → Accept all ≥ 90% → the Form shows Total assets 1,904.45. LLM off (no AI consent). Usage: `node e2e/phase8-autotag.mjs <port> <screenshotDir> "<path>/data/BS DGPL Mar-2026-V1.xls"`.
