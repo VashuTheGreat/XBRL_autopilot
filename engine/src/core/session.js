@@ -597,6 +597,9 @@ export class Session {
         const old = this.noteValue(l, scope, prior);
         // follows when the note was empty before this edit, or agreed with it
         if (old && (old.undetermined || !agrees(existing, old))) continue;
+        // … but an empty note that now sums to 0 (a rule-filled zero, or a part entered as 0) is no evidence against a
+        // figure entered on the statement: the entered figure stays and SR-L541-1 & co. show the difference
+        if (!old && !Dec.eq(Dec.parse(existing.value), Dec.ZERO)) { const now0 = this.noteValue(l, scope); if (now0 && !now0.undetermined && Dec.eq(now0.total, Dec.ZERO)) continue; }
       }
       const now = this.noteValue(l, scope);
       if (!now || now.undetermined) {

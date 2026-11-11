@@ -68,3 +68,26 @@ describe.skipIf(!existsSync(DIXON))('table zeros from the rules (Dixon, Ind AS)'
     expect(new Set(ppe.map((z) => z.ruleId))).toEqual(new Set(['ML-13']))
   })
 })
+
+describe('a rule zero never contradicts a reported statement figure (Ind AS share capital, SR-L541-1)', () => {
+  const A = new Authority(assembleAuthority(json(KB('ind_as_engine_authority.json')), json(KB('ind_as_engine_rules.json'))))
+  const P = 'ind-as:'
+  const T = '400100:DisclosureOfClassesOfEquityShareCapitalTable'
+  const SHARES1 = [{ axis: `${P}ClassesOfEquityShareCapitalAxis`, member: `${P}EquityShares1Member` }]
+  const META = {
+    name: 'Z Pvt Ltd', cin: 'U72200KA2010PTC123456', reportType: 'Standalone', level: 'Lakhs', statementPlaces: 2, displayPlaces: 7,
+    periods: { cy: { start: '2025-04-01', end: '2026-03-31' }, py: { start: '2024-04-01', end: '2025-03-31' } },
+  }
+
+  it('the paid-up value of the class (Σ = share capital) is left to the user; share capital stays as entered', () => {
+    const S = new Session(A)
+    S.setMeta(META)
+    S.setValue(`${P}EquityShareCapital`, 'CY', '100', { recalc: true }) // from Excel: 100 lakhs
+    S.setTableValue(T, 'CY', SHARES1, `${P}NumberOfSharesIssued`, '1000000', { recalc: true }) // the class column has a value
+    const plan = tableZeroPlan(S, T)
+    expect(plan.length).toBeGreaterThan(0) // the class's other mandatory lines are filled …
+    expect(plan.some((z) => z.concept === `${P}ValueOfSharesPaidUp`)).toBe(false) // … but not the line share capital is the sum of
+    fillTableMandatoryZeros(S, T)
+    expect((S.getValue(`${P}EquityShareCapital`, 'CY') as { value: string }).value).toBe('10000000')
+  })
+})

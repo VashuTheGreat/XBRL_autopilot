@@ -16,7 +16,7 @@ import itertools
 import re
 from dataclasses import dataclass, field
 
-from src.services.tagging.catalog import NEGATED_ROLES, ConceptInfo, TaggingCatalog
+from src.services.tagging.catalog import ConceptInfo, TaggingCatalog
 from src.services.tagging.layout import TagRow
 from src.services.tagging.text import PHRASE_ALIASES, STOPWORDS, norm_label, qualifier, tokens
 
@@ -189,8 +189,10 @@ class CandidateGenerator:
         boost = self._boost(info, row, kind)
         if boost < 1.3 and kind != "notes":
             conf -= 0.05  # right words, but not an element of this statement
-        sign = -1 if role in NEGATED_ROLES else 1
-        return Candidate(q, conf, "exact", f"{why}; {_where(info)}", sign=sign, score=boost)
+        # a negated role says how the taxonomy *displays* the element (MCA's P&L shows Expenses as "Total expenses",
+        # negated); workbooks show the figure as filed (DGPL 6,151.37 → Dixon files +615,137,000): the cell is taken
+        # as it is, whatever role matched
+        return Candidate(q, conf, "exact", f"{why}; {_where(info)}", sign=1, score=boost)
 
     def _lexical(self, row: TagRow, kind: str, allowed: set[str]) -> list[Candidate]:
         query: dict[str, float] = {t: 1.0 for t in tokens(row.label)}

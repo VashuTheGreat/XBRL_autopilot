@@ -198,6 +198,33 @@ The keyed-cell evaluation above only scores statement-level amounts. `src/evalua
   - The filer put the workbook's "Computers" under *Plant and equipment*. Those 8 facts are listed apart (filer's choice).
 - **Tests:** `tests/test_table_suggestions.py` covers synthetic roll-forwards on Ind AS and C&I, changes in equity, the plain-note exclusion, the Dixon floors (table right ≥ 60, wrong ≤ 10%; also wrong 0) and the HPL key.
 
+## Engine-side scoreboard (Phase 11 step 3b, [ADR-0013](decisions/ADR-0013-table-tagging.md))
+`ui/test/scoreboard-dgpl.test.ts` runs the **real app pipeline** on DGPL: the real sidecar, LLM off, Electron-free services. The steps are:
+1. auto-tag;
+2. accept every suggestion: cells and blocks (`acceptAll(0)`), then every "also" fact;
+3. parent-member roll-ups (automatic);
+4. table zeros and statement zeros for every ELR, twice.
+
+The filing it gives is compared with Dixon by (element, period, members) (`test/helpers/fact-scoreboard.ts`, pure). Verdicts use the filed `decimals`, as `coverage_eval`, and each fact is scored by origin: **excel** (a mapping's main or "also" fact), **derived** (calculated: totals, roll-ups, carrying amounts) or **zero** (added by the rule-driven fills). It takes about 11 s. Floors are in the test; raise them when a producer improves.
+
+**2026-11-11:** 299 cells and 3 blocks (64 cells) accepted, 6 "also" facts.
+
+| origin | kind | right | near | wrong | extra |
+|---|---|---|---|---|---|
+| excel | amount | 137 | 4 | 45 | 113 |
+| excel | table | 65 | 0 | 0 | 4 |
+| derived | amount | 31 | 1 | 23 | 36 |
+| derived | table | 78 | 0 | 8 | 14 |
+| zero | amount | 92 | 0 | 14 | 0 |
+| zero | table | 10 | 0 | 24 | 16 |
+
+- **Filed non-zero figures right:** amounts 116 of 275; table amounts 47 of 305. The filing has 309 ERRORs (GR-1 × 51, GR-5 × 17 …).
+- **ADR exit targets:** amounts right 168 (target ≥ 160 ✓); wrong 68 (target ≤ 25 ✗); non-zero table amounts right 47 (target ≥ 190 ✗). The table producers (step 3b.4) and the text / filing-details steps are next.
+- **Found by the pipeline, and fixed:**
+  - **Sign from a negated label:** "Total expenses" matched only the negated-total role of Expenses, so it was suggested with `sign: -1` and filed negative. An exact match now takes the cell as shown: a negated role is the taxonomy's display, not the workbook's.
+  - **Share capital zeroed by "Table zeros":** the fill wrote 0 into Paid-up value [Equity shares 1] (and its siblings), and the entered share capital "followed its empty note" to 0. Now the fill never zeroes an element a reported, non-zero statement figure is the sum of. A statement figure entered by the user no longer follows an empty note that sums to 0.
+- **Remaining misses (the report lists every wrong fact with its cell):** the filer's lumping (security deposit inside other financial assets), cash-flow lines DGPL shows as deductions (interest income), stale tax splits, and the computed profit lines that follow them.
+
 ## Tagging-quality review (later)
 After mapping, an optional AI pass flags suspicious tags the MCA validator can't see:
 - lumping into residual "Other…" tags;

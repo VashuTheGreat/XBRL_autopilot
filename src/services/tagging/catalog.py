@@ -18,7 +18,6 @@ from src.services.tagging.text import norm_label, tokens
 # label roles a row label is compared with, best first
 MATCH_ROLES = ("label", "terseLabel", "totalLabel", "netLabel", "periodEndLabel", "periodStartLabel",
                "negatedLabel", "negatedTerseLabel", "negatedTotalLabel")
-NEGATED_ROLES = frozenset({"negatedLabel", "negatedTerseLabel", "negatedTotalLabel"})
 NUMERIC_TYPES = {
     "xbrli:monetaryItemType": "monetary",
     "xbrli:decimalItemType": "decimal",

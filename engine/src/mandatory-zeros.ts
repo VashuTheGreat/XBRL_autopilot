@@ -8,6 +8,7 @@
  * Every value goes through Session.setValue (applicability, decimals, recalculation of totals).
  */
 import type { DimensionRef } from './basics'
+import { statementLinksFrom } from './core/derived.js'
 import { dimensionallyValid, nondimAllowed } from './core/dimensions.js'
 import type { Session } from './core/session.js'
 import { filledTableColumns, singleMemberTables } from './core/table-columns.js'
@@ -127,6 +128,7 @@ export function tableZeroPlan(session: Session, tableId?: string): TableZeroFill
             if (seen.has(key) || soft.has(q) || !A.isNumeric(q) || !ZERO_TYPES.has(A.dataType(q))) continue
             if (!dimensionallyValid(A, q, dims).valid || !S.app.conceptStatus(f, q, scope).applicable) continue
             if (f.value(q, scope, dims) != null) continue
+            if (contradictsStatement(A, f, q, scope)) continue
             seen.add(key)
             out.push({ tableId: id, concept: q, scope, dims, ruleId: r.id })
           }
@@ -135,6 +137,18 @@ export function tableZeroPlan(session: Session, tableId?: string): TableZeroFill
     }
   }
   return out
+}
+
+/**
+ * A 0 for an element that a reported, non-zero statement figure is the sum of (statement ← note, e.g. share capital =
+ * Σ paid-up value over the classes, SR-L541-1) would contradict that figure, and the statement figure — taken as
+ * following an empty note — would be recalculated to 0. That line holds the statement's figure, never a rule zero.
+ */
+function contradictsStatement(A: AnySession['A'], f: AnySession['filing'], q: string, scope: 'CY' | 'PY'): boolean {
+  return (statementLinksFrom(A, q) as { concept: string }[]).some((l) => {
+    const v = f.value(l.concept, scope, [])
+    return v != null && Number(v) !== 0
+  })
 }
 
 /**

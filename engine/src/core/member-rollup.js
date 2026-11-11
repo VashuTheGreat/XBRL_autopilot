@@ -17,7 +17,12 @@ import { normDims } from './model.js';
 const CACHE = new WeakMap();
 const KINDS = new Set(['monetary', 'shares']);
 
-// axis -> { parentOf: Map(member -> parent), childrenOf: Map(parent -> Set(member)) }
+/** @typedef {{ axis: string, member?: string, typed?: string }} Dim */
+
+/**
+ * axis → its member tree (parent of a member; children of a parent), real usable members only.
+ * @returns {Map<string, { parentOf: Map<string, string>, childrenOf: Map<string, Set<string>> }>}
+ */
 export function memberTrees(A) {
   if (CACHE.has(A)) return CACHE.get(A);
   const parents = new Map(); // axis -> Map(member -> parent | null (ambiguous))
@@ -47,8 +52,12 @@ export function memberTrees(A) {
 
 const rollsUp = (A, concept) => KINDS.has(A.dataType(concept));
 
-// The parent-member cells an edited cell feeds: one per explicit member that has a parent member, where the element
-// can be reported with that parent instead (dimensionally valid). [{ axis, parent, dims }]
+/**
+ * The parent-member cells an edited cell feeds: one per explicit member that has a parent member, where the element
+ * can be reported with that parent instead (dimensionally valid).
+ * @param {Dim[]} dims
+ * @returns {{ axis: string, parent: string, dims: Dim[] }[]}
+ */
 export function rollupTargetsOf(A, concept, dims) {
   if (!rollsUp(A, concept)) return [];
   const trees = memberTrees(A);
@@ -63,7 +72,12 @@ export function rollupTargetsOf(A, concept, dims) {
   return out;
 }
 
-// The child-member cells of a parent-member cell, on one axis: [{ member, dims }] (empty when the member has none).
+/**
+ * The child-member cells of a parent-member cell, on one axis (empty when the member has none).
+ * @param {string} axis
+ * @param {Dim[]} dims
+ * @returns {{ member: string, dims: Dim[] }[]}
+ */
 export function rollupChildrenOf(A, concept, axis, dims) {
   if (!rollsUp(A, concept)) return [];
   const parent = dims.find((x) => x.axis === axis)?.member;
@@ -72,7 +86,11 @@ export function rollupChildrenOf(A, concept, axis, dims) {
   return [...kids].map((member) => ({ member, dims: normDims(dims.map((x) => (x.axis === axis ? { axis, member } : x))) }));
 }
 
-// The axes on which a cell is a parent member (its value can be derived from its children there).
+/**
+ * The axes on which a cell is a parent member (its value can be derived from its children there).
+ * @param {Dim[]} dims
+ * @returns {string[]}
+ */
 export function rollupAxesOf(A, concept, dims) {
   if (!rollsUp(A, concept)) return [];
   const trees = memberTrees(A);
