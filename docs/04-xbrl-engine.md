@@ -134,6 +134,12 @@ The original `golden-DIVERGENCES.json`, `APPROVED_LIMITATIONS.json` and the MCA-
 
 ## App-facing helpers (TypeScript, `engine/src`)
 - `mandatory-zeros.ts`: `mandatoryZeroPlan(session, elrCode)` / `fillMandatoryZeros(session, elrCode)`. These report a statement's empty, applicable, non-dimensional mandatory **amounts** (executable `mandatory` rules of that ELR) as 0 through `Session.setValue`, with recalculation. It's an explicit user action, never automatic.
+- `mandatory-zeros.ts`, tables (Phase 11, [ADR-0013](decisions/ADR-0013-table-tagging.md)): `tableZeroPlan(session, tableId?)` / `fillTableMandatoryZeros(session, tableId?)`.
+  - **What it fills:** in every table column (dimension combination) that **already holds a value** for the year, the line items its mandatory-line-items rules (ML-*) require and that are still empty. Only amounts, share counts and per-share amounts are filled; rates and text are left to the user.
+  - **What it skips:** tables needed under one member only, and elements an MCA-accepted filing omits (`softConcepts`).
+  - **Fixpoint:** the fill can derive a value into a new column (net carrying amount = gross − accumulated), so it runs again until nothing is left, at most 5 rounds.
+  - **Shared code:** "a column has a value" is `core/table-columns.js` `filledTableColumns`, the same function the rule engine's `lineItemsMandatory` uses. `singleMemberTables` is no longer copy-pasted.
+  - **Golden** (`test/table-zeros.test.ts`): Dixon without its 1,260 zero table facts has 73 ERRORs. After the fill it has **0 ERRORs**, and the fill added 163 facts (133 filled + 30 derived), every one a zero Dixon filed. Dixon's other 1,097 zeros are optional.
 - `basics.ts`: `maxDisplayPlaces(level)` / `defaultStatementPlaces(level)` (see [ADR-0009](decisions/ADR-0009-amounts-from-excel.md)). `SHARE_CAPITAL` (from `gate.js`) is exported for the app's actual-value rule.
 
 ## Public API (target)

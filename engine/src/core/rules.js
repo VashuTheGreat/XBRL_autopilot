@@ -8,13 +8,8 @@ import { dimensionallyValid, sequentialGaps, tablesForFact } from './dimensions.
 import { runCalculations, CalcStatus } from './calculation.js';
 import { periodFor, reportingYear, scopeOf } from './periods.js';
 import { dimKey } from './model.js';
+import { filledTableColumns, singleMemberTables } from './table-columns.js';
 
-// tables whose line items may be given against one member only ("lineItemSingleMember" rules, e.g. SR-L3717-1)
-const SINGLE = new WeakMap();
-function singleMemberTables(A) {
-  if (!SINGLE.has(A)) SINGLE.set(A, new Set(A.rules.rules.filter((r) => r.status === 'EXECUTABLE' && r.ast?.type === 'lineItemSingleMember').flatMap((r) => r.ast.tables)));
-  return SINGLE.get(A);
-}
 
 // GR-3 (parent member required when a child member is reported): the parent member of `member` on `axis` that
 // must also be reported, or null. The default member is the axis total, reported without the axis (often on the
@@ -345,17 +340,9 @@ export class RuleEngine {
     const a = r.ast;
     for (const id of a.tables) {
       const t = this.A.table(id);
-      const items = new Set(t.lineItems);
-      const axes = new Set(t.axes.map((x) => x.axis));
       for (const scope of this.scopes(r, filing)) {
         if (!this.app.tableStatus(filing, id, scope).applicable && !this.tableHasData(filing, [id], scope)) continue;
-        const groups = new Map();
-        for (const f of filing.all()) {
-          if (!items.has(f.concept) || f.nil || !f.dims.length || !f.dims.every((d) => axes.has(d.axis))) continue;
-          if (!tablesForFact(this.A, f).some((x) => x.hypercube === t.hypercube)) continue;
-          if (reportingYear(filing.meta.periods, f.period) !== scope || filing.scopeOf(f.period) === 'PYO') continue;
-          groups.set(dimKey(f.dims), f.dims);
-        }
+        const groups = filledTableColumns(this.A, filing, id, scope);
         // v14.5: a table whose line items may be given against one member only (SR-L3717-1, [400200] auditor's report):
         // each mandatory line item is required once, under any one member — not in every column (that would contradict
         // SR-L3717-1 and could never be satisfied)

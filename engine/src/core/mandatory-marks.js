@@ -10,6 +10,7 @@
 // Rules reported as WARNING because an MCA-validated instance contradicts them (golden-DIVERGENCES.json) are not marked.
 import { evalPred } from './expr.js';
 import { dimensionallyValid } from './dimensions.js';
+import { singleMemberTables } from './table-columns.js';
 import { dimKey } from './model.js';
 import { reportingYear } from './periods.js';
 
@@ -30,12 +31,6 @@ function index(A) {
   return by;
 }
 
-// tables whose line items may be given against one member only ("lineItemSingleMember" rules, e.g. SR-L3717-1)
-const SINGLE = new WeakMap();
-export function singleMemberTables(A) {
-  if (!SINGLE.has(A)) SINGLE.set(A, new Set(A.rules.rules.filter((r) => r.status === 'EXECUTABLE' && r.ast?.type === 'lineItemSingleMember').flatMap((r) => r.ast.tables)));
-  return SINGLE.get(A);
-}
 
 // per-filing-revision cache of facts by concept
 let cache = { filing: null, rev: -1, byConcept: null };

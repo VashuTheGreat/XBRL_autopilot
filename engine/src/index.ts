@@ -43,7 +43,15 @@ export {
   type FactDifference,
 } from './instance-import'
 export { nondimAllowed } from './core/dimensions.js'
-export { mandatoryZeroPlan, fillMandatoryZeros, type ZeroFill } from './mandatory-zeros'
+export {
+  mandatoryZeroPlan,
+  fillMandatoryZeros,
+  tableZeroPlan,
+  fillTableMandatoryZeros,
+  type ZeroFill,
+  type TableZeroFill,
+  type TableDim,
+} from './mandatory-zeros'
 export {
   checkPatch,
   applyFactPatch,
