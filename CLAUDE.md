@@ -7,7 +7,7 @@
 - Work is saved to `.axbrl` project files so it can be resumed later.
 
 > **Start here → [`docs/README.md`](docs/README.md)** (doc index + "which doc for which task").
-> **Current progress → [`docs/STATUS.md`](docs/STATUS.md).**
+> **Current progress → [`docs/STATUS.md`](docs/STATUS.md).** Roadmap: Phase 11 = complete end-to-end tagging ([ADR-0013](docs/decisions/ADR-0013-table-tagging.md)), 11b = packaging, 12 = Costing (CRA-4).
 
 ## Folder map
 | Path | What | Language |
@@ -56,4 +56,4 @@ make rebuild                         # regenerate knowledge_base + Chroma index
    - Everything the UI shows about a taxonomy goes through the `TaxonomyCatalog` port: statement list (`/elrs`), Form structure (`/elrs/{code}/tree`), element search and details.
    - Never hardcode taxonomy data. `lagacy_js/` is reference reading only.
    - The engine authority is built by the Python ingestion too: the taxonomy half served by `/{id}/authority` ([ADR-0010](docs/decisions/ADR-0010-engine-authority-from-knowledge-base.md)), the executable business rules by `/{id}/engine-rules` ([ADR-0011](docs/decisions/ADR-0011-business-rules-from-knowledge-base.md)).
-9. **Scope:** v1 is C&I 2016 **and** Ind AS 2017 (AOC-4 XBRL). Keep code taxonomy-generic (Costing later). Real client fixtures are in `data/` (see `docs/12-reference-data.md`); never send them to an AI service.
+9. **Scope:** v1 is C&I 2016 **and** Ind AS 2017 (AOC-4 XBRL). Keep code taxonomy-generic: never key on ELR codes (each taxonomy numbers differently), group ELRs by title (`classify_elr`). Costing is Phase 12. Real client fixtures are in `data/` (see `docs/12-reference-data.md`); never send them to an AI service.

@@ -15,6 +15,11 @@ The engine is the deterministic core. It is a pure TypeScript library with no El
   - `src/services/engine_rules/` (Python) builds `knowledge_base/<kb>_engine_rules.json` for C&I **and Ind AS**; the sidecar serves them at `/api/v1/taxonomies/{id}/engine-rules`.
   - The TS rule compiler (`compile.mjs`, `rule-formalizer.mjs`, `rules-source.mjs`) and the `xlsx` dependency are retired. Its C&I output is frozen in `tests/fixtures/engine_rules/` and the Python port is deep-equal to it.
   - The runtime finds generic rules by **handler**, not by C&I rule number (Ind AS numbers them differently), and tags applicability reasons with the rule's own id.
+- **Phase 11 (2026-11-11): ELR groups by title** ([ADR-0013](decisions/ADR-0013-table-tagging.md)). Each ELR's `group` (Statements / Notes / Disclosures) in the engine authority comes from its title (`classify_elr`, as the catalog routes), no longer from C&I code ranges.
+  - `derived.js` (statement ↔ note links), `Session.noteLink` and `carry-forward.js` (disclosure tabs) read it.
+  - C&I is byte-identical.
+  - Ind AS changes: its P&L, cash flow and changes in equity are now Statements, its 400xxx notes are Notes, and its 7xxxxx ELRs are Disclosures. It gets 38 statement ↔ note links (PPE, share capital, borrowings, receivables, P&L lines …); before, it got almost none.
+  - Dixon: the statements agree with their notes, and nothing is re-derived on opening (`test/elr-groups.test.ts`).
 - **Step 2 is next: convert `src/core/*.js` to TS one module at a time.**
   - Start with the leaves: decimal, periods, units, scaling, dates, dimensions, then up the import graph.
   - After each module, `pnpm --filter @xap/engine test` must stay green.

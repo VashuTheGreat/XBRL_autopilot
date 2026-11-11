@@ -18,9 +18,9 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 | 8 | **AI auto-tagging** (`/mapping/suggest`: layout → memory → exact label → BM25 with heading context, filtered by period type / dimensions / statement → optional Groq rerank) plus an **evaluation harness** on the DGPL ↔ Dixon answer key (precision 0.738, recall 0.793; ≥ 0.9 right 93.6%); suggestions → Accept / Reject / Accept all ≥ 90% in the app; mapping memory. Embeddings (ONNX) deferred | ✅ done |
 | 9 | **Validation UI** ([ADR-0011](decisions/ADR-0011-business-rules-from-knowledge-base.md)): the executable rule ASTs are built in Python into `knowledge_base` and served by `/{id}/engine-rules`; C&I deep-equal to the retired TS compiler; **Ind AS formalized** (95.36% executable, Dixon 0 ERRORs); rule-coverage reports; live validation (gate, rules, calculation per taxonomy), Problems panel with locate and quick fixes, MCA Validation Tool v5.1 launcher + error import; Arelle XSD check (dev extra) working | ✅ done |
 | 10 | **AI fix agent** ([ADR-0012](decisions/ADR-0012-ai-fix-patches.md)): `/fix/propose` (Groq tool loop ≤ 6 calls, tools on the knowledge base + bundle, strict JSON patches), privacy checked twice + fixture guard, engine `checkPatch` / `applyFactPatch` / `dryRun`, diff cards with Accept / Edit / Reject, Fix all rounds with budgets, `ai/history.jsonl` with the exact payload; live Groq smoke 4/4 correct | ✅ done |
-| 11 | **Complete end-to-end tagging** ([ADR-0013](decisions/ADR-0013-table-tagging.md), proposed): coverage evaluation of every filed fact ✅; then ELR groups by title, table blocks + figures reported twice + rule-driven table zeros, table suggestions (Ind AS on Dixon, C&I on HPL), text + filing-details form, Excel parsing gaps | 🔄 step 1 done |
-| 11b | **Packaging**: PyInstaller sidecar + electron-builder NSIS, `.axbrl` association | ⏳ |
-| 12 | Costing CRA-4, masters prefill, trial-balance mapping, Groq proxy, auto-update | ⏳ |
+| 11 | **Complete end-to-end tagging** ([ADR-0013](decisions/ADR-0013-table-tagging.md)): coverage evaluation of every filed fact ✅; then ELR groups by title, table blocks + figures reported twice + rule-driven table zeros, table suggestions (Ind AS on Dixon, C&I on HPL), text + filing-details form, Excel parsing gaps | 🔄 step 1 done |
+| 11b | **Packaging**: PyInstaller sidecar (check xlrd in the bundle) + electron-builder NSIS, `.axbrl` association. A packaging spike comes earlier only if a pilot install is needed | ⏳ |
+| 12 | Costing CRA-4 (its KB exists; no engine authority, rules or wizard entry yet), masters prefill, trial-balance mapping, Groq proxy, auto-update | ⏳ |
 
 ## Known issues / debt
 - `src/services/retrieval/hybrid.py` and `reranking.py` are still empty: the Phase 8 tagger lives in `src/services/tagging/` and doesn't use embeddings. They become the embedding candidate source once an ONNX model and a prebuilt index exist (docs/06).
@@ -39,7 +39,6 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 - **AI fix agent limits (Phase 10):** no patches on table (dimensional) values yet (`setDims` with table tagging); `addFootnote` / `editText` / `setMeta` deferred; MCA tool problems get no dry-run verdict; the live quality was measured on 4 synthetic problems only, so measure it on a larger non-client set; Fix all asks one problem per request (no batching).
 - **Possible legacy-test flake:** one run of `pnpm test` (while a dev Electron app was also running) failed a `golden-DIVERGENCES.json` assertion; the next three runs passed (220/0). Watch for it.
 
-- **The engine authority's ELR `group` is computed from C&I code ranges** (`_elr_group`, `src/services/engine_authority/builder.py`): for Ind AS only the balance sheet is a Statement, P&L / cash flow are Notes and the 400xxx notes are Disclosures. `derived.js` (note → statement figures), `session.statementFigure` and `carry-forward.js` read it. Fix first in Phase 11 step 2 (group by title, `classify_elr`); C&I is unaffected (its codes follow that scheme).
 - **Ask the team** for Helmier's instance XML (an exact C&I golden; today only the PDF) and the Rebel workbook (a second Ind AS before/after pair).
 
 ## Log
@@ -253,3 +252,16 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
   - **Tests:** pytest 128 (+4 `test_coverage_eval.py` with exact counts and floors, +4 `test_fact_kinds.py` on C&I and Ind AS).
   - **Housekeeping:** the 861 old `%TEMP%\xap-*` folders (1.27 GB) were deleted.
   - **Next:** the team approves ADR-0013, then step 2: ELR groups by title, then table blocks in the engine and the app.
+- **2026-11-11, ADR-0013 accepted** with the team's additions:
+  - figures reported twice follow their cell on every value change;
+  - the zero fill runs only on demand, only for columns that already have a value, and is counted apart on the scoreboard;
+  - wrong limits: amounts ≤ 25, table amounts ≤ 10% of those produced; right / near / wrong reported per producer;
+  - xlrd, pinned and read-only, for `.xls` number formats.
+
+  Numbering: 11 = tagging, 11b = packaging, 12 = Costing. CLAUDE.md and docs/README were updated to match.
+- **2026-11-11, Phase 11 step 2a: ELR groups by title:**
+  - The engine authority's `group` now comes from `classify_elr(title)` (`builder.py`), not from C&I code ranges. This fixes the known issue: for Ind AS, the P&L had been read as a note and the 400xxx notes as disclosures.
+  - **C&I:** `ci_engine_authority.json` is byte-identical.
+  - **Ind AS:** 26 of 66 ELRs were regrouped; the rules are unchanged (`taxonomyHash` is the same). There are now 38 statement ↔ note links.
+  - **Dixon:** 0 ERRORs, no statement/note differences, nothing re-derived. Rebel: 7 known ERRORs, unchanged.
+  - **Tests:** engine 46 (+4 `elr-groups.test.ts`, which fails 2 of 4 without the fix); legacy 226/0; pytest 128; ui 157.

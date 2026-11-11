@@ -74,7 +74,7 @@ sheets ─▶ 1 layout ─▶ 2 candidates (memory → exact → BM25) + filters
   "level": "Lakhs"
 }
 ```
-`origin`: `memory` | `exact` | `lexical` | `ai`. Dimensional (table) cells are not suggested yet; tables arrive in Phase 11 ([ADR-0013](decisions/ADR-0013-table-tagging.md), proposed).
+`origin`: `memory` | `exact` | `lexical` | `ai`. Dimensional (table) cells are not suggested yet; tables arrive in Phase 11 ([ADR-0013](decisions/ADR-0013-table-tagging.md)).
 
 ## In the app (Electron)
 - **`AutoTagService`** (Electron-free, `ui/electron/main/services/auto-tag-service.ts`):
@@ -146,7 +146,7 @@ The keyed-cell evaluation above only scores statement-level amounts. `src/evalua
   | text_block | 53 | 0 | 10 | 0 | 43 | 0 | 0 | 0 | 0 | 0 |
 
   There are 113 extra (all amounts), and 31 of the 153 general-section facts are in the workbook.
-- **What it means** ([ADR-0013](decisions/ADR-0013-table-tagging.md), proposed):
+- **What it means** ([ADR-0013](decisions/ADR-0013-table-tagging.md)):
   - **Zeros:** 1,623 of the 2,186 amounts are 0, and the mandatory rules need them (removing the zero table facts gives 73 ERRORs). They should come from a rule-driven fill, not from Excel.
   - **Figures reported twice:** 169 of the 288 non-zero table amounts are a statement figure reported again with a member.
   - **General information:** it mostly comes from a filing-details form.

@@ -1,5 +1,5 @@
 # ADR-0013 · Complete end-to-end tagging: table blocks, figures reported twice, rule-driven zeros, filing details
-- **Status:** proposed (2026-11-11), awaiting the team's approval. Phase 11 (packaging follows as 11b; Costing stays Phase 12).
+- **Status:** accepted (2026-11-11), with the team's additions (marked *team*). Phase 11 (packaging follows as 11b; Costing stays Phase 12).
 - **Context:** measured on all 2,666 facts of Dixon's MCA-accepted instance against the DGPL workbook
   (`src/evaluation/coverage_eval.py`, floors in `tests/test_coverage_eval.py`, LLM off):
 
@@ -21,7 +21,7 @@
   4. **General information is mostly not in the workbook:** 31 of the 153 facts in the general / auditors' / directors' report / signatories ELRs are found. Of the text facts, 115 are Yes/No questions, not cells.
 
   Also found: the engine authority's ELR `group` is computed from the C&I code ranges (`_elr_group` in `src/services/engine_authority/builder.py`). For Ind AS it puts only the balance sheet in Statements, the P&L and cash flow in Notes, and the 400xxx notes in Disclosures. So `derived.js` (note → statement figures), `session.statementFigure` and `carry-forward.js` misread Ind AS. Table tagging depends on note → statement derivation.
-- **Decision (proposed):**
+- **Decision:**
   1. **ELR groups by title** in the engine authority (`classify_elr`, the same as the catalog routes, ADR-0008). C&I must stay identical (golden XML, HPL). Ind AS is re-checked on Dixon (0 ERRORs) and Rebel (7 known).
   2. **The mapping model gets dimensions and table blocks** (`mapping.json`, docs/03):
      - A cell entry's `fact.dims` may be non-empty. `MappingService.tag` writes through `Session.setTableValue`, so the engine checks the slice, dimensional validity and applicability as it does today for plain facts.
@@ -33,8 +33,11 @@
        - the period comes from the row, else the column, else the column's period.
 
        A blank cell gives no fact; a 0 gives 0. The expansion is a pure engine function (`engine/src/table-mapping.ts`): block + authority → planned facts with their cells, and per-cell problems. That way the UI preview, the apply step and the evaluation share it.
-     - **One fact ← one cell stays; one cell → one fact is relaxed** to one main fact plus "also reported as" facts of the same figure (finding 2). The inspector lists them, and untagging the cell removes all of them.
-  3. **Zeros come from the rules, not from Excel** (finding 1). A new engine helper, `tableZeroPlan` / `fillTableMandatoryZeros`, is the table analogue of `mandatory-zeros.ts`. For each table column (slice) that has a value, it reports as 0 the line items that the executable mandatory rules (ML-*, SR-*) require and that are still empty. It runs only as an explicit user action that lists what it filled; it never runs on its own. Golden: Dixon minus its zeros, plus the fill, gives 0 table ERRORs.
+     - **One fact ← one cell stays; one cell → one fact is relaxed** to one main fact plus "also reported as" facts of the same figure (finding 2). *Team:*
+       - the extra facts follow their cell on every value change: an edit, a reapply, a change of decimal places (a test proves it);
+       - the inspector and the Form both show "also reported as";
+       - untagging the cell removes all of them.
+  3. **Zeros come from the rules, not from Excel** (finding 1). A new engine helper, `tableZeroPlan` / `fillTableMandatoryZeros`, is the table analogue of `mandatory-zeros.ts`. For each table column (slice) that has a value, it reports as 0 the line items that the executable mandatory rules (ML-*, SR-*) require and that are still empty. *Team:* it runs only as an explicit user action that lists what it filled, never on its own, and only for columns that already have a value. Golden: Dixon minus its zeros, plus the fill, gives 0 table ERRORs. The coverage scoreboard counts rule-filled zeros separately from figures found in Excel.
   4. **Table suggestions in the sidecar** (`/mapping/suggest` returns `blocks` next to `suggestions`). The detector is taxonomy-generic: candidate tables come from the authority's tables, by line-item and member labels, never by code. It works like this:
      - **Blocks:** a header row with 2+ value columns, with merged headers expanded.
      - **Columns → members:** column headers are matched to members with BM25 over the member labels.
@@ -51,16 +54,16 @@
      - **Filing details**, a form generated from the taxonomy's "Disclosure of general information …" / "Disclosures - …" ELRs (through the `TaxonomyCatalog` port, never hand-coded), covers company, auditors, directors / KMP (table rows), signing dates and the Yes/No questions. It is prefilled from last year's instance when the project was started from one (Phase 7).
   6. **Excel parsing:**
      - merged header cells are expanded for layout;
-     - `.xls` number formats come from the BIFF XF records (xlrd, read-only), so `.xls` amounts round like `.xlsx`;
+     - `.xls` number formats come from the BIFF XF records, so `.xls` amounts round like `.xlsx`. *Team:* xlrd, pinned, read-only and used for formats only: calamine keeps reading the values. Check it in the PyInstaller build (11b);
      - the 60k-cell cap applies to the grid only: the tagger gets every presentation sheet in full, and working papers are skipped by kind.
 - **Consequences:**
-  - The coverage evaluation is the scoreboard. Each producer (block suggestions, figures reported twice, the zero fill, text, filing details) adds produced facts, and the floors in `tests/test_coverage_eval.py` rise with them. Proposed exit targets on Dixon, LLM off:
-    - amounts right ≥ 160;
-    - non-zero table amounts right ≥ 190 of 270;
+  - The coverage evaluation is the scoreboard. Each producer (block suggestions, figures reported twice, the zero fill, text, filing details) adds produced facts, and the floors in `tests/test_coverage_eval.py` rise with them. Exit targets on Dixon, LLM off:
+    - amounts right ≥ 160 and *wrong ≤ 25* (39 on 2026-11-11);
+    - non-zero table amounts right ≥ 190 of 270, *wrong ≤ 10% of those produced*;
     - Dixon without its zeros + the fill → 0 ERRORs;
     - table text right ≥ 60 of 112;
     - text blocks right ≥ 8 of 10.
 
-    C&I gets equivalent checks on HPL for the hand-checked tables.
+    C&I gets equivalent checks on HPL for the hand-checked tables. *Team:* the report gives right / near / wrong **per producer**.
   - The fix agent (ADR-0012) gains `setDims` / table values once block entries exist.
   - Costing stays out (Phase 12). Nothing keys on ELR codes or taxonomy ids: tables, members, sections and the filing-details form all come from the authority and the catalog.

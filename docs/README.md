@@ -4,7 +4,7 @@ Read the doc that matches the task. Keep docs short, factual and current. When c
 
 | # | Doc | Read it when… |
 |---|---|---|
-| — | [STATUS.md](STATUS.md) | Starting any session: what's done, in progress and next |
+| — | [STATUS.md](STATUS.md) | Starting any session: what's done, in progress and next. Roadmap: 11 = complete end-to-end tagging ([ADR-0013](decisions/ADR-0013-table-tagging.md)), 11b = packaging, 12 = Costing |
 | 00 | [Product vision](00-product-vision.md) | You need the "why", the users, or the scope |
 | 01 | [Research: webXBRL, competitors, MCA tool](01-research-webxbrl-and-mca-tool.md) | Deciding a feature, or checking how the original tool behaves |
 | 02 | [Architecture](02-architecture.md) | Touching more than one layer (ui, engine, sidecar) |
