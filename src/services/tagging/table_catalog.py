@@ -64,6 +64,7 @@ class TableItem:
     preferred_label: str | None
     period_type: str | None
     data_type: str | None
+    base: frozenset[str] = frozenset()  # the standard label's words only ("Loans", not "Total loans")
 
 
 @dataclass(frozen=True)
@@ -187,7 +188,8 @@ def _line_items(t: dict, arcs: list[dict], concepts: dict, label) -> tuple[Table
             c = concepts.get(a["to"]) or {}
             if not c.get("abstract") and c.get("type") in NUMERIC:
                 text = label(a["to"], a.get("preferredLabel"))
-                out.append(TableItem(a["to"], text, text_tokens(label(a["to"], None)) | text_tokens(text), a.get("preferredLabel"), c.get("periodType"), c.get("type")))
+                base = text_tokens(label(a["to"], None))
+                out.append(TableItem(a["to"], text, base | text_tokens(text), a.get("preferredLabel"), c.get("periodType"), c.get("type"), base))
             walk(a["to"])
 
     walk(t.get("primaryItem") or "")

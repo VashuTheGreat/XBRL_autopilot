@@ -209,6 +209,11 @@ A new kind of note table is a new producer `(Block, TableContext) → suggestion
   - **Sole-member totals** (`col.alsoTotal`): when the columns repeat an axis's members (FVTPL, FVOCI, amortised cost under each year) and only one of a group has figures, that column is also the axis total (its default). Dixon files every class with and without the category.
   - Each cell lists its extra facts (`cells[].also`); the app re-plans them with the engine (docs/04).
   - **Not done, filer conventions:** Dixon files every PPE class again under "Owned assets" (no rule asks for it; DGPL doesn't say), and DGPL's "Fan, cooler & air conditioner" under *Other plant and equipment*. Neither is suggested.
+- **Sub-classification "also"** (`subclass_also.py`, step 3d, 2026-11-11): a sure statement tag (≥ 0.9) is also filed in the table that sub-classifies it, as suggested "also" facts (0.7, never accepted in bulk):
+  - **table and member** from labels: the statement element's label is a line item's label plus one member's ("Loans, current" = "Loans" + "Current"), in exactly one table;
+  - **more members** from the note (`NoteEvidence`): a line of the note that shows the same figure, and whose heading names the line item ("NOTE 12 : LOANS"), names a member of another axis exactly ("(Unsecured, considered good)"). The financial-instruments note that lists the figure among others is not evidence;
+  - **gross**: the table's "<label>, gross" item too, unless the note shows a non-zero allowance or impairment line.
+  - Dixon: trade receivables 8 / 8, loans 8 / 16. Dixon also files the loan under *Loans given to other related parties* ("Loans given to holding company"), which no label names.
 - **One class** (`one_class_also`): a statement suggestion of 0.9 or more whose element is a line item of a table with exactly one numbered "classes" axis (Equity shares 1), all other axes defaultable, gets `also: [{concept, tableId, dims, preferredLabel, confidence 0.7}]`.
 - **Scoreboard** (2026-11-11, `coverage_eval`, per producer):
 
@@ -216,7 +221,7 @@ A new kind of note table is a new producer `(Block, TableContext) → suggestion
   |---|---|---|---|---|
   | statement | 143 | 4 | 39 | 113 |
   | table | 117 (75 in 3b.4, 63 in 3a) | 0 | 0 | 7 |
-  | also | 2 | 0 | 0 | 2 (4 in 3a) |
+  | also | 18 (2 in 3c) | 0 | 0 | 4 |
 
   - The table producer finds PPE (DGPL sheet FA), changes in equity, financial assets by category (with fair values and category totals: 48 of 52 non-zero) and related parties (6 of 14).
   - Ungated, the one-class producer gave 4 right / 6 wrong / 15 extra, which is why it now rides only on sure tags.
@@ -233,7 +238,9 @@ A new kind of note table is a new producer `(Block, TableContext) → suggestion
 
 The filing it gives is compared with Dixon by (element, period, members) (`test/helpers/fact-scoreboard.ts`, pure). Verdicts use the filed `decimals`, as `coverage_eval`, and each fact is scored by origin: **excel** (a mapping's main or "also" fact), **derived** (calculated: totals, roll-ups, carrying amounts) or **zero** (added by the rule-driven fills). It takes about 11 s. Floors are in the test; raise them when a producer improves.
 
-**2026-11-11, after step 3c:** 299 cells and 5 blocks (82 cells) accepted, 4 "also" facts.
+**2026-11-11, after step 3d** (sub-classification "also"): 22 "also" facts accepted. Filed non-zero table amounts right **131 of 305**: trade receivables 8 / 8, loans 8 / 16; the rule zeros of those tables now land right (zero table right 38, was 12). ERRORs 298.
+
+**After step 3c:** 299 cells and 5 blocks (82 cells) accepted, 4 "also" facts.
 
 | origin | kind | right | near | wrong | extra |
 |---|---|---|---|---|---|

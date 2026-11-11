@@ -205,6 +205,42 @@ def test_related_party_transactions_by_party_and_category():
     assert next(r for r in b["rows"] if r["r"] == 21)["cols"] == [6]
 
 
+def test_a_statement_figure_is_also_filed_in_the_table_that_sub_classifies_it():
+    from src.services.tagging.catalog import catalog_for
+    from src.services.tagging.suggest import suggest
+
+    bs = sheet("Balance Sheet", {
+        1: {1: "BALANCE SHEET"}, 2: {1: "Particulars", 3: "As at 31 March 2026", 4: "As at 31 March 2025"},
+        3: {1: "Current assets"}, 4: {1: "Trade receivables", 3: 672.3, 4: 94.7}, 5: {1: "Loans", 3: 1020.0, 4: 1020.0},
+    })
+    notes = sheet("Notes", {
+        0: {0: "Notes to the financial statements"},
+        2: {0: "NOTE 9 : TRADE RECEIVABLES", 7: "As at 31 March 2026", 11: "As at 31 March 2025"},
+        3: {0: "(Unsecured, considered good)"},
+        4: {0: "From others", 7: 672.3, 11: 94.7},
+        5: {0: "Total", 7: 672.3, 11: 94.7},
+        7: {0: "NOTE 12 : LOANS"},
+        8: {0: "Loans given to holding company", 7: 1020.0, 11: 1020.0},
+        9: {0: "Allowance for doubtful loans", 7: 0.0, 11: 0.0},
+        10: {0: "Total", 7: 1020.0, 11: 1020.0},
+        # a later note lists the same loan among other classes: its lines name nothing for the loans table
+        12: {0: "7. Fair value of financial assets"},
+        13: {0: "Loans", 7: 1020.0, 11: 1020.0},
+        14: {0: "Security deposits", 7: 0.0, 11: 0.0},
+    })
+    result = suggest(catalog_for("ind_as_taxonomy"), [bs, notes], CY, PY)
+    by_cell = {(s["cell"]["sheet"], s["cell"]["ref"]): s for s in result.suggestions}
+    current = {"axis": "ind-as:ClassificationBasedOnCurrentNoncurrentAxis", "member": "ind-as:CurrentMember"}
+    good = {"axis": "ind-as:ClassificationOfAssetsBasedOnSecurityAxis", "member": "ind-as:UnsecuredConsideredGoodMember"}
+    tr = [(a["concept"].split(":")[1], a["dims"]) for a in by_cell[("Balance Sheet", "D5")]["also"] if a["reason"] == "sub-classification"]
+    # "Trade receivables, current" = "Trade receivables" + "Current"; the note says unsecured, considered good; no
+    # allowance shown, so the gross amount is the same figure
+    assert tr == [("TradeReceivables", [current]), ("TradeReceivables", [current, good]), ("TradeReceivablesGross", [current]), ("TradeReceivablesGross", [current, good])]
+    loans = [(a["concept"].split(":")[1], a["dims"]) for a in by_cell[("Balance Sheet", "D6")]["also"] if a["reason"] == "sub-classification"]
+    # the loans note names no security class (and the instruments note's "Security deposits" is not its evidence)
+    assert loans == [("Loans", [current]), ("LoansGross", [current])]
+
+
 def test_maturity_buckets_are_not_twelve_month_credit_losses():
     rows = {
         0: {0: "Maturities of financial assets", 9: "(Rs. in Lakh unless otherwise stated)"},
@@ -232,8 +268,8 @@ def test_dixon_table_producer_floors():
     assert t["right"] >= 117, t
     assert t["wrong"] <= 0.1 * produced, t  # ADR-0013: table amounts wrong ≤ 10% of those produced
     assert t["extra"] <= 10, t
-    also = report.by_producer["also"]  # one-class "also report as", only on sure statement tags: 2 right, 0 wrong
-    assert also["right"] >= 2 and also["wrong"] == 0 and also["extra"] <= 2, also
+    also = report.by_producer["also"]  # "also report as" on sure statement tags: one class (2), sub-classification (16)
+    assert also["right"] >= 18 and also["wrong"] == 0 and also["extra"] <= 4, also
     assert {b.table_id for b in result.blocks} == {"400600:DisclosureOfPropertyPlantAndEquipmentTable", "400200:StatementOfChangesInEquityTable",
                                                     "611100a:DisclosureOfFinancialAssetsTable", "610800:DisclosureOfTransactionsBetweenRelatedPartiesTable"}
 

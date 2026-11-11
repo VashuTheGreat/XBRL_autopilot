@@ -17,8 +17,9 @@ from src.services.tagging.candidates import Candidate, CandidateGenerator, Memor
 from src.services.tagging.catalog import ConceptInfo, TaggingCatalog
 from src.services.tagging.layout import SheetLayout, analyse_sheet
 from src.services.tagging.rerank import Reranker, RerankItem, RerankOption
-from src.services.tagging.table_suggest import suggest_tables
+from src.services.tagging.subclass_also import NoteEvidence, subclassification_also
 from src.services.tagging.table_catalog import one_class_also, table_catalog_for
+from src.services.tagging.table_suggest import suggest_tables
 from src.services.tagging.tables import TableBlockSuggestion
 
 REVIEW_BELOW = 0.6  # suggestions under this confidence are flagged "needs review"
@@ -92,12 +93,16 @@ def suggest(
     blocks = suggest_tables(tables, sheets, layouts, cy_end, py_end) if tables else []
     if tables:
         mapped = {b.table_id for b in blocks}
-        for s in suggestions:  # "also report as": the same figure under the one class of a classes axis
+        evidence = NoteEvidence(sheets, layouts)
+        label_of = lambda q: catalog.concepts[q].label  # noqa: E731
+        # "also report as": the same figure under the one class of a classes axis, or in the table that sub-classifies it
+        for s in suggestions:
             if s["confidence"] < ALSO_FROM:
                 continue  # only on sure tags: a wrong cell would be filed twice
             # a table a suggested block maps is reported from its own cells: the figure again under one of its
             # members would be counted twice by the parent-member roll-ups (changes in equity)
-            also = [a for a in one_class_also(tables, s["concept"]) if a["tableId"] not in mapped]
+            found = [*one_class_also(tables, s["concept"]), *subclassification_also(tables, label_of, s, evidence)]
+            also = [a for a in found if a["tableId"] not in mapped]
             if also:
                 s["also"] = also
     return SuggestResult(layouts=layouts, suggestions=suggestions, rows=rows, llm_used=llm_used, blocks=blocks)
