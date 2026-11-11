@@ -64,6 +64,10 @@ const api: XapApi = {
     xml: () => invoke(IPC.editorXml),
     fillMandatoryZeros: (elrUri) => invoke(IPC.editorFillMandatoryZeros, elrUri),
     searchConcepts: (query) => invoke(IPC.taxonomySearch, query),
+    autoTag: () => invoke(IPC.autotagRun),
+    acceptSuggestion: (id, concept) => invoke(IPC.autotagAccept, id, concept),
+    rejectSuggestion: (id) => invoke(IPC.autotagReject, id),
+    acceptAllSuggestions: (min) => invoke(IPC.autotagAcceptAll, min),
   },
 }
 

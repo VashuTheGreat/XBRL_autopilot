@@ -137,10 +137,25 @@ export class ProjectService extends EventEmitter<ProjectEvents> implements Proje
         if (this.current !== p) return // the project was closed/replaced meanwhile
         p.extraDirty = true
         p.contentRevision++
-        this.emitChanged()
+        if (this.batchDepth === 0) this.emitChanged()
+        else this.batchTouched = true
+      },
+      batch: async <T>(fn: () => Promise<T>): Promise<T> => {
+        this.batchDepth++
+        try {
+          return await fn()
+        } finally {
+          if (--this.batchDepth === 0 && this.batchTouched) {
+            this.batchTouched = false
+            if (this.current === p) this.emitChanged()
+          }
+        }
       },
     }
   }
+
+  private batchDepth = 0
+  private batchTouched = false
 
   /** The live engine session, for engine-level features (Phase 4+). */
   session(): Session {

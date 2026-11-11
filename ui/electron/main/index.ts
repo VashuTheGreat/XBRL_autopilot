@@ -21,6 +21,8 @@ import { registerIpc } from './ipc/register'
 import { buildMenu } from './menu'
 import { ProjectController } from './project/project-controller'
 import { AutosaveScheduler } from './services/autosave-scheduler'
+import { AutoTagService } from './services/auto-tag-service'
+import { SidecarMappingSuggester } from './infra/sidecar-mapping-suggester'
 import { ColumnPeriodService } from './services/column-period-service'
 import { EditorQueryService } from './services/editor-query-service'
 import { FilingPropertiesService } from './services/filing-properties-service'
@@ -75,7 +77,9 @@ const autosave = new AutosaveScheduler(projects, () => settings.get().autosaveSe
 // .xlsx in process (exceljs); old .xls through the sidecar's python-calamine route
 const sources = new SourceService(projects, workbookParser({ xlsx: readXlsx, xls: sidecarXlsReader(sidecar) }))
 const columns = new ColumnPeriodService(projects, sources)
-const mapping = new MappingService(projects, sources, columns)
+const mapping = new MappingService(projects, sources, columns, db)
+// Auto-tagging (docs/06): suggestions from the sidecar's tagger; the LLM rerank only with the user's AI consent
+const autoTag = new AutoTagService(projects, sources, mapping, new SidecarMappingSuggester(sidecar), db, () => settings.get().aiConsent)
 const filing = new FilingPropertiesService(projects, mapping)
 const statements = new StatementService(projects)
 
@@ -194,6 +198,7 @@ if (!app.requestSingleInstanceLock()) {
       filing,
       statements,
       taxonomy,
+      autoTag,
       getWindow,
     })
     wireEvents()

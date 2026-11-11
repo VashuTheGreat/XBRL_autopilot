@@ -3,7 +3,8 @@ import type { CellRef } from './workbook'
 
 export type Scope = 'CY' | 'PY'
 export type MappingStatus = 'suggested' | 'approved' | 'rejected'
-export type MappingOrigin = 'manual' | 'ai' | 'memory' | 'exact'
+/** who chose the concept: the user, or auto-tagging's evidence (memory, exact label, lexical match, AI rerank) */
+export type MappingOrigin = 'manual' | 'ai' | 'memory' | 'exact' | 'lexical'
 
 export interface DimRef {
   axis: string
@@ -23,7 +24,30 @@ export interface MappingEntry {
   origin: MappingOrigin
   confidence: number | null
   rationale?: string
+  /** an auto-tagging suggestion's runner-up elements */
+  alternatives?: SuggestionAlternative[]
   status: MappingStatus
+}
+
+export interface SuggestionAlternative {
+  concept: string
+  label: string
+  score: number
+}
+
+/** What one auto-tagging run found (suggestions are stored as mapping entries with status 'suggested'). */
+export interface AutoTagSummary {
+  suggested: number
+  /** suggestions not stored: the cell or the fact is already tagged, or the user rejected it before */
+  skipped: number
+  sheets: { workbook: string; sheet: string; kind: string; rows: number; note: string | null }[]
+  llmUsed: boolean
+}
+
+export interface AcceptAllResult {
+  accepted: number
+  /** suggestions that could not be tagged (they stay suggested), with the reason */
+  problems: string[]
 }
 
 /** MappingEntry plus derived, non-persisted info for the UI. */

@@ -1,6 +1,6 @@
-import { CalendarRange, Link2, Search, Unlink } from 'lucide-react'
+import { CalendarRange, Check, Link2, Search, Sparkles, Unlink, X } from 'lucide-react'
 import { formatIndian } from '@xap/engine/basics'
-import type { CellAmount, ColumnPeriod, Scope } from '@shared/editor'
+import type { CellAmount, ColumnPeriod, MappingView, Scope } from '@shared/editor'
 import { cellKey, rangeOf, rangeSize } from '@shared/workbook'
 import { Button } from '@/components/ui/primitives'
 import { cn } from '@/lib/cn'
@@ -40,7 +40,19 @@ export function MappingInspector() {
         </span>
       )}
       <span className="h-4 w-px bg-border" />
-      {m ? (
+      {m?.status === 'suggested' ? (
+        <SuggestionControls m={m} onScope={(s) => void setScope(m.id, s)} />
+      ) : m?.status === 'rejected' ? (
+        <>
+          <span className="shrink-0 text-muted" title={m.conceptLabel}>
+            Suggestion rejected.
+          </span>
+          <div className="flex-1" />
+          <Button variant="ghost" className="h-6 shrink-0 px-2" onClick={() => setActivity('taxonomy')}>
+            <Search size={13} /> Find an element…
+          </Button>
+        </>
+      ) : m ? (
         <>
           <button className="flex min-w-0 items-center gap-1.5 hover:underline" title={m.fact.concept} onClick={() => selectFact(m.factKey)}>
             <Link2 size={13} className="shrink-0 text-ok" />
@@ -64,6 +76,56 @@ export function MappingInspector() {
         </>
       )}
     </footer>
+  )
+}
+
+const ORIGIN_TEXT: Record<string, string> = {
+  memory: 'tagged so before',
+  exact: 'label match',
+  lexical: 'word match',
+  ai: 'AI',
+}
+
+/** An auto-tagging suggestion for the cell: the element, its confidence and why; accept, pick an alternative, or reject. */
+function SuggestionControls({ m, onScope }: { m: MappingView; onScope: (s: Scope) => void }) {
+  const { acceptSuggestion, rejectSuggestion } = useEditor()
+  const pct = Math.round((m.confidence ?? 0) * 100)
+  const alternatives = m.alternatives ?? []
+  return (
+    <>
+      <span className="flex min-w-0 items-center gap-1.5" title={`${m.fact.concept}\n${m.rationale ?? ''}`} data-testid="suggestion">
+        <Sparkles size={13} className="shrink-0 text-warn" />
+        <span className="truncate">{m.conceptLabel}</span>
+        <span className={cn('shrink-0 rounded px-1 text-[10px]', pct >= 90 ? 'bg-ok/15 text-ok' : pct >= 60 ? 'bg-warn/15 text-warn' : 'bg-err/15 text-err')} data-testid="suggestion-confidence">
+          {pct}%
+        </span>
+        <span className="shrink-0 text-[11px] text-muted">{ORIGIN_TEXT[m.origin] ?? m.origin}</span>
+      </span>
+      <Segmented label="Period" value={m.fact.scope} onPick={onScope} />
+      {m.sign === -1 && <span className="text-[11px] text-warn">sign reversed</span>}
+      {alternatives.length > 0 && (
+        <select
+          className="h-6 max-w-44 shrink rounded border border-border bg-panel px-1 text-[11px] text-muted"
+          aria-label="Accept an alternative element"
+          value=""
+          onChange={(e) => e.target.value && void acceptSuggestion(m.id, e.target.value)}
+        >
+          <option value="">Other suggestions…</option>
+          {alternatives.map((a) => (
+            <option key={a.concept} value={a.concept} title={a.concept}>
+              {a.label} ({Math.round(a.score * 100)}%)
+            </option>
+          ))}
+        </select>
+      )}
+      <div className="flex-1" />
+      <Button variant="primary" className="h-6 shrink-0 px-2" onClick={() => void acceptSuggestion(m.id)} data-testid="accept-suggestion">
+        <Check size={13} /> Accept
+      </Button>
+      <Button variant="ghost" className="h-6 shrink-0 px-2" onClick={() => void rejectSuggestion(m.id)} data-testid="reject-suggestion">
+        <X size={13} /> Reject
+      </Button>
+    </>
   )
 }
 

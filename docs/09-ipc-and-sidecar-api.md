@@ -25,6 +25,11 @@
 | excel | `workbook:import` | invoke | `path?` → `WorkbookModel` (.xlsx/.xlsm in process; .xls through `POST /api/v1/workbooks/read`) |
 | mapping | `mapping:cell-info` | invoke | `CellRef` → `CellInfo` (amount at the statement's precision + column period) |
 | mapping | `mapping:set-column-period` | invoke | `CellRef, 'CY' \| 'PY' \| null` → `ColumnPeriod` (remembered per sheet column in `mapping.json`) |
+| mapping | `mapping:set-status` | invoke | `id, 'suggested' \| 'rejected'` → `MappingView`. Approving goes through `autotag:accept` / `mapping:tag` (it writes the fact); a tagged entry can't change status |
+| autotag | `autotag:run` | invoke | → `AutoTagSummary` `{suggested, skipped, sheets[], llmUsed}`. Every imported workbook goes to `POST /api/v1/mapping/suggest`; the result is stored as `mapping.json` entries with status `suggested` (no fact). Skips cells and facts already tagged, and (cell, element) pairs the user rejected (Phase 8; `AutoTagService`) |
+| autotag | `autotag:accept` | invoke | `id, concept?` → `MappingView`. `MappingService.tag` with the suggestion's origin and confidence; `concept` picks one of its alternatives (origin `manual`). Teaches `mapping_memory` |
+| autotag | `autotag:reject` | invoke | `id` → `MappingView` (status `rejected`; not suggested again for that element) |
+| autotag | `autotag:accept-all` | invoke | `min?` (default 0.9) → `AcceptAllResult` `{accepted, problems[]}`; a suggestion the engine refuses stays suggested |
 | engine | `engine:set-value` / `engine:validate` / `engine:export-xml` / `engine:apply-fix` | invoke | (Phase 2+) |
 | settings | `settings:get` / `settings:set` | invoke | non-secret settings |
 | settings | `settings:set-groq-key` / `settings:has-groq-key` | invoke | the key is stored with safeStorage; it is never returned to the renderer |
@@ -54,10 +59,10 @@ type SidecarStatus =
 | `GET /api/v1/taxonomies/{id}/concepts?search=` | Concept list/filter | exists |
 | `GET /api/v1/taxonomies/{id}/relationships/{kind}` | presentation/calculation/definition | exists |
 | `GET /api/v1/taxonomies/{id}/business-rules?concept=` | Raw rules | exists |
-| `GET /api/v1/taxonomies/recommend?keys=` | Legacy top-1 recommend | exists → superseded |
+| `GET /api/v1/taxonomies/recommend?keys=` | Legacy top-1 embedding recommend (needs the Chroma index, not built) | superseded by `/mapping/suggest` |
 | `POST /api/v1/workbooks/read` | `{fileName, contentBase64}` → `{sheets:[{name,rowCount,colCount,cells,merges,colWidths}]}` (the `WorkbookModel` shape). python-calamine reads `.xls`; there are no number formats, so amounts round to the filing's decimal places. 422 for unreadable files | **used by the UI** (Phase 5) |
-| `POST /api/v1/mapping/suggest` | Auto-tagging, see [06](06-ai-auto-tagging.md) | Phase 5 |
-| `POST /api/v1/mapping/review` | Tagging-quality review | Phase 5 |
+| `POST /api/v1/mapping/suggest` | Auto-tagging: `{taxonomy, sheets:[{name, cells:[{r,c,v}]}], periods:{cyEnd, pyEnd}, level, memory:[{label, concept, approvals}], options:{useLlm, maxCandidates}}` → `{layout[], suggestions[], llmUsed, level}`. `ci_taxonomy`, `ind_as_taxonomy` (others 422). Stateless; LLM rerank only with `useLlm` **and** a Groq key. See [06](06-ai-auto-tagging.md) | **used by the app** (Phase 8, `SidecarMappingSuggester`) |
+| `POST /api/v1/mapping/review` | Tagging-quality review | later |
 | `POST /api/v1/fix/propose` | Fix agent, see [07](07-ai-fix-agent.md) | Phase 7 |
 
 **Rules:**

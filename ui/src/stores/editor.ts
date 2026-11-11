@@ -48,6 +48,14 @@ interface EditorState {
   fillMandatoryZeros(): Promise<void>
   /** remembers the period of the selected cell's column (null forgets it) */
   setColumnPeriod(scope: Scope | null): Promise<void>
+  /** an auto-tagging run is in progress */
+  autoTagging: boolean
+  /** auto-tags every imported workbook: stores suggestions, writes no fact */
+  autoTag(): Promise<void>
+  acceptSuggestion(id: string, concept?: string): Promise<void>
+  rejectSuggestion(id: string): Promise<void>
+  /** accepts every suggestion with confidence ≥ min */
+  acceptAllSuggestions(min: number): Promise<void>
 }
 
 const api = () => window.xap.editor
@@ -73,6 +81,7 @@ const EMPTY = {
   xml: null,
   loadedRevision: -1,
   busy: false,
+  autoTagging: false,
 }
 
 export const useEditor = create<EditorState>((set, get) => {
@@ -200,6 +209,39 @@ export const useEditor = create<EditorState>((set, get) => {
       if (!cell) return
       const col = await unwrap(api().setColumnPeriod(cell, scope), { onValidation: (p) => toast.error(p.join(' ')) })
       if (col && get().selection.cell === cell) set((s) => ({ cellInfo: s.cellInfo && { ...s.cellInfo, column: col } }))
+    },
+
+    autoTag: async () => {
+      if (get().autoTagging) return
+      set({ autoTagging: true })
+      const summary = await unwrap(api().autoTag(), { onValidation: (p) => toast.error(p.join(' ')) })
+      set({ autoTagging: false })
+      if (!summary) return
+      const statements = summary.sheets.filter((s) => s.rows > 0).length
+      if (!summary.suggested) {
+        toast.info(summary.skipped ? `Nothing new to suggest: ${summary.skipped} cells are already tagged or were rejected.` : 'No taggable rows found: no column header names this filing’s year ends.')
+        return
+      }
+      toast.success(
+        `${summary.suggested} suggestions on ${statements} sheet${statements === 1 ? '' : 's'} (amber cells)${summary.llmUsed ? ', AI-reranked' : ''}. Nothing is tagged until you accept.`,
+      )
+    },
+
+    acceptSuggestion: async (id, concept) => {
+      const m = await unwrap(api().acceptSuggestion(id, concept), { onValidation: (p) => toast.error(p.join(' ')) })
+      if (m) set({ selection: { cell: m.cell, factKey: m.factKey } })
+    },
+
+    rejectSuggestion: async (id) => {
+      await unwrap(api().rejectSuggestion(id), { onValidation: (p) => toast.error(p.join(' ')) })
+    },
+
+    acceptAllSuggestions: async (min) => {
+      const r = await unwrap(api().acceptAllSuggestions(min), { onValidation: (p) => toast.error(p.join(' ')) })
+      if (!r) return
+      if (r.accepted) toast.success(`Tagged ${r.accepted} suggested cell${r.accepted === 1 ? '' : 's'} (confidence ≥ ${Math.round(min * 100)}%).`)
+      else if (!r.problems.length) toast.info(`No suggestions at ≥ ${Math.round(min * 100)}% confidence.`)
+      if (r.problems.length) toast.error(`${r.problems.length} could not be tagged and stay suggested: ${r.problems.slice(0, 3).join('; ')}${r.problems.length > 3 ? '…' : ''}`)
     },
   }
 })

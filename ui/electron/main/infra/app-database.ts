@@ -4,7 +4,11 @@
  */
 import { DatabaseSync } from 'node:sqlite'
 import type { RecentProject } from '@shared/project'
-import type { KeyValueRepository, RecentProjectsRepository } from '../services/ports'
+import type { TaxonomyId } from '@xap/engine/basics'
+import type { KeyValueRepository, MappingMemoryItem, MappingMemoryRepository, RecentProjectsRepository } from '../services/ports'
+
+/** "  Trade  Receivables " → "trade receivables" (the memory key; the sidecar applies its full normalisation). */
+export const memoryLabel = (label: string): string => label.replace(/\s+/g, ' ').trim().toLowerCase().slice(0, 500)
 
 const MIGRATIONS: string[] = [
   `CREATE TABLE recent_projects (
@@ -17,7 +21,7 @@ const MIGRATIONS: string[] = [
      PRIMARY KEY (taxonomy_id, norm_label, sheet_kind, concept, dims_json));`,
 ]
 
-export class AppDatabase implements RecentProjectsRepository, KeyValueRepository {
+export class AppDatabase implements RecentProjectsRepository, KeyValueRepository, MappingMemoryRepository {
   private readonly db: DatabaseSync
 
   /** @param file path to app.db, or ':memory:' for tests */
@@ -72,6 +76,27 @@ export class AppDatabase implements RecentProjectsRepository, KeyValueRepository
 
   set(key: string, value: string): void {
     this.db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(key, value)
+  }
+
+  // ---- MappingMemoryRepository (labels are stored lower-case with single spaces; the sidecar normalises further)
+  recall(taxonomy: TaxonomyId): MappingMemoryItem[] {
+    return (
+      this.db
+        .prepare('SELECT norm_label AS label, concept, approvals FROM mapping_memory WHERE taxonomy_id = ? ORDER BY last_used DESC LIMIT 20000')
+        .all(taxonomy) as unknown as MappingMemoryItem[]
+    ).map((r) => ({ label: r.label, concept: r.concept, approvals: Number(r.approvals) }))
+  }
+
+  remember(taxonomy: TaxonomyId, label: string, concept: string): void {
+    const norm = memoryLabel(label)
+    if (!norm) return
+    this.db
+      .prepare(
+        `INSERT INTO mapping_memory (taxonomy_id, norm_label, concept, last_used) VALUES (?, ?, ?, ?)
+         ON CONFLICT(taxonomy_id, norm_label, sheet_kind, concept, dims_json)
+         DO UPDATE SET approvals = approvals + 1, last_used = excluded.last_used`,
+      )
+      .run(taxonomy, norm, concept, new Date().toISOString())
   }
 
   close(): void {

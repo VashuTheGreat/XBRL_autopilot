@@ -10,7 +10,20 @@ import type {
   RecoveryItem,
   SettingsState,
 } from './project'
-import type { CellInfo, ColumnPeriod, ZeroFilled, ConceptHit, FormView, MappingStatus, MappingView, Scope, TagCellInput, XmlView } from './editor'
+import type {
+  AcceptAllResult,
+  AutoTagSummary,
+  CellInfo,
+  ColumnPeriod,
+  ZeroFilled,
+  ConceptHit,
+  FormView,
+  MappingStatus,
+  MappingView,
+  Scope,
+  TagCellInput,
+  XmlView,
+} from './editor'
 import type { CellRef, WorkbookModel } from './workbook'
 
 /**
@@ -100,6 +113,10 @@ export const IPC = {
   mappingSetStatus: 'mapping:set-status',
   mappingCellInfo: 'mapping:cell-info',
   mappingSetColumnPeriod: 'mapping:set-column-period',
+  autotagRun: 'autotag:run',
+  autotagAccept: 'autotag:accept',
+  autotagReject: 'autotag:reject',
+  autotagAcceptAll: 'autotag:accept-all',
   editorForm: 'editor:form',
   editorXml: 'editor:xml',
   editorFillMandatoryZeros: 'editor:fill-mandatory-zeros',
@@ -167,5 +184,12 @@ export interface XapApi {
     /** reports the statement's empty mandatory amounts as 0; returns what was filled */
     fillMandatoryZeros(elrUri: string): Promise<Result<ZeroFilled[]>>
     searchConcepts(query: string): Promise<Result<ConceptHit[]>>
+    /** asks the tagger for every imported workbook; stores suggestions (status 'suggested'), writes no fact */
+    autoTag(): Promise<Result<AutoTagSummary>>
+    /** tags a suggested cell with its suggestion, or with `concept` (one of its alternatives) */
+    acceptSuggestion(id: string, concept?: string): Promise<Result<MappingView>>
+    rejectSuggestion(id: string): Promise<Result<MappingView>>
+    /** accepts every suggestion with confidence ≥ `min` (default 0.9) */
+    acceptAllSuggestions(min?: number): Promise<Result<AcceptAllResult>>
   }
 }

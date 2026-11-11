@@ -2,19 +2,57 @@
  * MappingService: Excel cell (or a one-column range, summed) ↔ taxonomy fact. Tagging writes the value into the engine
  * filing; untagging removes it. Invariants: one cell → one fact, one fact ← one cell (ranges count by their cells).
  * The engine stays the source of truth for values; mapping.json records where they came from.
+ *
+ * Auto-tagging suggestions are entries with status 'suggested' (or 'rejected' once the user says no). They carry no
+ * fact: only an approved entry has one. Accepting a suggestion is an ordinary tag() with its provenance.
+ * Every approved tag teaches the mapping memory (label → concept).
  */
 import { randomUUID } from 'node:crypto'
 import { decimal as Dec, nondimAllowed, SCALE_POWERS, SHARE_CAPITAL } from '@xap/engine'
-import type { CellAmount, CellInfo, ColumnPeriod, MappingEntry, MappingStatus, MappingView, Scope, TagCellInput } from '@shared/editor'
+import type {
+  CellAmount,
+  CellInfo,
+  ColumnPeriod,
+  MappingEntry,
+  MappingOrigin,
+  MappingStatus,
+  MappingView,
+  Scope,
+  SuggestionAlternative,
+  TagCellInput,
+} from '@shared/editor'
 import { overlaps, rangeCells, rangeOf, sameCell, type CellModel, type CellRef } from '@shared/workbook'
 import { withSign } from '../mapping/amounts'
 import { rangeAmount, type AmountPrecision } from '../mapping/cell-amount'
 import type { ColumnPeriodService } from './column-period-service'
 import { ValidationError } from './errors'
-import type { ProjectAccess, ProjectHandle } from './ports'
+import type { MappingMemoryRepository, ProjectAccess, ProjectHandle } from './ports'
 import type { SourceService } from './source-service'
 
 type Fact = { key: string; value: string | null; nil?: boolean }
+
+/** Where a tag came from, when it was not chosen by hand (an accepted auto-tagging suggestion). */
+export interface TagProvenance {
+  origin: MappingOrigin
+  confidence: number | null
+  rationale?: string
+}
+
+/** An auto-tagging suggestion to store (AutoTagService). */
+export interface NewSuggestion {
+  cell: CellRef
+  label: string
+  concept: string
+  scope: Scope
+  sign: 1 | -1
+  origin: MappingOrigin
+  confidence: number
+  rationale: string
+  alternatives: SuggestionAlternative[]
+}
+
+const NO_MEMORY: MappingMemoryRepository = { recall: () => [], remember: () => {} }
+const hasFact = (e: MappingEntry) => e.status === 'approved'
 
 interface FilingPrecision {
   level: string
@@ -29,6 +67,7 @@ export class MappingService {
     private readonly projects: ProjectAccess,
     private readonly sources: SourceService,
     private readonly columns: ColumnPeriodService,
+    private readonly memory: MappingMemoryRepository = NO_MEMORY,
     private readonly newId: () => string = randomUUID,
   ) {}
 
@@ -37,7 +76,7 @@ export class MappingService {
     return this.entries(p).map((e) => this.view(p, e))
   }
 
-  async tag(input: TagCellInput): Promise<MappingView> {
+  async tag(input: TagCellInput, provenance?: TagProvenance): Promise<MappingView> {
     const p = this.projects.project()
     const A = p.authority.authority
     const concept = A.concept(input.concept) as { kind?: string } | null
@@ -68,27 +107,74 @@ export class MappingService {
     const clash = (e: MappingEntry) =>
       overlaps(e.cell, input.cell) || (e.fact.concept === input.concept && e.fact.scope === scope && e.fact.dims.length === 0)
     for (const old of entries.filter(clash)) {
-      if (old.fact.concept !== input.concept || old.fact.scope !== scope) this.removeFact(p, old)
+      if (hasFact(old) && (old.fact.concept !== input.concept || old.fact.scope !== scope)) this.removeFact(p, old)
     }
+    const label = await this.sources.rowLabel(input.cell)
     const entry: MappingEntry = {
       id: this.newId(),
       cell: { ...input.cell },
-      label: await this.sources.rowLabel(input.cell),
+      label,
       fact: { concept: input.concept, scope, dims: [] },
       sign,
-      origin: 'manual',
-      confidence: null,
-      status: 'approved', // a person chose it
+      origin: provenance?.origin ?? 'manual',
+      confidence: provenance?.confidence ?? null,
+      ...(provenance?.rationale ? { rationale: provenance.rationale } : {}),
+      status: 'approved', // a person chose it, or accepted the suggestion
     }
     this.setEntries(p, [...entries.filter((e) => !clash(e)), entry])
+    if (label) this.memory.remember(p.authority.taxonomyId, label, input.concept)
     p.touch()
     return this.view(p, entry)
+  }
+
+  /**
+   * Stores a run's suggestions in place of the previous run's. A suggestion is skipped when its cell or its fact is
+   * already tagged, or the user rejected that element for that cell before. Writes no fact.
+   */
+  replaceSuggestions(items: NewSuggestion[]): { added: number; skipped: number } {
+    const p = this.projects.project()
+    const kept = this.entries(p).filter((e) => e.status !== 'suggested')
+    const approved = kept.filter(hasFact)
+    const rejected = kept.filter((e) => e.status === 'rejected')
+    const added: MappingEntry[] = []
+    const taken = new Set(approved.map((e) => `${e.fact.concept}|${e.fact.scope}`))
+    for (const s of items) {
+      const skip =
+        approved.some((e) => overlaps(e.cell, s.cell)) ||
+        taken.has(`${s.concept}|${s.scope}`) ||
+        rejected.some((e) => sameCell(e.cell, s.cell) && e.fact.concept === s.concept)
+      if (skip) continue
+      taken.add(`${s.concept}|${s.scope}`)
+      added.push({
+        id: this.newId(),
+        cell: { ...s.cell },
+        label: s.label,
+        fact: { concept: s.concept, scope: s.scope, dims: [] },
+        sign: s.sign,
+        origin: s.origin,
+        confidence: s.confidence,
+        rationale: s.rationale,
+        alternatives: s.alternatives,
+        status: 'suggested',
+      })
+    }
+    // a rejected entry on a cell that now has a different suggestion is superseded by it
+    const superseded = (e: MappingEntry) => e.status === 'rejected' && added.some((a) => sameCell(a.cell, e.cell))
+    this.setEntries(p, [...kept.filter((e) => !superseded(e)), ...added])
+    p.touch()
+    return { added: added.length, skipped: items.length - added.length }
+  }
+
+  /** A stored entry by id (for AutoTagService's accept / reject). */
+  get(id: string): MappingView {
+    const p = this.projects.project()
+    return this.view(p, this.find(p, id))
   }
 
   untag(id: string): void {
     const p = this.projects.project()
     const entry = this.find(p, id)
-    this.removeFact(p, entry)
+    if (hasFact(entry)) this.removeFact(p, entry)
     this.setEntries(p, this.entries(p).filter((e) => e.id !== id))
     p.touch()
   }
@@ -97,6 +183,11 @@ export class MappingService {
     const p = this.projects.project()
     const e = this.find(p, id)
     if (e.fact.scope === scope) return this.view(p, e)
+    if (!hasFact(e)) {
+      e.fact = { ...e.fact, scope } // a suggestion: correct it before accepting
+      p.touch()
+      return this.view(p, e)
+    }
     this.untag(id)
     const view = await this.tag({ cell: e.cell, concept: e.fact.concept, scope, sign: e.sign })
     // correcting a cell's period corrects its column: later cells of the column follow
@@ -111,7 +202,7 @@ export class MappingService {
   async reapply(): Promise<string[]> {
     const p = this.projects.project()
     const problems: string[] = []
-    for (const e of this.entries(p)) {
+    for (const e of this.entries(p).filter(hasFact)) {
       try {
         const { cells } = await this.sources.cell(e.cell)
         this.applyFact(p, e.fact.concept, e.fact.scope, this.displayValue(p, e.fact.concept, e.cell, cells, e.sign))
@@ -132,9 +223,14 @@ export class MappingService {
     return { cell: { ...ref }, amount, column: await this.columns.of(ref) }
   }
 
+  /** Rejects a suggestion, or brings a rejected one back. Approving goes through tag() (it writes the fact). */
   setStatus(id: string, status: MappingStatus): MappingView {
     const p = this.projects.project()
     const e = this.find(p, id)
+    if (status === e.status) return this.view(p, e)
+    if (status === 'approved' || hasFact(e)) {
+      throw new ValidationError([status === 'approved' ? 'Accept the suggestion to tag it.' : 'This cell is tagged: untag it instead.'])
+    }
     e.status = status
     p.touch()
     return this.view(p, e)
@@ -167,7 +263,7 @@ export class MappingService {
   }
 
   private view(p: ProjectHandle, e: MappingEntry): MappingView {
-    const fact = this.fact(p, e)
+    const fact = hasFact(e) ? this.fact(p, e) : null
     return {
       ...e,
       conceptLabel: p.authority.authority.label(e.fact.concept),

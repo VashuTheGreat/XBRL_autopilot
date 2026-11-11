@@ -127,11 +127,63 @@ export interface ProjectHandle {
   periods(): FilingPeriods
   /** call after changing sources/mapping (marks dirty) or facts (refreshes views) */
   touch(): void
+  /** runs `fn` with change notifications held back: one notification at the end, however many touches (bulk edits) */
+  batch<T>(fn: () => Promise<T>): Promise<T>
 }
 
 export interface ProjectAccess {
   /** throws NoProjectError when nothing is open */
   project(): ProjectHandle
+}
+
+// ------------------------------------------------------------------ auto-tagging (docs/06-ai-auto-tagging.md)
+
+/** A label the user tagged before, sent with every suggest request (the sidecar is stateless). */
+export interface MappingMemoryItem {
+  label: string
+  concept: string
+  approvals: number
+}
+
+/** The per-installation learning loop (app.db `mapping_memory`). Private: never leaves the machine except to the local sidecar. */
+export interface MappingMemoryRepository {
+  recall(taxonomy: TaxonomyId): MappingMemoryItem[]
+  remember(taxonomy: TaxonomyId, label: string, concept: string): void
+}
+
+export interface SuggestRequest {
+  taxonomy: TaxonomyId
+  sheets: { name: string; cells: { r: number; c: number; v: string | number | boolean }[] }[]
+  periods: { cyEnd: string; pyEnd: string | null }
+  level: string
+  memory: MappingMemoryItem[]
+  useLlm: boolean
+}
+
+/** One suggested fact for one value cell of the sheet. */
+export interface Suggestion {
+  cell: { sheet: string; ref: string }
+  label: string
+  concept: string
+  conceptLabel: string
+  scope: 'CY' | 'PY'
+  sign: 1 | -1
+  confidence: number
+  origin: 'memory' | 'exact' | 'lexical' | 'ai'
+  rationale: string
+  needsReview: boolean
+  alternatives: { concept: string; label: string; score: number }[]
+}
+
+export interface SuggestResponse {
+  layout: { sheet: string; kind: string; rows: number; note: string | null }[]
+  suggestions: Suggestion[]
+  llmUsed: boolean
+}
+
+/** Proposes tags for a workbook (the sidecar's POST /api/v1/mapping/suggest). Never writes facts. */
+export interface MappingSuggester {
+  suggest(req: SuggestRequest): Promise<SuggestResponse>
 }
 
 export interface Clock {

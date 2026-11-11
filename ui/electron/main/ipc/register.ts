@@ -7,6 +7,7 @@ import { IPC, type AppInfo, type HttpMethod } from '@shared/ipc'
 import type { CellRef } from '@shared/workbook'
 import type { AppSettings, NewFilingInput } from '@shared/project'
 import type { ProjectController } from '../project/project-controller'
+import type { AutoTagService } from '../services/auto-tag-service'
 import type { ColumnPeriodService } from '../services/column-period-service'
 import type { EditorQueryService } from '../services/editor-query-service'
 import type { FilingPropertiesService } from '../services/filing-properties-service'
@@ -32,6 +33,7 @@ export interface IpcDeps {
   filing: FilingPropertiesService
   statements: StatementService
   taxonomy: TaxonomyService
+  autoTag: AutoTagService
   getWindow: () => BrowserWindow | null
 }
 
@@ -41,6 +43,7 @@ export function registerIpc(d: IpcDeps): void {
   registerProjectIpc(d)
   registerSettingsIpc(d)
   registerEditorIpc(d)
+  registerAutoTagIpc(d)
 }
 
 function registerAppIpc(d: IpcDeps): void {
@@ -149,4 +152,16 @@ function registerEditorIpc({ sources, mapping, columns, editor, statements, taxo
   handleResult(IPC.editorXml, () => editor.xml())
   handleResult(IPC.editorFillMandatoryZeros, (_e, uri: unknown) => statements.fillMandatoryZeros(requireString(uri, 'statement')))
   handleResult(IPC.taxonomySearch, (_e, q: unknown) => taxonomy.searchConcepts(typeof q === 'string' ? q.slice(0, 200) : ''))
+}
+
+function registerAutoTagIpc({ autoTag }: IpcDeps): void {
+  handleResult(IPC.autotagRun, () => autoTag.run())
+  handleResult(IPC.autotagAccept, (_e, id: unknown, concept?: unknown) =>
+    autoTag.accept(requireString(id, 'id'), concept === undefined || concept === null ? undefined : requireString(concept, 'concept')),
+  )
+  handleResult(IPC.autotagReject, (_e, id: unknown) => autoTag.reject(requireString(id, 'id')))
+  handleResult(IPC.autotagAcceptAll, (_e, min?: unknown) => {
+    if (min !== undefined && (typeof min !== 'number' || !(min >= 0 && min <= 1))) throw new Error('Invalid confidence')
+    return autoTag.acceptAll(min as number | undefined)
+  })
 }
