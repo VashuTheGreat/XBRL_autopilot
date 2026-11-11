@@ -117,7 +117,7 @@ The original `golden-DIVERGENCES.json`, `APPROVED_LIMITATIONS.json` and the MCA-
 | `fixes.js` | `fixes.ts` | Deterministic quick fixes |
 | `richtext.js` | `richtext.ts` | Editor HTML ↔ MCA HTML subset |
 | `mca-errors.js` | `mca-errors.ts` | Parse and explain MCA validator error text |
-| `derived.js`, `totals-fill.js` | `derived.ts` | Carrying amounts, roll-forwards, totals |
+| `derived.js`, `member-rollup.js`, `totals-fill.js` | `derived.ts` | Carrying amounts, roll-forwards, parent-member roll-ups, totals |
 | `views.js`, `member-hints.js`, `mandatory-marks.js` | `views.ts` | ELR/table view model for the XBRL Form grid |
 | `carry-forward.js`, `upkeep.js`, `compare.js` | `carry-forward.ts`, `compare.ts` | Next-year prep, compare with the filed version |
 | `footnotes.js` | `footnotes.ts` | Footnote CRUD |
@@ -147,6 +147,12 @@ The original `golden-DIVERGENCES.json`, `APPROVED_LIMITATIONS.json` and the MCA-
   - **Problems** are given per cell: not a line item, not an axis of the table, member syntax, dimensional validity, unknown period, two cells being the same fact.
   - `tableOfFact(A, concept, dims)` finds the table of a single dimensional tag.
   - Tested on Ind AS (a DGPL-style PPE roll-forward) and C&I (tangible assets), both applied through `Session.setTableValue`.
+- **Parent-member roll-ups** (`core/member-rollup.js`, Phase 11 step 3b, [ADR-0013](decisions/ADR-0013-table-tagging.md)): a table value under a child member derives its parent members, as the sum of the values under the parent's children on that slice (the same element, period and other members). The derivation is deterministic and taxonomy-generic.
+  - **Member tree:** read from the authority's table axes (`members[].parent`); a member whose parent differs between tables is left out.
+  - **What is derived:** only real, usable members. The axis default (the domain, the "total" column) is the statement figure or the table's total column, which other derivations or the filer supply. Amounts and share counts only.
+  - **How:** `Session.deriveFrom` → `applyDerived`, like a carrying amount: origin `calculated`, recursive up the tree (Other retained earning → Retained earnings → Reserves → Equity attributable). An entered or imported parent that differs from its children is the filer's figure and is kept, unless it agreed before the edit. An override is never replaced. `refreshCalculatedCells` knows the roll-up.
+  - **With the roll-forward:** a parent cell whose children hold values belongs to the roll-up. The roll-forward (closing = opening + change) leaves it alone (`undefined`), and the roll-up leaves a closing balance it doesn't feed to the roll-forward. Before this fix, a previous-year edit removed the current-year roll-up of Dixon's financial assets at amortised cost.
+  - **Golden** (`test/member-rollup.test.ts`): every parent-member value Dixon filed equals the sum of its filed children. Dixon without those facts, re-derived from the children, gives the same values and **0 ERRORs**. C&I: Equity shares 1 → Equity shares (share capital classes).
 - `basics.ts`: `maxDisplayPlaces(level)` / `defaultStatementPlaces(level)` (see [ADR-0009](decisions/ADR-0009-amounts-from-excel.md)). `SHARE_CAPITAL` (from `gate.js`) is exported for the app's actual-value rule.
 
 ## Public API (target)
