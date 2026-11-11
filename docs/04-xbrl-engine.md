@@ -140,6 +140,13 @@ The original `golden-DIVERGENCES.json`, `APPROVED_LIMITATIONS.json` and the MCA-
   - **Fixpoint:** the fill can derive a value into a new column (net carrying amount = gross − accumulated), so it runs again until nothing is left, at most 5 rounds.
   - **Shared code:** "a column has a value" is `core/table-columns.js` `filledTableColumns`, the same function the rule engine's `lineItemsMandatory` uses. `singleMemberTables` is no longer copy-pasted.
   - **Golden** (`test/table-zeros.test.ts`): Dixon without its 1,260 zero table facts has 73 ERRORs. After the fill it has **0 ERRORs**, and the fill added 163 facts (133 filled + 30 derived), every one a zero Dixon filed. Dixon's other 1,097 zeros are optional.
+- `table-mapping.ts` (Phase 11, [ADR-0013](decisions/ADR-0013-table-tagging.md)): `planTableBlock(A, spec, { hasValue, columnScope })` takes an Excel block mapped to one table and gives one planned fact per non-empty cell, with its problems. It is pure, and is shared by the app's preview, the apply step and the evaluation.
+  - **Element:** from the row. Only the period label roles choose the fact: opening = the table's periodStartLabel row, closing = its periodEndLabel row. A negated or total role only changes how the table displays the value, so the fact takes the table row's own role (DGPL's "Charge for the year" is the negated-total depreciation row).
+  - **Dimensions:** the row's members ∪ the column's members; an axis given twice must agree.
+  - **Period:** the row's, else the column's, else the sheet column's.
+  - **Problems** are given per cell: not a line item, not an axis of the table, member syntax, dimensional validity, unknown period, two cells being the same fact.
+  - `tableOfFact(A, concept, dims)` finds the table of a single dimensional tag.
+  - Tested on Ind AS (a DGPL-style PPE roll-forward) and C&I (tangible assets), both applied through `Session.setTableValue`.
 - `basics.ts`: `maxDisplayPlaces(level)` / `defaultStatementPlaces(level)` (see [ADR-0009](decisions/ADR-0009-amounts-from-excel.md)). `SHARE_CAPITAL` (from `gate.js`) is exported for the app's actual-value rule.
 
 ## Public API (target)

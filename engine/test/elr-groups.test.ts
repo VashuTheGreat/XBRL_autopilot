@@ -46,7 +46,7 @@ describe('ELR groups by title', () => {
 
   it.skipIf(!existsSync(DIXON))('Dixon (MCA-accepted): statements agree with their notes, nothing is re-derived on opening', () => {
     const A = load('ind_as')
-    const { filing } = importXbrl(A, readFileSync(DIXON, 'utf8'), { fileName: 'dixon.xml' }) as { filing: never }
+    const { filing } = importXbrl(A, readFileSync(DIXON, 'utf8'), { fileName: 'dixon.xml' }) as unknown as { filing: never }
     const S = new Session(A, filing) as unknown as { statementNoteDifferences(): unknown[]; refreshDerivedStatements(): unknown[] }
     expect(S.statementNoteDifferences()).toEqual([])
     expect(S.refreshDerivedStatements()).toEqual([])

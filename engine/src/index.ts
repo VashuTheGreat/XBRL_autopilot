@@ -53,6 +53,16 @@ export {
   type TableDim,
 } from './mandatory-zeros'
 export {
+  planTableBlock,
+  tableOfFact,
+  UnknownTableError,
+  type TableBlockSpec,
+  type TableBlockRow,
+  type TableBlockColumn,
+  type PlannedTableFact,
+  type TableScope,
+} from './table-mapping'
+export {
   checkPatch,
   applyFactPatch,
   dryRun,

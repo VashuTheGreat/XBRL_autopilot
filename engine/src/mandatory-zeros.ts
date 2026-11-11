@@ -7,6 +7,7 @@
  * text and dates need the user. Only lines with no value, applicable for the year, outside dimensional tables.
  * Every value goes through Session.setValue (applicability, decimals, recalculation of totals).
  */
+import type { DimensionRef } from './basics'
 import { dimensionallyValid, nondimAllowed } from './core/dimensions.js'
 import type { Session } from './core/session.js'
 import { filledTableColumns, singleMemberTables } from './core/table-columns.js'
@@ -17,11 +18,7 @@ export interface ZeroFill {
   ruleId: string
 }
 
-export interface TableDim {
-  axis: string
-  member?: string
-  typed?: string
-}
+export type TableDim = DimensionRef
 
 export interface TableZeroFill {
   tableId: string
@@ -122,7 +119,7 @@ export function tableZeroPlan(session: Session, tableId?: string): TableZeroFill
     const soft = new Set(r.ast.softConcepts ?? [])
     for (const id of r.ast.tables ?? []) {
       if ((tableId && id !== tableId) || singleMemberTables(A).has(id)) continue
-      for (const scope of (r.scope?.periods ?? years).filter((y) => years.includes(y))) {
+      for (const scope of (r.scope?.periods ?? years).filter((y: 'CY' | 'PY') => years.includes(y))) {
         if (!S.app.tableStatus(f, id, scope).applicable) continue
         for (const dims of (filledTableColumns(A, f, id, scope) as Map<string, TableDim[]>).values()) {
           for (const q of r.ast.concepts ?? []) {

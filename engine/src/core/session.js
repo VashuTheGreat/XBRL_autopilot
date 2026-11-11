@@ -616,6 +616,14 @@ export class Session {
     if (errs.length) throw new DimensionError(errs.map((e) => e.msg).join('; '), errs);
     return nd;
   }
+  /**
+   * @param {string} tableId
+   * @param {'CY' | 'PY'} scope
+   * @param {{ axis: string, member?: string, typed?: string }[]} dims
+   * @param {string} concept
+   * @param {string} display
+   * @param {{ preferredLabel?: string | null, recalc?: boolean, override?: boolean, lockCalculated?: boolean, unlockPY?: boolean, strict?: boolean }} [opts]
+   */
   setTableValue(tableId, scope, dims, concept, display, { preferredLabel = null, recalc = false, override = false, lockCalculated = false, unlockPY = false, strict = false } = {}) {
     if (this.pyLocked(scope, unlockPY)) throw new PyLockedError(PY_LOCKED);
     this.app.assertTableOpen(this.filing, tableId, scope);
