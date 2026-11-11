@@ -172,7 +172,8 @@ def period_end(scope: str, preferred_label: str | None, cy_end: dt.date, py_end:
 
 def produced_from_blocks(result: SuggestResult, sheets: list[dict], cy_end: dt.date, py_end: dt.date | None, level: str,
                          places: int = 2) -> list[ProducedFact]:
-    """The table suggester's cells as facts (each block cell × its sheet's scale, as the app would file it)."""
+    """The table suggester's cells as facts (each block cell × its sheet's scale, as the app would file it), with the
+    facts each cell also reports (table_also.py)."""
     from src.services.tagging.layout import a1
 
     values = {(s["name"], a1(c["r"], c["c"])): c["v"] for s in sheets for c in s["cells"] if isinstance(c["v"], (int, float)) and not isinstance(c["v"], bool)}
@@ -184,8 +185,12 @@ def produced_from_blocks(result: SuggestResult, sheets: list[dict], cy_end: dt.d
             end = period_end(c.scope, c.preferred_label, cy_end, py_end)
             if v is None or end is None:
                 continue
-            dims = tuple(sorted((d["axis"], d.get("member") or d.get("typed")) for d in c.dims))
-            out.append(ProducedFact(c.concept, end, dims, filed_amount(v, scale_of.get(b.sheet, SCALES[level]), level, places), f"{b.sheet.strip()}!{c.ref}", "table"))
+            amount = filed_amount(v, scale_of.get(b.sheet, SCALES[level]), level, places)
+            for concept, label, dims in [(c.concept, c.preferred_label, c.dims), *((a["concept"], a.get("preferredLabel"), a["dims"]) for a in c.also)]:
+                at = period_end(c.scope, label, cy_end, py_end)
+                key = tuple(sorted((d["axis"], d.get("member") or d.get("typed")) for d in dims))
+                if at:
+                    out.append(ProducedFact(concept, at, key, amount, f"{b.sheet.strip()}!{c.ref}", "table"))
     return out
 
 

@@ -37,6 +37,10 @@ export interface Scoreboard {
   rightNonZero: Record<Kind, number>
   /** what went wrong, for the report: "origin kind concept dims: ours vs filed" */
   wrong: string[]
+  /** per group (`groupOf`, e.g. the table): filed non-zero table facts, and how many of them we produced right */
+  byGroup: Record<string, { filed: number; right: number }>
+  /** filed non-zero table facts we did not produce right: "group concept period dims = value" */
+  missed: string[]
 }
 
 export const factKey = (f: ScoredFact) =>
@@ -58,10 +62,17 @@ export function verdict(ours: ScoredFact, filed: ScoredFact | undefined): Verdic
  * Scores every numeric fact of `ours` (classified by `originOf`; null = not scored, e.g. the wizard's own facts)
  * against `filed`. `sourceOf` names where a fact came from in the report (its Excel cell).
  */
-export function scoreFacts(ours: ScoredFact[], filed: ScoredFact[], originOf: (f: ScoredFact) => string | null, sourceOf: (f: ScoredFact) => string = () => ''): Scoreboard {
+export function scoreFacts(
+  ours: ScoredFact[],
+  filed: ScoredFact[],
+  originOf: (f: ScoredFact) => string | null,
+  sourceOf: (f: ScoredFact) => string = () => '',
+  groupOf: (f: ScoredFact) => string = () => '',
+): Scoreboard {
   const byKey = new Map(filed.filter(numeric).map((f) => [factKey(f), f]))
   const placeholder = placeholderMatcher(filed.filter(numeric))
-  const board: Scoreboard = { byOrigin: {}, filedNonZero: { amount: 0, table: 0 }, rightNonZero: { amount: 0, table: 0 }, wrong: [] }
+  const board: Scoreboard = { byOrigin: {}, filedNonZero: { amount: 0, table: 0 }, rightNonZero: { amount: 0, table: 0 }, wrong: [], byGroup: {}, missed: [] }
+  const rightFiled = new Set<ScoredFact>()
   for (const f of filed.filter(numeric)) if (Number(f.value) !== 0) board.filedNonZero[kindOf(f)]++
   for (const f of ours.filter(numeric)) {
     const origin = originOf(f)
@@ -71,8 +82,18 @@ export function scoreFacts(ours: ScoredFact[], filed: ScoredFact[], originOf: (f
     const kind = kindOf(f)
     const t = ((board.byOrigin[origin] ??= { amount: empty(), table: empty() })[kind])
     t[v]++
-    if (v === 'right' && filedFact && Number(filedFact.value) !== 0) board.rightNonZero[kind]++
+    if (v === 'right' && filedFact && Number(filedFact.value) !== 0 && !rightFiled.has(filedFact)) {
+      board.rightNonZero[kind]++
+      rightFiled.add(filedFact)
+    }
     if (v === 'wrong') board.wrong.push(`${origin} ${kind} ${sourceOf(f)} ${f.concept} ${f.period.date ?? f.period.end} ${JSON.stringify(f.dims.map((d) => d.member ?? d.typed))}: ${f.value} vs ${filedFact!.value}`)
+  }
+  for (const f of filed.filter((x) => numeric(x) && Number(x.value) !== 0 && kindOf(x) === 'table')) {
+    const g = groupOf(f)
+    const tally = (board.byGroup[g] ??= { filed: 0, right: 0 })
+    tally.filed++
+    if (rightFiled.has(f)) tally.right++
+    else board.missed.push(`${g} ${f.concept} ${f.period.date ?? f.period.end} ${JSON.stringify(f.dims.map((d) => d.member ?? d.typed))} = ${f.value}`)
   }
   return board
 }
@@ -117,5 +138,9 @@ export function scoreboardText(b: Scoreboard): string {
     'origin   kind    right  near wrong extra',
     ...rows,
     `non-zero filed amounts right: ${b.rightNonZero.amount} of ${b.filedNonZero.amount}; table amounts right: ${b.rightNonZero.table} of ${b.filedNonZero.table}`,
+    ...Object.entries(b.byGroup)
+      .filter(([g]) => g)
+      .sort((x, y) => y[1].filed - x[1].filed)
+      .map(([g, t]) => `  ${g.padEnd(64)} ${String(t.right).padStart(4)} of ${String(t.filed).padStart(4)}`),
   ].join('\n')
 }

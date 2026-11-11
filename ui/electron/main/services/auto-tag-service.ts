@@ -119,11 +119,12 @@ export class AutoTagService {
   }
 }
 
-/** The workbook's cells as the tagger reads them: values only (no formulas, formats or file name). */
+/** The workbook's cells as the tagger reads them: values and merged ranges (no formulas, formats or file name). */
 function toSheets(wb: WorkbookModel): SuggestRequest['sheets'] {
   return wb.sheets.map((s) => ({
     name: s.name,
     cells: s.cells.filter((c) => c.v !== null && c.v !== '').map((c) => ({ r: c.r, c: c.c, v: c.v as string | number | boolean })),
+    merges: s.merges.map((m) => ({ r1: m.r1, c1: m.c1, r2: m.r2, c2: m.c2 })),
   }))
 }
 
@@ -159,7 +160,15 @@ function toBlock(workbook: string, b: SuggestedBlock): NewBlockSuggestion {
     tableTitle: displayLabel(b.tableTitle),
     confidence: b.confidence,
     cellCount: b.cells.length,
-    rows: b.rows.map((r) => ({ r: r.r, concept: r.concept, preferredLabel: r.preferredLabel ?? null, ...(r.scope ? { scope: r.scope } : {}), members: r.members ?? [] })),
-    cols: b.cols.map((c) => ({ c: c.c, members: c.members ?? [], ...(c.scope ? { scope: c.scope } : {}) })),
+    rows: b.rows.map((r) => ({
+      r: r.r,
+      concept: r.concept,
+      preferredLabel: r.preferredLabel ?? null,
+      ...(r.scope ? { scope: r.scope } : {}),
+      members: r.members ?? [],
+      ...(r.cols ? { cols: r.cols } : {}),
+      ...(r.also?.length ? { also: r.also } : {}),
+    })),
+    cols: b.cols.map((c) => ({ c: c.c, members: c.members ?? [], ...(c.scope ? { scope: c.scope } : {}), ...(c.alsoTotal?.length ? { alsoTotal: c.alsoTotal } : {}) })),
   }
 }

@@ -61,6 +61,8 @@ export {
   type TableBlockRow,
   type TableBlockColumn,
   type PlannedTableFact,
+  type PlannedAlsoFact,
+  type TableBlockAlsoItem,
   type TableScope,
 } from './table-mapping'
 export {

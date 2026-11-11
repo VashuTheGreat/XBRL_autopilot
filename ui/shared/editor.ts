@@ -169,11 +169,17 @@ export interface TableBlockRowInput {
   preferredLabel?: string | null
   scope?: Scope
   members?: DimRef[]
+  /** the only columns this row reports (a party under its own category); every column when absent */
+  cols?: number[]
+  /** other line items the same cells also report ("Financial assets, at fair value" = the carrying amount) */
+  also?: { concept: string; preferredLabel?: string | null }[]
 }
 export interface TableBlockColumnInput {
   c: number
   members?: DimRef[]
   scope?: Scope
+  /** axes whose total (the default) the column's figures also are: its member is the only one with figures */
+  alsoTotal?: string[]
 }
 
 /** Map an Excel range to one taxonomy table (ADR-0013). */
@@ -203,6 +209,16 @@ export interface TableBlockCellPlan {
   preferredLabel: string | null
   /** the amount as it would go into the filing (null when the cell isn't a number) */
   value: string | null
+  problems: string[]
+  /** the same figure reported again (the row's other line items, the column's totals) */
+  also: TableBlockAlsoPlan[]
+}
+
+export interface TableBlockAlsoPlan {
+  concept: string
+  conceptLabel: string
+  dims: DimRef[]
+  preferredLabel: string | null
   problems: string[]
 }
 

@@ -17,7 +17,9 @@ from src.services.tagging.candidates import Candidate, CandidateGenerator, Memor
 from src.services.tagging.catalog import ConceptInfo, TaggingCatalog
 from src.services.tagging.layout import SheetLayout, analyse_sheet
 from src.services.tagging.rerank import Reranker, RerankItem, RerankOption
-from src.services.tagging.tables import TableBlockSuggestion, one_class_also, suggest_tables, table_catalog_for
+from src.services.tagging.table_suggest import suggest_tables
+from src.services.tagging.table_catalog import one_class_also, table_catalog_for
+from src.services.tagging.tables import TableBlockSuggestion
 
 REVIEW_BELOW = 0.6  # suggestions under this confidence are flagged "needs review"
 MIN_CONFIDENCE = 0.5  # under this a guess is noise (DGPL: 4 of 25 right): the row is left for the user

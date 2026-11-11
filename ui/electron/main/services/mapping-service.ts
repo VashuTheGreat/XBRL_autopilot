@@ -138,7 +138,9 @@ export class MappingService {
       overlaps(e.cell, input.cell) || (hasFact(e) ? factsOf(e).some((f) => sameFact(f, fact)) : sameFact(e.fact, fact))
     const previous = entries.find((e) => hasFact(e) && sameCell(e.cell, input.cell))
     const kept = opts.also ?? previous?.also ?? []
-    const also = kept.filter((f) => !sameFact(f, fact))
+    // one fact ← one cell: an "also" fact another (kept) cell already files stays that cell's
+    const filedElsewhere = (f: MappedFact) => entries.some((e) => hasFact(e) && !clash(e) && factsOf(e).some((x) => sameFact(x, f)))
+    const also = kept.filter((f) => !sameFact(f, fact) && !filedElsewhere(f))
     const alsoSuggested = (opts.alsoSuggested ?? previous?.alsoSuggested ?? []).filter((f) => ![fact, ...also].some((x) => sameFact(x, f)))
     for (const old of entries.filter(clash)) if (hasFact(old)) this.removeFacts(p, old, [fact, ...also])
     for (const f of also) this.applyFact(p, f, this.displayValue(p, f.concept, input.cell, cells, sign))

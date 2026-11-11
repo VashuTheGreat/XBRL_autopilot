@@ -115,6 +115,63 @@ describe('Ind AS: a PPE roll-forward block (DGPL sheet FA layout)', () => {
   })
 })
 
+describe('Ind AS: one cell, more facts (financial assets by category, related parties)', () => {
+  const A = load('ind_as')
+  const P = 'ind-as:'
+  const CAT = { axis: `${P}CategoriesOfFinancialAssetsAxis`, member: `${P}FinancialAssetsAtAmortisedCostCategoryMember` }
+  const CLS = { axis: `${P}ClassesOfFinancialAssetsAxis`, member: `${P}TradeReceivablesMember` }
+  // DGPL's "Fair value at amortised cost" note: the figure is the carrying amount and the fair value; the one category
+  // with figures is also the total over the categories
+  const assets: TableBlockSpec = {
+    tableId: '611100a:DisclosureOfFinancialAssetsTable',
+    rows: [{ r: 63, concept: `${P}FinancialAssets`, members: [CLS], also: [{ concept: `${P}FinancialAssetsAtFairValue` }] }],
+    cols: [{ c: 5, members: [CAT], scope: 'CY', alsoTotal: [CAT.axis] }, { c: 8, members: [CAT], scope: 'PY' }],
+  }
+
+  it('plans the row’s other line items and the column’s totals as "also" facts of the same cell', () => {
+    const plan = planTableBlock(A, assets, { hasValue: all, columnScope: () => null })
+    const cy = plan.find((p) => p.c === 5)!
+    expect(cy.problems).toEqual([])
+    const facts = cy.also.map((a) => `${a.concept.split(':')[1]} ${a.dims.map((d) => d.member!.split(':')[1]).sort().join('+')}`)
+    expect(facts).toEqual([
+      'FinancialAssets TradeReceivablesMember', // the total over the categories
+      'FinancialAssetsAtFairValue FinancialAssetsAtAmortisedCostCategoryMember+TradeReceivablesMember',
+      'FinancialAssetsAtFairValue TradeReceivablesMember',
+    ])
+    expect(cy.also.every((a) => a.problems.length === 0)).toBe(true)
+    // the PY column has no totals: only the fair value
+    expect(plan.find((p) => p.c === 8)!.also.map((a) => a.concept)).toEqual([`${P}FinancialAssetsAtFairValue`])
+    // every planned fact files through the session
+    const S = new Session(A)
+    S.setMeta(META)
+    for (const p of plan) for (const f of [p, ...p.also]) S.setTableValue(p.tableId, p.scope!, f.dims, f.concept, '672.3', { preferredLabel: f.preferredLabel })
+    expect(S.getValue(`${P}FinancialAssetsAtFairValue`, 'CY', [CLS])).toBeTruthy()
+  })
+
+  it('an "also" fact another cell of the block files is refused, the cell itself is not', () => {
+    const twice: TableBlockSpec = { ...assets, rows: [...assets.rows, { r: 64, concept: `${P}FinancialAssetsAtFairValue`, members: [CLS] }] }
+    const plan = planTableBlock(A, twice, { hasValue: (r, c) => c === 8 || r === 63, columnScope: () => null })
+    const cell = plan.find((p) => p.r === 63 && p.c === 8)!
+    expect(cell.problems).toEqual([])
+    expect(cell.also[0]!.problems).toEqual([])
+    expect(plan.find((p) => p.r === 64 && p.c === 8)!.problems.join(' ')).toMatch(/already this fact/)
+  })
+
+  it('a party row reports only its own columns, under its typed member', () => {
+    const PARENT = { axis: `${P}CategoriesOfRelatedPartiesAxis`, member: `${P}ParentMember` }
+    const KMP = { axis: `${P}CategoriesOfRelatedPartiesAxis`, member: `${P}KeyManagementPersonnelOfEntityOrParentMember` }
+    const party: TableBlockSpec = {
+      tableId: '610800:DisclosureOfTransactionsBetweenRelatedPartiesTable',
+      rows: [{ r: 31, concept: `${P}PurchasesOfGoodsRelatedPartyTransactions`, members: [{ axis: `${P}RelatedPartyAxis`, typed: '1' }], cols: [6, 8] }],
+      cols: [{ c: 6, members: [PARENT], scope: 'CY' }, { c: 8, members: [PARENT], scope: 'PY' }, { c: 13, members: [KMP], scope: 'CY' }],
+    }
+    const plan = planTableBlock(A, party, { hasValue: all, columnScope: () => null })
+    expect(plan.map((p) => p.c)).toEqual([6, 8])
+    expect(plan.every((p) => p.problems.length === 0)).toBe(true)
+    expect(plan[0]!.dims).toContainEqual({ axis: `${P}RelatedPartyAxis`, typed: '1' })
+  })
+})
+
 describe('C&I: the tangible assets table', () => {
   const A = load('ci')
   const T = '201000:DisclosureOfTangibleAssetsTable'

@@ -17,7 +17,8 @@ from pathlib import Path
 
 from src.evaluation.coverage_eval import period_end
 from src.services.tagging.layout import a1, analyse_sheet
-from src.services.tagging.tables import suggest_tables, table_catalog_for
+from src.services.tagging.table_suggest import suggest_tables
+from src.services.tagging.table_catalog import table_catalog_for
 from src.services.workbook.reader import read_workbook
 
 ROOT = Path(__file__).resolve().parents[2]

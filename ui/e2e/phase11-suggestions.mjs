@@ -139,6 +139,27 @@ check(sc.alsoViews[0].value === sc.value && /Equity shares 1/i.test(sc.alsoViews
 await waitFor(`document.querySelector('[data-testid=also-reported]')?.innerText.includes('Equity shares 1')`, 'filed chip', 5000).catch(() => {})
 check(await ev(`document.querySelector('[data-testid=also-reported]')?.innerText.includes('Equity shares 1') && !document.querySelector('[data-testid=also-accept]')`), 'the inspector now shows it as filed')
 
+// 7. Step 3c: related parties (a typed party per row, only its own columns) and financial instruments (fair value =
+// carrying amount, the one category as the total)
+const RPT = await sheetName('RPT')
+const NA = await sheetName('Notes to accounts')
+const later = await ev(`${open}.map((b) => ({ id: b.id, sheet: b.cell.sheet, tableId: b.tableId }))`)
+const rp = later.find((b) => b.sheet === RPT && b.tableId.startsWith('610800:'))
+const fi = later.find((b) => b.sheet === NA && b.tableId.startsWith('611100a:'))
+check(!!rp && !!fi, 'the related-party note and the financial-instruments note are suggested as their tables', JSON.stringify(later.map((b) => `${b.sheet.trim()} ${b.tableId.split(':')[0]}`)))
+if (rp && fi) {
+  await ev(`${T}.tables.getState().acceptBlock('${rp.id}').then(() => true)`)
+  await ev(`${T}.tables.getState().acceptBlock('${fi.id}').then(() => true)`)
+  await waitFor(`!!${state}.byCell.get('${SRC}|${RPT}|G32') && !!${state}.byCell.get('${SRC}|${NA}|F65')`, 'blocks tagged', 30000)
+  const g32 = await ev(`${state}.byCell.get('${SRC}|${RPT}|G32')`)
+  const typed = g32?.fact?.dims?.find((d) => d.typed)
+  check(g32?.value === '3194.12' && typed?.typed === '1' && g32.fact.dims.some((d) => d.member === `${P}ParentMember`), 'RPT!G32 = purchases from party 1 (parent), CY', JSON.stringify({ v: g32?.value, dims: g32?.fact?.dims }))
+  check(await ev(`!${state}.byCell.get('${SRC}|${RPT}|N32') && !${state}.byCell.get('${SRC}|${RPT}|G31')`), 'nothing from the party’s other-category columns or the transaction’s own total row')
+  const f65 = await ev(`${state}.byCell.get('${SRC}|${NA}|F65')`)
+  const also = (f65?.alsoViews ?? []).map((a) => `${a.conceptLabel} ${a.memberLabels.join('+')}`)
+  check(f65?.value === '1020' && also.length === 3 && also.some((a) => /fair value/i.test(a)), 'F65 (loans, CY) also files the fair value and the total over categories', JSON.stringify({ v: f65?.value, also }))
+}
+
 check(errors.length === 0, 'no renderer errors', errors.slice(0, 3).join(' | '))
 ws.close()
 console.log(failures.length ? `\n${failures.length} check(s) failed` : '\nall checks passed')

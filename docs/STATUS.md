@@ -18,7 +18,7 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 | 8 | **AI auto-tagging** (`/mapping/suggest`: layout → memory → exact label → BM25 with heading context, filtered by period type / dimensions / statement → optional Groq rerank) plus an **evaluation harness** on the DGPL ↔ Dixon answer key (precision 0.738, recall 0.793; ≥ 0.9 right 93.6%); suggestions → Accept / Reject / Accept all ≥ 90% in the app; mapping memory. Embeddings (ONNX) deferred | ✅ done |
 | 9 | **Validation UI** ([ADR-0011](decisions/ADR-0011-business-rules-from-knowledge-base.md)): the executable rule ASTs are built in Python into `knowledge_base` and served by `/{id}/engine-rules`; C&I deep-equal to the retired TS compiler; **Ind AS formalized** (95.36% executable, Dixon 0 ERRORs); rule-coverage reports; live validation (gate, rules, calculation per taxonomy), Problems panel with locate and quick fixes, MCA Validation Tool v5.1 launcher + error import; Arelle XSD check (dev extra) working | ✅ done |
 | 10 | **AI fix agent** ([ADR-0012](decisions/ADR-0012-ai-fix-patches.md)): `/fix/propose` (Groq tool loop ≤ 6 calls, tools on the knowledge base + bundle, strict JSON patches), privacy checked twice + fixture guard, engine `checkPatch` / `applyFactPatch` / `dryRun`, diff cards with Accept / Edit / Reject, Fix all rounds with budgets, `ai/history.jsonl` with the exact payload; live Groq smoke 4/4 correct | ✅ done |
-| 11 | **Complete end-to-end tagging** ([ADR-0013](decisions/ADR-0013-table-tagging.md)): coverage evaluation of every filed fact ✅; ELR groups by title ✅; table blocks + figures reported twice + rule-driven table zeros (engine, app, UI) ✅; table suggestions in the sidecar + per-producer scoreboard + HPL key ✅ (3a); table and "also" suggestions in the app ✅ (3b.1); parent-member roll-ups ✅ (3b.2); engine-side scoreboard ✅ (3b.3); table-suggester yield (column years from the statements, rows that are members) ✅ (3b.4); next: related parties, share-class counts in text, engine-side scoreboard, text + filing-details form, Excel parsing gaps | 🔄 steps 1–3b.4 done |
+| 11 | **Complete end-to-end tagging** ([ADR-0013](decisions/ADR-0013-table-tagging.md)): coverage evaluation of every filed fact ✅; ELR groups by title ✅; table blocks + figures reported twice + rule-driven table zeros (engine, app, UI) ✅; table suggestions in the sidecar + per-producer scoreboard + HPL key ✅ (3a); table and "also" suggestions in the app ✅ (3b.1); parent-member roll-ups ✅ (3b.2); engine-side scoreboard ✅ (3b.3); table-suggester yield (column years from the statements, rows that are members) ✅ (3b.4); related parties, fair values and category totals (one cell → more facts), merged headers ✅ (3c); next: share-class counts in text, loans, text + filing-details form, Excel parsing gaps | 🔄 steps 1–3c done |
 | 11b | **Packaging**: PyInstaller sidecar (check xlrd in the bundle) + electron-builder NSIS, `.axbrl` association. A packaging spike comes earlier only if a pilot install is needed | ⏳ |
 | 12 | Costing CRA-4 (its KB exists; no engine authority, rules or wizard entry yet), masters prefill, trial-balance mapping, Groq proxy, auto-update | ⏳ |
 
@@ -40,13 +40,12 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 - **Possible legacy-test flake:** one run of `pnpm test` (while a dev Electron app was also running) failed a `golden-DIVERGENCES.json` assertion; the next three runs passed (220/0). Watch for it.
 
 - **Table tagging (Phase 11 step 2) — open points:**
-  - table suggestions cover PPE, changes in equity and financial assets by category. Not yet:
-    - related parties (typed members, 610800);
-    - share-class counts in the note's text;
-    - loans (401100b);
-    - a second line item for the same cells ("Financial assets, at fair value" = the carrying amount, which the zero fill sets to 0).
+  - table suggestions cover PPE, changes in equity, financial assets by category (with fair values and category totals) and related parties. Not yet:
+    - share-class counts in the note's text (needs a number inside a text cell: one cell, several entries);
+    - loans and trade receivables (401100b / 401100: a statement figure under current + "unsecured, considered good");
+    - related parties' names, countries and nature (text, ML-39 ×3 until then); interest received, sitting fees and consultancy are not matched to Dixon's choices;
+    - filer conventions left out: PPE classes again under "Owned assets", "Fan, cooler & AC" under *Other plant and equipment*; EPS by class (its statement tag is 0.75, under the 0.9 bar for "also").
   - The numbered placeholders are filled in row order. Dixon numbered the non-current row last; MCA accepts any numbering.
-  - the coverage scoreboard doesn't count table facts yet: no producer runs the engine (step 3);
   - "Also report as" takes one fact at a time;
   - the "Map as table" dialog lists all 200+ tables (searchable), not only those that fit the block;
   - `phase11-tables.mjs` failed the inspector-chip check once (the "also" chip wasn't shown for I39), then passed three runs in a row; watch it.
@@ -347,3 +346,18 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
     - table producer 75 / 0 / 4 extra (was 63 / 0 / 4); "also" 2 / 0 / 2 extra (was 4 extra); HPL key 13 / 13;
     - app pipeline: non-zero table amounts right 65 (was 47); excel table 77 right / 0 wrong; derived table wrong 2 (was 8); ERRORs 299 (was 309).
   - **Tests:** pytest 136 (+2 synthetic: financial assets by category with a stale header, maturity buckets); floors raised (table right ≥ 75, also extra ≤ 2; app scoreboard).
+- **2026-11-11, Phase 11 step 3c: related parties, one cell → more facts, merged headers ([06](06-ai-auto-tagging.md#table-suggestions-phase-11-step-3a-adr-0013)):**
+  - **Sidecar, split by responsibility:** `table_catalog.py` (the taxonomy's tables, label matching), `tables.py` (blocks + the note-table producer), `party_tables.py` (new), `table_also.py` (new), `table_suggest.py` (runs the producers `(Block, TableContext) → suggestion | None` in turn, then `add_also`).
+  - **Related parties:** a transaction row whose figures are the sum of the rows below it is a transaction and those rows are its parties. Parties are numbered on the table's typed axis, the categories come from the column headers ("Holding Company" → Parent), and each party reports only its own non-zero columns.
+  - **One cell → more facts:** fair-value twins (`row.also`, under "Fair value …" headers) and sole-member totals (`col.alsoTotal`, the one category with figures is also the total).
+  - **Headers:** merged cells expanded, up to 8 rows above (ADR step 6, first item). The app sends the merges with `/mapping/suggest`.
+  - **Engine:** `planTableBlock` plans `also` facts, checked like the main one, and honours `row.cols`.
+  - **App:**
+    - `TableMappingService.apply` files the ready "also" facts with each cell. `MappingService.tag` leaves an "also" fact that another cell files with that cell.
+    - "Map as table" keeps the suggestion's `cols` / `also` / `alsoTotal`, and the preview counts the facts reported again.
+  - **Dixon:**
+    - table producer 117 right / 0 wrong / 7 extra (was 75 / 0 / 4); HPL key 13 / 13;
+    - app pipeline: non-zero table amounts right 115 of 305 (was 65): financial assets 56 / 56, related parties 6 / 14; excel table 119 / 0 wrong; zero-table wrong 24 (was 36);
+    - ERRORs 302: +3 ML-39 (party names, step 5).
+  - **The scoreboard** reports per table and lists every missed filed fact (`groupOf`, `missed`).
+  - **Tests:** pytest 138 (+2: fair-value twins, a related-party matrix with merged headers); engine 68 (+3 `table-mapping`); ui 178 (+1); legacy 226/0. E2E `phase11-suggestions.mjs` green (26 checks, +4).

@@ -12,7 +12,7 @@ import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { importXbrl } from '@xap/engine'
+import { importXbrl, tableOfFact } from '@xap/engine'
 import { AppDatabase } from '../electron/main/infra/app-database'
 import { DirAutosaveStore } from '../electron/main/infra/dir-autosave-store'
 import { SidecarMappingSuggester } from '../electron/main/infra/sidecar-mapping-suggester'
@@ -108,7 +108,8 @@ describe.skipIf(!kbReady || !existsSync(DGPL) || !existsSync(DIXON))('scoreboard
       return (f as Fact).origin === 'calculated' ? 'derived' : 'other'
     }
     const cellOf = new Map(mapping.list().flatMap((m) => m.factKeys.map((k) => [k, `${m.cell.sheet.trim()}!${m.cell.ref}`] as const)))
-    const board = scoreFacts(facts(), dixon.all(), originOf, (f) => cellOf.get((f as Fact).key) ?? '')
+    const tableOf = (f: ScoredFact) => tableOfFact(p.authority.authority, f.concept, f.dims as never) ?? '?'
+    const board = scoreFacts(facts(), dixon.all(), originOf, (f) => cellOf.get((f as Fact).key) ?? '', tableOf)
     const errors = ((p.session.validate({ today: '2026-11-11' }) as { issues: Issue[] }).issues).filter((i) => i.severity === 'ERROR')
     const byRule = Object.entries(errors.reduce<Record<string, number>>((m, e) => ((m[e.ruleId ?? e.code ?? '?'] = (m[e.ruleId ?? e.code ?? '?'] ?? 0) + 1), m), {})).sort((a, b) => b[1] - a[1]).slice(0, 12)
     const head = [
@@ -118,7 +119,7 @@ describe.skipIf(!kbReady || !existsSync(DGPL) || !existsSync(DIXON))('scoreboard
     ].join('\n')
     console.log(head)
     // the full report, every wrong fact with its cell, when asked for: XAP_SCOREBOARD_OUT=<file>
-    if (process.env.XAP_SCOREBOARD_OUT) writeFileSync(process.env.XAP_SCOREBOARD_OUT, `${head}\nwrong:\n  ${board.wrong.join('\n  ')}\n`)
+    if (process.env.XAP_SCOREBOARD_OUT) writeFileSync(process.env.XAP_SCOREBOARD_OUT, `${head}\nwrong:\n  ${board.wrong.join('\n  ')}\nmissed (filed non-zero table facts):\n  ${board.missed.join('\n  ')}\n`)
     // ADR-0013 exit targets (reported; not met yet): amounts right ≥ 160 and wrong ≤ 25; non-zero table amounts right
     // ≥ 190 of the 270 in a presentation sheet and wrong ≤ 10% of those produced
     const o = board.byOrigin
@@ -126,22 +127,23 @@ describe.skipIf(!kbReady || !existsSync(DGPL) || !existsSync(DIXON))('scoreboard
     console.log(`ADR-0013 targets: amounts right ${amounts.right} (≥ 160), wrong ${amounts.wrong} (≤ 25); non-zero table amounts right ${board.rightNonZero.table} (≥ 190)`)
 
     // floors (2026-11-11): raise them when a producer improves; a drop is a regression
-    expect(summary).toMatchObject({ suggested: 299, blocks: 4 })
+    expect(summary).toMatchObject({ suggested: 299, blocks: 5 })
     expect(o.excel!.amount.right).toBeGreaterThanOrEqual(137)
     expect(o.excel!.amount.wrong).toBeLessThanOrEqual(45)
-    expect(o.excel!.table.right).toBeGreaterThanOrEqual(77)
+    expect(o.excel!.table.right).toBeGreaterThanOrEqual(119)
     expect(o.excel!.table.wrong).toBe(0)
     expect(o.derived!.amount.right).toBeGreaterThanOrEqual(31)
     expect(o.derived!.amount.wrong).toBeLessThanOrEqual(23)
-    expect(o.derived!.table.right).toBeGreaterThanOrEqual(84)
+    expect(o.derived!.table.right).toBeGreaterThanOrEqual(92)
     expect(o.derived!.table.wrong).toBeLessThanOrEqual(2)
     expect(o.zero!.amount.right).toBeGreaterThanOrEqual(92)
     expect(o.zero!.amount.wrong).toBeLessThanOrEqual(14)
-    expect(o.zero!.table.right).toBeGreaterThanOrEqual(10)
-    // the share-class column (counts in the note's text) and "Financial assets, at fair value" (= the carrying amount)
-    expect(o.zero!.table.wrong).toBeLessThanOrEqual(36)
+    expect(o.zero!.table.right).toBeGreaterThanOrEqual(12)
+    // the share-class column (counts in the note's text)
+    expect(o.zero!.table.wrong).toBeLessThanOrEqual(24)
     expect(board.rightNonZero.amount).toBeGreaterThanOrEqual(116)
-    expect(board.rightNonZero.table).toBeGreaterThanOrEqual(65)
-    expect(errors.length).toBeLessThanOrEqual(299)
+    expect(board.rightNonZero.table).toBeGreaterThanOrEqual(115)
+    // 302: ML-39 ×3 asks the related parties now reported for their name, country and nature (text facts: step 5)
+    expect(errors.length).toBeLessThanOrEqual(302)
   }, 600_000)
 })

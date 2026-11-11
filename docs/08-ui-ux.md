@@ -61,7 +61,8 @@ On the right, the XBRL Form shows the reverse: the source cell ref shows as a ch
     - every row with figures gets a line item, with its opening / closing role, an optional year and members (e.g. "Gross carrying amount");
     - every column gets members (e.g. "Computer equipments") and an optional year.
 
-    **Preview** lists what would be filed and the cells that can't be tagged, with the reason. **Map cells** tags the ready cells as one block. A block cell is an ordinary tag, linked both ways.
+    **Preview** lists what would be filed and the cells that can't be tagged, with the reason; it also counts the facts reported again ("12 cells ready (+24 facts reported again)": a fair value equal to the carrying amount, the one category as the total). **Map cells** tags the ready cells as one block. A block cell is an ordinary tag, linked both ways; its extra facts are its "also" facts.
+    Opened on a suggestion, the dialog keeps what it doesn't edit as suggested: a row's own columns (a related party under its category), its other line items, a column's totals (the row label's tooltip lists them).
   - **The Form shows the statement's tables** under its rows:
     - one column per member combination and year that holds a value;
     - each value with its source-cell chip;

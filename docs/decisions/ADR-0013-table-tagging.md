@@ -32,7 +32,7 @@
        - the dimensions are the row members ∪ the column members (explicit or typed);
        - the period comes from the row, else the column, else the column's period.
 
-       A blank cell gives no fact; a 0 gives 0. The expansion is a pure engine function (`engine/src/table-mapping.ts`): block + authority → planned facts with their cells, and per-cell problems. That way the UI preview, the apply step and the evaluation share it.
+       A blank cell gives no fact; a 0 gives 0. *2026-11-11 (step 3c):* a row may be limited to some columns (`cols`: a related party under its own category), and one cell may file more facts of the same figure: `row.also` (other line items: a fair value equal to the carrying amount) and `col.alsoTotal` (the axis total when the column's member is the only one with figures). The expansion is a pure engine function (`engine/src/table-mapping.ts`): block + authority → planned facts with their cells, and per-cell problems. That way the UI preview, the apply step and the evaluation share it.
      - **One fact ← one cell stays; one cell → one fact is relaxed** to one main fact plus "also reported as" facts of the same figure (finding 2). *Team:*
        - the extra facts follow their cell on every value change: an edit, a reapply, a change of decimal places (a test proves it);
        - the inspector and the Form both show "also reported as";

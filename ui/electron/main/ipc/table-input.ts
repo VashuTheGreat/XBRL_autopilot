@@ -76,6 +76,12 @@ export function requireAlsoInput(v: unknown): AlsoReportInput {
   }
 }
 
+const alsoItem = (v: unknown): { concept: string; preferredLabel?: string | null } => {
+  const a = v as { concept?: unknown; preferredLabel?: unknown } | null
+  const preferredLabel = optLabel(a?.preferredLabel)
+  return { concept: requireString(a?.concept, 'element'), ...(preferredLabel !== undefined ? { preferredLabel } : {}) }
+}
+
 export function requireBlockInput(v: unknown): TableBlockInput {
   const x = v as Partial<TableBlockInput> | null
   if (!x || typeof x !== 'object') throw new Error('Invalid table mapping')
@@ -89,12 +95,19 @@ export function requireBlockInput(v: unknown): TableBlockInput {
       ...(scope ? { scope } : {}),
       ...(preferredLabel !== undefined ? { preferredLabel } : {}),
       members: requireDims(r?.members),
+      ...(r?.cols !== undefined ? { cols: list(r.cols, 'row columns', (c) => index(c, 'column')) } : {}),
+      ...(r?.also !== undefined ? { also: list(r.also, 'also', alsoItem) } : {}),
     }
   })
   const cols = list(x.cols, 'columns', (y): TableBlockColumnInput => {
     const c = y as Partial<TableBlockColumnInput>
     const scope = optScope(c?.scope)
-    return { c: index(c?.c, 'column'), ...(scope ? { scope } : {}), members: requireDims(c?.members) }
+    return {
+      c: index(c?.c, 'column'),
+      ...(scope ? { scope } : {}),
+      members: requireDims(c?.members),
+      ...(c?.alsoTotal !== undefined ? { alsoTotal: list(c.alsoTotal, 'totals', (a) => requireString(a, 'axis')) } : {}),
+    }
   })
   return {
     cell: requireCell(x.cell),

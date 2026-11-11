@@ -9,6 +9,11 @@
  *   the table displays the value, so the planned fact takes the table row's own role;
  * - dimensions = the row's members ∪ the column's members (explicit or typed; an axis given twice must agree);
  * - period = the row's scope, else the column's, else the column's period in the sheet (`columnScope`).
+ * A row may be limited to some columns (`cols`: a party reports under its own category only). The same figure can be
+ * reported again ("also", one cell → more facts, ADR-0013):
+ * - `row.also`: other line items of the table the cells also are (a fair value equal to the carrying amount);
+ * - `col.alsoTotal`: axes whose total (the default) the column's figure also is, because its member is the only one
+ *   with figures (financial assets at amortised cost, the one category the company has).
  * Applicability for the year (is the table open?) depends on the filing: Session.setTableValue checks it on apply.
  */
 import type { DimensionRef } from './basics'
@@ -26,6 +31,15 @@ export interface TableBlockRow {
   preferredLabel?: string | null
   scope?: TableScope
   members?: DimensionRef[]
+  /** the only columns (0-based) this row reports; every column when absent */
+  cols?: number[]
+  /** other line items the row's cells also report, with the same members and year */
+  also?: TableBlockAlsoItem[]
+}
+
+export interface TableBlockAlsoItem {
+  concept: string
+  preferredLabel?: string | null
 }
 
 export interface TableBlockColumn {
@@ -33,6 +47,8 @@ export interface TableBlockColumn {
   c: number
   members?: DimensionRef[]
   scope?: TableScope
+  /** axes whose total (the axis default) the column's figures also are */
+  alsoTotal?: string[]
 }
 
 export interface TableBlockSpec {
@@ -50,6 +66,15 @@ export interface PlannedTableFact {
   scope: TableScope | null
   dims: DimensionRef[]
   /** why this cell can't be filed as planned; empty = ready */
+  problems: string[]
+  /** the same figure reported again (row.also, col.alsoTotal); planned only when the main fact is ready */
+  also: PlannedAlsoFact[]
+}
+
+export interface PlannedAlsoFact {
+  concept: string
+  preferredLabel: string | null
+  dims: DimensionRef[]
   problems: string[]
 }
 
@@ -73,35 +98,64 @@ export function planTableBlock(A: Authority, spec: TableBlockSpec, opts: PlanOpt
   const tableAxes = new Set<string>(t.axes.map((a: { axis: string }) => a.axis))
   const out: PlannedTableFact[] = []
   const seen = new Map<string, string>()
+  const ctx: FactContext = { A, view, tableAxes, seen }
   for (const row of spec.rows) {
-    const { label: preferredLabel, problems: rowProblems } = tableRow(A, view, row)
     for (const col of spec.cols) {
+      if (row.cols && !row.cols.includes(col.c)) continue
       if (!opts.hasValue(row.r, col.c)) continue
-      const problems = [...rowProblems]
       const { dims, conflicts } = mergeMembers(row.members ?? [], col.members ?? [])
-      problems.push(...conflicts)
-      // a table value has a member on some axis; with none it is the statement figure (e.g. a Total column's net row)
-      if (!dims.length) problems.push(NO_MEMBER)
-      for (const d of dims) if (!tableAxes.has(d.axis)) problems.push(`${A.label(d.axis)} is not an axis of this table.`)
-      problems.push(...checkDimensionSyntax(A, dims).map((e: { msg: string }) => e.msg))
-      const nd = normDims(dims) as DimensionRef[]
-      if (!problems.length) {
-        const dv = dimensionallyValid(A, row.concept, nd)
-        if (!dv.valid) problems.push(`${A.label(row.concept)} can't be reported for these members: ${dv.reason}`)
-      }
       const scope = row.scope ?? col.scope ?? opts.columnScope(col.c)
-      if (!scope) problems.push('The period of this column is unknown: set it to CY or PY.')
-      const key = `${row.concept}|${preferredLabel ?? ''}|${scope}|${dimKey(nd)}`
       const at = `${row.r}:${col.c}`
-      if (scope && !problems.length) {
-        const first = seen.get(key)
-        if (first) problems.push(`Another cell of this block (${first}) is already this fact.`)
-        else seen.set(key, at)
+      const main = planFact(ctx, row, dims, scope, at, conflicts)
+      if (!scope) main.problems.push('The period of this column is unknown: set it to CY or PY.')
+      const also: PlannedAlsoFact[] = []
+      if (!main.problems.length) {
+        const totals = col.alsoTotal ?? []
+        const reduced = dims.filter((d) => !totals.includes(d.axis))
+        const variants: [TableBlockRow | TableBlockAlsoItem, DimensionRef[]][] = [
+          ...(reduced.length < dims.length ? [[row, reduced] as [TableBlockRow, DimensionRef[]]] : []),
+          ...(row.also ?? []).flatMap((item) => [[item, dims], ...(reduced.length < dims.length ? [[item, reduced]] : [])] as [TableBlockAlsoItem, DimensionRef[]][]),
+        ]
+        for (const [item, d] of variants) {
+          const f = planFact(ctx, item, d, scope, at, [])
+          also.push({ concept: item.concept, preferredLabel: f.preferredLabel, dims: f.dims, problems: f.problems })
+        }
       }
-      out.push({ r: row.r, c: col.c, tableId: spec.tableId, concept: row.concept, preferredLabel, scope, dims: nd, problems })
+      out.push({ r: row.r, c: col.c, tableId: spec.tableId, concept: row.concept, preferredLabel: main.preferredLabel, scope, dims: main.dims, problems: main.problems, also })
     }
   }
   return out
+}
+
+interface FactContext {
+  A: Authority
+  view: View
+  tableAxes: Set<string>
+  /** fact key → the cell that files it (one fact ← one cell, within the block) */
+  seen: Map<string, string>
+}
+
+/** One fact of a cell (the main one or an "also" one): its table row, members and the problems that stop it. */
+function planFact(ctx: FactContext, item: { concept: string; preferredLabel?: string | null }, dims: DimensionRef[], scope: TableScope | null, at: string, conflicts: string[]) {
+  const { A, view, tableAxes, seen } = ctx
+  const { label: preferredLabel, problems: rowProblems } = tableRow(A, view, item)
+  const problems = [...rowProblems, ...conflicts]
+  // a table value has a member on some axis; with none it is the statement figure (e.g. a Total column's net row)
+  if (!dims.length) problems.push(NO_MEMBER)
+  for (const d of dims) if (!tableAxes.has(d.axis)) problems.push(`${A.label(d.axis)} is not an axis of this table.`)
+  problems.push(...checkDimensionSyntax(A, dims).map((e: { msg: string }) => e.msg))
+  const nd = normDims(dims) as DimensionRef[]
+  if (!problems.length) {
+    const dv = dimensionallyValid(A, item.concept, nd)
+    if (!dv.valid) problems.push(`${A.label(item.concept)} can't be reported for these members: ${dv.reason}`)
+  }
+  if (scope && !problems.length) {
+    const key = `${item.concept}|${preferredLabel ?? ''}|${scope}|${dimKey(nd)}`
+    const first = seen.get(key)
+    if (first) problems.push(`Another cell of this block (${first}) is already this fact.`)
+    else seen.set(key, at)
+  }
+  return { preferredLabel, dims: nd, problems }
 }
 
 /** The table a dimensional fact belongs to (the one whose axes match its members exactly, when one does). */
@@ -114,7 +168,7 @@ export function tableOfFact(A: Authority, concept: string, dims: DimensionRef[])
 const PERIOD_ROLES = new Set(['periodStartLabel', 'periodEndLabel'])
 
 /** The table row a block row is: same element and, for opening / closing balances, the same period role. */
-function tableRow(A: Authority, view: View, row: TableBlockRow): { label: string | null; problems: string[] } {
+function tableRow(A: Authority, view: View, row: { concept: string; preferredLabel?: string | null }): { label: string | null; problems: string[] } {
   const rows = view.lineItems.filter((l) => !l.abstract && l.concept === row.concept)
   if (!rows.length) return { label: null, problems: [`${A.label(row.concept) || row.concept} is not a line item of ${view.title}.`] }
   const wanted = row.preferredLabel && PERIOD_ROLES.has(row.preferredLabel) ? row.preferredLabel : null

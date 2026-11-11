@@ -73,7 +73,8 @@ export class TableMappingService {
       const value = await this.mapping.amountFor(cell, x.concept, input.sign ?? 1)
       const problems = [...x.problems]
       if (value === null && A.isNumeric(x.concept)) problems.push('This cell is not a number.')
-      cells.push({ cell, concept: x.concept, conceptLabel: A.label(x.concept), scope: x.scope, dims: x.dims, preferredLabel: x.preferredLabel, value, problems })
+      const also = x.also.map((a) => ({ concept: a.concept, conceptLabel: A.label(a.concept), dims: a.dims, preferredLabel: a.preferredLabel, problems: a.problems }))
+      cells.push({ cell, concept: x.concept, conceptLabel: A.label(x.concept), scope: x.scope, dims: x.dims, preferredLabel: x.preferredLabel, value, problems, also })
     }
     const ready = cells.filter((c) => !c.problems.length).length
     const table = A.table(input.tableId) as { hypercube: string }
@@ -99,11 +100,14 @@ export class TableMappingService {
           problems.push({ cell: c.cell, problems: c.problems })
           continue
         }
+        // the same figure reported again; one that can't be filed is reported, the cell is still tagged
+        const also = c.also.filter((a) => !a.problems.length).map((a) => ({ concept: a.concept, scope: c.scope!, dims: a.dims, tableId: input.tableId, preferredLabel: a.preferredLabel }))
+        for (const a of c.also.filter((x) => x.problems.length)) problems.push({ cell: c.cell, problems: [`Also as ${a.conceptLabel}: ${a.problems[0]}`] })
         try {
           await this.mapping.tag(
             { cell: c.cell, concept: c.concept, scope: c.scope!, dims: c.dims, tableId: input.tableId, preferredLabel: c.preferredLabel, sign: input.sign ?? 1 },
             provenance,
-            { blockId: block.id },
+            { blockId: block.id, also },
           )
           tagged++
         } catch (err) {

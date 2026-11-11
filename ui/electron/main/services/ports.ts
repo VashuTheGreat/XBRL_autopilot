@@ -5,6 +5,7 @@
 import type { Authority, Session } from '@xap/engine'
 import type { TaxonomyId } from '@xap/engine/basics'
 import type { AiPatch } from '@shared/ai'
+import type { TableBlockColumnInput, TableBlockRowInput } from '@shared/editor'
 import type { HttpMethod, SidecarResponse } from '@shared/ipc'
 import type { ElrInfo, RecentProject } from '@shared/project'
 import type { AxbrlContent, AxbrlManifest } from '../project/axbrl'
@@ -154,7 +155,7 @@ export interface MappingMemoryRepository {
 
 export interface SuggestRequest {
   taxonomy: TaxonomyId
-  sheets: { name: string; cells: { r: number; c: number; v: string | number | boolean }[] }[]
+  sheets: { name: string; cells: { r: number; c: number; v: string | number | boolean }[]; merges: { r1: number; c1: number; r2: number; c2: number }[] }[]
   periods: { cyEnd: string; pyEnd: string | null }
   level: string
   memory: MappingMemoryItem[]
@@ -195,8 +196,9 @@ export interface SuggestedBlock {
   tableId: string
   tableTitle: string
   confidence: number
-  rows: { r: number; concept: string; preferredLabel?: string | null; scope?: 'CY' | 'PY'; members?: { axis: string; member?: string; typed?: string }[] }[]
-  cols: { c: number; members?: { axis: string; member?: string; typed?: string }[]; scope?: 'CY' | 'PY' }[]
+  /** rows and columns as "Map as table" takes them (with a row's own columns, its other line items, a column's totals) */
+  rows: TableBlockRowInput[]
+  cols: TableBlockColumnInput[]
   /** the cells the tagger planned (with a member); the app re-plans with the engine */
   cells: { ref: string }[]
 }

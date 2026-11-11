@@ -159,7 +159,14 @@ The keyed-cell evaluation above only scores statement-level amounts. `src/evalua
   - **General information:** it mostly comes from a filing-details form.
 
 ## Table suggestions (Phase 11 step 3a, [ADR-0013](decisions/ADR-0013-table-tagging.md))
-`src/services/tagging/tables.py`, called by `suggest()`. `POST /mapping/suggest` returns `blocks` next to `suggestions`.
+`src/services/tagging/table_suggest.py`, called by `suggest()`. `POST /mapping/suggest` returns `blocks` next to `suggestions`. The modules:
+- `table_catalog.py`: the taxonomy's tables, and label ↔ member / line-item matching;
+- `tables.py`: blocks in a sheet, and the note-table producer;
+- `party_tables.py`: the related-party producer;
+- `table_also.py`: the figures a table reports twice;
+- `table_suggest.py`: runs the producers in turn on every block (the first that recognises it wins), then `add_also`.
+
+A new kind of note table is a new producer `(Block, TableContext) → suggestion | None`, not a change to the others.
 - **Catalog** (`TableCatalog`, from the engine authority, so any taxonomy works):
   - each table with axes;
   - its numeric line items, in presentation order with their label roles (a port of `buildTableView`);
@@ -169,7 +176,7 @@ The keyed-cell evaluation above only scores statement-level amounts. `src/evalua
 - **Blocks** (`find_blocks`):
   - figure rows with 2+ numeric cells, grouped while the columns overlap (gaps of ≤ 3 rows);
   - value columns that hold numbers in at least half the rows;
-  - the header is the text up to 5 rows above;
+  - the header is the text up to 8 rows above, stopping at a row with figures in the block's columns. A merged header cell names every column it spans ("Holding Company" over its two year columns), when the merge starts in a figure column (a sheet title merged from the label column does not). The app sends the sheets' merges with `/mapping/suggest`;
   - at least one column must name something other than a year (plain CY / PY notes stay with the statement tagger);
   - heading rows just above belong to the block.
 - **Matching** (`match_block`): the best (table, column axis) pair, scored 0.55 × column headers ↔ members of that axis + 0.45 × row labels ↔ line items or members of another axis.
@@ -192,20 +199,30 @@ The keyed-cell evaluation above only scores statement-level amounts. `src/evalua
   - **Guards against false matches:** years side by side must repeat a group of 2+ different members ("<12 months" and ">12 months" are not both the 12-month expected credit losses). The minimum table score is now 0.6 (every DGPL block under it was noise; real ones score 0.76+).
   - **"Also" vs blocks:** an "also" item into a table that a suggested block maps is dropped. The block reports that table, and the roll-ups would count the figure twice (profit under Retained earnings and under "Other equity other 1").
   - **Evaluation:** numbered members are placeholders (MCA accepts any numbering), so both scoreboards compare ours with the filer's by value within the same family, element, period and other members (`align_placeholders`; `fact-scoreboard.ts`).
+- **Step 3c (2026-11-11): related parties, and one cell → more facts**, measured on Dixon, the HPL key and synthetic tests:
+  - **Related parties** (`party_tables.py`). The note is recognised by its shape: a transaction row whose figures are the sum of the contiguous rows right below it (its parties).
+    - The table is one with a typed axis (the party) whose other axis's members name the columns. "Holding Company" is read as Parent, "KMP" / "Key management person" as key management personnel.
+    - A transaction's label names the line item: "Purchase including taxes" → purchases of goods ("including / inclusive of taxes" is dropped). Under an "outstanding balances" heading, only the instant items count, and one shared word is enough when no other item scores the same ("Trade receivables" → amounts receivable).
+    - Each party is numbered 1, 2 … on the typed axis in order of first appearance with a figure ("Dr. Manuji Zarabi" = "Mr. Manuji Zarabi"). It reports only under its own category's columns and only its non-zero figures (`row.cols`). The transaction's own row is a total and files nothing.
+    - Not matched (filer's choice in Dixon): interest received → other income, sitting fees → other expense, consultancy → services received. The parties' names, countries and nature (ML-39) are text: step 5.
+  - **Fair-value twins** (`table_also.py`, `row.also`): when every column the block maps says "Fair value …" (DGPL: "Fair Value at Amortised Cost") and none says "carrying", a row whose line item has a twin "<label>, at fair value" also reports it. A plain "Amortised cost" column is a carrying amount and gets none.
+  - **Sole-member totals** (`col.alsoTotal`): when the columns repeat an axis's members (FVTPL, FVOCI, amortised cost under each year) and only one of a group has figures, that column is also the axis total (its default). Dixon files every class with and without the category.
+  - Each cell lists its extra facts (`cells[].also`); the app re-plans them with the engine (docs/04).
+  - **Not done, filer conventions:** Dixon files every PPE class again under "Owned assets" (no rule asks for it; DGPL doesn't say), and DGPL's "Fan, cooler & air conditioner" under *Other plant and equipment*. Neither is suggested.
 - **One class** (`one_class_also`): a statement suggestion of 0.9 or more whose element is a line item of a table with exactly one numbered "classes" axis (Equity shares 1), all other axes defaultable, gets `also: [{concept, tableId, dims, preferredLabel, confidence 0.7}]`.
 - **Scoreboard** (2026-11-11, `coverage_eval`, per producer):
 
   | producer | right | near | wrong | extra |
   |---|---|---|---|---|
   | statement | 143 | 4 | 39 | 113 |
-  | table | 75 (63 in 3a) | 0 | 0 | 4 |
+  | table | 117 (75 in 3b.4, 63 in 3a) | 0 | 0 | 7 |
   | also | 2 | 0 | 0 | 2 (4 in 3a) |
 
-  - The table producer found PPE (DGPL sheet FA) and changes in equity.
+  - The table producer finds PPE (DGPL sheet FA), changes in equity, financial assets by category (with fair values and category totals: 48 of 52 non-zero) and related parties (6 of 14).
   - Ungated, the one-class producer gave 4 right / 6 wrong / 15 extra, which is why it now rides only on sure tags.
 - **C&I hand-checked key** (`src/evaluation/table_key_eval.py`, `tests/fixtures/hpl_table_key.json`, from Helmier's PDF): 13 / 13 right, 0 wrong.
   - The filer put the workbook's "Computers" under *Plant and equipment*. Those 8 facts are listed apart (filer's choice).
-- **Tests:** `tests/test_table_suggestions.py` covers synthetic roll-forwards on Ind AS and C&I, changes in equity, the plain-note exclusion, the Dixon floors (table right ≥ 60, wrong ≤ 10%; also wrong 0) and the HPL key.
+- **Tests:** `tests/test_table_suggestions.py` covers synthetic roll-forwards on Ind AS and C&I, changes in equity, the plain-note exclusion, financial assets by category (category totals; fair-value twins only under "Fair value" headers), a related-party matrix with merged headers, the Dixon floors (table right ≥ 117, wrong ≤ 10%; also wrong 0) and the HPL key (13 / 13).
 
 ## Engine-side scoreboard (Phase 11 step 3b, [ADR-0013](decisions/ADR-0013-table-tagging.md))
 `ui/test/scoreboard-dgpl.test.ts` runs the **real app pipeline** on DGPL: the real sidecar, LLM off, Electron-free services. The steps are:
@@ -216,7 +233,21 @@ The keyed-cell evaluation above only scores statement-level amounts. `src/evalua
 
 The filing it gives is compared with Dixon by (element, period, members) (`test/helpers/fact-scoreboard.ts`, pure). Verdicts use the filed `decimals`, as `coverage_eval`, and each fact is scored by origin: **excel** (a mapping's main or "also" fact), **derived** (calculated: totals, roll-ups, carrying amounts) or **zero** (added by the rule-driven fills). It takes about 11 s. Floors are in the test; raise them when a producer improves.
 
-**2026-11-11, after step 3b.4:** 299 cells and 4 blocks (76 cells) accepted, 4 "also" facts.
+**2026-11-11, after step 3c:** 299 cells and 5 blocks (82 cells) accepted, 4 "also" facts.
+
+| origin | kind | right | near | wrong | extra |
+|---|---|---|---|---|---|
+| excel | amount | 137 | 4 | 45 | 113 |
+| excel | table | 119 | 0 | 0 | 5 |
+| derived | amount | 31 | 1 | 23 | 36 |
+| derived | table | 92 | 0 | 2 | 12 |
+| zero | amount | 92 | 0 | 14 | 0 |
+| zero | table | 12 | 0 | 24 | 13 |
+
+- **Filed non-zero table amounts right: 115 of 305** (65 after 3b.4). Per table: financial assets 56 / 56, changes in equity 27 / 36, PPE 24 / 66 (the "Owned assets" duplicates and *Other plant and equipment*, filer conventions), related parties 6 / 14, share classes 2 / 34, loans 0 / 16, EPS 0 / 8 (its statement tag is 0.75, under the 0.9 bar for "also"). The report prints this per table (`groupOf` = the fact's table) and lists every missed filed fact.
+- **ERRORs 302** (299 after 3b.4): ML-39 ×3 asks the related parties now reported for their name, country and nature, which are text facts (step 5).
+
+**After step 3b.4:** 299 cells and 4 blocks (76 cells) accepted, 4 "also" facts.
 
 | origin | kind | right | near | wrong | extra |
 |---|---|---|---|---|---|

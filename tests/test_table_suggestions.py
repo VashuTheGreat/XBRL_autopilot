@@ -9,7 +9,9 @@ from src.evaluation.autotag_eval import DGPL, DIXON
 from src.evaluation.coverage_eval import run_dgpl_dixon
 from src.evaluation.table_key_eval import HPL_KEY, ROOT, run_key
 from src.services.tagging.layout import analyse_sheet
-from src.services.tagging.tables import find_blocks, suggest_tables, table_catalog_for
+from src.services.tagging.table_suggest import suggest_tables
+from src.services.tagging.table_catalog import table_catalog_for
+from src.services.tagging.tables import find_blocks
 
 CY, PY = dt.date(2026, 3, 31), dt.date(2025, 3, 31)
 
@@ -126,11 +128,81 @@ def test_financial_assets_by_category_rows_are_members_years_from_the_statements
     # only the amortised-cost columns have figures: they are the columns, and their years come from the balance sheet
     # (the header says 2025 / 2024)
     amortised = {"axis": "ind-as:CategoriesOfFinancialAssetsAxis", "member": "ind-as:FinancialAssetsAtAmortisedCostCategoryMember"}
-    assert assets["cols"] == [{"c": 5, "members": [amortised], "scope": "CY"}, {"c": 8, "members": [amortised], "scope": "PY"}]
+    # the one category with figures among FVTPL / FVTOCI / amortised cost is also the total over the categories
+    total = {"alsoTotal": ["ind-as:CategoriesOfFinancialAssetsAxis"]}
+    assert assets["cols"] == [{"c": 5, "members": [amortised], "scope": "CY", **total}, {"c": 8, "members": [amortised], "scope": "PY", **total}]
+    loans = next(c for c in assets["cells"] if c["ref"] == "F6")
+    assert [(a["concept"], [d["axis"] for d in a["dims"]]) for a in loans["also"]] == [("ind-as:FinancialAssets", ["ind-as:ClassesOfFinancialAssetsAxis"])]
     # rows: a named class takes its member, the others the numbered placeholders in row order; zeros and totals none
     members = {r["r"]: r["members"][0]["member"].split(":")[1] for r in assets["rows"]}
     assert members == {4: "TradeReceivablesMember", 5: "OtherFinancialAssetsAtAmortisedCostClass1Member", 6: "OtherFinancialAssetsAtAmortisedCostClass2Member"}
     assert {r["concept"] for r in assets["rows"]} == {"ind-as:FinancialAssets"}
+
+
+def test_fair_values_by_category_also_report_the_fair_value_line_item():
+    # the same note headed "Fair value …": one figure per class is both the carrying amount and the fair value
+    fair = {**INSTRUMENTS, 2: {3: "Fair value through profit & loss", 4: "Fair value through other comprehensive income", 5: "Fair value at amortised cost",
+                               6: "Fair value through profit & loss", 7: "Fair value through other comprehensive income", 8: "Fair value at amortised cost"}}
+    bs, notes = sheet("Balance Sheet", BALANCE_SHEET), sheet("Notes to accounts", fair)
+    layouts = [analyse_sheet(bs, CY, PY), analyse_sheet(notes, CY, PY)]
+    assets = next(b.to_json() for b in suggest_tables(table_catalog_for("ind_as_taxonomy"), [bs, notes], layouts, CY, PY)
+                  if b.table_id == "611100a:DisclosureOfFinancialAssetsTable")
+    assert all(r["also"] == [{"concept": "ind-as:FinancialAssetsAtFairValue", "preferredLabel": None}] for r in assets["rows"])
+    loans = next(c for c in assets["cells"] if c["ref"] == "F6")
+    # four facts from one cell: carrying amount and fair value, with the category and as the total over categories
+    facts = {(loans["concept"], len(loans["dims"])), *((a["concept"], len(a["dims"])) for a in loans["also"])}
+    assert facts == {("ind-as:FinancialAssets", 2), ("ind-as:FinancialAssets", 1), ("ind-as:FinancialAssetsAtFairValue", 2), ("ind-as:FinancialAssetsAtFairValue", 1)}
+
+
+# a related-party note laid out like DGPL's sheet RPT: category headers merged over their year columns, a transaction
+# row followed by its parties (which sum to it), then the outstanding balances
+RELATED_PARTIES = {
+    0: {1: "Notes to the financial statements for the year ended 31 March 2026"},
+    1: {1: "Note 21 Related party disclosures"},
+    2: {6: "Holding Company", 8: "Key Management Personnel"},
+    3: {6: "2025-26", 7: "2024-25", 8: "2025-26", 9: "2024-25"},
+    5: {1: "(i) Transactions during the year"},
+    6: {1: "Purchase including taxes", 6: 3194.12, 7: 2995.78, 8: 0.0, 9: 0.0},
+    7: {1: "Alpha Industries Limited", 6: 3194.12, 7: 2995.78, 8: 0.0, 9: 0.0},
+    9: {1: "Sales of goods inclusive of taxes", 6: 4276.39, 7: 0.43, 8: 0.0, 9: 0.0},
+    10: {1: "Alpha Industries Limited", 6: 4276.39, 7: 0.43, 8: 0.0, 9: 0.0},
+    11: {1: "Beta Components Private Limited", 6: 0.0, 7: 0.0, 8: 0.0, 9: 0.0},
+    13: {1: "Interest received", 6: 85.29, 7: 86.01, 8: 0.0, 9: 0.0},
+    14: {1: "Alpha Industries Limited", 6: 85.29, 7: 86.01, 8: 0.0, 9: 0.0},
+    16: {1: "Purchase of goods", 6: 0.0, 7: 0.0, 8: 2.0, 9: 0.5},
+    17: {1: "Mr. Ravi Kumar", 6: 0.0, 7: 0.0, 8: 2.0, 9: 0.5},
+    19: {1: "(ii) Outstanding balances at the year end"},
+    20: {1: "Trade Receivables", 6: 504.49, 7: 0.0, 8: 0.0, 9: 0.0},
+    21: {1: "Alpha Industries Limited", 6: 504.49, 7: 0.0, 8: 0.0, 9: 0.0},
+    23: {1: "Trade Payables", 6: 0.0, 7: 90.69, 8: 0.0, 9: 0.0},
+    24: {1: "Alpha Industries Limited", 6: 0.0, 7: 90.69, 8: 0.0, 9: 0.0},
+}
+
+
+def test_related_party_transactions_by_party_and_category():
+    s = {**sheet("RPT", RELATED_PARTIES), "merges": [{"r1": 2, "c1": 6, "r2": 2, "c2": 7}, {"r1": 2, "c1": 8, "r2": 2, "c2": 9}]}
+    out = suggest_tables(table_catalog_for("ind_as_taxonomy"), [s], [analyse_sheet(s, CY, PY)], CY, PY)
+    assert len(out) == 1, out
+    b = out[0].to_json()
+    assert b["tableId"].endswith("DisclosureOfTransactionsBetweenRelatedPartiesTable")
+    parent = {"axis": "ind-as:CategoriesOfRelatedPartiesAxis", "member": "ind-as:ParentMember"}
+    kmp = {"axis": "ind-as:CategoriesOfRelatedPartiesAxis", "member": "ind-as:KeyManagementPersonnelOfEntityOrParentMember"}
+    assert [(c["c"], c["members"], c["scope"]) for c in b["cols"]] == [(6, [parent], "CY"), (7, [parent], "PY"), (8, [kmp], "CY"), (9, [kmp], "PY")]
+    facts = {(c["ref"], c["concept"].split(":")[1], c["scope"], c["dims"][0].get("typed"), c["dims"][1]["member"].split(":")[1]) for c in b["cells"]}
+    # each party is numbered in order of first appearance and reports only its non-zero figures under its category;
+    # "Interest received" names no line item; a party with only zeros (Beta) gets no number
+    assert facts == {
+        ("G8", "PurchasesOfGoodsRelatedPartyTransactions", "CY", "1", "ParentMember"),
+        ("H8", "PurchasesOfGoodsRelatedPartyTransactions", "PY", "1", "ParentMember"),
+        ("G11", "RevenueFromSaleOfGoodsRelatedPartyTransactions", "CY", "1", "ParentMember"),
+        ("H11", "RevenueFromSaleOfGoodsRelatedPartyTransactions", "PY", "1", "ParentMember"),
+        ("I18", "PurchasesOfGoodsRelatedPartyTransactions", "CY", "2", "KeyManagementPersonnelOfEntityOrParentMember"),
+        ("J18", "PurchasesOfGoodsRelatedPartyTransactions", "PY", "2", "KeyManagementPersonnelOfEntityOrParentMember"),
+        ("G22", "AmountsReceivableRelatedPartyTransactions", "CY", "1", "ParentMember"),
+        ("H25", "AmountsPayableRelatedPartyTransactions", "PY", "1", "ParentMember"),
+    }
+    # a party's row is limited to its own non-zero columns, so the app files nothing else from it
+    assert next(r for r in b["rows"] if r["r"] == 21)["cols"] == [6]
 
 
 def test_maturity_buckets_are_not_twelve_month_credit_losses():
@@ -155,13 +227,15 @@ def test_dixon_table_producer_floors():
     t = report.by_producer["table"]
     produced = t["right"] + t["near"] + t["wrong"]
     print(report.text())
-    assert t["right"] >= 75, t  # 75 on 2026-11-11 (PPE, changes in equity, financial assets by category)
+    # 117 on 2026-11-11 (PPE, changes in equity, financial assets by category with their fair values and category
+    # totals, related parties)
+    assert t["right"] >= 117, t
     assert t["wrong"] <= 0.1 * produced, t  # ADR-0013: table amounts wrong ≤ 10% of those produced
     assert t["extra"] <= 10, t
     also = report.by_producer["also"]  # one-class "also report as", only on sure statement tags: 2 right, 0 wrong
     assert also["right"] >= 2 and also["wrong"] == 0 and also["extra"] <= 2, also
     assert {b.table_id for b in result.blocks} == {"400600:DisclosureOfPropertyPlantAndEquipmentTable", "400200:StatementOfChangesInEquityTable",
-                                                    "611100a:DisclosureOfFinancialAssetsTable"}
+                                                    "611100a:DisclosureOfFinancialAssetsTable", "610800:DisclosureOfTransactionsBetweenRelatedPartiesTable"}
 
 
 @pytest.mark.skipif(not (HPL_KEY.exists() and any((ROOT / "data").glob("HPL*.xlsx"))), reason="HPL workbook not present")

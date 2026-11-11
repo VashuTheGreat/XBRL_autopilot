@@ -143,6 +143,29 @@ describe.skipIf(!kbReady)('table tagging (Ind AS)', () => {
       expect(value(`${P}PropertyPlantAndEquipment`, 'CY', [GROSS, COMPUTERS], 'periodEndLabel')).toBeNull()
     })
 
+    it('one cell, more facts: a row’s other line items and a column’s totals are filed as "also" facts; a row reports only its own columns', async () => {
+      const CAT = { axis: `${P}CategoriesOfFinancialAssetsAxis`, member: `${P}FinancialAssetsAtAmortisedCostCategoryMember` }
+      const CLS = { axis: `${P}ClassesOfFinancialAssetsAxis`, member: `${P}TradeReceivablesMember` }
+      const assets = {
+        cell: cell('FA', 'A6:C8'),
+        tableId: '611100a:DisclosureOfFinancialAssetsTable',
+        rows: [{ r: 5, concept: `${P}FinancialAssets`, members: [CLS], cols: [1], also: [{ concept: `${P}FinancialAssetsAtFairValue` }] }],
+        cols: [{ c: 1, members: [CAT], scope: 'CY' as const, alsoTotal: [CAT.axis] }, { c: 2, members: [CAT], scope: 'PY' as const }],
+      }
+      const plan = await tables.plan(assets)
+      expect(plan.cells.map((c) => c.cell.ref)).toEqual(['B6']) // C6 is not the row's column
+      expect(plan.cells[0]!.also.map((a) => a.conceptLabel)).toHaveLength(3)
+      const r = await tables.apply(assets)
+      expect(r).toMatchObject({ tagged: 1, problems: [] })
+      for (const [concept, dims] of [[`${P}FinancialAssets`, [CAT, CLS]], [`${P}FinancialAssets`, [CLS]], [`${P}FinancialAssetsAtFairValue`, [CAT, CLS]], [`${P}FinancialAssetsAtFairValue`, [CLS]]] as const) {
+        expect(value(concept, 'CY', [...dims])).toBe('73000')
+      }
+      expect(value(`${P}FinancialAssets`, 'PY', [CAT, CLS])).toBeNull()
+      expect(mapping.list()[0]!.also).toHaveLength(3)
+      tables.remove(r.block.id)
+      expect(value(`${P}FinancialAssetsAtFairValue`, 'CY', [CLS])).toBeNull()
+    })
+
     it('refuses rows or columns outside the range, and unknown tables', async () => {
       await expect(tables.plan({ ...block(), cols: [{ c: 6, members: [COMPUTERS] }] })).rejects.toThrow(/inside the selected range/)
       await expect(tables.plan({ ...block(), tableId: 'nope' })).rejects.toThrow(/Unknown table/)

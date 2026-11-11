@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 MAX_SHEETS = 64
 MAX_CELLS_PER_SHEET = 120_000  # the app shows the first 60,000 cells of a bigger sheet
+MAX_MERGES_PER_SHEET = 20_000
 
 
 class Cell(BaseModel):
@@ -14,9 +15,18 @@ class Cell(BaseModel):
     v: Union[str, float, bool]
 
 
+class Merge(BaseModel):
+    r1: int = Field(ge=0)
+    c1: int = Field(ge=0)
+    r2: int = Field(ge=0)
+    c2: int = Field(ge=0)
+
+
 class Sheet(BaseModel):
     name: str = Field(max_length=200)
     cells: list[Cell] = Field(max_length=MAX_CELLS_PER_SHEET)
+    # merged ranges: a merged header names every column it spans (ADR-0013 step 6)
+    merges: list[Merge] = Field(default_factory=list, max_length=MAX_MERGES_PER_SHEET)
 
 
 class Periods(BaseModel):

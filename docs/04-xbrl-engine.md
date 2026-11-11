@@ -146,6 +146,10 @@ The original `golden-DIVERGENCES.json`, `APPROVED_LIMITATIONS.json` and the MCA-
   - **Dimensions:** the row's members ∪ the column's members; an axis given twice must agree.
   - **Period:** the row's, else the column's, else the sheet column's.
   - **Problems** are given per cell: not a line item, not an axis of the table, member syntax, dimensional validity, unknown period, two cells being the same fact.
+  - **One cell, more facts** (step 3c, 2026-11-11): each planned fact carries `also: PlannedAlsoFact[]`, the same figure reported again, each checked like the main fact (line item, members, dimensional validity, one fact ← one cell within the block). They are planned only when the main fact is ready.
+    - `row.also: [{concept, preferredLabel?}]`: other line items of the table the row's cells also are ("Financial assets, at fair value" = the carrying amount);
+    - `col.alsoTotal: [axis]`: the column's figure is also the axis total (its default), for the main line item and every `also` one (the one category with figures);
+    - `row.cols: [c]`: the only columns the row reports (a related party under its own category).
   - `tableOfFact(A, concept, dims)` finds the table of a single dimensional tag.
   - Tested on Ind AS (a DGPL-style PPE roll-forward) and C&I (tangible assets), both applied through `Session.setTableValue`.
 - **Parent-member roll-ups** (`core/member-rollup.js`, Phase 11 step 3b, [ADR-0013](decisions/ADR-0013-table-tagging.md)): a table value under a child member derives its parent members, as the sum of the values under the parent's children on that slice (the same element, period and other members). The derivation is deterministic and taxonomy-generic.
