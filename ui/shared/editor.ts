@@ -12,13 +12,32 @@ export interface DimRef {
   typed?: string
 }
 
+/**
+ * The fact a cell is tagged to. A table fact (dims) names its table; `preferredLabel` matters for a table's opening
+ * balance row (periodStartLabel), where it decides the period.
+ */
+export interface MappedFact {
+  concept: string
+  scope: Scope
+  dims: DimRef[]
+  tableId?: string | null
+  preferredLabel?: string | null
+}
+
 /** Persisted in the project's mapping.json (docs/03-project-file-axbrl.md). */
 export interface MappingEntry {
   id: string
   cell: CellRef
   /** row label next to the cell when tagged (for review and AI memory) */
   label: string | null
-  fact: { concept: string; scope: Scope; dims: DimRef[] }
+  fact: MappedFact
+  /**
+   * "Also reported as" (ADR-0013): the same figure filed as further facts, e.g. a balance-sheet line that is also
+   * a table's member column. They follow the cell on every value change and go when the cell is untagged.
+   */
+  also?: MappedFact[]
+  /** the table block that created this entry (mapping.json `blocks`) */
+  blockId?: string
   /** applied to the cell's number (e.g. an expense shown as a negative) */
   sign: 1 | -1
   origin: MappingOrigin
@@ -56,7 +75,19 @@ export interface MappingView extends MappingEntry {
   /** the statements / notes (ELR URIs) that show the element, by code: where the Form jumps when the cell is selected */
   elrUris: string[]
   factKey: string | null
+  /** the main fact and the "also reported as" facts: every fact this cell supplies (for linkage) */
+  factKeys: string[]
   /** the value that went into the filing, as displayed */
+  value: string | null
+  alsoViews: AlsoReportedView[]
+}
+
+export interface AlsoReportedView {
+  fact: MappedFact
+  conceptLabel: string
+  /** members, as labels ("Computer equipments") */
+  memberLabels: string[]
+  factKey: string | null
   value: string | null
 }
 
@@ -66,6 +97,79 @@ export interface TagCellInput {
   /** omitted → inferred from the column header (CY/PY dates), else an error asks for it */
   scope?: Scope
   sign?: 1 | -1
+  /** a table fact: its members (the table is found from them unless given) */
+  dims?: DimRef[]
+  tableId?: string
+  preferredLabel?: string | null
+}
+
+/** One more fact for a tagged cell's figure (same year as the cell's tag unless given). */
+export interface AlsoReportInput {
+  mappingId: string
+  concept: string
+  dims: DimRef[]
+  scope?: Scope
+  tableId?: string
+  preferredLabel?: string | null
+}
+
+/** A block row / column of a table mapping (engine TableBlockSpec, sheet-relative). */
+export interface TableBlockRowInput {
+  r: number
+  concept: string
+  preferredLabel?: string | null
+  scope?: Scope
+  members?: DimRef[]
+}
+export interface TableBlockColumnInput {
+  c: number
+  members?: DimRef[]
+  scope?: Scope
+}
+
+/** Map an Excel range to one taxonomy table (ADR-0013). */
+export interface TableBlockInput {
+  /** the block's range, e.g. "B10:G32" */
+  cell: CellRef
+  tableId: string
+  rows: TableBlockRowInput[]
+  cols: TableBlockColumnInput[]
+  sign?: 1 | -1
+}
+
+/** Persisted in mapping.json `blocks`. */
+export interface TableBlock extends TableBlockInput {
+  id: string
+  origin: MappingOrigin
+  confidence: number | null
+}
+
+/** One cell of a block, as it would be filed. */
+export interface TableBlockCellPlan {
+  cell: CellRef
+  concept: string
+  conceptLabel: string
+  scope: Scope | null
+  dims: DimRef[]
+  preferredLabel: string | null
+  /** the amount as it would go into the filing (null when the cell isn't a number) */
+  value: string | null
+  problems: string[]
+}
+
+export interface TableBlockPlan {
+  tableId: string
+  tableTitle: string
+  cells: TableBlockCellPlan[]
+  ready: number
+  blocked: number
+}
+
+export interface TableBlockResult {
+  block: TableBlock
+  tagged: number
+  /** cells not tagged, with why */
+  problems: { cell: CellRef; problems: string[] }[]
 }
 
 /** A cell's amount as it goes into the filing (Excel float noise rounded to the statement's precision). */

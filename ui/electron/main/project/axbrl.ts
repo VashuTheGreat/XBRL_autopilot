@@ -42,6 +42,8 @@ export interface AxbrlContent {
     entries: unknown[]
     /** "workbook|sheet|column letter" → period the user chose for that value column */
     columns?: Record<string, 'CY' | 'PY'>
+    /** table blocks: an Excel range mapped to one taxonomy table (ADR-0013); their cells are entries with a blockId */
+    blocks?: unknown[]
   }
   validation: unknown | null
   /** source/<name>.xlsx, byte-identical */

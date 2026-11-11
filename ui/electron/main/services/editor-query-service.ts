@@ -30,7 +30,7 @@ export class EditorQueryService {
 
     const A = p.authority.authority
     const byFact = new Map<string, MappingView>()
-    for (const m of this.mappings()) if (m.factKey) byFact.set(m.factKey, m)
+    for (const m of this.mappings()) for (const k of m.factKeys ?? []) byFact.set(k, m)
     const hasPy = p.periods().py !== null
 
     const cellFor = (concept: string, scope: 'CY' | 'PY'): FormCell => {

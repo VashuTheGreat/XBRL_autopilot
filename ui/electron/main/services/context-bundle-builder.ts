@@ -129,7 +129,7 @@ export class ContextBundleBuilder {
       return a
     }
     const cellOf = new Map<string, CellRef>()
-    for (const m of this.mappings()) if (m.status === 'approved' && m.factKey) cellOf.set(m.factKey, m.cell)
+    for (const m of this.mappings()) if (m.status === 'approved') for (const k of m.factKeys) cellOf.set(k, m.cell)
     const elrCodes = (q: string) => [...new Set(A.conceptElrs(q).map((u) => A.elr(u)?.code).filter((c): c is string => !!c))]
 
     const facts: FixBundleFact[] = picked.map((f) => {

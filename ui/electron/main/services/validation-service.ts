@@ -188,7 +188,7 @@ export class ValidationService {
   /** fact key → the Excel cell it was tagged from (approved mappings only). */
   private cellsByFact(): Map<string, CellRef> {
     const out = new Map<string, CellRef>()
-    for (const m of this.mappings()) if (m.status === 'approved' && m.factKey) out.set(m.factKey, m.cell as CellRef)
+    for (const m of this.mappings()) if (m.status === 'approved') for (const k of m.factKeys) out.set(k, m.cell as CellRef)
     return out
   }
 

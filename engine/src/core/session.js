@@ -154,6 +154,12 @@ export class Session {
   // Editing options (UI): tab = the filing tab (ELR) the cell is on — its applicability decides (cellStatus);
   // recalc = re-derive calculated parent cells; override = the tab's "edit calculated cells" option is on.
   pyLocked(scope, unlockPY = false) { return scope === 'PY' && !!this.filing.meta.pyLocked && !unlockPY; }
+  /**
+   * @param {string} concept
+   * @param {'CY' | 'PY'} scope
+   * @param {string} display
+   * @param {{ preferredLabel?: string | null, tab?: string | null, recalc?: boolean, override?: boolean, unlockPY?: boolean, strict?: boolean }} [opts]
+   */
   setValue(concept, scope, display, { preferredLabel = null, tab = null, recalc = false, override = false, unlockPY = false, strict = false } = {}) {
     if (this.pyLocked(scope, unlockPY)) throw new PyLockedError(PY_LOCKED);
     const st = tab ? this.app.cellStatus(this.filing, tab, concept, scope) : this.app.conceptStatus(this.filing, concept, scope);

@@ -1,18 +1,30 @@
 /**
  * MappingService: Excel cell (or a one-column range, summed) ↔ taxonomy fact. Tagging writes the value into the engine
- * filing; untagging removes it. Invariants: one cell → one fact, one fact ← one cell (ranges count by their cells).
- * The engine stays the source of truth for values; mapping.json records where they came from.
+ * filing; untagging removes it. The engine stays the source of truth for values; mapping.json records where they came
+ * from.
+ *
+ * Invariants (ADR-0013):
+ * - one fact ← one cell (ranges count by their cells);
+ * - one cell → one main fact, plus "also reported as" facts of the same figure (a balance-sheet line that is also a
+ *   table's member column). Every value change of the cell (tag, re-tag, change of year, reapply after the decimal
+ *   places change) writes all of them; untagging removes all of them.
+ * A fact may be a table fact (dims): it is written through Session.setTableValue, so the engine checks its table,
+ * members and applicability exactly as it checks a plain fact.
  *
  * Auto-tagging suggestions are entries with status 'suggested' (or 'rejected' once the user says no). They carry no
  * fact: only an approved entry has one. Accepting a suggestion is an ordinary tag() with its provenance.
- * Every approved tag teaches the mapping memory (label → concept).
+ * Every approved plain tag teaches the mapping memory (label → concept).
  */
 import { randomUUID } from 'node:crypto'
-import { decimal as Dec, nondimAllowed, SCALE_POWERS, SHARE_CAPITAL } from '@xap/engine'
+import { decimal as Dec, dimKey, nondimAllowed, normDims, SCALE_POWERS, SHARE_CAPITAL, tableOfFact } from '@xap/engine'
 import type {
+  AlsoReportedView,
+  AlsoReportInput,
   CellAmount,
   CellInfo,
   ColumnPeriod,
+  DimRef,
+  MappedFact,
   MappingEntry,
   MappingOrigin,
   MappingStatus,
@@ -51,8 +63,22 @@ export interface NewSuggestion {
   alternatives: SuggestionAlternative[]
 }
 
+/** Options of a tag made by another service: the block that creates it, the "also reported as" facts it keeps. */
+export interface TagOptions {
+  blockId?: string
+  also?: MappedFact[]
+}
+
+type TargetInput = Pick<TagCellInput, 'concept' | 'dims' | 'tableId' | 'preferredLabel'>
+
 const NO_MEMORY: MappingMemoryRepository = { recall: () => [], remember: () => {} }
 const hasFact = (e: MappingEntry) => e.status === 'approved'
+/** the main fact, then the "also reported as" facts */
+const factsOf = (e: MappingEntry): MappedFact[] => [e.fact, ...(e.also ?? [])]
+/** Only the opening-balance role changes which fact a row is (its period); negated / total roles are display. */
+const periodRole = (f: MappedFact) => (f.preferredLabel === 'periodStartLabel' ? 'start' : '')
+export const sameFact = (a: MappedFact, b: MappedFact): boolean =>
+  a.concept === b.concept && a.scope === b.scope && dimKey(a.dims) === dimKey(b.dims) && periodRole(a) === periodRole(b)
 
 interface FilingPrecision {
   level: string
@@ -76,14 +102,10 @@ export class MappingService {
     return this.entries(p).map((e) => this.view(p, e))
   }
 
-  async tag(input: TagCellInput, provenance?: TagProvenance): Promise<MappingView> {
+  async tag(input: TagCellInput, provenance?: TagProvenance, opts: TagOptions = {}): Promise<MappingView> {
     const p = this.projects.project()
     const A = p.authority.authority
-    const concept = A.concept(input.concept) as { kind?: string } | null
-    if (!concept || !A.isReportable(input.concept)) throw new ValidationError([`${input.concept} is not a reportable taxonomy element.`])
-    if (!nondimAllowed(A, input.concept)) {
-      throw new ValidationError([`“${A.label(input.concept)}” is reported inside a table (with axes). Tagging table cells comes in a later version; pick a statement-level element.`])
-    }
+    const target = this.target(p, input)
     const range = rangeOf(input.cell.ref)
     if (range && range.c1 !== range.c2) throw new ValidationError(['Select cells in one column (one year) to tag their sum.'])
     const isRange = !!range && range.r1 !== range.r2
@@ -98,23 +120,26 @@ export class MappingService {
     if (scope === 'PY' && !p.periods().py) throw new ValidationError(['This is the company’s first financial year: there are no previous-year figures.'])
 
     const sign = input.sign ?? 1
-    const display = this.displayValue(p, input.concept, input.cell, cells, sign)
+    const fact: MappedFact = { ...target, scope }
+    this.applyFact(p, fact, this.displayValue(p, fact.concept, input.cell, cells, sign))
 
-    this.applyFact(p, input.concept, scope, display)
-
-    // one cell → one fact and one fact ← one cell: older mappings that clash are replaced
+    // one cell → one main fact and one fact ← one cell: older mappings that clash are replaced. Re-tagging the same
+    // cell keeps its "also reported as" facts: they follow the cell's figure.
     const entries = this.entries(p)
     const clash = (e: MappingEntry) =>
-      overlaps(e.cell, input.cell) || (e.fact.concept === input.concept && e.fact.scope === scope && e.fact.dims.length === 0)
-    for (const old of entries.filter(clash)) {
-      if (hasFact(old) && (old.fact.concept !== input.concept || old.fact.scope !== scope)) this.removeFact(p, old)
-    }
+      overlaps(e.cell, input.cell) || (hasFact(e) ? factsOf(e).some((f) => sameFact(f, fact)) : sameFact(e.fact, fact))
+    const kept = opts.also ?? entries.find((e) => hasFact(e) && sameCell(e.cell, input.cell))?.also ?? []
+    const also = kept.filter((f) => !sameFact(f, fact))
+    for (const old of entries.filter(clash)) if (hasFact(old)) this.removeFacts(p, old, [fact, ...also])
+    for (const f of also) this.applyFact(p, f, this.displayValue(p, f.concept, input.cell, cells, sign))
     const label = await this.sources.rowLabel(input.cell)
     const entry: MappingEntry = {
       id: this.newId(),
       cell: { ...input.cell },
       label,
-      fact: { concept: input.concept, scope, dims: [] },
+      fact,
+      ...(also.length ? { also } : {}),
+      ...(opts.blockId ? { blockId: opts.blockId } : {}),
       sign,
       origin: provenance?.origin ?? 'manual',
       confidence: provenance?.confidence ?? null,
@@ -122,9 +147,44 @@ export class MappingService {
       status: 'approved', // a person chose it, or accepted the suggestion
     }
     this.setEntries(p, [...entries.filter((e) => !clash(e)), entry])
-    if (label) this.memory.remember(p.authority.taxonomyId, label, input.concept)
+    // the memory learns plain tags (label → element); table cells are learnt as blocks
+    if (label && !fact.dims.length) this.memory.remember(p.authority.taxonomyId, label, fact.concept)
     p.touch()
     return this.view(p, entry)
+  }
+
+  /**
+   * "Also reported as": files a tagged cell's figure as one more fact (same year unless given). Refused when that fact
+   * already comes from another cell (one fact ← one cell) or is already this cell's.
+   */
+  async addAlso(input: AlsoReportInput): Promise<MappingView> {
+    const p = this.projects.project()
+    const e = this.find(p, input.mappingId)
+    if (!hasFact(e)) throw new ValidationError(['Tag the cell (or accept its suggestion) first.'])
+    const fact: MappedFact = { ...this.target(p, input), scope: input.scope ?? e.fact.scope }
+    if (fact.scope === 'PY' && !p.periods().py) throw new ValidationError(['This is the company’s first financial year: there are no previous-year figures.'])
+    if (factsOf(e).some((f) => sameFact(f, fact))) throw new ValidationError(['This cell already reports that fact.'])
+    const other = this.entries(p).find((x) => x.id !== e.id && hasFact(x) && factsOf(x).some((f) => sameFact(f, fact)))
+    if (other) throw new ValidationError([`That fact already comes from ${other.cell.sheet}!${other.cell.ref}. Untag it there first.`])
+    const { cells } = await this.sources.cell(e.cell)
+    this.applyFact(p, fact, this.displayValue(p, fact.concept, e.cell, cells, e.sign))
+    e.also = [...(e.also ?? []), fact]
+    p.touch()
+    return this.view(p, e)
+  }
+
+  /** Stops reporting one "also reported as" fact (by its position in the entry's list): the fact is removed. */
+  removeAlso(mappingId: string, index: number): MappingView {
+    const p = this.projects.project()
+    const e = this.find(p, mappingId)
+    const f = e.also?.[index]
+    if (!f) throw new ValidationError(['That fact is no longer reported from this cell.'])
+    this.removeFact(p, f)
+    const rest = e.also!.filter((_, i) => i !== index)
+    if (rest.length) e.also = rest
+    else delete e.also
+    p.touch()
+    return this.view(p, e)
   }
 
   /**
@@ -137,19 +197,20 @@ export class MappingService {
     const approved = kept.filter(hasFact)
     const rejected = kept.filter((e) => e.status === 'rejected')
     const added: MappingEntry[] = []
-    const taken = new Set(approved.map((e) => `${e.fact.concept}|${e.fact.scope}`))
+    const taken = approved.flatMap(factsOf)
     for (const s of items) {
+      const fact: MappedFact = { concept: s.concept, scope: s.scope, dims: [] }
       const skip =
         approved.some((e) => overlaps(e.cell, s.cell)) ||
-        taken.has(`${s.concept}|${s.scope}`) ||
+        taken.some((f) => sameFact(f, fact)) ||
         rejected.some((e) => sameCell(e.cell, s.cell) && e.fact.concept === s.concept)
       if (skip) continue
-      taken.add(`${s.concept}|${s.scope}`)
+      taken.push(fact)
       added.push({
         id: this.newId(),
         cell: { ...s.cell },
         label: s.label,
-        fact: { concept: s.concept, scope: s.scope, dims: [] },
+        fact,
         sign: s.sign,
         origin: s.origin,
         confidence: s.confidence,
@@ -178,10 +239,11 @@ export class MappingService {
     return this.view(p, this.find(p, id))
   }
 
+  /** Removes the tag and every fact it supplies (main and "also reported as"). */
   untag(id: string): void {
     const p = this.projects.project()
     const entry = this.find(p, id)
-    if (hasFact(entry)) this.removeFact(p, entry)
+    if (hasFact(entry)) this.removeFacts(p, entry)
     this.setEntries(p, this.entries(p).filter((e) => e.id !== id))
     p.touch()
   }
@@ -196,8 +258,14 @@ export class MappingService {
       p.touch()
       return this.view(p, e)
     }
+    // the "also reported as" facts of the same year move with it
+    const also = (e.also ?? []).map((f) => (f.scope === e.fact.scope ? { ...f, scope } : f))
     this.untag(id)
-    const view = await this.tag({ cell: e.cell, concept: e.fact.concept, scope, sign: e.sign }, provenance)
+    const { concept, dims, tableId, preferredLabel } = e.fact
+    const view = await this.tag({ cell: e.cell, concept, dims, tableId: tableId ?? undefined, preferredLabel, scope, sign: e.sign }, provenance, {
+      also,
+      ...(e.blockId ? { blockId: e.blockId } : {}),
+    })
     // correcting a cell's period corrects its column: later cells of the column follow
     await this.columns.set(e.cell, scope)
     return view
@@ -205,7 +273,8 @@ export class MappingService {
 
   /**
    * Re-pulls every tagged figure from Excel at the filing's current precision (after "decimal places as presented"
-   * changed). Returns the problems of tags that could not be re-applied; those tags keep their previous value.
+   * changed), into the main fact and every "also reported as" fact. Returns the problems of tags that could not be
+   * re-applied; those tags keep their previous value.
    */
   async reapply(): Promise<string[]> {
     const p = this.projects.project()
@@ -213,7 +282,7 @@ export class MappingService {
     for (const e of this.entries(p).filter(hasFact)) {
       try {
         const { cells } = await this.sources.cell(e.cell)
-        this.applyFact(p, e.fact.concept, e.fact.scope, this.displayValue(p, e.fact.concept, e.cell, cells, e.sign))
+        for (const f of factsOf(e)) this.applyFact(p, f, this.displayValue(p, f.concept, e.cell, cells, e.sign))
       } catch (err) {
         problems.push(`${e.cell.sheet}!${e.cell.ref}: ${err instanceof ValidationError ? err.problems.join(' ') : String(err)}`)
       }
@@ -229,6 +298,17 @@ export class MappingService {
     const tagged = this.entries(p).find((e) => sameCell(e.cell, ref))
     const amount = rangeAmount(cells, this.precisionFor(p, tagged?.fact.concept ?? null))
     return { cell: { ...ref }, amount, column: await this.columns.of(ref) }
+  }
+
+  /** A cell's amount as it would go into the filing as `concept` (table-block previews). */
+  async amountFor(ref: CellRef, concept: string, sign: 1 | -1 = 1): Promise<string | null> {
+    const p = this.projects.project()
+    const { cells } = await this.sources.cell(ref)
+    try {
+      return this.displayValue(p, concept, ref, cells, sign)
+    } catch {
+      return null
+    }
   }
 
   /** Rejects a suggestion, or brings a rejected one back. Approving goes through tag() (it writes the fact). */
@@ -266,21 +346,53 @@ export class MappingService {
     return e
   }
 
-  private fact(p: ProjectHandle, e: MappingEntry): Fact | null {
-    return (p.session.getValue(e.fact.concept, e.fact.scope, e.fact.dims) as Fact | null) ?? null
+  private fact(p: ProjectHandle, f: MappedFact): Fact | null {
+    return (p.session.getValue(f.concept, f.scope, f.dims, f.preferredLabel ?? null) as Fact | null) ?? null
   }
 
   private view(p: ProjectHandle, e: MappingEntry): MappingView {
-    const fact = hasFact(e) ? this.fact(p, e) : null
-    const A = p.authority.authority as unknown as { conceptElrs(q: string): string[]; elr(u: string): { code: string } | null }
+    const approved = hasFact(e)
+    const fact = approved ? this.fact(p, e.fact) : null
+    const A = p.authority.authority as unknown as { conceptElrs(q: string): string[]; elr(u: string): { code: string } | null; label(q: string): string }
     const code = (u: string) => A.elr(u)?.code ?? '~'
+    const alsoViews: AlsoReportedView[] = (e.also ?? []).map((f) => {
+      const x = approved ? this.fact(p, f) : null
+      return {
+        fact: f,
+        conceptLabel: A.label(f.concept),
+        memberLabels: f.dims.map((d) => (d.member ? A.label(d.member) : String(d.typed))),
+        factKey: x?.key ?? null,
+        value: x ? String(p.session.displayOf(x)) : null,
+      }
+    })
     return {
       ...e,
-      conceptLabel: p.authority.authority.label(e.fact.concept),
+      conceptLabel: A.label(e.fact.concept),
       elrUris: [...A.conceptElrs(e.fact.concept)].sort((a, b) => code(a).localeCompare(code(b))),
       factKey: fact?.key ?? null,
+      factKeys: [fact?.key, ...alsoViews.map((a) => a.factKey)].filter((k): k is string => !!k),
       value: fact ? String(p.session.displayOf(fact)) : null,
+      alsoViews,
     }
+  }
+
+  /** The fact a tag input names, without its year: checked, members normalised, its table found. */
+  private target(p: ProjectHandle, input: TargetInput): Omit<MappedFact, 'scope'> {
+    const A = p.authority.authority
+    if (!A.concept(input.concept) || !A.isReportable(input.concept)) throw new ValidationError([`${input.concept} is not a reportable taxonomy element.`])
+    const dims = (normDims(input.dims ?? []) as DimRef[]).map((d): DimRef => (d.member ? { axis: d.axis, member: d.member } : { axis: d.axis, typed: String(d.typed) }))
+    const preferredLabel = input.preferredLabel ?? null
+    if (!dims.length) {
+      if (!nondimAllowed(A, input.concept)) {
+        throw new ValidationError([
+          `“${A.label(input.concept)}” is reported inside a table (with axes): give its members. Select the table’s range and use “Map as table”, or tag the cell with its members.`,
+        ])
+      }
+      return { concept: input.concept, dims, tableId: null, preferredLabel }
+    }
+    const tableId = input.tableId ?? tableOfFact(A, input.concept, dims)
+    if (!tableId) throw new ValidationError([`No table of the taxonomy reports “${A.label(input.concept)}” with these members.`])
+    return { concept: input.concept, dims, tableId, preferredLabel }
   }
 
   private filingPrecision(p: ProjectHandle): FilingPrecision {
@@ -330,26 +442,37 @@ export class MappingService {
     ])
   }
 
-  private applyFact(p: ProjectHandle, concept: string, scope: Scope, display: string): void {
+  private applyFact(p: ProjectHandle, f: MappedFact, display: string): void {
     try {
       // recalc: calculation totals left empty follow their tagged parts (HPL has no cell for Total fixed assets);
       // a total that is itself tagged is kept, and the calculation check shows any difference
-      p.session.setValue(concept, scope, display, { strict: true, recalc: true })
+      this.write(p, f, display, true)
     } catch (err) {
       throw new ValidationError([err instanceof Error ? err.message : String(err)])
     }
   }
 
-  private removeFact(p: ProjectHandle, e: MappingEntry): void {
-    const fact = this.fact(p, e)
+  private write(p: ProjectHandle, f: MappedFact, display: string, strict: boolean): void {
+    const preferredLabel = f.preferredLabel ?? null
+    if (f.dims.length) p.session.setTableValue(f.tableId!, f.scope, f.dims, f.concept, display, { preferredLabel, strict, recalc: true })
+    else p.session.setValue(f.concept, f.scope, display, { preferredLabel, strict, recalc: true })
+  }
+
+  /** Removes every fact of an entry, except those in `keep` (just written by the tag that replaces it). */
+  private removeFacts(p: ProjectHandle, e: MappingEntry, keep: MappedFact[] = []): void {
+    for (const f of factsOf(e)) if (!keep.some((k) => sameFact(k, f))) this.removeFact(p, f)
+  }
+
+  private removeFact(p: ProjectHandle, f: MappedFact): void {
+    const fact = this.fact(p, f)
     if (!fact) return
     try {
       // through the session, so totals derived from this figure are re-derived (or removed)
-      p.session.setValue(e.fact.concept, e.fact.scope, '', { recalc: true })
+      this.write(p, f, '', false)
     } catch {
       p.session.filing.removeFact(fact.key)
     }
-    if (this.fact(p, e)) p.session.filing.removeFact(fact.key)
+    if (this.fact(p, f)) p.session.filing.removeFact(fact.key)
   }
 }
 

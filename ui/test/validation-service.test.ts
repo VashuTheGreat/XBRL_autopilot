@@ -41,7 +41,9 @@ const mapping = (over: Partial<MappingView>): MappingView =>
     conceptLabel: 'Share capital',
     factKey: null,
     value: null,
+    alsoViews: [],
     ...over,
+    factKeys: over.factKeys ?? (over.factKey ? [over.factKey] : []),
   }) as MappingView
 
 describe.skipIf(!kbReady)('ValidationService', () => {
