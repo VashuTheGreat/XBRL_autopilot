@@ -6,7 +6,7 @@ import { evalPred, evalExpr } from './expr.js';
 import { Applicability } from './applicability.js';
 import { dimensionallyValid, sequentialGaps, tablesForFact } from './dimensions.js';
 import { runCalculations, CalcStatus } from './calculation.js';
-import { reportingYear, scopeOf } from './periods.js';
+import { periodFor, reportingYear, scopeOf } from './periods.js';
 import { dimKey } from './model.js';
 
 // tables whose line items may be given against one member only ("lineItemSingleMember" rules, e.g. SR-L3717-1)
@@ -80,6 +80,14 @@ export class RuleEngine {
   out(ctx, r, scope, status, message, extra = {}) {
     // a rule contradicted by an MCA-validated instance reports failures as warnings (evidence attached)
     if (status === 'FAIL' && r.severity === 'WARNING') { status = 'WARN'; message += ` — not blocking: ${r.divergence}`; }
+    // evidence about some elements / periods only (curation "concepts" / "scopes"): those failures are warnings
+    const soft = r.ast?.softFor;
+    if (status === 'FAIL' && soft) {
+      const fact = extra.factKey ? ctx.filing.facts.get(extra.factKey) : null;
+      const concept = extra.concept || fact?.concept || r.subject || r.ast.concept || null;
+      const where = fact ? ctx.filing.scopeOf(fact.period) : scope;
+      if ((!soft.concepts || soft.concepts.includes(concept)) && (!soft.scopes || soft.scopes.includes(where))) { status = 'WARN'; message += ` — not blocking: ${r.softEvidence}`; }
+    }
     // location anchor for the UI (cell navigation): the rule's subject concept unless the result names its own
     const a = r.ast || {};
     if (a.type === 'tableRequired') { if (!extra.tableId) extra.tableId = a.tables?.[0] || null; }
@@ -145,7 +153,8 @@ export class RuleEngine {
         const pt = this.A.concept(a.concept)?.periodType;
         for (const scope of this.scopes(r, filing)) {
           const ctxs = new Map();
-          for (const f of filing.all()) if (!f.nil && f.period.type === pt && reportingYear(filing.meta.periods, f.period) === scope && f.dims.some((d) => d.member === a.member)) ctxs.set(dimKey(f.dims), f.dims);
+          const members = a.members || [a.member]; // "… or its child members" (Ind AS) lists the member and those below it
+          for (const f of filing.all()) if (!f.nil && f.period.type === pt && reportingYear(filing.meta.periods, f.period) === scope && f.dims.some((d) => members.includes(d.member))) ctxs.set(dimKey(f.dims), f.dims);
           for (const dims of ctxs.values()) {
             if (!dimensionallyValid(this.A, a.concept, dims).valid) continue;
             if (filing.value(a.concept, scope, dims) != null) this.out(ctx, r, scope, 'PASS', r.text);
@@ -549,8 +558,9 @@ export class RuleEngine {
       }
       case 'inr-currency': {
         const exemptTables = new Set(r.ast.exemptTables);
+        const exemptConcepts = new Set(r.ast.exemptConcepts || []); // Ind AS GR-8 lists elements of subsidiaries
         for (const f of filing.all()) {
-          if (f.nil || !A.isMonetary(f.concept) || f.unit === 'INR') continue;
+          if (f.nil || !A.isMonetary(f.concept) || f.unit === 'INR' || exemptConcepts.has(f.concept)) continue;
           if (tablesForFact(A, f).some((t) => exemptTables.has(t.id))) continue;
           this.out(ctx, r, reportingYear(P, f.period), 'FAIL', `Reporting currency should be INR for '${this.label(f.concept)}' (unit ${f.unit})`, { factKey: f.key });
         }
@@ -562,9 +572,9 @@ export class RuleEngine {
           if (scope !== 'CY' && scope !== 'PY') continue;
           const st = this.app.conceptStatus(filing, f.concept, scope);
           if (st.applicable) continue;
-          const tag = { 'elr-not-for-consolidated': 'GR-11', 'elr-not-for-prior-year': 'GR-12', 'elr-not-for-standalone': 'GR-14', 'general-info-consolidated': 'GR-13' }[h];
-          const mine = st.reasons.filter((x) => x.startsWith(tag));
-          if (mine.length && mine.length === st.reasons.filter((x) => /^GR-1[1-4]/.test(x)).length) this.out(ctx, r, scope, 'FAIL', `'${this.label(f.concept)}' must not be reported: ${mine.join('; ')}`, { factKey: f.key });
+          // reasons are tagged with the applicability rule's own id (C&I GR-11..14, Ind AS GR-10..13)
+          const mine = st.reasons.filter((x) => x.startsWith(r.id + ':'));
+          if (mine.length && mine.length === st.reasons.filter((x) => this.app.tags.some((t) => x.startsWith(t + ':'))).length) this.out(ctx, r, scope, 'FAIL', `'${this.label(f.concept)}' must not be reported: ${mine.join('; ')}`, { factKey: f.key });
         }
         if (h === 'general-info-consolidated') this.out(ctx, r, null, 'REVIEW_ONLY_EXTERNAL_DATA', 'Equality of general-information values between the standalone and consolidated instance documents requires the other instance document');
         return;
@@ -594,6 +604,48 @@ export class RuleEngine {
         const start = P.cy.start;
         if (!start) return;
         this.out(ctx, r, 'CY', start >= r.ast.from ? 'PASS' : 'FAIL', start >= r.ast.from ? 'C&I Taxonomy 2016 applies' : `C&I Taxonomy 2016 applies only to financial years commencing on or after ${r.ast.from}`);
+        return;
+      }
+      case 'opening-closing-roll-forward': {
+        // Ind AS GR-6 ("formulas Linkbase"): closing balance = opening balance + change during the year, per context.
+        // Compared after rounding to the lowest `decimals` of the three facts (as the calculation check does).
+        const dec = (fs) => Math.min(...fs.map((x) => (x.decimals === 'INF' || x.decimals == null ? Infinity : Number(x.decimals))));
+        for (const { balance, change } of r.ast.pairs) {
+          if (!A.concept(balance) || !A.concept(change)) continue;
+          for (const scope of ['CY', 'PY']) {
+            if (scope === 'PY' && filing.meta.firstFinancialYear) continue;
+            const close = periodFor(P, 'instant', scope), open = periodFor(P, 'instant', scope === 'CY' ? 'PY' : 'PYO'), during = filing.period(change, scope);
+            if (!close || !open || !during) continue;
+            for (const fc of filing.factsOf(balance)) {
+              if (fc.nil || fc.period.type !== 'instant' || fc.period.date !== close.date) continue;
+              const fo = filing.get(balance, open, fc.dims), ch = filing.get(change, during, fc.dims);
+              if (!fo || fo.nil || !ch || ch.nil) continue;
+              const d = dec([fc, fo, ch]);
+              const rd = (v) => Dec.round(v, d === Infinity ? 'INF' : d);
+              const expected = rd(Dec.add(Dec.parse(fo.value), Dec.parse(ch.value)));
+              const reported = rd(Dec.parse(fc.value));
+              if (Dec.eq(expected, reported)) this.out(ctx, r, scope, 'PASS', 'closing = opening + change');
+              else this.out(ctx, r, scope, 'FAIL', `Closing balance of '${this.label(balance)}' ${Dec.toString(reported)} ≠ opening ${fo.value} + '${this.label(change)}' ${ch.value} = ${Dec.toString(expected)}${fc.dims.length ? ' [' + dimKey(fc.dims) + ']' : ''}`, { factKey: fc.key });
+            }
+          }
+        }
+        return;
+      }
+      case 'fta-opening-balance-sheet': {
+        // Ind AS GR-16: a first-time adopter reports the opening balance sheet of the previous year (instant before the
+        // previous year starts) for every balance-sheet figure it reports for the current or previous year.
+        if (filing.value(r.ast.flag, 'CY', []) !== 'true') { this.out(ctx, r, 'CY', 'NOT_APPLICABLE', 'Not a first-time adoption of Ind AS'); return; }
+        if (filing.meta.firstFinancialYear) { this.out(ctx, r, 'CY', 'NOT_APPLICABLE', 'First financial year'); return; }
+        const opening = periodFor(P, 'instant', 'PYO');
+        const uris = A.elrs.filter((e) => e.code === r.ast.elrCode).map((e) => e.uri);
+        const concepts = new Set(uris.flatMap((u) => (A.json.presentation[u] || []).map((a) => a.to)).filter((q) => A.isMonetary(q) && A.concept(q).periodType === 'instant'));
+        for (const q of concepts) {
+          const reported = ['CY', 'PY'].some((s) => { const v = filing.value(q, s, []); return v != null; });
+          if (!reported) continue;
+          const has = filing.get(q, opening, []);
+          if (has && !has.nil) this.out(ctx, r, 'PY', 'PASS', 'opening balance sheet reported');
+          else this.out(ctx, r, 'PY', 'FAIL', `First-time adoption of Ind AS: '${this.label(q)}' must also be reported in the opening balance sheet of the previous year (${opening.date}); not applicable to a company's first or second financial year`, { concept: q, locateMissing: { concept: q, scope: 'PYO' } });
+        }
         return;
       }
       default: throw new Error(`No generic handler ${h}`);

@@ -1,6 +1,6 @@
 /**
- * ADR-0010: the engine authority = taxonomy authority from the knowledge base (Python ingestion, served by the
- * sidecar route) + business rules compiled by engine/compiler. Golden check: the example filing exported with the
+ * ADR-0010/0011: the engine authority = taxonomy authority + business rules, both built by the Python ingestion
+ * into the knowledge base and served by sidecar routes. Golden check: the example filing exported with the
  * route-built C&I authority is byte-identical to the XML exported with the retired TypeScript DTS compiler's
  * authority (fixture written from it on 2026-11-10).
  */
@@ -11,7 +11,7 @@ import { assembleAuthority, Authority, AuthorityMismatchError, buildExample, Ses
 const KB = (f: string) => new URL(`../../knowledge_base/${f}`, import.meta.url)
 const CI_TAXONOMY = KB('ci_engine_authority.json')
 const IND_AS_TAXONOMY = KB('ind_as_engine_authority.json')
-const CI_RULES = new URL('../authority/ci-2016.rules.json', import.meta.url)
+const CI_RULES = KB('ci_engine_rules.json')
 const GOLDEN = new URL('./fixtures/ci-2016-example.golden.xml', import.meta.url)
 const json = (u: URL) => JSON.parse(readFileSync(u, 'utf8'))
 

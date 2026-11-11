@@ -100,7 +100,7 @@ ui/
     lib/              utils
 engine/
   src/                library modules (see 04-xbrl-engine.md)
-  compiler/           business-rule compiler (Node scripts); the taxonomy half is built in Python (ADR-0010)
+  compiler/           test-side Arelle XSD check only; taxonomy and business rules are built in Python (ADR-0010, ADR-0011)
   authority/          compiled rules JSON (+ assembled authority for tests)
   test/
 ```

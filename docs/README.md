@@ -27,6 +27,6 @@ Read the doc that matches the task. Keep docs short, factual and current. When c
 - **Fact:** a value reported for a concept, in a context (entity CIN + period + dimensions), with a unit and decimals.
 - **Dimension / axis / member:** qualifies a fact in a table (e.g. Classes of share capital axis → Equity shares member).
 - **Instance document:** the XBRL XML file we generate and the MCA tool validates.
-- **Authority:** our compiled, executable view of one taxonomy plus its business rules (`engine/authority/*.json`).
+- **Authority:** our executable view of one taxonomy plus its business rules (`knowledge_base/<kb>_engine_authority.json` + `<kb>_engine_rules.json`, joined by the engine).
 - **Sidecar:** the bundled local Python process (FastAPI) that does the AI work.
 - **CY / PY:** current year / previous year.

@@ -1,0 +1,28 @@
+# ADR-0011 · Executable business rules are built in Python and served by a route
+- **Status:** accepted (2026-11-11). Phase 9. It completes [ADR-0010](ADR-0010-engine-authority-from-knowledge-base.md): the business-rule half of the engine authority now comes from the knowledge base too.
+- **Context:**
+  - After Phase 6, the taxonomy half of the engine authority came from the Python ingestion. The business-rule half (rule ASTs, exemptions, applicability, Yes/No dependencies) was still compiled by `engine/compiler/rule-formalizer.mjs`, a Node script of about 1,000 lines, and only for C&I. The app loaded it from `engine/authority/ci-2016.rules.json`.
+  - That left two ingestion languages and two parsers of the same MCA workbooks, and the npm `xlsx` package (known advisories) as a build dependency.
+  - Ind AS had no executable rules. An Ind AS filing got only facts, XML and structural checks.
+- **Decision:**
+  - **One rule builder, in Python.** `src/services/engine_rules/` reads the MCA business-rule workbook of each taxonomy and formalizes it against that taxonomy's engine authority:
+    - `workbook.py` reads the workbook (python-calamine) into rows that keep their sheet, line and exact text. It knows both layouts: C&I (`[nnnnnn] Title` header rows, then `element | rule`) and Ind AS (`LinkRole` / `Definition` blocks, then `prefix | name | label | order | a | Business Rule | Status | FTA`).
+    - `resolver.py`, `specific.py`, `mandatory_items.py`, `exemptions.py`, `coverage.py`: the port of the formalizer (`jsre.py` makes Python regexes behave like JavaScript's). `specific_fallback.py` is a second pass, only for clauses the port leaves UNIMPLEMENTED (Ind AS wording variants and forms).
+    - `generic.py` (C&I) and `generic_ind_as.py` map generic rules to engine handlers **per taxonomy**, because the two workbooks number them differently. The engine runtime finds them by handler.
+    - `builder.py` writes `knowledge_base/<kb>_engine_rules.json` (the rule model with provenance) and `knowledge_base/<kb>_rule_coverage.json` (the coverage ledger), and `docs/generated/rule-coverage-<kb>.md`.
+    - `curation/<kb>/divergences.json` and `curation/<kb>/approved_limitations.json` hold the curated exceptions (moved from `engine/compiler/`). Each entry carries its evidence.
+  - It runs with `make engine-rules` (after `make engine-authority`), and as part of `make rebuild`. The output files are committed. `meta.taxonomyHash` still ties them to the taxonomy build, and the engine's `assembleAuthority` still refuses a mismatch.
+  - **Route.** `GET /api/v1/taxonomies/{id}/engine-rules` serves the rule file in the usual envelope without parsing it. The existing `/rules` route keeps serving the raw rule text for browsing and the AI.
+  - **The app.** `SidecarRuleBundleSource` replaces `FileRuleBundleSource`. `AuthorityService` is unchanged: it joins the two halves once per taxonomy.
+  - **The TS compiler is retired.** `rule-formalizer.mjs`, `rules-source.mjs`, `compile.mjs` and the `xlsx` dev dependency are deleted. `taxonomy-source.mjs` and `xsd-validate.mjs` stay for the test-side Arelle XSD check. `engine/scripts/assemble-authority.mjs` only joins the two knowledge-base files into `engine/authority/<id>.authority.json` for tests and tools (no compiling); the engine test script runs it first.
+- **Golden check:**
+  - Before the TS compiler was deleted, its output was frozen as `tests/fixtures/engine_rules/ci_rules.ts-golden.json` and `ci_coverage.ts-golden.json`.
+  - `tests/test_engine_rules.py` requires the Python C&I rule model (`businessRules`) to be deep-equal to the frozen one, in the same key and array order, and the coverage ledger to match rule for rule. Only provenance differs (`meta.sources` paths, `compilerVersion`, `generatedBy`).
+  - The example filing's XML stays byte-identical (`engine/test/fixtures/ci-2016-example.golden.xml`).
+- **Coverage measure.** "Executable share" = EXECUTABLE ÷ (all rules − NOT_APPLICABLE). Review-only (needs MCA21 master data) and unimplemented are reported separately in the coverage file. The bar is ≥ 95% for each taxonomy.
+- **Ind AS acceptance.** The Dixon instance was accepted by MCA, so the Ind AS rules must give **0 ERRORs** on its import. Every exception is a curation entry with the rule text, the Dixon fact and why MCA accepted it. No silent skips.
+- **Consequences:**
+  - Ind AS adds two handlers (`opening-closing-roll-forward`, `fta-opening-balance-sheet`) and AST options (`exemptConcepts`, prior-year `tables` / `concepts`, `elrCode`, `memberMandatory.members`, curation `softFor`). Whether Yes/No answers restrict availability is a per-taxonomy setting backed by evidence (Ind AS: no, per Dixon).
+  - Changing the formalizer: run `make engine-rules`. `tests/test_engine_rules.py` fails if a committed file is stale.
+  - Packaging (Phase 11) ships only `knowledge_base/` with the sidecar. Nothing from `engine/authority/` ships.
+  - Costing still has no rules (Phase 12). The route returns 404 and the app uses an empty rule model.

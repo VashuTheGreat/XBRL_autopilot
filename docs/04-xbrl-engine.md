@@ -6,11 +6,15 @@ The engine is the deterministic core. It is a pure TypeScript library with no El
 - **Step 1 is done: a behaviour-preserving import.**
   - The legacy runtime modules live unchanged in `engine/src/core/*.js`, with one JSDoc annotation on `Session`.
   - `engine/src/index.ts` is the typed public entry point. With `allowJs`, TypeScript infers the core's types.
-  - The rule compiler lives in `engine/compiler/*.mjs`, and the legacy tests in `engine/test/legacy/` (run with `node:test`).
+  - The legacy tests live in `engine/test/legacy/` (run with `node:test`). The rule compiler moved to Python in Phase 9 ([ADR-0011](decisions/ADR-0011-business-rules-from-knowledge-base.md)).
 - **Phase 6 is done: the taxonomy half of the authority comes from the knowledge base** ([ADR-0010](decisions/ADR-0010-engine-authority-from-knowledge-base.md)).
   - The Python ingestion builds `knowledge_base/ci_engine_authority.json` and `ind_as_engine_authority.json`, which the sidecar serves at `/api/v1/taxonomies/{id}/authority`.
-  - The engine joins them with the compiled business rules via `assembleAuthority` (`src/core/authority-bundle.js`).
+  - The engine joins them with the business rules via `assembleAuthority` (`src/core/authority-bundle.js`).
   - The TS DTS/tables compiler is retired.
+- **Phase 9: the business rules come from the knowledge base too** ([ADR-0011](decisions/ADR-0011-business-rules-from-knowledge-base.md)).
+  - `src/services/engine_rules/` (Python) builds `knowledge_base/<kb>_engine_rules.json` for C&I **and Ind AS**; the sidecar serves them at `/api/v1/taxonomies/{id}/engine-rules`.
+  - The TS rule compiler (`compile.mjs`, `rule-formalizer.mjs`, `rules-source.mjs`) and the `xlsx` dependency are retired. Its C&I output is frozen in `tests/fixtures/engine_rules/` and the Python port is deep-equal to it.
+  - The runtime finds generic rules by **handler**, not by C&I rule number (Ind AS numbers them differently), and tags applicability reasons with the rule's own id.
 - **Step 2 is next: convert `src/core/*.js` to TS one module at a time.**
   - Start with the leaves: decimal, periods, units, scaling, dates, dimensions, then up the import graph.
   - After each module, `pnpm --filter @xap/engine test` must stay green.
@@ -27,13 +31,10 @@ engine/
   src/core/*.js           runtime: model, session, rules, gate, generator, importer, …
   src/instance-import.ts   importXbrl (xmldom), canonicalFacts / compareInstanceFacts / verifyRoundTrip (semantic), instanceConventions
   src/core/authority-bundle.js  assembleAuthority(taxonomy, rules|null): joins the two halves (ADR-0010)
-  compiler/compile.mjs    business-rule compiler (reads knowledge_base/ci_engine_authority.json + the MCA rule workbook)
-  compiler/rule-formalizer.mjs, rules-source.mjs   rule workbook → rule ASTs (moves to Python in Phase 9)
+  scripts/assemble-authority.mjs   joins knowledge_base/<kb>_engine_authority.json + <kb>_engine_rules.json (no compiling)
   compiler/taxonomy-source.mjs, xsd-validate.mjs   test-side Arelle XSD check on a patched taxonomy copy
-  compiler/golden-DIVERGENCES.json   rules downgraded to WARNING by MCA-accepted evidence (see below)
-  compiler/APPROVED_LIMITATIONS.json release-owner approvals (none approved)
-  authority/              generated (git-ignored): ci-2016.rules.json (what the app loads), ci-2016.authority.json
-                          (taxonomy + rules, for tests/tools), ci-2016.coverage.json
+  authority/              generated (git-ignored): ci-2016.authority.json, ind-as-2017.authority.json (taxonomy + rules,
+                          for tests/tools; the app loads both halves through the sidecar)
   test/fixtures/ci-2016-example.golden.xml   golden XML of the example filing (TS-compiled authority, 2026-11-10)
   .taxonomy/              generated working copy of the taxonomy with validator patches (git-ignored)
   test/*.test.ts          vitest (facade)
@@ -44,8 +45,8 @@ engine/
 ### Commands
 ```bash
 make engine-authority                          # data/ → knowledge_base/*_engine_authority.json (Python, ~8 s; also part of make rebuild)
-pnpm --filter @xap/engine compile:authority   # rule workbook + C&I engine authority → authority/ci-2016.*.json (~1 s)
-pnpm --filter @xap/engine test                # vitest + legacy suite (needs the compiled authority)
+make engine-rules                              # MCA rule workbooks → knowledge_base/*_engine_rules.json (Python, ~1 s)
+pnpm --filter @xap/engine test                # joins the KB files into authority/, then vitest + legacy suite
 ```
 Results on 2026-11-10:
 - **Compiler:** 962 executable rules, 48 review-only (they need MCA21 master data), 153 not applicable, 1 unimplemented (ML-20-b).
@@ -86,7 +87,7 @@ The original `golden-DIVERGENCES.json`, `APPROVED_LIMITATIONS.json` and the MCA-
   
   Built in two halves ([ADR-0010](decisions/ADR-0010-engine-authority-from-knowledge-base.md)):
   - the **taxonomy authority**, built by the Python ingestion into `knowledge_base/<kb>_engine_authority.json` and served by the route `/taxonomies/{id}/authority`;
-  - the **rule bundle**, built by `engine/compiler` into `engine/authority/<id>.rules.json` (C&I only for now; Ind AS runs with an empty rule model until Phase 9).
+  - the **rule bundle**, built by the Python rule builder into `knowledge_base/<kb>_engine_rules.json` (C&I and Ind AS) and served by `/taxonomies/{id}/engine-rules` ([ADR-0011](decisions/ADR-0011-business-rules-from-knowledge-base.md)).
 
   `assembleAuthority(taxonomy, rules)` joins them, and checks that the rules were built against that taxonomy build (`meta.taxonomyHash`).
 - **Filing:** the facts store, keyed by `concept#period#dims`. Each fact holds `{concept, period, dims[], value (canonical string), nil, decimals, unit, lang, origin, source}`, plus meta (company, CIN, periods, rounding, report type), footnotes, and set-aside (hidden) data.
@@ -150,14 +151,15 @@ s.toJSON()                                        // → filing.json
 ## Authority compilation
 ```bash
 make engine-authority                          # taxonomy half, both taxonomies (Python)
-pnpm --filter @xap/engine compile:authority   # rule half, C&I
+make engine-rules                              # rule half, both taxonomies (Python)
 ```
 - **Taxonomy half (Python, `src/services/engine_authority`):**
   - Reads the DTS from the entry points in `specs.py`. C&I: `in-ci-ent-2016-03-31.xsd`. Ind AS: `in-ci-ent-2017-03-31.xsd` + `in-ca-ent-2017-03-31.xsd` (union, see ADR-0010).
   - Applies the validator patches in memory and resolves prohibition and override.
   - Builds the dimensional model and writes `knowledge_base/<kb>_engine_authority.json`.
   - It is deterministic, and its key and array order equals the retired TS compiler's (`collation.py`).
-- **Rule half (`engine/compiler/compile.mjs`):**
-  - Reads `knowledge_base/ci_engine_authority.json` and `…/Final Business Rules … 2016 V1.3…/*.xls`.
-  - Writes `engine/authority/ci-2016.rules.json`, `ci-2016.coverage.json` (the rule coverage ledger) and the assembled `ci-2016.authority.json`.
+- **Rule half (Python, `src/services/engine_rules`, see [05-validation](05-validation.md)):**
+  - Reads `knowledge_base/<kb>_engine_authority.json` and the MCA rule workbook of the taxonomy (`specs.py`).
+  - Writes `knowledge_base/<kb>_engine_rules.json`, `<kb>_rule_coverage.json` and `docs/generated/rule-coverage-<kb>.md`.
+  - Curated exceptions with evidence: `src/services/engine_rules/curation/<kb>/`.
 - **Browsing and AI** use `knowledge_base/<kb>_knowledge_base.json`, a separate extraction. A pytest checks that both see the same ELRs and concepts.

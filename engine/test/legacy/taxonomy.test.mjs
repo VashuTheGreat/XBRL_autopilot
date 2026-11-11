@@ -12,7 +12,7 @@ import { buildTableView, buildElrView } from '../../src/core/views.js';
 import { REPO_ROOT, DATA_TAXONOMY_ROOT } from '../../compiler/taxonomy-source.mjs';
 // the published taxonomy (data/); the authority is built from it by the Python ingestion (ADR-0010)
 const TAX = DATA_TAXONOMY_ROOT;
-// provenance paths are relative to the repo root (data/…, engine/compiler/…)
+// provenance paths are relative to the repo root (data/…, src/services/engine_rules/curation/…)
 const sourcePath = (f) => path.join(REPO_ROOT, f);
 const defFiles = () => ['IN-GAAP/DEF', 'IN-CA/DEF'].flatMap((d) => readdirSync(path.join(TAX, d)).map((f) => path.join(TAX, d, f)));
 const countArcrole = (role) => defFiles().reduce((n, f) => n + (readFileSync(f, 'utf8').match(new RegExp(`arcrole="http://xbrl.org/int/dim/arcrole/${role}"`, 'g')) || []).length, 0);
@@ -112,10 +112,10 @@ test('provenance: every source file hash matches the authority package', () => {
   assert.equal(A.meta.schemaRef, 'https://www.mca.gov.in/V3XBRL/2016/07/26/Taxonomy/CnI/in-ci-ent-2016-03-31.xsd');
 });
 
-test('authority compiler is deterministic', async () => {
-  const { compile } = await import('../../compiler/compile.mjs');
+test('authority assembly is deterministic', async () => {
+  const { assemble } = await import('../../scripts/assemble-authority.mjs');
   const before = readFileSync(new URL('../../authority/ci-2016.authority.json', import.meta.url));
-  compile();
+  assemble('ci-2016', { force: true });
   const after = readFileSync(new URL('../../authority/ci-2016.authority.json', import.meta.url));
   assert.equal(createHash('sha256').update(before).digest('hex'), createHash('sha256').update(after).digest('hex'));
 });

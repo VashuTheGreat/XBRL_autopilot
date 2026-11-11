@@ -768,7 +768,8 @@ export class Session {
   // facts behind the GR-1 errors on previous-year opening values
   pyOpeningOrphans(gate = null) {
     const g = gate || this.validate({});
-    const keys = new Set(g.issues.filter((i) => i.ruleId === 'GR-1' && i.severity === 'ERROR' && i.factKey).map((i) => i.factKey));
+    const calcRule = this.A.rules.rules.find((r) => r.ast?.handler === 'calc-parent-child')?.id ?? 'GR-1';
+    const keys = new Set(g.issues.filter((i) => i.ruleId === calcRule && i.severity === 'ERROR' && i.factKey).map((i) => i.factKey));
     return this.pyOpeningFacts().filter((f) => keys.has(f.key));
   }
   // remove them; removing an opening value can leave its own parts without their total for that date, so repeated

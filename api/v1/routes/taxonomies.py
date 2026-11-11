@@ -9,6 +9,8 @@ from src.constants import CI_TAXONOMY_VDB, IND_AS_TAXONOMY_VDB, COSTING_TAXONOMY
 from api.responses import success_response, error_response
 from api.helper.build_tree import build_role_tree
 from src.services.engine_authority.store import AuthorityNotAvailable, default_store as engine_authorities
+from src.services.engine_rules.store import default_store as engine_rules
+import json
 router = APIRouter()
 
 _authority_cache: dict[str, Authority] = {}
@@ -667,8 +669,28 @@ async def get_engine_authority(id: str):
             raw = engine_authorities.raw(id)
         except AuthorityNotAvailable as e:
             return error_response(message=str(e), status_code=404)
-        body = b'{"data":' + raw + b',"message":"Engine authority","success":true,"errors":null}'
-        return Response(content=body, media_type="application/json")
+        return _raw_envelope(raw, "Engine authority")
+
+
+@router.get("/{id}/engine-rules")
+async def get_engine_rules(id: str):
+    """The executable MCA business rules of a taxonomy (ADR-0011): rule ASTs, exemptions, table applicability,
+    Yes/No dependencies, with ``meta.taxonomyHash`` tying them to the engine authority build.
+
+    Built by src.ingestion.build_engine_rules from the MCA rule workbook. ``/{id}/rules`` serves the raw rule text.
+    """
+    with logger.span("taxonomies.engine_rules", taxonomy_id=id):
+        try:
+            raw = engine_rules.raw(id)
+        except AuthorityNotAvailable as e:
+            return error_response(message=str(e), status_code=404)
+        return _raw_envelope(raw, "Executable business rules")
+
+
+def _raw_envelope(raw: bytes, message: str) -> Response:
+    """The usual {data, message, success, errors} envelope around prebuilt JSON bytes (not parsed)."""
+    body = b'{"data":' + raw + b',"message":' + json.dumps(message).encode() + b',"success":true,"errors":null}'
+    return Response(content=body, media_type="application/json")
 
 
 @router.get("/{id}/elrs")

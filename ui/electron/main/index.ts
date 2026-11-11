@@ -11,8 +11,7 @@ import { AppDatabase } from './infra/app-database'
 import { DirAutosaveStore } from './infra/dir-autosave-store'
 import { sidecarXlsReader, workbookParser } from './infra/workbook-parser'
 import { readXlsx } from './infra/xlsx-reader'
-import { FileRuleBundleSource } from './infra/file-authority-provider'
-import { SidecarAuthoritySource } from './infra/sidecar-authority-source'
+import { SidecarAuthoritySource, SidecarRuleBundleSource } from './infra/sidecar-authority-source'
 import { AuthorityService } from './services/authority-service'
 import { InstanceImportService } from './services/instance-import-service'
 import { SidecarTaxonomyCatalog } from './infra/sidecar-taxonomy-catalog'
@@ -59,12 +58,9 @@ const sidecar = new SidecarManager({
   // Settings win over the dev .env (pydantic-settings gives env vars priority over .env).
   extraEnv: async () => ({ GROQ_API_KEY: (await settings.groqKey()) ?? undefined, GROQ_MODEL: settings.get().groqModel }),
 })
-// Engine authority (ADR-0010): the taxonomy half from the knowledge base through the sidecar route, the compiled
-// business rules from engine/authority (dev) or resources/authority (packaged).
-const authorities = new AuthorityService(
-  new SidecarAuthoritySource(sidecar),
-  new FileRuleBundleSource(isDev ? join(repoRoot, 'engine', 'authority') : join(process.resourcesPath, 'authority')),
-)
+// Engine authority: the taxonomy half (ADR-0010) and the business rules (ADR-0011), both from the knowledge base
+// through the sidecar routes.
+const authorities = new AuthorityService(new SidecarAuthoritySource(sidecar), new SidecarRuleBundleSource(sidecar))
 const projects = new ProjectService({
   authority: authorities,
   recents: db,

@@ -72,7 +72,7 @@ export interface TaxonomyAuthoritySource {
   taxonomyAuthority(taxonomy: TaxonomyId): Promise<AuthorityJson>
 }
 
-/** The business-rule half, compiled by engine/compiler; null when the taxonomy has no compiled rules yet. */
+/** The business-rule half (sidecar route /taxonomies/{id}/engine-rules, ADR-0011); null when the taxonomy has no rules. */
 export interface RuleBundleSource {
   rules(taxonomy: TaxonomyId): Promise<AuthorityJson | null>
 }
