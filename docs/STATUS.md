@@ -18,7 +18,8 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 | 8 | **AI auto-tagging** (`/mapping/suggest`: layout → memory → exact label → BM25 with heading context, filtered by period type / dimensions / statement → optional Groq rerank) plus an **evaluation harness** on the DGPL ↔ Dixon answer key (precision 0.738, recall 0.793; ≥ 0.9 right 93.6%); suggestions → Accept / Reject / Accept all ≥ 90% in the app; mapping memory. Embeddings (ONNX) deferred | ✅ done |
 | 9 | **Validation UI** ([ADR-0011](decisions/ADR-0011-business-rules-from-knowledge-base.md)): the executable rule ASTs are built in Python into `knowledge_base` and served by `/{id}/engine-rules`; C&I deep-equal to the retired TS compiler; **Ind AS formalized** (95.36% executable, Dixon 0 ERRORs); rule-coverage reports; live validation (gate, rules, calculation per taxonomy), Problems panel with locate and quick fixes, MCA Validation Tool v5.1 launcher + error import; Arelle XSD check (dev extra) working | ✅ done |
 | 10 | **AI fix agent** ([ADR-0012](decisions/ADR-0012-ai-fix-patches.md)): `/fix/propose` (Groq tool loop ≤ 6 calls, tools on the knowledge base + bundle, strict JSON patches), privacy checked twice + fixture guard, engine `checkPatch` / `applyFactPatch` / `dryRun`, diff cards with Accept / Edit / Reject, Fix all rounds with budgets, `ai/history.jsonl` with the exact payload; live Groq smoke 4/4 correct | ✅ done |
-| 11 | **Packaging** (⏭ next): PyInstaller sidecar + electron-builder NSIS, `.axbrl` association | ⏳ |
+| 11 | **Complete end-to-end tagging** ([ADR-0013](decisions/ADR-0013-table-tagging.md), proposed): coverage evaluation of every filed fact ✅; then ELR groups by title, table blocks + figures reported twice + rule-driven table zeros, table suggestions (Ind AS on Dixon, C&I on HPL), text + filing-details form, Excel parsing gaps | 🔄 step 1 done |
+| 11b | **Packaging**: PyInstaller sidecar + electron-builder NSIS, `.axbrl` association | ⏳ |
 | 12 | Costing CRA-4, masters prefill, trial-balance mapping, Groq proxy, auto-update | ⏳ |
 
 ## Known issues / debt
@@ -37,6 +38,9 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 - **Ind AS parent/child member exemptions** (from Phase 9): still read but unused; confirm with the MCA tool whether it enforces parent members for Ind AS.
 - **AI fix agent limits (Phase 10):** no patches on table (dimensional) values yet (`setDims` with table tagging); `addFootnote` / `editText` / `setMeta` deferred; MCA tool problems get no dry-run verdict; the live quality was measured on 4 synthetic problems only, so measure it on a larger non-client set; Fix all asks one problem per request (no batching).
 - **Possible legacy-test flake:** one run of `pnpm test` (while a dev Electron app was also running) failed a `golden-DIVERGENCES.json` assertion; the next three runs passed (220/0). Watch for it.
+
+- **The engine authority's ELR `group` is computed from C&I code ranges** (`_elr_group`, `src/services/engine_authority/builder.py`): for Ind AS only the balance sheet is a Statement, P&L / cash flow are Notes and the 400xxx notes are Disclosures. `derived.js` (note → statement figures), `session.statementFigure` and `carry-forward.js` read it. Fix first in Phase 11 step 2 (group by title, `classify_elr`); C&I is unaffected (its codes follow that scheme).
+- **Ask the team** for Helmier's instance XML (an exact C&I golden; today only the PDF) and the Rebel workbook (a second Ind AS before/after pair).
 
 ## Log
 - **2026-11-10:**
@@ -238,3 +242,14 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
   - **A full C: drive crashed the main process** (`ENOSPC` while writing a sidecar log line to stdout). `hardenConsole()` (`ui/electron/main/util/safe-console.ts`) drops a log line that can't be written; it never throws.
   - **Root cause of the clutter:** every `pnpm test` left ~70 temp folders in `%TEMP%` (870 folders, 1.2 GB). `ui/test/global-setup.ts` now gives each run one temp folder and removes it at the end. The 870 old folders are still there; delete `%TEMP%\xap-*` by hand.
   - **Tests:** ui 157 (+1 `safe-console.test.ts`).
+- **2026-11-11, Phase 11 step 1: end-to-end coverage measured ([ADR-0013](decisions/ADR-0013-table-tagging.md) proposed):**
+  - `src/evaluation/coverage_eval.py` (+ `fact_kinds.py`, `workbook_index.py`; `instance_facts.read_facts` reads every fact): all 2,666 Dixon facts, by kind and section, with whether they are in the DGPL workbook, produced by us, and right / near / wrong (table in [06](06-ai-auto-tagging.md#end-to-end-coverage-every-filed-fact)).
+  - **Findings:**
+    - **Zeros:** 1,623 of the 2,186 amounts are 0, and the rules require them: removing the 1,260 zero table facts gives 73 ERRORs (ML-13 ×44 …).
+    - **Figures reported twice:** 169 of the 288 non-zero table amounts are a statement figure reported again with a member.
+    - **PPE layout:** the PPE schedule carries its period and carrying-amount member in the rows.
+    - **General information:** 31 of the 153 general-section facts are in the workbook.
+    - **ELR groups:** the engine's ELR groups are wrong for Ind AS (known issue).
+  - **Tests:** pytest 128 (+4 `test_coverage_eval.py` with exact counts and floors, +4 `test_fact_kinds.py` on C&I and Ind AS).
+  - **Housekeeping:** the 861 old `%TEMP%\xap-*` folders (1.27 GB) were deleted.
+  - **Next:** the team approves ADR-0013, then step 2: ELR groups by title, then table blocks in the engine and the app.

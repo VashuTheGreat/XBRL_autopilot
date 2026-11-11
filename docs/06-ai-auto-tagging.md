@@ -74,7 +74,7 @@ sheets ─▶ 1 layout ─▶ 2 candidates (memory → exact → BM25) + filters
   "level": "Lakhs"
 }
 ```
-`origin`: `memory` | `exact` | `lexical` | `ai`. Dimensional (table) cells are not suggested yet; tables arrive in a later phase.
+`origin`: `memory` | `exact` | `lexical` | `ai`. Dimensional (table) cells are not suggested yet; tables arrive in Phase 11 ([ADR-0013](decisions/ADR-0013-table-tagging.md), proposed).
 
 ## In the app (Electron)
 - **`AutoTagService`** (Electron-free, `ui/electron/main/services/auto-tag-service.ts`):
@@ -112,6 +112,44 @@ sheets ─▶ 1 layout ─▶ 2 candidates (memory → exact → BM25) + filters
   - Cash-flow lines with free wording ("Margin Money", "Interest on Fixed Deposit/others").
   - Revenue-disaggregation rows that Dixon files on in-ca elements.
   - Coincidental amount matches in the key itself (a sensitivity row equal to bank charges).
+
+## End-to-end coverage (every filed fact)
+The keyed-cell evaluation above only scores statement-level amounts. `src/evaluation/coverage_eval.py` scores **every fact** of the filed instance. CLI: `uv run python -m src.evaluation.coverage_eval [--tables]`; floors in `tests/test_coverage_eval.py`; LLM off.
+- **Kinds** (`fact_kinds.py`, from the engine authority, so they work for any taxonomy):
+  - `amount`: no dimensions;
+  - `table_amount`: with dimensions;
+  - `value`: text / date / Yes-No / code;
+  - `table_value`;
+  - `text_block`.
+
+  Each is split into sections `statements` / `notes` / `general` by **ELR title** (`classify_elr`, as the catalog routes), never by code: general information is [400100] in C&I and [700300] in Ind AS.
+- **In the workbook?** (`workbook_index.py`) A fact is located **by value only**:
+  - **Amounts:** a cell × the sheet scale, within the fact's `decimals`.
+  - **Text:** equal, or (12+ characters) part of a cell.
+  - **Text blocks:** half covered by 30+-character cells.
+  - **Dates:** a date cell, or a date written in text.
+  - **Not locatable by value:** zero, nil and Yes/No facts (`not_by_value`).
+  - **Sheet type:** statements and notes count as presentation; trial balances and rupee groupings are working papers, reported apart.
+- **Produced / right:** producers turn our output into facts (concept, period end, dimensions, value). Today the only producer is `produced_from_suggestions`, which takes the statement tagger's suggestions, filed as the app would (ADR-0009: rounded once to the statement's places × scale). The verdicts are:
+  - *right*: within the fact's `decimals`;
+  - *near*: one unit in the last place, i.e. another rounding or a filer's adjustment;
+  - *wrong*;
+  - *extra*: a produced fact Dixon didn't file.
+- **2026-11-11, DGPL → Dixon (2,666 facts):**
+
+  | kind | facts | zero | in a presentation sheet | working paper only | absent | not by value | produced | right | near | wrong |
+  |---|---|---|---|---|---|---|---|---|---|---|
+  | amount | 638 | 363 | 244 | 2 | 29 | 363 | 186 | 143 | 4 | 39 |
+  | table_amount | 1,548 | 1,260 | 270 | 1 | 17 | 1,260 | 0 | 0 | 0 | 0 |
+  | value | 159 | 0 | 22 | 1 | 21 | 115 | 0 | 0 | 0 | 0 |
+  | table_value | 268 | 0 | 112 | 5 | 133 | 18 | 0 | 0 | 0 | 0 |
+  | text_block | 53 | 0 | 10 | 0 | 43 | 0 | 0 | 0 | 0 | 0 |
+
+  There are 113 extra (all amounts), and 31 of the 153 general-section facts are in the workbook.
+- **What it means** ([ADR-0013](decisions/ADR-0013-table-tagging.md), proposed):
+  - **Zeros:** 1,623 of the 2,186 amounts are 0, and the mandatory rules need them (removing the zero table facts gives 73 ERRORs). They should come from a rule-driven fill, not from Excel.
+  - **Figures reported twice:** 169 of the 288 non-zero table amounts are a statement figure reported again with a member.
+  - **General information:** it mostly comes from a filing-details form.
 
 ## Tagging-quality review (later)
 After mapping, an optional AI pass flags suspicious tags the MCA validator can't see:
