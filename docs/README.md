@@ -4,7 +4,7 @@ Read the doc that matches the task. Keep docs short, factual and current. When c
 
 | # | Doc | Read it when… |
 |---|---|---|
-| — | [STATUS.md](STATUS.md) | Starting any session: what's done, in progress and next |
+| — | [STATUS.md](STATUS.md) | Starting any session: what's done, in progress and next. Roadmap: 11 = complete end-to-end tagging ([ADR-0013](decisions/ADR-0013-table-tagging.md)), 11b = packaging, 12 = Costing |
 | 00 | [Product vision](00-product-vision.md) | You need the "why", the users, or the scope |
 | 01 | [Research: webXBRL, competitors, MCA tool](01-research-webxbrl-and-mca-tool.md) | Deciding a feature, or checking how the original tool behaves |
 | 02 | [Architecture](02-architecture.md) | Touching more than one layer (ui, engine, sidecar) |
@@ -27,6 +27,6 @@ Read the doc that matches the task. Keep docs short, factual and current. When c
 - **Fact:** a value reported for a concept, in a context (entity CIN + period + dimensions), with a unit and decimals.
 - **Dimension / axis / member:** qualifies a fact in a table (e.g. Classes of share capital axis → Equity shares member).
 - **Instance document:** the XBRL XML file we generate and the MCA tool validates.
-- **Authority:** our compiled, executable view of one taxonomy plus its business rules (`engine/authority/*.json`).
+- **Authority:** our executable view of one taxonomy plus its business rules (`knowledge_base/<kb>_engine_authority.json` + `<kb>_engine_rules.json`, joined by the engine).
 - **Sidecar:** the bundled local Python process (FastAPI) that does the AI work.
 - **CY / PY:** current year / previous year.

@@ -1,6 +1,8 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
 import { IPC, type MenuCommand, type SidecarLogLine, type SidecarStatus, type XapApi } from '@shared/ipc'
 import type { ProjectSummary, SettingsState } from '@shared/project'
+import type { ValidationView } from '@shared/validation'
+import type { AiView } from '@shared/ai'
 
 const invoke = <T>(channel: string, ...args: unknown[]) => ipcRenderer.invoke(channel, ...args) as Promise<T>
 
@@ -61,6 +63,15 @@ const api: XapApi = {
     cellInfo: (cell) => invoke(IPC.mappingCellInfo, cell),
     setColumnPeriod: (cell, scope) => invoke(IPC.mappingSetColumnPeriod, cell, scope),
     form: (elrUri) => invoke(IPC.editorForm, elrUri),
+    fillTableZeros: (elrUri) => invoke(IPC.editorFillTableZeros, elrUri),
+    addAlso: (input) => invoke(IPC.mappingAlsoAdd, input),
+    removeAlso: (mappingId, index) => invoke(IPC.mappingAlsoRemove, mappingId, index),
+    tables: () => invoke(IPC.tableCatalog),
+    tableStructure: (tableId) => invoke(IPC.tableStructure, tableId),
+    planTable: (input) => invoke(IPC.tablePlan, input),
+    applyTable: (input) => invoke(IPC.tableApply, input),
+    tableBlocks: () => invoke(IPC.tableList),
+    removeTable: (blockId) => invoke(IPC.tableRemove, blockId),
     xml: () => invoke(IPC.editorXml),
     fillMandatoryZeros: (elrUri) => invoke(IPC.editorFillMandatoryZeros, elrUri),
     searchConcepts: (query) => invoke(IPC.taxonomySearch, query),
@@ -68,6 +79,31 @@ const api: XapApi = {
     acceptSuggestion: (id, concept) => invoke(IPC.autotagAccept, id, concept),
     rejectSuggestion: (id) => invoke(IPC.autotagReject, id),
     acceptAllSuggestions: (min) => invoke(IPC.autotagAcceptAll, min),
+    blockSuggestions: () => invoke(IPC.autotagBlocks),
+    acceptBlock: (id, edited) => invoke(IPC.autotagAcceptBlock, id, edited),
+    rejectBlock: (id) => invoke(IPC.autotagRejectBlock, id),
+    acceptAlso: (mappingId, index) => invoke(IPC.autotagAcceptAlso, mappingId, index),
+    rejectAlso: (mappingId, index) => invoke(IPC.autotagRejectAlso, mappingId, index),
+  },
+  validation: {
+    get: () => invoke(IPC.validationGet),
+    run: () => invoke(IPC.validationRun),
+    fix: (id) => invoke(IPC.validationFix, id),
+    importMca: (text) => invoke(IPC.validationImportMca, text),
+    clearMca: () => invoke(IPC.validationClearMca),
+    launchMca: () => invoke(IPC.toolsLaunchMca),
+    onChanged: (cb) => subscribe<ValidationView>(IPC.validationChanged, cb),
+  },
+  ai: {
+    get: () => invoke(IPC.aiGet),
+    propose: (id) => invoke(IPC.aiPropose, id),
+    fixAll: () => invoke(IPC.aiFixAll),
+    stop: () => invoke(IPC.aiStop),
+    accept: (id, opts) => invoke(IPC.aiAccept, id, opts),
+    reject: (id, reason) => invoke(IPC.aiReject, id, reason),
+    clear: () => invoke(IPC.aiClear),
+    history: () => invoke(IPC.aiHistory),
+    onChanged: (cb) => subscribe<AiView>(IPC.aiChanged, cb),
   },
 }
 

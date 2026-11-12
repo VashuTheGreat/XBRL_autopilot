@@ -7,7 +7,7 @@
 - Work is saved to `.axbrl` project files so it can be resumed later.
 
 > **Start here → [`docs/README.md`](docs/README.md)** (doc index + "which doc for which task").
-> **Current progress → [`docs/STATUS.md`](docs/STATUS.md).**
+> **Current progress → [`docs/STATUS.md`](docs/STATUS.md).** Roadmap: Phase 11 = complete end-to-end tagging ([ADR-0013](docs/decisions/ADR-0013-table-tagging.md)), 11b = packaging, 12 = Costing (CRA-4).
 
 ## Folder map
 | Path | What | Language |
@@ -26,10 +26,10 @@ pnpm install                         # JS deps (pnpm only, never npm/yarn)
 pnpm dev                             # Electron app in dev (also starts the Python sidecar via uv)
 pnpm test                            # all JS tests (engine + ui)
 make engine-authority                # data/ → knowledge_base/*_engine_authority.json (Python; committed)
-pnpm --filter @xap/engine compile:authority  # C&I rule workbook → engine/authority/ci-2016.*.json (run once before engine tests)
-pnpm --filter @xap/engine test       # engine tests only (vitest + ported legacy node:test suite)
+make engine-rules                    # MCA rule workbooks → knowledge_base/*_engine_rules.json + coverage (Python; committed)
+pnpm --filter @xap/engine test       # engine tests only (vitest + ported legacy node:test suite; joins the KB files first)
 pnpm typecheck
-uv sync                              # Python deps
+uv sync --extra dev                  # Python deps (dev extra: pytest, Arelle for the XSD tests)
 make dev                             # sidecar alone on :7860
 make test                            # pytest
 make rebuild                         # regenerate knowledge_base + Chroma index
@@ -55,5 +55,5 @@ make rebuild                         # regenerate knowledge_base + Chroma index
 8. **Taxonomy data comes from the FastAPI routes** (`/api/v1/taxonomies/{id}/…`, `id` = `ci_taxonomy` | `ind_as_taxonomy` | `costing_taxonomy`, see `src/constants.py`), backed by `knowledge_base/*.json`:
    - Everything the UI shows about a taxonomy goes through the `TaxonomyCatalog` port: statement list (`/elrs`), Form structure (`/elrs/{code}/tree`), element search and details.
    - Never hardcode taxonomy data. `lagacy_js/` is reference reading only.
-   - The engine authority's taxonomy half is built by the Python ingestion too and served by `/{id}/authority` ([ADR-0010](docs/decisions/ADR-0010-engine-authority-from-knowledge-base.md)); only the business-rule ASTs are still compiled in `engine/compiler` (until Phase 9).
-9. **Scope:** v1 is C&I 2016 **and** Ind AS 2017 (AOC-4 XBRL). Keep code taxonomy-generic (Costing later). Real client fixtures are in `data/` (see `docs/12-reference-data.md`); never send them to an AI service.
+   - The engine authority is built by the Python ingestion too: the taxonomy half served by `/{id}/authority` ([ADR-0010](docs/decisions/ADR-0010-engine-authority-from-knowledge-base.md)), the executable business rules by `/{id}/engine-rules` ([ADR-0011](docs/decisions/ADR-0011-business-rules-from-knowledge-base.md)).
+9. **Scope:** v1 is C&I 2016 **and** Ind AS 2017 (AOC-4 XBRL). Keep code taxonomy-generic: never key on ELR codes (each taxonomy numbers differently), group ELRs by title (`classify_elr`). Costing is Phase 12. Real client fixtures are in `data/` (see `docs/12-reference-data.md`); never send them to an AI service.

@@ -1,4 +1,4 @@
-.PHONY: dev start test rebuild rebuild-fast rebuild-skip-chroma engine-authority clean
+.PHONY: dev start test rebuild rebuild-fast rebuild-skip-chroma engine-authority engine-rules clean
 
 # Support passing arguments like:
 # make rebuild ARGS="--skip-chroma"
@@ -30,9 +30,14 @@ rebuild-fast:
 rebuild-skip-chroma:
 	uv run python -m src.ingestion.rebuild_knowledge_base --skip-chroma
 
-# only the engine authorities (knowledge_base/*_engine_authority.json); then: pnpm --filter @xap/engine compile:authority
+# only the engine authorities (knowledge_base/*_engine_authority.json, ADR-0010); then: make engine-rules
 engine-authority:
 	uv run python -m src.ingestion.build_engine_authorities
+
+# only the executable business rules (knowledge_base/*_engine_rules.json + *_rule_coverage.json and
+# docs/generated/rule-coverage-*.md, ADR-0011); needs the engine authorities
+engine-rules:
+	uv run python -m src.ingestion.build_engine_rules
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +

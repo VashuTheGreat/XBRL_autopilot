@@ -7,7 +7,7 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadTaxonomyAuthority, REPO_ROOT } from './compile.mjs';
+import { loadTaxonomyAuthority, REPO_ROOT } from '../scripts/assemble-authority.mjs';
 
 export { REPO_ROOT };
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'); // engine/

@@ -58,7 +58,9 @@ describe.skipIf(!kbReady || !existsSync(DIXON))('InstanceImportService', () => {
     const { summary, report } = await importer.importInstance('Instance_Dixon.xml', dixon, 'next')
     expect(summary).toMatchObject({ taxonomy: 'ind-as-2017', fyLabel: 'FY 2026-27', py: { start: '2025-04-01', end: '2026-03-31' } })
     expect(report.roundTrip).toBeNull()
-    expect(report.counts.imported).toBe(1427)
+    // Phase 9: Ind AS GR-11 (no directors'/auditors' report, general information, KMP … for the previous year) keeps
+    // 207 of last year's 1,427 current-year facts out of the new previous year (set aside for Copy from previous year)
+    expect(report.counts.imported).toBe(1220)
     expect(report.counts.skippedPrevious).toBe(1195 + 44)
   })
 

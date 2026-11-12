@@ -11,6 +11,7 @@ import json
 import re
 from pathlib import Path
 
+from src.core.elr_groups import classify_elr
 from src.services.engine_authority.collation import locale_key, sort_obj
 from src.services.engine_authority.dimensions import build_dimensional_model
 from src.services.engine_authority.dts import ARC, load_dts, parse_linkbases, parse_schemas
@@ -48,8 +49,11 @@ def _strip(o: dict) -> dict:
     return {k: v for k, v in o.items() if v is not None}
 
 
-def _elr_group(code: str) -> str:
-    return "Statements" if code.startswith("1") else "Disclosures" if code.startswith("4") else "Notes"
+def _elr_group(title: str) -> str:
+    """Statements / Notes / Disclosures from the ELR title, as the catalog routes group them (ADR-0008, ADR-0013).
+    Never from the code: C&I's ranges (1xxxxx statements, 4xxxxx disclosures) misread Ind AS, where 210000 is the P&L,
+    400xxx are notes and 7xxxxx the disclosures."""
+    return classify_elr(title)
 
 
 def build(spec: TaxonomySpec) -> dict:
@@ -90,7 +94,8 @@ def build(spec: TaxonomySpec) -> dict:
         roots = [f for f in dict.fromkeys(a["from"] for a in arcs) if f not in tos]
         definition_text = schema.roles.get(uri, {}).get("definition") or ""
         code = role_code(uri)
-        elrs.append({"uri": uri, "code": code, "title": _ROLE_PREFIX.sub("", definition_text, count=1), "definition": definition_text, "roots": roots, "group": _elr_group(code)})
+        title = _ROLE_PREFIX.sub("", definition_text, count=1)
+        elrs.append({"uri": uri, "code": code, "title": title, "definition": definition_text, "roots": roots, "group": _elr_group(title)})
     elrs.sort(key=lambda e: locale_key(e["code"]))
 
     concept_elrs: dict[str, list[str]] = {}

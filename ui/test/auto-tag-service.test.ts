@@ -19,6 +19,8 @@ import { MappingService } from '../electron/main/services/mapping-service'
 import type { MappingSuggester, SuggestRequest } from '../electron/main/services/ports'
 import { ProjectService } from '../electron/main/services/project-service'
 import { SourceService } from '../electron/main/services/source-service'
+import { TableMappingService } from '../electron/main/services/table-mapping-service'
+import { TableSuggestionService } from '../electron/main/services/table-suggestion-service'
 import { SidecarManager } from '../electron/main/sidecar'
 
 const AUTHORITY = resolve(__dirname, '../../engine/authority/ci-2016.authority.json')
@@ -62,7 +64,8 @@ describe.skipIf(!existsSync(AUTHORITY))('auto-tagging on the sample workbook', (
     const columns = new ColumnPeriodService(projects, sources)
     mapping = new MappingService(projects, sources, columns, db)
     suggester = new RecordingSuggester(new SidecarMappingSuggester(sidecar))
-    autoTag = new AutoTagService(projects, sources, mapping, suggester, db)
+    const tables = new TableSuggestionService(projects, new TableMappingService(projects, sources, columns, mapping))
+    autoTag = new AutoTagService(projects, sources, mapping, suggester, db, tables)
     await projects.newFiling({
       companyName: 'XBRL Ltd',
       cin: 'U72200KA2010PLC123456',

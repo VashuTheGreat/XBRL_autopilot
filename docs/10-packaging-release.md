@@ -5,7 +5,7 @@
 ## Build pipeline
 ```
 1. engine      pnpm --filter @xap/engine build          → engine/dist (bundled into ui by Vite)
-2. authority   pnpm --filter @xap/engine compile:authority → engine/authority/*.json (resource)
+2. knowledge   make rebuild (committed knowledge_base/*.json: taxonomies, engine authorities, business rules)
 3. sidecar     uv run pyinstaller sidecar.spec           → sidecar-dist/xap-sidecar/ (onedir)
 4. ui          pnpm --filter ui build                    → ui/out (main, preload, renderer)
 5. installer   pnpm --filter ui dist                     → ui/release/*.exe
@@ -16,7 +16,6 @@
 - `extraResources`:
   - `../sidecar-dist/xap-sidecar` → `resources/sidecar`
   - `../knowledge_base` → `resources/knowledge_base`
-  - `../engine/authority` → `resources/authority`
 - `fileAssociations`: `{ ext: "axbrl", name: "XBRL Autopilot Project", role: "Editor", icon: build/axbrl.ico }`.
 - NSIS: per-user install by default (no admin needed), with an option to change the directory, plus desktop and Start-menu shortcuts.
 - `asar: true`. Native modules (better-sqlite3) are unpacked with `asarUnpack` and rebuilt for Electron through `electron-builder install-app-deps`.
@@ -32,7 +31,7 @@
 | What | Where |
 |---|---|
 | Sidecar exe | `process.resourcesPath/sidecar/xap-sidecar.exe` |
-| Knowledge base / authority | `process.resourcesPath/knowledge_base`, `…/authority` |
+| Knowledge base (incl. engine authority + business rules) | `process.resourcesPath/knowledge_base` (read by the sidecar) |
 | User data | `%APPDATA%/XBRL Autopilot/` (app.db, autosave/, logs/, chroma/) |
 
 ## Signing and updates (later)

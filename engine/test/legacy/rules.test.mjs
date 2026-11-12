@@ -1,12 +1,10 @@
 // Suites: business-rule parser, business-rule execution, business-rule coverage.
 import test from 'node:test';
-import { RULES_WORKBOOK } from '../../compiler/compile.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { authority, q } from './helpers.mjs';
 import { baseSession, withCurrentInvestments, currentInvestmentRows } from './fixtures.mjs';
 import { RuleEngine } from '../../src/core/rules.js';
-import { readWorkbook, specificRules } from '../../compiler/rules-source.mjs';
 
 const A = authority();
 const today = '2017-06-30';
@@ -17,7 +15,7 @@ const rule = (pred) => A.rules.rules.find(pred);
 const bySubject = (local, impl) => A.rules.rules.find((r) => r.subject === q(local) && (!impl || r.implementation === impl));
 
 test('coverage: every source clause has exactly one status; source text preserved; nothing silently PASS', () => {
-  const cov = JSON.parse(readFileSync(new URL('../../authority/ci-2016.coverage.json', import.meta.url)));
+  const cov = JSON.parse(readFileSync(new URL('../../../knowledge_base/ci_rule_coverage.json', import.meta.url)));
   const allowed = new Set(['EXECUTABLE', 'EXECUTED', 'REVIEW_ONLY_EXTERNAL_DATA', 'UNIMPLEMENTED', 'NOT_APPLICABLE']);
   const ids = new Set();
   for (const r of cov.rules) {
@@ -28,10 +26,8 @@ test('coverage: every source clause has exactly one status; source text preserve
     if (r.status === 'EXECUTABLE') assert.ok(r.implementation, `${r.ruleId} implementation`);
     if (r.status !== 'EXECUTABLE') assert.ok(r.reason, `${r.ruleId} reason`);
   }
-  // every specific-rules row in the workbook is represented
-  const spec = specificRules(readWorkbook(RULES_WORKBOOK));
-  assert.ok(spec.rows.length > 500);
-  for (const row of spec.rows) assert.ok(cov.rules.some((r) => r.sourceRow === row.line && r.sourceSheet === 'Specific rules for elements'), `row ${row.line} covered`);
+  // every specific-rules row of the workbook is represented: tests/test_engine_rules.py (the reader is Python, ADR-0011)
+  assert.ok(new Set(cov.rules.filter((r) => r.sourceSheet === 'Specific rules for elements').map((r) => r.sourceRow)).size === cov.corpus.specificRuleRows);
   // runtime never reports PASS for non-executable rules
   const s = withCurrentInvestments(baseSession());
   const res = run(s);
@@ -218,7 +214,7 @@ test('dates: lte-today uses the evaluation date', () => {
 test('ML-20-b stays UNIMPLEMENTED; if the release owner approves it, it is shown as APPROVED LIMITATION / NOT EXECUTED, never PASS', async () => {
   const { Authority } = await import('../../src/core/authority.js');
   const { Gate } = await import('../../src/core/gate.js');
-  const lim = JSON.parse(readFileSync(new URL('../../compiler/APPROVED_LIMITATIONS.json', import.meta.url), 'utf8')).limitations;
+  const lim = JSON.parse(readFileSync(new URL('../../../src/services/engine_rules/curation/ci/approved_limitations.json', import.meta.url), 'utf8')).limitations;
   assert.ok(lim.some((l) => l.id === 'ML-20-b' && l.approved === false), 'not approved by the build');
   const r = A.rules.rules.find((x) => x.id === 'ML-20-b');
   assert.equal(r.status, 'UNIMPLEMENTED');

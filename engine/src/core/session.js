@@ -6,6 +6,7 @@ import { checkDimensionSyntax, dimensionallyValid, nextTypedMember, nondimAllowe
 import { buildElrView, buildTableView, tableSlices, totalColumnAllowed, nondimRowConcepts, nondimRowElrs } from './views.js';
 import { reportingYear, openingPeriodFor, scopeOf } from './periods.js';
 import { carryingRuleFor, carryingTargetOf, rollForwardChangeOf, rollForwardClosingOf, statementNoteLinks, statementLinksFrom, derivations } from './derived.js';
+import { rollupAxesOf, rollupChildrenOf, rollupTargetsOf } from './member-rollup.js';
 import { sumAxisFacts } from './expr.js';
 import { Gate, exportXml, SHARE_CAPITAL } from './gate.js';
 import { RuleEngine } from './rules.js';
@@ -154,6 +155,12 @@ export class Session {
   // Editing options (UI): tab = the filing tab (ELR) the cell is on — its applicability decides (cellStatus);
   // recalc = re-derive calculated parent cells; override = the tab's "edit calculated cells" option is on.
   pyLocked(scope, unlockPY = false) { return scope === 'PY' && !!this.filing.meta.pyLocked && !unlockPY; }
+  /**
+   * @param {string} concept
+   * @param {'CY' | 'PY'} scope
+   * @param {string} display
+   * @param {{ preferredLabel?: string | null, tab?: string | null, recalc?: boolean, override?: boolean, unlockPY?: boolean, strict?: boolean }} [opts]
+   */
   setValue(concept, scope, display, { preferredLabel = null, tab = null, recalc = false, override = false, unlockPY = false, strict = false } = {}) {
     if (this.pyLocked(scope, unlockPY)) throw new PyLockedError(PY_LOCKED);
     const st = tab ? this.app.cellStatus(this.filing, tab, concept, scope) : this.app.conceptStatus(this.filing, concept, scope);
@@ -297,8 +304,9 @@ export class Session {
     this.deriveFrom(concept, period, nd, depth, force, change);
   }
 
-  // Re-derive the cells derived from an edited cell (derived.js): the carrying-amount cell of a gross/accumulated
-  // cell, and the current-year closing balance of a reconciliation when its net change or opening balance changes.
+  // Re-derive the cells derived from an edited cell (derived.js, member-rollup.js): the carrying-amount cell of a
+  // gross/accumulated cell, the parent-member cells of a member cell, and the current-year closing balance of a
+  // reconciliation when its net change or opening balance changes.
   deriveFrom(concept, period, nd, depth, force = false, change = null) {
     const A = this.A, f = this.filing;
     if (!A.isNumeric(concept)) return;
@@ -318,6 +326,16 @@ export class Session {
       };
       this.applyDerived(concept, period, tdn, depth, () => this.carryingValue(concept, period, tdn), { force, prior });
     }
+    // parent members = Σ children (each derived parent re-derives its own parent through recalcFrom → deriveFrom)
+    for (const up of rollupTargetsOf(A, concept, nd)) {
+      const prior = !change ? null : () => {
+        const now = this.memberRollupValue(concept, period, up.dims, up.axis);
+        if (!now) return null;
+        const delta = Dec.sub(change.after == null ? Dec.ZERO : Dec.parse(change.after), change.before == null ? Dec.ZERO : Dec.parse(change.before));
+        return Dec.sub(Dec.parse(now.value), delta);
+      };
+      this.applyDerived(concept, period, up.dims, depth, () => this.memberRollupValue(concept, period, up.dims, up.axis), { force, prior });
+    }
     const P = f.meta.periods;
     const s = scopeOf(P, period);
     const closing = rollForwardClosingOf(A, concept);
@@ -333,8 +351,23 @@ export class Session {
     const v = Dec.sub(Dec.sum(plus.map((x) => Dec.parse(x.value))), Dec.sum(minus.map((x) => Dec.parse(x.value))));
     return { value: Dec.toString(v), from: [...plus, ...minus] };
   }
+  // Σ of the values under the child members of a parent-member cell on one axis (member-rollup.js). Without any child
+  // value: undefined when the cell is a closing balance the roll-forward derives (it owns the cell), else null.
+  memberRollupValue(concept, period, dims, axis) {
+    const kids = rollupChildrenOf(this.A, concept, axis, dims).map((k) => this.filing.get(concept, period, k.dims)).filter((x) => x && !x.nil);
+    if (kids.length) return { value: Dec.toString(Dec.sum(kids.map((x) => Dec.parse(x.value)))), from: kids };
+    const cy = this.filing.period(concept, 'CY');
+    if (cy && period.type === 'instant' && period.date === cy.date && rollForwardChangeOf(this.A, concept) && this.rollForwardValue(concept, dims)) return undefined;
+    return null;
+  }
+  // a parent-member cell whose children hold values is derived from them (member-rollup.js), not rolled forward
+  rolledUp(concept, period, dims) {
+    return rollupAxesOf(this.A, concept, dims).some((ax) => rollupChildrenOf(this.A, concept, ax, dims).some((k) => { const x = this.filing.get(concept, period, k.dims); return x && !x.nil; }));
+  }
   rollForwardValue(concept, dims) {
     const A = this.A, f = this.filing;
+    // a parent member follows its children when they have values (member-rollup.js owns the cell)
+    if (this.rolledUp(concept, f.period(concept, 'CY'), normDims(dims))) return undefined;
     const ch = rollForwardChangeOf(A, concept);
     const cf = f.get(ch, f.period(ch, 'CY'), dims);
     if (!cf || cf.nil) return null;
@@ -436,6 +469,7 @@ export class Session {
         if (sum.count) cands.push({ value: Dec.toString(sum.total), decimals: sum.decimals });
       }
       if (scope === 'CY' && x.period.type === 'instant' && rollForwardChangeOf(A, x.concept)) { const v = this.rollForwardValue(x.concept, x.dims); if (v) cands.push(derived(v)); }
+      for (const axis of rollupAxesOf(A, x.concept, x.dims)) { const v = this.memberRollupValue(x.concept, x.period, x.dims, axis); if (v) cands.push(derived(v)); }
       if (!cands.length) return undefined;
       return cands.some((c) => Dec.eq(Dec.parse(c.value), Dec.parse(x.value))) ? null : cands[0];
     };
@@ -563,6 +597,9 @@ export class Session {
         const old = this.noteValue(l, scope, prior);
         // follows when the note was empty before this edit, or agreed with it
         if (old && (old.undetermined || !agrees(existing, old))) continue;
+        // … but an empty note that now sums to 0 (a rule-filled zero, or a part entered as 0) is no evidence against a
+        // figure entered on the statement: the entered figure stays and SR-L541-1 & co. show the difference
+        if (!old && !Dec.eq(Dec.parse(existing.value), Dec.ZERO)) { const now0 = this.noteValue(l, scope); if (now0 && !now0.undetermined && Dec.eq(now0.total, Dec.ZERO)) continue; }
       }
       const now = this.noteValue(l, scope);
       if (!now || now.undetermined) {
@@ -616,6 +653,14 @@ export class Session {
     if (errs.length) throw new DimensionError(errs.map((e) => e.msg).join('; '), errs);
     return nd;
   }
+  /**
+   * @param {string} tableId
+   * @param {'CY' | 'PY'} scope
+   * @param {{ axis: string, member?: string, typed?: string }[]} dims
+   * @param {string} concept
+   * @param {string} display
+   * @param {{ preferredLabel?: string | null, recalc?: boolean, override?: boolean, lockCalculated?: boolean, unlockPY?: boolean, strict?: boolean }} [opts]
+   */
   setTableValue(tableId, scope, dims, concept, display, { preferredLabel = null, recalc = false, override = false, lockCalculated = false, unlockPY = false, strict = false } = {}) {
     if (this.pyLocked(scope, unlockPY)) throw new PyLockedError(PY_LOCKED);
     this.app.assertTableOpen(this.filing, tableId, scope);
@@ -768,7 +813,8 @@ export class Session {
   // facts behind the GR-1 errors on previous-year opening values
   pyOpeningOrphans(gate = null) {
     const g = gate || this.validate({});
-    const keys = new Set(g.issues.filter((i) => i.ruleId === 'GR-1' && i.severity === 'ERROR' && i.factKey).map((i) => i.factKey));
+    const calcRule = this.A.rules.rules.find((r) => r.ast?.handler === 'calc-parent-child')?.id ?? 'GR-1';
+    const keys = new Set(g.issues.filter((i) => i.ruleId === calcRule && i.severity === 'ERROR' && i.factKey).map((i) => i.factKey));
     return this.pyOpeningFacts().filter((f) => keys.has(f.key));
   }
   // remove them; removing an opening value can leave its own parts without their total for that date, so repeated

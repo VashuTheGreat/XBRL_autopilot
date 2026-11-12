@@ -15,7 +15,7 @@ my-company_FY2025-26_standalone.axbrl
 ├─ mca-errors/
 │  └─ 2026-11-10T1015.txt # raw text imported from the MCA Validation Tool
 ├─ ai/
-│  └─ history.jsonl       # one line per AI suggestion / patch proposal + user decision
+│  └─ history.jsonl       # AI audit trail: request (exact payload sent) / response / accept / reject / failed / error / run, with time and user (Phase 10)
 ├─ output/
 │  └─ 001.xml, 002.xml    # generated instances (numbered; latest = highest)
 ├─ import/                # only for filings created from an XBRL instance (Phase 7)
@@ -63,6 +63,31 @@ my-company_FY2025-26_standalone.axbrl
 }
 ```
 `cell.ref` is a single cell (`"C5"`) or a one-column range (`"D22:D23"`) whose cells are summed ([ADR-0009](decisions/ADR-0009-amounts-from-excel.md)). Sources keep their real extension (`source/workbook-2.xls`).
+
+**Table tagging (Phase 11, [ADR-0013](decisions/ADR-0013-table-tagging.md)):**
+```jsonc
+{
+  "entries": [{
+    "id": "…", "cell": { "workbook": "workbook-1.xls", "sheet": "FA", "ref": "C11" },
+    // a table fact: its members, its table, and (opening-balance rows) the period role
+    "fact": { "concept": "ind-as:PropertyPlantAndEquipment", "scope": "PY",
+              "dims": [{ "axis": "ind-as:ClassesOfPropertyPlantAndEquipmentAxis", "member": "ind-as:ComputerEquipmentsMember" }, …],
+              "tableId": "400600:DisclosureOfPropertyPlantAndEquipmentTable", "preferredLabel": "periodStartLabel" },
+    // "also reported as": the same figure filed as more facts (follow the cell; removed with it)
+    "also": [{ "concept": "…", "scope": "CY", "dims": […], "tableId": "…" }],
+    "blockId": "…",                      // set when a table block created the entry
+    "sign": 1, "origin": "manual", "confidence": null, "status": "approved"
+  }],
+  // a table block: the range, the table, and which line item / members / year each row and column stands for
+  "blocks": [{ "id": "…", "cell": { "workbook": "…", "sheet": "FA", "ref": "A5:C11" }, "tableId": "…",
+               "rows": [{ "r": 5, "concept": "…", "preferredLabel": "periodStartLabel", "scope": "PY", "members": […] }],
+               "cols": [{ "c": 1, "members": […] }], "origin": "manual", "confidence": null }]
+}
+```
+- **Auto-tagging suggestions (Phase 11 step 3b):** `blockSuggestions: [{ id, cell, tableId, tableTitle, rows, cols, confidence, cellCount, status: "suggested" | "rejected" }]` (the block shape plus the tagger's confidence), and on an entry `alsoSuggested: [{ concept, scope, dims, tableId, preferredLabel, confidence, reason }]` (proposed "also reported as" facts, not filed). Origin `table` = a cell tagged by an accepted block suggestion.
+- **Old files:** they read unchanged. `fact.dims` was always present (empty), and `also`, `alsoSuggested`, `blockId`, `tableId`, `preferredLabel`, `blocks` and `blockSuggestions` are optional.
+- **Rows and columns** are 0-based sheet indexes.
+- **Block cells:** each is an ordinary entry, so linkage, reapply and untag work cell by cell. Removing the block untags them all.
 ```text
 ```
 

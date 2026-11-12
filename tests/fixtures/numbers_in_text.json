@@ -1,0 +1,13 @@
+{
+  "about": "Figures stated inside text cells, in order, dates removed, grouping commas dropped. Shared by engine/test/basics.test.ts (numbersInText) and tests/test_text_numbers.py (numbers_in_text): both must give exactly these.",
+  "cases": [
+    ["10,00,000 (March 31, 2025 : 10,00,000) Equity Shares of Rs. 10/- each", ["1000000", "1000000", "10"]],
+    ["5,00,000 (31st March, 2025: 4,50,000) equity shares of ₹ 10 each fully paid", ["500000", "450000", "10"]],
+    ["1,000,000 (31.03.2025 - 1,000,000) shares of Rs 2.50 each", ["1000000", "1000000", "2.50"]],
+    ["As at 31 March 2026", []],
+    ["FY 2025-26: 12,345 shares", ["12345"]],
+    ["Balances as on 01/04/2024", []],
+    ["No figures here", []],
+    ["7.5% non-cumulative preference shares", ["7.5"]]
+  ]
+}

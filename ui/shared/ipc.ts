@@ -12,7 +12,9 @@ import type {
 } from './project'
 import type {
   AcceptAllResult,
+  AlsoReportInput,
   AutoTagSummary,
+  BlockSuggestion,
   CellInfo,
   ColumnPeriod,
   ZeroFilled,
@@ -21,10 +23,19 @@ import type {
   MappingStatus,
   MappingView,
   Scope,
+  TableBlock,
+  TableBlockInput,
+  TableBlockPlan,
+  TableBlockResult,
+  TableInfo,
+  TableStructure,
+  TableZeroFilled,
   TagCellInput,
   XmlView,
 } from './editor'
 import type { CellRef, WorkbookModel } from './workbook'
+import type { McaLaunchResult, ValidationView } from './validation'
+import type { AiHistoryEntry, AiView } from './ai'
 
 /**
  * Every fallible IPC call returns a Result instead of throwing: Electron flattens thrown errors into
@@ -113,14 +124,44 @@ export const IPC = {
   mappingSetStatus: 'mapping:set-status',
   mappingCellInfo: 'mapping:cell-info',
   mappingSetColumnPeriod: 'mapping:set-column-period',
+  mappingAlsoAdd: 'mapping:also-add',
+  mappingAlsoRemove: 'mapping:also-remove',
+  tableCatalog: 'table:catalog',
+  tableStructure: 'table:structure',
+  tablePlan: 'table:plan',
+  tableApply: 'table:apply',
+  tableList: 'table:list',
+  tableRemove: 'table:remove',
   autotagRun: 'autotag:run',
   autotagAccept: 'autotag:accept',
   autotagReject: 'autotag:reject',
   autotagAcceptAll: 'autotag:accept-all',
+  autotagBlocks: 'autotag:blocks',
+  autotagAcceptBlock: 'autotag:accept-block',
+  autotagRejectBlock: 'autotag:reject-block',
+  autotagAcceptAlso: 'autotag:accept-also',
+  autotagRejectAlso: 'autotag:reject-also',
   editorForm: 'editor:form',
   editorXml: 'editor:xml',
   editorFillMandatoryZeros: 'editor:fill-mandatory-zeros',
+  editorFillTableZeros: 'editor:fill-table-zeros',
   taxonomySearch: 'taxonomy:search',
+  validationGet: 'validation:get',
+  validationRun: 'validation:run',
+  validationFix: 'validation:fix',
+  validationImportMca: 'validation:import-mca',
+  validationClearMca: 'validation:clear-mca',
+  validationChanged: 'validation:changed',
+  toolsLaunchMca: 'tools:launch-mca',
+  aiGet: 'ai:get',
+  aiPropose: 'ai:propose',
+  aiFixAll: 'ai:fix-all',
+  aiStop: 'ai:stop',
+  aiAccept: 'ai:accept',
+  aiReject: 'ai:reject',
+  aiClear: 'ai:clear',
+  aiHistory: 'ai:history',
+  aiChanged: 'ai:changed',
 } as const
 
 /** The API exposed on window.xap by the preload script. */
@@ -183,6 +224,19 @@ export interface XapApi {
     xml(): Promise<Result<XmlView>>
     /** reports the statement's empty mandatory amounts as 0; returns what was filled */
     fillMandatoryZeros(elrUri: string): Promise<Result<ZeroFilled[]>>
+    /** in the statement's tables, reports the line items the rules require as 0 in columns that have a value */
+    fillTableZeros(elrUri: string): Promise<Result<TableZeroFilled[]>>
+    /** "also reported as": files the tagged cell's figure as one more fact */
+    addAlso(input: AlsoReportInput): Promise<Result<MappingView>>
+    removeAlso(mappingId: string, index: number): Promise<Result<MappingView>>
+    /** the taxonomy's tables with axes, and one table's line items and members (Map as table) */
+    tables(): Promise<Result<TableInfo[]>>
+    tableStructure(tableId: string): Promise<Result<TableStructure>>
+    /** what mapping a range to a table would file, cell by cell (no changes) */
+    planTable(input: TableBlockInput): Promise<Result<TableBlockPlan>>
+    applyTable(input: TableBlockInput): Promise<Result<TableBlockResult>>
+    tableBlocks(): Promise<Result<TableBlock[]>>
+    removeTable(blockId: string): Promise<Result<void>>
     searchConcepts(query: string): Promise<Result<ConceptHit[]>>
     /** asks the tagger for every imported workbook; stores suggestions (status 'suggested'), writes no fact */
     autoTag(): Promise<Result<AutoTagSummary>>
@@ -191,5 +245,44 @@ export interface XapApi {
     rejectSuggestion(id: string): Promise<Result<MappingView>>
     /** accepts every suggestion with confidence ≥ `min` (default 0.9) */
     acceptAllSuggestions(min?: number): Promise<Result<AcceptAllResult>>
+    /** the table blocks auto-tagging suggested (open and rejected) */
+    blockSuggestions(): Promise<Result<BlockSuggestion[]>>
+    /** applies a suggested block as suggested, or as edited in "Map as table" */
+    acceptBlock(id: string, edited?: TableBlockInput): Promise<Result<TableBlockResult>>
+    rejectBlock(id: string): Promise<Result<BlockSuggestion>>
+    /** files / drops one suggested "also reported as" fact of a tagged cell (by its index in `alsoSuggested`) */
+    acceptAlso(mappingId: string, index: number): Promise<Result<MappingView>>
+    rejectAlso(mappingId: string, index: number): Promise<Result<MappingView>>
+  }
+  /** Phase 9: live validation, quick fixes, MCA Validation Tool */
+  validation: {
+    /** the latest run (revalidated automatically after every change) */
+    get(): Promise<ValidationView>
+    run(): Promise<Result<ValidationView>>
+    /** applies the deterministic quick fix of a problem of the latest run */
+    fix(problemId: string): Promise<Result<ValidationView>>
+    /** the MCA tool's error list: pasted text, or a file dialog when omitted; `null` = cancelled */
+    importMca(text?: string): Promise<Result<ValidationView | null>>
+    clearMca(): Promise<Result<ValidationView>>
+    /** writes output/NNN.xml and starts the MCA XBRL Validation Tool */
+    launchMca(): Promise<Result<McaLaunchResult>>
+    onChanged(cb: (v: ValidationView) => void): () => void
+  }
+  /** Phase 10: AI fix agent (proposals only; the user accepts each patch) */
+  ai: {
+    get(): Promise<AiView>
+    /** Ask AI about one problem of the latest validation run */
+    propose(problemId: string): Promise<Result<AiView>>
+    /** starts the Fix all loop (runs in the background; progress arrives through onChanged) */
+    fixAll(): Promise<Result<AiView>>
+    stop(): Promise<Result<AiView>>
+    /** applies a patch; `input` = the value the user typed / edited, `confirmed` = explicit confirmation */
+    accept(cardId: string, opts?: { input?: string; confirmed?: boolean }): Promise<Result<AiView>>
+    reject(cardId: string, reason?: string): Promise<Result<AiView>>
+    /** removes proposals that have no open patch */
+    clear(): Promise<Result<AiView>>
+    /** the newest ai/history.jsonl entries (what was sent, what came back, decisions) */
+    history(): Promise<Result<AiHistoryEntry[]>>
+    onChanged(cb: (v: AiView) => void): () => void
   }
 }

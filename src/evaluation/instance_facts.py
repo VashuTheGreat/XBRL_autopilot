@@ -1,4 +1,7 @@
-"""Facts of an XBRL instance (stdlib ElementTree), for evaluation: concept, period, dimensions, unit, decimals, value."""
+"""Facts of an XBRL instance (stdlib ElementTree), for evaluation: concept, period, dimensions, unit, decimals, value.
+
+`read_facts` reads every fact (amounts, text, dates, Yes/No, text blocks); `read_numeric_facts` keeps the amounts.
+"""
 from __future__ import annotations
 
 import datetime as dt
@@ -10,11 +13,43 @@ from pathlib import Path
 XBRLI = "http://www.xbrl.org/2003/instance"
 XBRLDI = "http://xbrl.org/2006/xbrldi"
 LINK = "http://www.xbrl.org/2003/linkbase"
+XSI_NIL = "{http://www.w3.org/2001/XMLSchema-instance}nil"
+
+
+@dataclass(frozen=True)
+class FiledFact:
+    concept: str  # prefixed qname, e.g. ind-as:TradeReceivablesCurrent
+    end: dt.date
+    instant: bool
+    dims: tuple[tuple[str, str], ...]  # (axis, member qname or typed value), sorted
+    unit: str | None  # None: not a numeric fact
+    decimals: int | None  # None: INF or not numeric
+    text: str  # the element's text as filed (HTML of a text block, "true", "2026-03-31", …)
+    nil: bool = False
+
+    @property
+    def numeric(self) -> bool:
+        return self.unit is not None
+
+    @property
+    def amount(self) -> Decimal | None:
+        if not self.numeric or self.nil:
+            return None
+        try:
+            return Decimal(self.text.strip())
+        except InvalidOperation:
+            return None
+
+    @property
+    def key(self) -> tuple[str, dt.date, tuple]:
+        """What identifies the fact in a filing: concept, period end, dimensions."""
+        return (self.concept, self.end, self.dims)
 
 
 @dataclass(frozen=True)
 class InstanceFact:
-    concept: str  # prefixed qname, e.g. ind-as:TradeReceivablesCurrent
+    """A numeric fact (the Phase 8 answer key reads only these)."""
+    concept: str
     end: dt.date
     instant: bool
     dims: tuple[tuple[str, str], ...]
@@ -31,7 +66,7 @@ def _prefixes(path: Path) -> dict[str, str]:
     return out
 
 
-def read_numeric_facts(path: Path) -> list[InstanceFact]:
+def read_facts(path: Path) -> list[FiledFact]:
     prefixes = _prefixes(path)
     root = ET.parse(path).getroot()
     contexts: dict[str, tuple[dt.date, bool, tuple]] = {}
@@ -48,16 +83,20 @@ def read_numeric_facts(path: Path) -> list[InstanceFact]:
     facts = []
     for el in root:
         ns, _, local = el.tag[1:].partition("}") if el.tag.startswith("{") else ("", "", el.tag)
-        if ns in (XBRLI, LINK) or el.get("contextRef") is None or el.get("unitRef") is None:
-            continue
-        try:
-            value = Decimal((el.text or "").strip())
-        except InvalidOperation:
+        if ns in (XBRLI, LINK) or el.get("contextRef") is None:
             continue
         end, instant, dims = contexts[el.get("contextRef")]
         dec = el.get("decimals")
-        facts.append(InstanceFact(
+        facts.append(FiledFact(
             concept=f"{prefixes.get(ns, ns)}:{local}", end=end, instant=instant, dims=dims, unit=el.get("unitRef"),
-            decimals=None if dec in (None, "INF") else int(dec), value=value,
+            decimals=None if dec in (None, "INF") else int(dec), text=el.text or "",
+            nil=el.get(XSI_NIL) in ("true", "1"),
         ))
     return facts
+
+
+def read_numeric_facts(path: Path) -> list[InstanceFact]:
+    return [
+        InstanceFact(f.concept, f.end, f.instant, f.dims, f.unit, f.decimals, f.amount)
+        for f in read_facts(path) if f.amount is not None
+    ]

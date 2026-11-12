@@ -8,7 +8,7 @@ Layer 2  Knowledge base (Python JSON)     ── raw MCA rule text; AI context +
 Layer 3  MCA Validation Tool v5.1 (Java)  ── external final check; errors imported back
 ```
 
-## Layer 1: engine checks (`engine/src`)
+## Layer 1: engine checks (`engine/src`; rules from `knowledge_base/<kb>_engine_rules.json`)
 | Family | Module | Examples (issue codes) |
 |---|---|---|
 | Document | `gate.ts` | `schemaRef`, `cin.missing`, `cin.format`, `periods`, `reportType`, `empty` |
@@ -22,7 +22,7 @@ Layer 3  MCA Validation Tool v5.1 (Java)  ── external final check; errors im
 
 **Severities:** `ERROR` blocks XML export; the user can force it, with a warning. `WARNING` and `INFO` don't block.
 
-**Generic rules (C&I 2016):**
+**Generic rules (C&I 2016; Ind AS below):**
 | Rule | Meaning |
 |---|---|
 | GR-1 | Parent = sum of children |
@@ -31,7 +31,7 @@ Layer 3  MCA Validation Tool v5.1 (Java)  ── external final check; errors im
 | GR-4 | Typed members sequential |
 | GR-5 | No images |
 | GR-6 | CY/PY pairing |
-| GR-7 | Opening = PY closing |
+| GR-7 | Opening = PY closing (structural: one instant context) |
 | GR-8 | Money ≤ 2 decimals |
 | GR-9 | INR only |
 | GR-10 | Incorporation date (review only) |
@@ -60,34 +60,90 @@ These are built by the Python extractors (`src/services/extractors/*.py`) from t
 1. **AI context:** the fix agent retrieves the exact rule text and concept definitions to explain an error and ground its patch.
 2. **Coverage audit:** the diff below.
 
-**Known gaps in the extractors, to fix later:**
-- Ind AS sheets not extracted: "Applicable ELR", "Exempt parent/child member", "formulas Linkbase", "Parent Child Exempt Calculation", "Country/Currency codes".
-- The Ind AS XBRL formula linkbase (`for_cro.xml`) is ignored.
+**Known gaps in the extractors (Layer 2 text only), to fix later:**
+- Ind AS sheets not extracted into the browsing file: "Applicable ELR", "Exempt parent/child member", "formulas Linkbase", "Parent Child Exempt Calculation", "Country/Currency codes". The executable rule builder reads all of them except "Currency Code".
+- The Ind AS XBRL formula linkbase file (`for_cro.xml`) is not read; its opening/closing formulas come from the workbook sheet "formulas Linkbase" (Ind AS GR-6).
 - The Costing "ApplicableExtended Links" sheet is not extracted.
 - 2 C&I rules have `concept: null`.
 
-## Layer 1 vs Layer 2: the diff (the colleague's question)
-| | Engine authority (Layer 1) | Knowledge base JSON (Layer 2) |
+## Executable rules: built from the MCA workbooks ([ADR-0011](decisions/ADR-0011-business-rules-from-knowledge-base.md))
+The engine's rules come from the same MCA workbooks as the Layer 2 text, formalized by `src/services/engine_rules/` (Python):
+
+| | Executable rules (Layer 1) | Knowledge base text (Layer 2) |
 |---|---|---|
-| Built by | `engine/compiler` (TS, port of `rule-formalizer.mjs`) | `src/services/extractors/*.py` |
-| Rule form | **Executable ASTs** with a coverage ledger | Raw `ruleText` + coarse `type` |
-| Dimensions | Full hypercube/table model | Raw definition arcs only |
-| Calculation | Executed | Arcs stored, not executed |
-| Generic rules | GR-1…17 executed | Prose descriptions |
+| Built by | `src/services/engine_rules` → `knowledge_base/<kb>_engine_rules.json` | `src/services/extractors/*.py` → `<kb>_knowledge_base.json` |
+| Served by | `/{id}/engine-rules` (the app's `AuthorityService`) | `/{id}/rules`, `/{id}/concepts/{qname}?include_rules=true` |
+| Rule form | **Executable ASTs** + a coverage ledger | Raw `ruleText` + coarse `type` |
 | Purpose | Decide pass/fail | Explain, retrieve, audit |
 
-**Deliverable** (Phase 6): `engine/authority/ci-2016.coverage.json` plus a generated report `docs/generated/rule-coverage-ci-2016.md`. It lists every KB rule (all 567) with its engine status: `formalized | review-only | approved-limitation | missing`. Any rule marked `missing` is a backlog item.
+**How a sentence becomes a rule** (`make engine-rules`, about 1 s for both taxonomies):
+1. `workbook.py` reads the workbook (python-calamine) with each sheet's own layout: C&I `[nnnnnn] Title` blocks, Ind AS `LinkRole` / `Definition` blocks with `prefix | name | … | Business Rule | Status | FTA`. Lines count from the sheet's stored range (`sheet_origin.py`), so rule ids (`SR-L<line>-n`) are stable.
+2. `specific.py`, the port of the TS formalizer (deep-equal on C&I, frozen in `tests/fixtures/engine_rules/`): each clause gets the first text pattern (`pattern:*`) or curated reading (`curated:*`) that matches. `jsre.py` makes Python regexes behave like JavaScript's.
+3. `specific_fallback.py` runs only on clauses still UNIMPLEMENTED: it normalizes wording variants (`"yes"`, `selecetd`, `Mandatory table is …`, `is other than 0`, a trailing `in [401100] …`) and retries, then tries further forms (typed "Others" table sums, members "or its child members", "is tagged", note sums against the balance sheet). It cannot change a rule the main pass formalizes.
+4. `generic.py` / `generic_ind_as.py` map the workbook's generic-rule numbers to engine handlers per taxonomy. Ind AS ELRs are named by title in the MCA text and resolved to codes of the built DTS; a name that resolves to nothing fails the build.
+5. `builder.py` applies the curation (below), computes the coverage measure, and writes the rule file, `<kb>_rule_coverage.json` and `docs/generated/rule-coverage-<kb>.md`.
+
+**The runtime finds generic rules by handler**, not by number (`applicability.js`, `rules.js`, `fixes.js`), and tags applicability reasons with the rule's own id (C&I `GR-12: …`, Ind AS `GR-11: …`).
+
+**Ind AS generic rules** (numbered differently from C&I):
+
+| Rule | Handler | Note |
+|---|---|---|
+| GR-1 | `calc-parent-child` | + sheet "Parent Child Exempt Calculation" |
+| GR-2 | `mandatory-line-items-driver` | executed through the ML-* rules |
+| GR-3 | `sequential-members` | |
+| GR-4 | `no-images` | |
+| GR-5 | `cy-py-pairing` | |
+| GR-6 | `opening-closing-roll-forward` | **new**: closing = opening + change for the 36 elements of sheet "formulas Linkbase" |
+| GR-7 | `monetary-max-2-decimals` | |
+| GR-8 | `inr-currency` | exempt: the 19 listed subsidiary elements (`exemptConcepts`) |
+| GR-9 | review-only | no date-of-incorporation element in the DTS |
+| GR-10 | `elr-not-for-consolidated` | 700100, 700500, 700600, 700700, 700200 |
+| GR-11 | `elr-not-for-prior-year` | 8 ELRs, element exceptions, plus one table and two elements of other ELRs (`tables`, `concepts`) |
+| GR-12 | `general-info-consolidated` | `elrCode` 700300 |
+| GR-13 | `elr-not-for-standalone` | 613400 |
+| GR-14 | `mandatory-axes` | every axis of the six listed tables |
+| GR-15 | not applicable | guidance |
+| GR-16 | `fta-opening-balance-sheet` | **new**: a first-time adopter reports the previous year's opening balance sheet |
+
+**Yes/No answers.** For C&I, a field or table that a rule requires under "Yes" is also unavailable under "No" (MCA-validated C&I filings). For Ind AS it is not (`yes_no_restricts: False`). The MCA-accepted Dixon instance answers "No" and still files the major-customer, share-based payment and lease tables and nil OCI / CSR amounts. The dependency is recorded (`restricts: false`) for the UI; the rules still require the values under "Yes".
+
+### Coverage
+**Executable share = EXECUTABLE ÷ (all rules − NOT_APPLICABLE).** Review-only and unimplemented are reported separately (`measure` in the coverage file). Bar: ≥ 95% per taxonomy.
+
+| Taxonomy | Rules | Not applicable | Counted | Executable | Review-only | Unimplemented | Share |
+|---|---|---|---|---|---|---|---|
+| C&I 2016 | 1164 | 153 | 1011 | 962 | 48 | 1 | **95.15%** |
+| Ind AS 2017 | 1351 | 16 | 1335 | 1273 | 60 | 2 | **95.36%** |
+
+The two Ind AS gaps: SR-L4235-1 ("yes is selected in above element": the element isn't named) and ML-39-b (outstanding balances, ambiguous in the MCA source, like C&I ML-20-b). Every rule with its status is in [rule-coverage-ci](generated/rule-coverage-ci.md) and [rule-coverage-ind_as](generated/rule-coverage-ind_as.md).
+
+### Curation: exceptions with evidence
+`src/services/engine_rules/curation/<kb>/divergences.json` lists rules contradicted by an MCA-accepted instance. Each entry has `ruleId`, `evidence`, and for Ind AS also `ruleText` and `instanceFact`. Optional narrowing:
+- `concepts`: only failures about these elements (any rule; for mandatory line items, the elements not required);
+- `scopes`: only these periods (`CY`, `PY`, `PYO` = previous-year opening).
+
+Matching failures are reported as **warnings with the evidence attached**, never dropped. Without narrowing, the whole rule becomes a warning. `approved_limitations.json` holds release-owner approvals of UNIMPLEMENTED rules (none approved).
+
+**Ind AS acceptance (Phase 9):** the Dixon instance gives **0 ERRORs** (`engine/test/ind-as-rules.test.ts`). Six exceptions are curated: SR-L1304-1, ML-7, SR-L5417-2 (PY), SR-L6075-1 and SR-L6392-1 (PY), GR-1 (EquityShareCapital at the previous-year opening). The test also checks that each of them appears as a warning.
+
+## In the app: live validation and the Problems panel (Phase 9)
+- **`ValidationService`** (`ui/electron/main/services/validation-service.ts`, Electron-free) runs the engine's gate for the open filing **debounced 400 ms after every project change** (`ProjectService` "changed"; Accept all is one change through `ProjectHandle.batch`). Measured: about 0.3 s per run on the 2,666-fact Dixon filing, so it runs on the main process (no worker).
+- Each gate issue becomes a `Problem` (`ui/shared/validation.ts`): severity, family (document, fact, dimension, calculation, rule, review, coverage, mca), rule id, message, **location** from the gate (statement, row, table, period, fact key) and the **Excel cell** of the fact. Only `approved` mapping entries count; `suggested` / `rejected` entries carry no fact and are never a source.
+- **Problems panel** (bottom panel, `ProblemsPanel.tsx`): grouped by statement / note, error / warning / info filters, source filter (this app / MCA tool), the taxonomy's rule coverage ("Rules 95.4% executable"), and counts in the status bar. **Double-click** locates: it opens the statement in the XBRL Form, selects the fact, and reveals and selects the Excel cell.
+- **Quick fixes:** where the engine's `fixFor` (`engine/src/core/fixes.js`) has a deterministic fix (total = sum of parts, nil for a missing current year, mandatory → 0, V3 schemaRef …) the row shows **Fix**. It applies through the session, then revalidates. Generic rules are matched by handler, so the fixes work for Ind AS too.
+- **Ask AI** (✦ on a problem) and **Fix all with AI** (Phase 10): the AI fix agent proposes patches that the engine checks and the user accepts or rejects in the AI Agent tab. See [07](07-ai-fix-agent.md). Off without consent or a key; the quick fixes never depend on it.
+- XML export still refuses a filing with ERRORs unless the user forces it (written with a "NOT VALIDATED" comment).
 
 ## Layer 3: MCA Validation Tool v5.1
 - It is GUI-only (see [01-research](01-research-webxbrl-and-mca-tool.md)), so it can't be embedded.
-- **Settings:** the user sets the path to `MCA_XBRL_Valiation_Tool_V5.1.exe`. We auto-detect common folders and `data/validation_tool` in dev.
-- **Tools → Validate in MCA Tool:**
-  1. The app writes the latest XML to `output/NNN.xml`.
-  2. It launches the tool.
-  3. It shows instructions: choose the C&I taxonomy, File → Open, Validate.
-- **Problems → Import MCA errors:** paste the text, or load a saved report. `mca-errors.ts` then:
-  1. Parses each line: code, element in `'quotes'`, value in `[brackets]`.
-  2. Maps it to facts and cells.
-  3. Explains it in plain language.
-  4. Offers a quick fix or "Ask AI".
+- **Finding the tool** (`McaToolService`, `infra/mca-tool.ts`): the path in Settings, else `MCA_XBRL_Valiation_Tool_V*.exe` two folders deep under `data/validation_tool` (dev), `C:\MCA`, `%LOCALAPPDATA%\Programs` or Program Files.
+- **Problems → MCA tool** (also Tools → Validate in MCA Tool):
+  1. The app writes the latest XML to `output/NNN.xml`, both inside the `.axbrl` and on disk next to the saved project (else under the app's data folder). A filing with open errors is still written, marked "NOT VALIDATED".
+  2. It starts the tool detached.
+  3. A toast says what to do: choose the taxonomy, File → Open that XML, Validate, and copy the error list back.
+- **Problems → Import MCA errors:** paste the text, or load a saved report. `explainMcaErrors` (`engine/src/core/mca-errors.js`) explains each line (meaning, likely cause, fix) and resolves its element. The list is kept in the project (`mca-errors/mca-<time>-<name>.txt`), shown as MCA problems linked to the element's statement and cell, and can be cleared.
 - **Future spike:** check whether the `com/mca/xbrl` classes can run headless through the bundled JRE. Investigate only; check licensing before any use.
+
+## Test-side XML Schema check (Arelle)
+`arelle-release` is a **dev extra** (`uv sync --extra dev`); it is not shipped. `engine/compiler/xsd-validate.mjs` runs it offline against the patched C&I taxonomy copy and is used by the legacy XSD tests (8 tests). Fixed in Phase 9: on Windows the absolute `file:///D:/…%20…` schemaRef failed to load (now a temporary instance next to the entry point, named relatively), and CRLF log lines hid every message code (so even broken instances passed).

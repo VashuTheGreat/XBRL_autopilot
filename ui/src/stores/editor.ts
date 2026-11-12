@@ -3,7 +3,7 @@
  * Source of truth stays in main; this store caches read-models and refreshes when the project revision changes.
  */
 import { create } from 'zustand'
-import type { CellInfo, FormView, MappingView, Scope, XmlView } from '@shared/editor'
+import type { AlsoReportInput, BlockSuggestion, CellInfo, FormView, MappingView, Scope, XmlView } from '@shared/editor'
 import { cellKey, rangeCells, type CellRef, type WorkbookModel } from '@shared/workbook'
 import { unwrap } from '@/lib/result'
 import { toast } from './toast'
@@ -11,17 +11,25 @@ import { toast } from './toast'
 export interface Selection {
   cell: CellRef | null
   factKey: string | null
+  /** the element of the selected cell's tag or suggestion: the Form row to show (also for a suggestion, which has no fact) */
+  concept?: string | null
 }
 
 interface EditorState {
   workbooks: WorkbookModel[]
   activeSource: string | null
   mappings: MappingView[]
+  /** auto-tagging's suggested table blocks (open and rejected) */
+  blockSuggestions: BlockSuggestion[]
   byCell: Map<string, MappingView>
   byFact: Map<string, MappingView>
   selection: Selection
+  /** bumped on every cell / fact selection, also a repeat click: the Form scrolls the row back into view */
+  focusSeq: number
   /** amount + column period of the selected cell (inspector) */
   cellInfo: CellInfo | null
+  /** the last range dragged over several rows and columns ("Map as table"); the selection itself is its first cell */
+  blockRange: CellRef | null
   /** a request for the Excel pane to show a cell; `seq` changes on every request */
   reveal: { cell: CellRef; seq: number } | null
   activeElr: string | null
@@ -46,6 +54,14 @@ interface EditorState {
   setScope(id: string, scope: Scope): Promise<void>
   /** reports the active statement's empty mandatory amounts as 0 */
   fillMandatoryZeros(): Promise<void>
+  /** in the active statement's tables, reports the amounts the rules require as 0 (columns with a value only) */
+  fillTableZeros(): Promise<void>
+  setBlockRange(range: CellRef | null): void
+  addAlso(input: AlsoReportInput): Promise<boolean>
+  removeAlso(mappingId: string, index: number): Promise<void>
+  /** files / drops a suggested "also reported as" fact of a tagged cell */
+  acceptAlso(mappingId: string, index: number): Promise<void>
+  rejectAlso(mappingId: string, index: number): Promise<void>
   /** remembers the period of the selected cell's column (null forgets it) */
   setColumnPeriod(scope: Scope | null): Promise<void>
   /** an auto-tagging run is in progress */
@@ -54,28 +70,35 @@ interface EditorState {
   autoTag(): Promise<void>
   acceptSuggestion(id: string, concept?: string): Promise<void>
   rejectSuggestion(id: string): Promise<void>
-  /** accepts every suggestion with confidence ≥ min */
+  /** accepts every cell and table suggestion with confidence ≥ min (never the suggested "also" facts) */
   acceptAllSuggestions(min: number): Promise<void>
 }
 
 const api = () => window.xap.editor
 let revealSeq = 0
 
+/** A text cell holding several figures has one mapping per figure: the cell shows its first one. */
+const firstFigureLast = (mappings: MappingView[]) => [...mappings].sort((a, b) => (b.pick ?? -1) - (a.pick ?? -1))
+
 const index = (mappings: MappingView[]) => ({
   mappings,
   // keyed by the mapping's own reference and by every cell a summed range covers
-  byCell: new Map(mappings.flatMap((m) => [[cellKey(m.cell), m] as const, ...rangeCells(m.cell.ref).map((a1) => [cellKey({ ...m.cell, ref: a1 }), m] as const)])),
-  byFact: new Map(mappings.filter((m) => m.factKey).map((m) => [m.factKey!, m])),
+  byCell: new Map(firstFigureLast(mappings).flatMap((m) => [[cellKey(m.cell), m] as const, ...rangeCells(m.cell.ref).map((a1) => [cellKey({ ...m.cell, ref: a1 }), m] as const)])),
+  // every fact a cell supplies (its main tag and its "also reported as" facts) leads back to the cell
+  byFact: new Map(mappings.flatMap((m) => (m.factKeys ?? (m.factKey ? [m.factKey] : [])).map((k) => [k, m] as const))),
 })
 
 const EMPTY = {
   workbooks: [],
   activeSource: null,
   mappings: [],
+  blockSuggestions: [],
   byCell: new Map<string, MappingView>(),
   byFact: new Map<string, MappingView>(),
   selection: { cell: null, factKey: null },
+  focusSeq: 0,
   cellInfo: null,
+  blockRange: null,
   reveal: null,
   form: null,
   xml: null,
@@ -114,12 +137,14 @@ export const useEditor = create<EditorState>((set, get) => {
       if (revision === get().loadedRevision) return
       set({ loadedRevision: revision })
       const needWorkbooks = get().workbooks.length !== sourceCount
-      const [workbooks, mappings] = await Promise.all([
+      const [workbooks, mappings, blockSuggestions] = await Promise.all([
         needWorkbooks ? unwrap(api().workbooks(), { quiet: true }) : Promise.resolve(get().workbooks),
         unwrap(api().mappings(), { quiet: true }),
+        unwrap(api().blockSuggestions(), { quiet: true }),
       ])
       if (workbooks) set({ workbooks, activeSource: get().activeSource ?? workbooks[0]?.source ?? null })
       if (mappings) set(index(mappings))
+      if (blockSuggestions) set({ blockSuggestions })
       await Promise.all([loadForm(), loadCellInfo(), get().xmlWanted ? loadXml() : Promise.resolve()])
     },
 
@@ -144,15 +169,18 @@ export const useEditor = create<EditorState>((set, get) => {
 
     selectCell: (cell) => {
       const cur = get().selection.cell
-      if (cur && cellKey(cur) === cellKey(cell)) return
+      if (cur && cellKey(cur) === cellKey(cell)) return set((s) => ({ focusSeq: s.focusSeq + 1 })) // a repeat click: show the row again
       const m = get().byCell.get(cellKey(cell))
-      set({ selection: { cell, factKey: m?.factKey ?? null }, cellInfo: null })
+      set((s) => ({ selection: { cell, factKey: m?.factKey ?? null, concept: m && m.status !== 'rejected' ? m.fact.concept : null }, cellInfo: null, focusSeq: s.focusSeq + 1 }))
       void loadCellInfo()
+      // the Form follows the Excel selection: open a statement that shows the element (the current one if it does)
+      const target = m && m.status !== 'rejected' ? (m.elrUris.includes(get().activeElr ?? '') ? get().activeElr : m.elrUris[0]) : null
+      if (target && target !== get().activeElr) void get().setActiveElr(target)
     },
 
     selectFact: (factKey) => {
       const m = factKey ? get().byFact.get(factKey) : undefined
-      set({ selection: { cell: m?.cell ?? null, factKey }, cellInfo: null })
+      set({ selection: { cell: m?.cell ?? null, factKey, concept: m?.fact.concept ?? null }, cellInfo: null })
       void loadCellInfo()
       if (m) get().revealCell(m.cell)
     },
@@ -179,7 +207,7 @@ export const useEditor = create<EditorState>((set, get) => {
         onValidation: (p) => toast.error(p.join(' ')),
       })
       if (!m) return false
-      set({ selection: { cell, factKey: m.factKey } })
+      set({ selection: { cell, factKey: m.factKey, concept: m.fact.concept } })
       toast.success(`${cell.sheet}!${cell.ref} → ${m.conceptLabel} (${m.fact.scope})`)
       return true
     },
@@ -204,6 +232,36 @@ export const useEditor = create<EditorState>((set, get) => {
       else toast.success(`Reported as 0: ${filled.map((z) => `${z.label} (${z.scope})`).join(', ')}`)
     },
 
+    fillTableZeros: async () => {
+      const uri = get().activeElr
+      if (!uri) return
+      const filled = await unwrap(api().fillTableZeros(uri), { onValidation: (p) => toast.error(p.join(' ')) })
+      if (!filled) return
+      if (!filled.length) toast.info('Nothing to fill: no table column with a value misses an amount the rules require.')
+      else toast.success(`Reported as 0 in tables: ${filled.length} amount${filled.length === 1 ? '' : 's'} (${[...new Set(filled.map((z) => z.label))].slice(0, 4).join(', ')}${filled.length > 4 ? '…' : ''}).`)
+    },
+
+    setBlockRange: (range) => set({ blockRange: range }),
+
+    addAlso: async (input) => {
+      const m = await unwrap(api().addAlso(input), { onValidation: (p) => toast.error(p.join(' ')) })
+      if (m) toast.success(`${m.cell.sheet}!${m.cell.ref} is also reported as ${m.alsoViews.at(-1)?.conceptLabel ?? 'that fact'}.`)
+      return !!m
+    },
+
+    removeAlso: async (mappingId, index) => {
+      await unwrap(api().removeAlso(mappingId, index), { onValidation: (p) => toast.error(p.join(' ')) })
+    },
+
+    acceptAlso: async (mappingId, index) => {
+      const m = await unwrap(api().acceptAlso(mappingId, index), { onValidation: (p) => toast.error(p.join(' ')) })
+      if (m) toast.success(`${m.cell.sheet}!${m.cell.ref} is also reported as ${m.alsoViews.at(-1)?.memberLabels.join(' · ') || m.alsoViews.at(-1)?.conceptLabel || 'that fact'}.`)
+    },
+
+    rejectAlso: async (mappingId, index) => {
+      await unwrap(api().rejectAlso(mappingId, index), { onValidation: (p) => toast.error(p.join(' ')) })
+    },
+
     setColumnPeriod: async (scope) => {
       const cell = get().selection.cell
       if (!cell) return
@@ -218,12 +276,13 @@ export const useEditor = create<EditorState>((set, get) => {
       set({ autoTagging: false })
       if (!summary) return
       const statements = summary.sheets.filter((s) => s.rows > 0).length
-      if (!summary.suggested) {
+      if (!summary.suggested && !summary.blocks) {
         toast.info(summary.skipped ? `Nothing new to suggest: ${summary.skipped} cells are already tagged or were rejected.` : 'No taggable rows found: no column header names this filing’s year ends.')
         return
       }
+      const tables = summary.blocks ? ` and ${summary.blocks} table${summary.blocks === 1 ? '' : 's'} (dashed outline)` : ''
       toast.success(
-        `${summary.suggested} suggestions on ${statements} sheet${statements === 1 ? '' : 's'} (amber cells)${summary.llmUsed ? ', AI-reranked' : ''}. Nothing is tagged until you accept.`,
+        `${summary.suggested} suggestions on ${statements} sheet${statements === 1 ? '' : 's'} (amber cells)${tables}${summary.llmUsed ? ', AI-reranked' : ''}. Nothing is tagged until you accept.`,
       )
     },
 
@@ -239,7 +298,8 @@ export const useEditor = create<EditorState>((set, get) => {
     acceptAllSuggestions: async (min) => {
       const r = await unwrap(api().acceptAllSuggestions(min), { onValidation: (p) => toast.error(p.join(' ')) })
       if (!r) return
-      if (r.accepted) toast.success(`Tagged ${r.accepted} suggested cell${r.accepted === 1 ? '' : 's'} (confidence ≥ ${Math.round(min * 100)}%).`)
+      const tables = r.blocks ? ` and ${r.blocks} table${r.blocks === 1 ? '' : 's'} (${r.cells} cells)` : ''
+      if (r.accepted || r.blocks) toast.success(`Tagged ${r.accepted} suggested cell${r.accepted === 1 ? '' : 's'}${tables} (confidence ≥ ${Math.round(min * 100)}%).`)
       else if (!r.problems.length) toast.info(`No suggestions at ≥ ${Math.round(min * 100)}% confidence.`)
       if (r.problems.length) toast.error(`${r.problems.length} could not be tagged and stay suggested: ${r.problems.slice(0, 3).join('; ')}${r.problems.length > 3 ? '…' : ''}`)
     },

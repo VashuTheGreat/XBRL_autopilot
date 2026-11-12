@@ -4,6 +4,7 @@
  * into the services, and wires services ↔ window ↔ IPC.
  */
 import { existsSync, mkdirSync, readFileSync } from 'node:fs'
+import { userInfo } from 'node:os'
 import { join, resolve } from 'node:path'
 import { app, BrowserWindow, Menu, shell } from 'electron'
 import { IPC } from '@shared/ipc'
@@ -11,8 +12,18 @@ import { AppDatabase } from './infra/app-database'
 import { DirAutosaveStore } from './infra/dir-autosave-store'
 import { sidecarXlsReader, workbookParser } from './infra/workbook-parser'
 import { readXlsx } from './infra/xlsx-reader'
-import { FileRuleBundleSource } from './infra/file-authority-provider'
-import { SidecarAuthoritySource } from './infra/sidecar-authority-source'
+import { SidecarAuthoritySource, SidecarRuleBundleSource } from './infra/sidecar-authority-source'
+import { DetachedLauncher, FileOutputWriter, findMcaTool } from './infra/mca-tool'
+import { McaToolService } from './services/mca-tool-service'
+import { ValidationService } from './services/validation-service'
+import { AiHistory } from './services/ai-history'
+import { ContextBundleBuilder } from './services/context-bundle-builder'
+import { FixAgentService } from './services/fix-agent-service'
+import { NO_FIXTURE_GUARD } from './services/fixture-guard'
+import { PatchApplier } from './services/patch-applier'
+import { PatchVerifier } from './services/patch-verifier'
+import { fixtureGuardFrom } from './infra/fixture-hashes'
+import { SidecarFixProposer } from './infra/sidecar-fix-proposer'
 import { AuthorityService } from './services/authority-service'
 import { InstanceImportService } from './services/instance-import-service'
 import { SidecarTaxonomyCatalog } from './infra/sidecar-taxonomy-catalog'
@@ -27,6 +38,8 @@ import { ColumnPeriodService } from './services/column-period-service'
 import { EditorQueryService } from './services/editor-query-service'
 import { FilingPropertiesService } from './services/filing-properties-service'
 import { MappingService } from './services/mapping-service'
+import { TableMappingService } from './services/table-mapping-service'
+import { TableSuggestionService } from './services/table-suggestion-service'
 import { SourceService } from './services/source-service'
 import { StatementService } from './services/statement-service'
 import { TaxonomyService } from './services/taxonomy-service'
@@ -34,6 +47,10 @@ import { ProjectService } from './services/project-service'
 import { SettingsService } from './services/settings-service'
 import { SidecarManager } from './sidecar'
 import { findProjectArg, parseDotEnv, windowTitle } from './util/launch'
+import { hardenConsole } from './util/safe-console'
+
+// first: a log write that fails (full disk, closed pipe) must never crash the main process
+hardenConsole()
 
 const isDev = !app.isPackaged
 // In dev, app.getAppPath() is <repo>/ui; the Python sidecar, engine and .env live at the repo root.
@@ -59,12 +76,9 @@ const sidecar = new SidecarManager({
   // Settings win over the dev .env (pydantic-settings gives env vars priority over .env).
   extraEnv: async () => ({ GROQ_API_KEY: (await settings.groqKey()) ?? undefined, GROQ_MODEL: settings.get().groqModel }),
 })
-// Engine authority (ADR-0010): the taxonomy half from the knowledge base through the sidecar route, the compiled
-// business rules from engine/authority (dev) or resources/authority (packaged).
-const authorities = new AuthorityService(
-  new SidecarAuthoritySource(sidecar),
-  new FileRuleBundleSource(isDev ? join(repoRoot, 'engine', 'authority') : join(process.resourcesPath, 'authority')),
-)
+// Engine authority: the taxonomy half (ADR-0010) and the business rules (ADR-0011), both from the knowledge base
+// through the sidecar routes.
+const authorities = new AuthorityService(new SidecarAuthoritySource(sidecar), new SidecarRuleBundleSource(sidecar))
 const projects = new ProjectService({
   authority: authorities,
   recents: db,
@@ -78,8 +92,10 @@ const autosave = new AutosaveScheduler(projects, () => settings.get().autosaveSe
 const sources = new SourceService(projects, workbookParser({ xlsx: readXlsx, xls: sidecarXlsReader(sidecar) }))
 const columns = new ColumnPeriodService(projects, sources)
 const mapping = new MappingService(projects, sources, columns, db)
+const tables = new TableMappingService(projects, sources, columns, mapping)
 // Auto-tagging (docs/06): suggestions from the sidecar's tagger; the LLM rerank only with the user's AI consent
-const autoTag = new AutoTagService(projects, sources, mapping, new SidecarMappingSuggester(sidecar), db, () => settings.get().aiConsent)
+const tableSuggestions = new TableSuggestionService(projects, tables)
+const autoTag = new AutoTagService(projects, sources, mapping, new SidecarMappingSuggester(sidecar), db, tableSuggestions, () => settings.get().aiConsent)
 const filing = new FilingPropertiesService(projects, mapping)
 const statements = new StatementService(projects)
 
@@ -87,6 +103,55 @@ const statements = new StatementService(projects)
 const catalog = new SidecarTaxonomyCatalog(sidecar)
 const taxonomy = new TaxonomyService(projects, catalog)
 const editor = new EditorQueryService(projects, () => mapping.list(), catalog)
+
+// Phase 9: live validation for the Problems panel (debounced after every change) and the MCA Validation Tool
+const validation = new ValidationService(projects, () => mapping.list(), (v) => mainWindow?.webContents.send(IPC.validationChanged, v))
+const mcaTool = new McaToolService(
+  projects,
+  () => {
+    const set = settings.get().mcaToolPath
+    if (set && existsSync(set)) return set
+    const roots = [isDev ? join(repoRoot, 'data', 'validation_tool') : '', 'C:\\MCA', join(process.env.LOCALAPPDATA ?? '', 'Programs'), process.env.ProgramFiles ?? '']
+    return findMcaTool(roots)
+  },
+  new FileOutputWriter(join(userData, 'output')),
+  new DetachedLauncher(),
+)
+
+// Phase 10: AI fix agent. Proposals only; every patch is checked by the engine and applied by the user. The fixture
+// guard reads data/ in development (client files never go to an AI service); the packaged app has no data/.
+const fixtureGuard = isDev ? fixtureGuardFrom(join(repoRoot, 'data')) : NO_FIXTURE_GUARD
+const today = () => new Date().toISOString().slice(0, 10)
+const fixAgent = new FixAgentService(
+  projects,
+  validation,
+  new ContextBundleBuilder(sources, columns, () => mapping.list()),
+  new SidecarFixProposer(sidecar),
+  new PatchVerifier(mapping, columns, today),
+  new PatchApplier(mapping),
+  new AiHistory({ now: () => new Date() }, () => safeUserName()),
+  {
+    state: () => {
+      const st = sidecar.getStatus()
+      return {
+        consent: settings.get().aiConsent,
+        sidecar: st.state === 'ready' ? 'ready' : st.state === 'starting' ? 'starting' : 'down',
+        keyConfigured: st.state === 'ready' && st.aiEnabled,
+        model: st.state === 'ready' ? st.model : null,
+      }
+    },
+  },
+  fixtureGuard,
+  (v) => mainWindow?.webContents.send(IPC.aiChanged, v),
+)
+
+function safeUserName(): string {
+  try {
+    return userInfo().username
+  } catch {
+    return 'user'
+  }
+}
 
 // ---------------------------------------------------------------- window
 function createWindow(): void {
@@ -147,15 +212,22 @@ function createWindow(): void {
 }
 
 function wireEvents(): void {
+  const pushAi = () => mainWindow?.webContents.send(IPC.aiChanged, fixAgent.view())
   projects.on('changed', (s) => {
+    validation.schedule()
+    pushAi()
     mainWindow?.setTitle(windowTitle(s))
     mainWindow?.setDocumentEdited(Boolean(s?.dirty))
     mainWindow?.webContents.send(IPC.projectChanged, s)
   })
   settings.on('changed', (s) => mainWindow?.webContents.send(IPC.settingsChanged, s))
+  settings.on('changed', pushAi)
   settings.on('ai-config-changed', () => void sidecar.restart())
   settings.on('changed', () => autosave.start()) // re-arm with a possibly new interval
-  sidecar.on('status', (s) => mainWindow?.webContents.send(IPC.sidecarStatusChanged, s))
+  sidecar.on('status', (s) => {
+    mainWindow?.webContents.send(IPC.sidecarStatusChanged, s)
+    pushAi()
+  })
   sidecar.on('log', (l) => {
     if (isDev) console.log(`[sidecar:${l.stream}] ${l.text}`)
     mainWindow?.webContents.send(IPC.sidecarLog, l)
@@ -193,12 +265,17 @@ if (!app.requestSingleInstanceLock()) {
       settings,
       sources,
       mapping,
+      tables,
       editor,
       columns,
       filing,
       statements,
       taxonomy,
       autoTag,
+      tableSuggestions,
+      validation,
+      mcaTool,
+      fixAgent,
       getWindow,
     })
     wireEvents()

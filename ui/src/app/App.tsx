@@ -4,12 +4,16 @@ import { Toasts } from '@/components/Toasts'
 import { NewFilingDialog } from '@/features/new-filing/NewFilingDialog'
 import { ImportReportDialog } from '@/features/import-xbrl/ImportReportDialog'
 import { ImportXbrlDialog } from '@/features/import-xbrl/ImportXbrlDialog'
+import { TableDialogs } from '@/features/tables/TableDialogs'
 import { useEditor } from '@/stores/editor'
 import { useProject } from '@/stores/project'
 import { useSettings } from '@/stores/settings'
 import { useSidecar } from '@/stores/sidecar'
+import { useTables } from '@/stores/tables'
 import { toast } from '@/stores/toast'
 import { useUi } from '@/stores/ui'
+import { useValidation } from '@/stores/validation'
+import { useAi } from '@/stores/ai'
 import { ActivityBar } from './ActivityBar'
 import { StatusBar } from './StatusBar'
 import { Workbench } from './Workbench'
@@ -38,9 +42,12 @@ function runCommand(cmd: MenuCommand): void {
     case 'tools:settings':
       return ui.setActivity('settings')
     case 'filing:validate':
-      return ui.setBottomTab('problems')
+      ui.setBottomTab('problems')
+      return void (project.summary ? useValidation.getState().run() : undefined)
+    case 'tools:open-mca-validator':
+      return void (project.summary ? useValidation.getState().launchMca() : toast.info('Open a filing first.'))
     default:
-      // view:quick-switch, filing:generate-xml, tools:open-mca-validator arrive with Phases 4–6
+      // view:quick-switch, filing:generate-xml arrive with later phases
       return toast.info('Coming in a later phase of the build.')
   }
 }
@@ -49,10 +56,14 @@ export function App() {
   const initSidecar = useSidecar((s) => s.init)
   const initProject = useProject((s) => s.init)
   const initSettings = useSettings((s) => s.init)
+  const initValidation = useValidation((s) => s.init)
+  const initAi = useAi((s) => s.init)
 
   useEffect(() => initSidecar(), [initSidecar])
   useEffect(() => initProject(), [initProject])
   useEffect(() => initSettings(), [initSettings])
+  useEffect(() => initValidation(), [initValidation])
+  useEffect(() => initAi(), [initAi])
   useEffect(() => window.xap?.menu.onCommand(runCommand), [])
   useEditorSync()
 
@@ -66,6 +77,7 @@ export function App() {
       <NewFilingDialog />
       <ImportXbrlDialog />
       <ImportReportDialog />
+      <TableDialogs />
       <Toasts />
     </div>
   )
@@ -76,18 +88,20 @@ function useEditorSync(): void {
   const summary = useProject((s) => s.summary)
   const elrs = useProject((s) => s.elrs)
   const { sync, reset, activeElr, setActiveElr } = useEditor()
+  const resetTables = useTables((s) => s.reset)
   const projectId = summary?.id ?? null
 
   useEffect(() => {
     reset()
-  }, [projectId, reset])
+    resetTables()
+  }, [projectId, reset, resetTables])
 
   useEffect(() => {
     if (summary) void sync(summary.revision, summary.sources.length)
   }, [summary, sync])
 
   useEffect(() => {
-    // open on the balance sheet by default
-    if (summary && !activeElr && elrs.length) void setActiveElr((elrs.find((e) => e.code === '100100') ?? elrs[0]!).uri)
+    // open on the first statement (the balance sheet) by default: by group, never by code (each taxonomy numbers differently)
+    if (summary && !activeElr && elrs.length) void setActiveElr((elrs.find((e) => e.group === 'Statements') ?? elrs[0]!).uri)
   }, [summary, elrs, activeElr, setActiveElr])
 }

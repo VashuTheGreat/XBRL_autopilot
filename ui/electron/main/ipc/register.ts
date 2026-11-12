@@ -2,9 +2,8 @@
 import { readFile } from 'node:fs/promises'
 import { basename } from 'node:path'
 import { dialog, type BrowserWindow } from 'electron'
-import type { MappingStatus, Scope, TagCellInput } from '@shared/editor'
+import type { MappingStatus, Scope } from '@shared/editor'
 import { IPC, type AppInfo, type HttpMethod } from '@shared/ipc'
-import type { CellRef } from '@shared/workbook'
 import type { AppSettings, NewFilingInput } from '@shared/project'
 import type { ProjectController } from '../project/project-controller'
 import type { AutoTagService } from '../services/auto-tag-service'
@@ -14,11 +13,17 @@ import type { FilingPropertiesService } from '../services/filing-properties-serv
 import type { MappingService } from '../services/mapping-service'
 import type { SourceService } from '../services/source-service'
 import type { StatementService } from '../services/statement-service'
+import type { TableMappingService } from '../services/table-mapping-service'
+import type { TableSuggestionService } from '../services/table-suggestion-service'
 import type { TaxonomyService } from '../services/taxonomy-service'
+import type { McaToolService } from '../services/mca-tool-service'
+import type { ValidationService } from '../services/validation-service'
+import type { FixAgentService } from '../services/fix-agent-service'
 import type { ProjectService } from '../services/project-service'
 import type { SettingsService } from '../services/settings-service'
 import type { SidecarManager } from '../sidecar'
 import { handleQuery, handleResult, requireString } from './handle'
+import { requireAlsoInput, requireBlockInput, requireCell, requireIndex, requireTagInput } from './table-input'
 
 export interface IpcDeps {
   appInfo: () => AppInfo
@@ -28,12 +33,17 @@ export interface IpcDeps {
   settings: SettingsService
   sources: SourceService
   mapping: MappingService
+  tables: TableMappingService
   editor: EditorQueryService
   columns: ColumnPeriodService
   filing: FilingPropertiesService
   statements: StatementService
   taxonomy: TaxonomyService
   autoTag: AutoTagService
+  tableSuggestions: TableSuggestionService
+  validation: ValidationService
+  mcaTool: McaToolService
+  fixAgent: FixAgentService
   getWindow: () => BrowserWindow | null
 }
 
@@ -44,6 +54,8 @@ export function registerIpc(d: IpcDeps): void {
   registerSettingsIpc(d)
   registerEditorIpc(d)
   registerAutoTagIpc(d)
+  registerValidationIpc(d)
+  registerAiIpc(d)
 }
 
 function registerAppIpc(d: IpcDeps): void {
@@ -104,14 +116,7 @@ function registerSettingsIpc({ settings, getWindow }: IpcDeps): void {
 const SCOPES: Scope[] = ['CY', 'PY']
 const STATUSES: MappingStatus[] = ['suggested', 'approved', 'rejected']
 
-/** A CellRef from the renderer: three non-empty strings, nothing else kept. */
-function requireCell(v: unknown): CellRef {
-  const c = v as Partial<CellRef> | null
-  if (!c || typeof c !== 'object') throw new Error('Invalid cell')
-  return { workbook: requireString(c.workbook, 'workbook'), sheet: requireString(c.sheet, 'sheet'), ref: requireString(c.ref, 'cell reference') }
-}
-
-function registerEditorIpc({ sources, mapping, columns, editor, statements, taxonomy, getWindow }: IpcDeps): void {
+function registerEditorIpc({ sources, mapping, tables, columns, editor, statements, taxonomy, getWindow }: IpcDeps): void {
   handleResult(IPC.workbookImport, async (_e, path?: unknown) => {
     if (path !== undefined) {
       const file = requireString(path, 'path')
@@ -130,10 +135,15 @@ function registerEditorIpc({ sources, mapping, columns, editor, statements, taxo
   })
   handleResult(IPC.workbookList, () => sources.workbooks())
   handleResult(IPC.mappingList, () => mapping.list())
-  handleResult(IPC.mappingTag, (_e, input: TagCellInput) => {
-    if (!input?.cell || typeof input.concept !== 'string') throw new Error('Invalid tag request')
-    return mapping.tag(input)
-  })
+  handleResult(IPC.mappingTag, (_e, input: unknown) => mapping.tag(requireTagInput(input)))
+  handleResult(IPC.mappingAlsoAdd, (_e, input: unknown) => mapping.addAlso(requireAlsoInput(input)))
+  handleResult(IPC.mappingAlsoRemove, (_e, id: unknown, i: unknown) => mapping.removeAlso(requireString(id, 'id'), requireIndex(i)))
+  handleResult(IPC.tableCatalog, () => tables.tables())
+  handleResult(IPC.tableStructure, (_e, id: unknown) => tables.structure(requireString(id, 'table')))
+  handleResult(IPC.tablePlan, (_e, input: unknown) => tables.plan(requireBlockInput(input)))
+  handleResult(IPC.tableApply, (_e, input: unknown) => tables.apply(requireBlockInput(input)))
+  handleResult(IPC.tableList, () => tables.list())
+  handleResult(IPC.tableRemove, (_e, id: unknown) => tables.remove(requireString(id, 'table mapping')))
   handleResult(IPC.mappingUntag, (_e, id: unknown) => mapping.untag(requireString(id, 'id')))
   handleResult(IPC.mappingSetScope, (_e, id: unknown, scope: Scope) => {
     if (!SCOPES.includes(scope)) throw new Error('Invalid scope')
@@ -151,10 +161,11 @@ function registerEditorIpc({ sources, mapping, columns, editor, statements, taxo
   handleResult(IPC.editorForm, (_e, uri: unknown) => editor.form(requireString(uri, 'statement')))
   handleResult(IPC.editorXml, () => editor.xml())
   handleResult(IPC.editorFillMandatoryZeros, (_e, uri: unknown) => statements.fillMandatoryZeros(requireString(uri, 'statement')))
+  handleResult(IPC.editorFillTableZeros, (_e, uri: unknown) => statements.fillTableZeros(requireString(uri, 'statement')))
   handleResult(IPC.taxonomySearch, (_e, q: unknown) => taxonomy.searchConcepts(typeof q === 'string' ? q.slice(0, 200) : ''))
 }
 
-function registerAutoTagIpc({ autoTag }: IpcDeps): void {
+function registerAutoTagIpc({ autoTag, mapping, tableSuggestions }: IpcDeps): void {
   handleResult(IPC.autotagRun, () => autoTag.run())
   handleResult(IPC.autotagAccept, (_e, id: unknown, concept?: unknown) =>
     autoTag.accept(requireString(id, 'id'), concept === undefined || concept === null ? undefined : requireString(concept, 'concept')),
@@ -164,4 +175,59 @@ function registerAutoTagIpc({ autoTag }: IpcDeps): void {
     if (min !== undefined && (typeof min !== 'number' || !(min >= 0 && min <= 1))) throw new Error('Invalid confidence')
     return autoTag.acceptAll(min as number | undefined)
   })
+  handleResult(IPC.autotagBlocks, () => tableSuggestions.list())
+  handleResult(IPC.autotagAcceptBlock, (_e, id: unknown, edited?: unknown) =>
+    tableSuggestions.accept(requireString(id, 'id'), edited === undefined || edited === null ? undefined : requireBlockInput(edited)),
+  )
+  handleResult(IPC.autotagRejectBlock, (_e, id: unknown) => tableSuggestions.reject(requireString(id, 'id')))
+  handleResult(IPC.autotagAcceptAlso, (_e, id: unknown, i: unknown) => mapping.acceptAlso(requireString(id, 'id'), requireIndex(i)))
+  handleResult(IPC.autotagRejectAlso, (_e, id: unknown, i: unknown) => mapping.rejectAlso(requireString(id, 'id'), requireIndex(i)))
+}
+
+/** MCA error lists are text reports; anything larger is not one. */
+const MAX_MCA_TEXT = 2_000_000
+
+function registerValidationIpc({ validation, mcaTool, getWindow }: IpcDeps): void {
+  handleQuery(IPC.validationGet, () => validation.view())
+  handleResult(IPC.validationRun, () => validation.run())
+  handleResult(IPC.validationFix, (_e, id: unknown) => validation.applyFix(requireString(id, 'problem')))
+  handleResult(IPC.validationImportMca, async (_e, text?: unknown) => {
+    if (text !== undefined && text !== null) {
+      const t = requireString(text, 'error list')
+      if (t.length > MAX_MCA_TEXT) throw new Error('The error list is too large.')
+      return validation.importMcaErrors(t, 'pasted')
+    }
+    const win = getWindow()
+    const opts = {
+      title: 'Import the MCA Validation Tool error list',
+      properties: ['openFile' as const],
+      filters: [{ name: 'Error list', extensions: ['txt', 'log'] }, { name: 'All files', extensions: ['*'] }],
+    }
+    const { canceled, filePaths } = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
+    const file = canceled ? null : filePaths[0]
+    if (!file) return null
+    const content = await readFile(file, 'utf8')
+    if (content.length > MAX_MCA_TEXT) throw new Error('The error list is too large.')
+    return validation.importMcaErrors(content, basename(file))
+  })
+  handleResult(IPC.validationClearMca, () => validation.clearMcaErrors())
+  handleResult(IPC.toolsLaunchMca, () => mcaTool.launch())
+}
+
+/** Values typed in a review card are short (an amount or a text of at most 200 characters). */
+const MAX_AI_INPUT = 400
+
+function registerAiIpc({ fixAgent }: IpcDeps): void {
+  handleQuery(IPC.aiGet, () => fixAgent.view())
+  handleResult(IPC.aiPropose, (_e, id: unknown) => fixAgent.ask(requireString(id, 'problem')))
+  handleResult(IPC.aiFixAll, () => fixAgent.fixAll())
+  handleResult(IPC.aiStop, () => fixAgent.stop())
+  handleResult(IPC.aiAccept, (_e, id: unknown, opts?: unknown) => {
+    const o = (opts ?? {}) as { input?: unknown; confirmed?: unknown }
+    if (o.input !== undefined && o.input !== null && (typeof o.input !== 'string' || o.input.length > MAX_AI_INPUT)) throw new Error('Invalid value')
+    return fixAgent.accept(requireString(id, 'patch'), { input: (o.input as string | undefined) ?? null, confirmed: o.confirmed === true })
+  })
+  handleResult(IPC.aiReject, (_e, id: unknown, reason?: unknown) => fixAgent.reject(requireString(id, 'patch'), typeof reason === 'string' ? reason.slice(0, 300) : undefined))
+  handleResult(IPC.aiClear, () => fixAgent.clear())
+  handleResult(IPC.aiHistory, () => fixAgent.historyEntries())
 }

@@ -3,7 +3,7 @@ import hmac
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from api.v1.routes import mapping, taxonomies, workbooks
+from api.v1.routes import fix, mapping, taxonomies, workbooks
 from src.app_config import get_app_config
 from src.constants import CI_TAXONOMY_VDB, COSTING_TAXONOMY_VDB, IND_AS_TAXONOMY_VDB
 
@@ -44,3 +44,4 @@ async def health():
 app.include_router(router=taxonomies.router, prefix="/api/v1/taxonomies")
 app.include_router(router=workbooks.router, prefix="/api/v1/workbooks")
 app.include_router(router=mapping.router, prefix="/api/v1/mapping")
+app.include_router(router=fix.router, prefix="/api/v1/fix")

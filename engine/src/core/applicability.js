@@ -1,5 +1,6 @@
 // Applicability engine: which ELRs, concepts and tables apply to a filing, per scope (CY/PY).
-// Sources: generic rules GR-11..GR-14 (report type / previous year), table rules from the
+// Sources: the report-type / previous-year generic rules (C&I GR-11..GR-14, Ind AS GR-10..GR-13: found by their
+// handler, and reasons are tagged with the rule's own id), table rules from the
 // specific-rules sheet ("table is mandatory in case ..."), and the cash-flow statement type.
 // This is the AUTHORITATIVE gate: the UI reads it to disable controls, and the controller and the
 // XML gate enforce it independently.
@@ -9,7 +10,15 @@ import { tablesForFact, nondimAllowed } from './dimensions.js';
 import { nondimRowConcepts, totalColumnAllowed } from './views.js';
 import { statementNoteLinks } from './derived.js';
 
-const CASHFLOW = { '100300': 'Direct Method', '100400': 'Indirect Method' };
+// cash-flow statement ELRs by title (C&I [100300]/[100400], Ind AS [310000]/[320000]) → TypeOfCashFlowStatement value
+function cashFlowElrs(A) {
+  const out = {};
+  for (const e of A.elrs || []) {
+    if (/^cash flow statement,\s*indirect$/i.test(e.title)) out[e.code.slice(0, 6)] = 'Indirect Method';
+    else if (/^cash flow statement,\s*direct$/i.test(e.title)) out[e.code.slice(0, 6)] = 'Direct Method';
+  }
+  return out;
+}
 
 // concepts presented with an opening-balance (periodStart) row — the GR-7 common opening/closing element
 const OPENING = new WeakMap();
@@ -35,15 +44,25 @@ function conditionFacts(when) {
 export class Applicability {
   constructor(A) {
     this.A = A;
-    const g = (n) => A.rules.rules.find((r) => r.id === `GR-${n}`)?.ast || {};
-    this.gr11 = new Set(g(11).codes || []);
-    this.gr12 = new Set(g(12).codes || []);
-    this.gr12ex = g(12).exceptions || {};
-    this.gr13 = new Set(g(13).allowed || []);
-    this.gr14 = new Set(g(14).codes || []);
+    const byHandler = (h) => A.rules.rules.find((r) => r.status === 'EXECUTABLE' && r.ast?.type === 'generic' && r.ast.handler === h) || null;
+    const consolidated = byHandler('elr-not-for-consolidated'), prior = byHandler('elr-not-for-prior-year');
+    const general = byHandler('general-info-consolidated'), standalone = byHandler('elr-not-for-standalone');
+    this.gr11 = new Set(consolidated?.ast.codes || []);
+    this.gr12 = new Set(prior?.ast.codes || []);
+    this.gr12ex = prior?.ast.exceptions || {};
+    this.gr12concepts = new Set(prior?.ast.concepts || []); // single elements of other ELRs (local names)
+    this.gr12tables = new Set(prior?.ast.tables || []); // single tables of other ELRs (hypercube local names)
+    this.gr13 = new Set(general?.ast.allowed || []);
+    this.gr13elr = general?.ast.elrCode || '400100';
+    this.gr14 = new Set(standalone?.ast.codes || []);
+    // reason tags: the rule ids of the taxonomy's workbook
+    this.tag = { consolidated: consolidated?.id || 'GR-11', prior: prior?.id || 'GR-12', general: general?.id || 'GR-13', standalone: standalone?.id || 'GR-14' };
+    this.tags = Object.values(this.tag);
+    this.cashFlow = cashFlowElrs(A);
     this.countries = new Set((A.rules.countries || []).map((c) => c.toUpperCase()));
     // Yes/No dependencies compiled from the MCA conditional rules (rule-formalizer.mjs → booleanDependencies)
-    this.deps = A.rules.booleanDependencies || [];
+    // (a dependency with restricts: false is informational: the taxonomy's MCA evidence keeps the other answer's values)
+    this.deps = (A.rules.booleanDependencies || []).filter((d) => d.restricts !== false);
     this.depsByChild = new Map();
     for (const d of this.deps) for (const c of d.childConcepts) (this.depsByChild.get(c) || this.depsByChild.set(c, []).get(c)).push(d);
   }
@@ -70,6 +89,11 @@ export class Applicability {
       && !['0', 'false'].includes(String(f.value)) && !(this.A.isNumeric(concept) && /^-?0*(\.0*)?$/.test(String(f.value))) && String(f.value).replace(/<[^>]*>/g, '').replace(/&nbsp;|\s/g, '') !== '');
   }
 
+  /** every reason is the previous-year generic rule's (its element exceptions may then apply) */
+  priorOnly(reasons) {
+    return reasons.every((r) => r.startsWith(this.tag.prior + ':'));
+  }
+
   env(filing, scope, extra = {}) {
     return { filing, A: this.A, scope, dims: [], today: new Date().toISOString().slice(0, 10), countries: this.countries, ...extra };
   }
@@ -86,13 +110,13 @@ export class Applicability {
     const code = e.code.slice(0, 6);
     const reasons = [];
     const rt = filing.meta.reportType;
-    if (rt === 'Consolidated' && this.gr11.has(code)) reasons.push(`GR-11: [${code}] not applicable to a consolidated instance`);
-    if (rt === 'Standalone' && this.gr14.has(code)) reasons.push(`GR-14: [${code}] not applicable to a standalone instance`);
-    if (scope !== 'CY' && this.gr12.has(code)) reasons.push(`GR-12: [${code}] not applicable for the previous year`);
+    if (rt === 'Consolidated' && this.gr11.has(code)) reasons.push(`${this.tag.consolidated}: [${code}] not applicable to a consolidated instance`);
+    if (rt === 'Standalone' && this.gr14.has(code)) reasons.push(`${this.tag.standalone}: [${code}] not applicable to a standalone instance`);
+    if (scope !== 'CY' && this.gr12.has(code)) reasons.push(`${this.tag.prior}: [${code}] not applicable for the previous year`);
     if (scope !== 'CY' && filing.meta.firstFinancialYear) reasons.push('First financial year: no previous-year figures');
-    if (CASHFLOW[code]) {
+    if (this.cashFlow[code]) {
       const t = this.cashFlowType(filing);
-      if (t && t !== CASHFLOW[code]) reasons.push(`TypeOfCashFlowStatement is '${t}'`);
+      if (t && t !== this.cashFlow[code]) reasons.push(`TypeOfCashFlowStatement is '${t}'`);
     }
     return { applicable: reasons.length === 0, reasons, partialExceptions: scope !== 'CY' ? this.gr12ex[code] || null : null };
   }
@@ -103,14 +127,15 @@ export class Applicability {
     if (!elrs.length) return { applicable: true, reasons: [] };
     const local = this.A.concept(concept).name;
     const reasons = [];
+    if (scope !== 'CY' && this.gr12concepts.has(local)) return { applicable: false, reasons: [`${this.tag.prior}: '${local}' not applicable for the previous year`] };
     for (const uri of elrs) {
       const st = this.elrStatus(filing, uri, scope);
       const code = this.A.elr(uri).code.slice(0, 6);
       let ok = st.applicable;
       // GR-12 element exceptions for the previous year
-      if (!ok && scope !== 'CY' && !filing.meta.firstFinancialYear && st.reasons.every((r) => r.startsWith('GR-12')) && (this.gr12ex[code] || []).includes(local)) ok = true;
+      if (!ok && scope !== 'CY' && !filing.meta.firstFinancialYear && this.priorOnly(st.reasons) && (this.gr12ex[code] || []).includes(local)) ok = true;
       // GR-13: general information in a consolidated instance only for listed elements
-      if (ok && filing.meta.reportType === 'Consolidated' && code === '400100' && !this.gr13.has(local)) { ok = false; st.reasons.push(`GR-13: '${local}' not applicable in a consolidated instance`); }
+      if (ok && filing.meta.reportType === 'Consolidated' && code === this.gr13elr && !this.gr13.has(local)) { ok = false; st.reasons.push(`${this.tag.general}: '${local}' not applicable in a consolidated instance`); }
       if (ok) return this.dependencyStatus(filing, concept, scope);
       reasons.push(...st.reasons);
     }
@@ -124,7 +149,7 @@ export class Applicability {
     if (!st.applicable) {
       const code = this.A.elr(elrUri)?.code.slice(0, 6);
       const local = this.A.concept(concept)?.name;
-      const gr12only = scope !== 'CY' && !filing.meta.firstFinancialYear && st.reasons.every((r) => r.startsWith('GR-12')) && (this.gr12ex[code] || []).includes(local);
+      const gr12only = scope !== 'CY' && !filing.meta.firstFinancialYear && this.priorOnly(st.reasons) && (this.gr12ex[code] || []).includes(local);
       if (!gr12only) return { applicable: false, reasons: st.reasons };
     }
     return this.conceptStatus(filing, concept, scope);
@@ -176,9 +201,10 @@ export class Applicability {
       if (!st.applicable) {
         // previous-year ELR exceptions may keep individual line items alive (GR-12)
         const ex = st.partialExceptions || [];
-        if (!(st.reasons.every((r) => r.startsWith('GR-12')) && t.lineItems.some((q) => ex.includes(this.A.concept(q).name)))) return { applicable: false, reasons: st.reasons };
+        if (!(this.priorOnly(st.reasons) && t.lineItems.some((q) => ex.includes(this.A.concept(q).name)))) return { applicable: false, reasons: st.reasons };
       }
     }
+    if (scope !== 'CY' && this.gr12tables.has(t.hypercube.split(':')[1])) return { applicable: false, reasons: [`${this.tag.prior}: table not applicable for the previous year`] };
     const conds = this.A.rules.tableApplicability[tableId] || [];
     const bonds = this.A.rules.rules.find((r) => r.status === 'EXECUTABLE' && r.ast?.type === 'tableIffMembers' && r.ast.tables.includes(tableId));
     if (!conds.length && !bonds) return { applicable: true, reasons: [], conditional: false };

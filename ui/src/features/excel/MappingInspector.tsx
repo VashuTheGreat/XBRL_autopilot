@@ -1,18 +1,22 @@
-import { CalendarRange, Check, Link2, Search, Sparkles, Unlink, X } from 'lucide-react'
+import { CalendarRange, Check, Copy, Link2, Search, Sparkles, Table2, Unlink, X } from 'lucide-react'
 import { formatIndian } from '@xap/engine/basics'
-import type { CellAmount, ColumnPeriod, MappingView, Scope } from '@shared/editor'
+import { useState, type ReactNode } from 'react'
+import type { CellAmount, ColumnPeriod, MappingView, Scope, SuggestedAlsoView } from '@shared/editor'
 import { cellKey, rangeOf, rangeSize } from '@shared/workbook'
 import { Button } from '@/components/ui/primitives'
 import { cn } from '@/lib/cn'
 import { useEditor } from '@/stores/editor'
+import { useTables } from '@/stores/tables'
 import { useUi } from '@/stores/ui'
 
 const SCOPES: Scope[] = ['CY', 'PY']
 
 /** Strip under the grid: what the selected cell is tagged as, with quick actions (docs/08-ui-ux.md). */
 export function MappingInspector() {
-  const { selection, byCell, workbooks, cellInfo, untag, setScope, selectFact } = useEditor()
+  const { selection, byCell, mappings, workbooks, cellInfo, untag, setScope, selectFact } = useEditor()
   const setActivity = useUi((s) => s.setActivity)
+  // a text cell can hold several figures (share counts in a note), one mapping each: which one the strip shows
+  const [figure, setFigure] = useState<{ key: string; i: number }>({ key: '', i: 0 })
   const cell = selection.cell
   if (!cell) {
     return <footer className="flex h-9 shrink-0 items-center border-t border-border px-3 text-[11px] text-muted">Select a cell to see or set its tag.</footer>
@@ -23,7 +27,9 @@ export function MappingInspector() {
     .find((w) => w.source === cell.workbook)
     ?.sheets.find((s) => s.name === cell.sheet)
     ?.cells.find((c) => at && c.r === at.r1 && c.c === at.c1)?.v
-  const m = byCell.get(cellKey(cell))
+  const key = cellKey(cell)
+  const figures = mappings.filter((x) => x.pick !== undefined && cellKey(x.cell) === key).sort((a, b) => a.pick! - b.pick!)
+  const m = figures.length > 1 ? figures[figure.key === key ? Math.min(figure.i, figures.length - 1) : 0] : byCell.get(key)
   const info = cellInfo && cellKey(cellInfo.cell) === cellKey(cell) ? cellInfo : null
 
   return (
@@ -37,6 +43,20 @@ export function MappingInspector() {
       ) : (
         <span className="max-w-40 truncate tabular" title={raw == null ? '' : String(raw)}>
           {raw == null ? <span className="text-muted">empty</span> : typeof raw === 'number' ? formatIndian(String(raw)) : String(raw)}
+        </span>
+      )}
+      {figures.length > 1 && (
+        <span className="flex shrink-0 gap-0.5" data-testid="text-figures" title="The figures written in this cell’s text, one tag each">
+          {figures.map((x, i) => (
+            <button
+              key={x.id}
+              className={cn('rounded px-1 font-mono text-[10px]', x === m ? 'bg-accent text-accent-fg' : 'border border-border text-muted')}
+              title={`${x.conceptLabel} (${x.fact.scope})`}
+              onClick={() => setFigure({ key, i })}
+            >
+              #{x.pick! + 1}
+            </button>
+          ))}
         </span>
       )}
       <span className="h-4 w-px bg-border" />
@@ -55,11 +75,13 @@ export function MappingInspector() {
       ) : m ? (
         <>
           <button className="flex min-w-0 items-center gap-1.5 hover:underline" title={m.fact.concept} onClick={() => selectFact(m.factKey)}>
-            <Link2 size={13} className="shrink-0 text-ok" />
+            {m.fact.dims.length ? <Table2 size={13} className="shrink-0 text-ok" /> : <Link2 size={13} className="shrink-0 text-ok" />}
             <span className="truncate">{m.conceptLabel}</span>
+            {m.fact.dims.length > 0 && <span className="shrink-0 text-[11px] text-muted">in table</span>}
           </button>
           <Segmented label="Period" value={m.fact.scope} onPick={(s) => void setScope(m.id, s)} />
           {m.sign === -1 && <span className="text-[11px] text-warn">sign reversed</span>}
+          <AlsoReported m={m} />
           <div className="flex-1" />
           <Button variant="ghost" className="h-6 px-2" onClick={() => void untag(m.id)} title="Remove this tag">
             <Unlink size={13} /> Untag
@@ -79,11 +101,68 @@ export function MappingInspector() {
   )
 }
 
+/**
+ * "Also reported as": the other facts this cell's figure is filed as, each removable; the suggested ones, each to
+ * accept or reject; and a way to add one.
+ */
+function AlsoReported({ m }: { m: MappingView }) {
+  const { removeAlso, selectFact, acceptAlso, rejectAlso } = useEditor()
+  const open = useTables((s) => s.open)
+  return (
+    <span className="flex min-w-0 items-center gap-1" data-testid="also-reported">
+      {m.alsoViews.map((a, i) => (
+        <span key={i} className="flex min-w-0 items-center gap-0.5 rounded bg-ok/10 px-1 text-[11px] text-ok" title={`Also reported as ${a.conceptLabel} [${a.memberLabels.join(', ')}] ${a.fact.scope}`}>
+          <button className="truncate hover:underline" onClick={() => selectFact(a.factKey)}>
+            also: {a.memberLabels.join(' · ') || a.conceptLabel}
+          </button>
+          <button aria-label="Stop reporting this fact" onClick={() => void removeAlso(m.id, i)}>
+            <X size={10} />
+          </button>
+        </span>
+      ))}
+      {m.alsoSuggestedViews.map((a, i) => (
+        <SuggestedAlsoChip key={`s${i}`} a={a}>
+          <button aria-label="Also report this fact" title="Also report this figure as that fact" onClick={() => void acceptAlso(m.id, i)} data-testid="also-accept">
+            <Check size={11} />
+          </button>
+          <button aria-label="Don’t report this fact" onClick={() => void rejectAlso(m.id, i)} data-testid="also-reject">
+            <X size={10} />
+          </button>
+        </SuggestedAlsoChip>
+      ))}
+      <button
+        className="flex shrink-0 items-center gap-0.5 text-[11px] text-muted hover:text-fg"
+        onClick={() => open({ kind: 'also', mappingId: m.id, concept: m.fact.concept })}
+        title="Also report this figure as a table fact (e.g. a share class or an asset class column)"
+        data-testid="also-add"
+      >
+        <Copy size={11} /> Also as…
+      </button>
+    </span>
+  )
+}
+
+/** A suggested "also reported as" fact: amber, with its confidence; the actions are the caller's. */
+function SuggestedAlsoChip({ a, children }: { a: SuggestedAlsoView; children?: ReactNode }) {
+  const what = a.memberLabels.join(' · ') || a.conceptLabel
+  return (
+    <span
+      className="flex min-w-0 items-center gap-0.5 rounded border border-dashed border-warn/60 px-1 text-[11px] text-warn"
+      title={`Suggested: also report as ${a.conceptLabel} [${a.memberLabels.join(', ')}] ${a.fact.scope}, ${Math.round(a.fact.confidence * 100)}%${a.fact.reason ? ` (${a.fact.reason})` : ''}`}
+      data-testid="also-suggested"
+    >
+      <span className="truncate">also: {what} (suggested)</span>
+      {children}
+    </span>
+  )
+}
+
 const ORIGIN_TEXT: Record<string, string> = {
   memory: 'tagged so before',
   exact: 'label match',
   lexical: 'word match',
   ai: 'AI',
+  table: 'table match',
 }
 
 /** An auto-tagging suggestion for the cell: the element, its confidence and why; accept, pick an alternative, or reject. */
@@ -103,6 +182,10 @@ function SuggestionControls({ m, onScope }: { m: MappingView; onScope: (s: Scope
       </span>
       <Segmented label="Period" value={m.fact.scope} onPick={onScope} />
       {m.sign === -1 && <span className="text-[11px] text-warn">sign reversed</span>}
+      {/* offered for review once the cell is tagged */}
+      {m.alsoSuggestedViews.map((a, i) => (
+        <SuggestedAlsoChip key={i} a={a} />
+      ))}
       {alternatives.length > 0 && (
         <select
           className="h-6 max-w-44 shrink rounded border border-border bg-panel px-1 text-[11px] text-muted"

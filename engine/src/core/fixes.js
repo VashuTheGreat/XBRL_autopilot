@@ -28,6 +28,8 @@ export function fixFor(S, issue) {
   if (!issue || issue.severity !== 'ERROR') return null;
   const A = S.A, f = S.filing;
   const fact = issue.factKey ? f.facts.get(issue.factKey) : null;
+  // generic rules are numbered per taxonomy (CY/PY pairing: C&I GR-6, Ind AS GR-5): match them by handler
+  const handler = A.rules.rules.find((r) => r.id === issue.ruleId)?.ast?.handler;
   // v14.6: a schema reference that is not accepted (e.g. the old V2 address) → the V3 address
   if (issue.code === 'schemaRef') return { label: 'Use the V3 schema reference', confirm: `Write the XML with the schema reference the MCA XBRL Validator requires: <b>${esc(A.meta.schemaRef)}</b> (instead of ${esc(f.meta.schemaRef || '')}).`, apply: () => { f.meta.schemaRef = null; f.revision++; } };
   if (issue.code === 'dim.hypercube' && fact) { const x = columnTotalFix(S, fact); if (x) return x; }
@@ -41,7 +43,7 @@ export function fixFor(S, issue) {
     return { label: 'Set it aside', confirm: `Set aside <b>${esc(A.label(fact.concept))}</b> dated ${esc(fact.period.date || `${fact.period.start} → ${fact.period.end}`)}? ${other ? "It is outside this filing's two years" : 'No tab shows a cell for it'}; it stays in the project under Hidden data (restorable) and is no longer part of the filing.`, apply: () => setAside(S, [{ fact, reason: other ? 'otherDate' : 'openingNoCell' }], 'fix') };
   }
   // GR-1: part entered, total missing
-  if (issue.ruleId === 'GR-1' && fact && /is entered but its calculation parent/.test(msg)) {
+  if (handler === 'calc-parent-child' && fact && /is entered but its calculation parent/.test(msg)) {
     if (f.scopeOf(fact.period) === 'PYO') {
       return { label: 'Remove this opening value', confirm: `Remove the previous-year opening value <b>${esc(A.label(fact.concept))}</b> dated ${fact.period.date}? Its total has no cell for that date; previous-year opening balances are optional.`, apply: () => S.removeFacts([fact]) };
     }
@@ -55,7 +57,7 @@ export function fixFor(S, issue) {
     return null;
   }
   // GR-1: total ≠ Σ parts, the total was entered (a calculated total follows its parts by itself)
-  if (issue.ruleId === 'GR-1' && fact && issue.calc && /Calculation inconsistency/.test(msg) && fact.origin !== 'calculated') {
+  if (handler === 'calc-parent-child' && fact && issue.calc && /Calculation inconsistency/.test(msg) && fact.origin !== 'calculated') {
     const t = S.totalFromParts(fact.concept, fact.period, fact.dims);
     if (!t) return null;
     const sc = scopeOfFact(fact);
@@ -77,7 +79,7 @@ export function fixFor(S, issue) {
   const m = /^'(.+)' is mandatory — not present for (CY|PY)/.exec(msg.replace(/^\[[^\]]+\]\s*/, ''));
   if (m && issue.concept && A.isNumeric(issue.concept)) return nilFix(S, issue.concept, m[2], issue.location);
   // GR-6: previous year entered, current year not → nil for the current year
-  if (issue.ruleId === 'GR-6' && fact && A.isNumeric(fact.concept) && /current-year value should be entered/.test(msg)) {
+  if (handler === 'cy-py-pairing' && fact && A.isNumeric(fact.concept) && /current-year value should be entered/.test(msg)) {
     return nilFix(S, fact.concept, 'CY', null, fact.dims, fact);
   }
   return null;

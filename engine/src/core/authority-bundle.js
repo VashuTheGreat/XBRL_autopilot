@@ -36,7 +36,7 @@ export function assembleAuthority(taxonomy, rules = null) {
   if (rules.meta?.taxonomyHash !== taxonomyHash) {
     throw new AuthorityMismatchError(
       `The business rules were compiled against another build of ${taxonomy.meta.taxonomyId ?? 'the taxonomy'} ` +
-      `(${String(rules.meta?.taxonomyHash).slice(0, 12)} ≠ ${taxonomyHash.slice(0, 12)}). Run "pnpm --filter @xap/engine compile:authority".`,
+      `(${String(rules.meta?.taxonomyHash).slice(0, 12)} ≠ ${taxonomyHash.slice(0, 12)}). Run "make engine-rules" (ADR-0011).`,
     );
   }
   const { sources: ruleSources = [], acceptedSchemaRefs = [], authorityHash, rulesHash, compilerVersion } = rules.meta;

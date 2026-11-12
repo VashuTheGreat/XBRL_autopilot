@@ -16,10 +16,11 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 | 6 | **Ind AS 2017 + engine data via routes** ([ADR-0010](decisions/ADR-0010-engine-authority-from-knowledge-base.md)): the Python ingestion builds the engine authority (DTS, prohibition/override, dimensional model) for C&I and Ind AS, served by `/{id}/authority`; the app assembles it with the compiled rules (`AuthorityService`); the TS DTS compiler is retired. Golden: identical C&I authority and byte-identical XML. Ind AS = union of the `in-ci-ent` + `in-ca-ent` DTS (66 ELRs, every Dixon element resolves). Taxonomy choice in the wizard | ✅ done |
 | 7 | **Import an existing XBRL instance** (any vendor) into a project: golden test Dixon → regenerate → all 2,666 facts semantically equal (also after save → reopen); import report with the round-trip proof and Webtel's conventions vs ours; next year's filing started from last year's XML | ✅ done |
 | 8 | **AI auto-tagging** (`/mapping/suggest`: layout → memory → exact label → BM25 with heading context, filtered by period type / dimensions / statement → optional Groq rerank) plus an **evaluation harness** on the DGPL ↔ Dixon answer key (precision 0.738, recall 0.793; ≥ 0.9 right 93.6%); suggestions → Accept / Reject / Accept all ≥ 90% in the app; mapping memory. Embeddings (ONNX) deferred | ✅ done |
-| 9 | **Validation UI** (⏭ next): the executable rule ASTs move into `knowledge_base` and are served by a route (the rule text already is); live gate/rules/calculation per taxonomy, Problems panel with locate, quick fixes, MCA Validation Tool v5.1 launcher + error import, rule-coverage report | ⏳ |
-| 10 | **AI fix agent** (`/fix/propose`, patch review, audit log) | ⏳ |
-| 11 | **Packaging**: PyInstaller sidecar + electron-builder NSIS, `.axbrl` association | ⏳ |
-| 12 | Costing CRA-4, masters prefill, trial-balance mapping, Groq proxy, auto-update | ⏳ |
+| 9 | **Validation UI** ([ADR-0011](decisions/ADR-0011-business-rules-from-knowledge-base.md)): the executable rule ASTs are built in Python into `knowledge_base` and served by `/{id}/engine-rules`; C&I deep-equal to the retired TS compiler; **Ind AS formalized** (95.36% executable, Dixon 0 ERRORs); rule-coverage reports; live validation (gate, rules, calculation per taxonomy), Problems panel with locate and quick fixes, MCA Validation Tool v5.1 launcher + error import; Arelle XSD check (dev extra) working | ✅ done |
+| 10 | **AI fix agent** ([ADR-0012](decisions/ADR-0012-ai-fix-patches.md)): `/fix/propose` (Groq tool loop ≤ 6 calls, tools on the knowledge base + bundle, strict JSON patches), privacy checked twice + fixture guard, engine `checkPatch` / `applyFactPatch` / `dryRun`, diff cards with Accept / Edit / Reject, Fix all rounds with budgets, `ai/history.jsonl` with the exact payload; live Groq smoke 4/4 correct | ✅ done |
+| 11 | **Complete end-to-end tagging** ([ADR-0013](decisions/ADR-0013-table-tagging.md)): coverage evaluation of every filed fact ✅; ELR groups by title ✅; table blocks + figures reported twice + rule-driven table zeros (engine, app, UI) ✅; table suggestions in the sidecar + per-producer scoreboard + HPL key ✅ (3a); table and "also" suggestions in the app ✅ (3b.1); parent-member roll-ups ✅ (3b.2); engine-side scoreboard ✅ (3b.3); table-suggester yield (column years from the statements, rows that are members) ✅ (3b.4); related parties, fair values and category totals (one cell → more facts), merged headers ✅ (3c); sub-classification "also" (loans, trade receivables) ✅ (3d); share capital note with counts in text ✅ (3e); next: text + filing-details form (step 5), Excel parsing gaps (.xls formats, 60k cap) | 🔄 steps 1–3e done |
+| 11b | **Packaging**: PyInstaller sidecar (check xlrd in the bundle) + electron-builder NSIS, `.axbrl` association. A packaging spike comes earlier only if a pilot install is needed | ⏳ |
+| 12 | Costing CRA-4 (its KB exists; no engine authority, rules or wizard entry yet), masters prefill, trial-balance mapping, Groq proxy, auto-update | ⏳ |
 
 ## Known issues / debt
 - `src/services/retrieval/hybrid.py` and `reranking.py` are still empty: the Phase 8 tagger lives in `src/services/tagging/` and doesn't use embeddings. They become the embedding candidate source once an ONNX model and a prebuilt index exist (docs/06).
@@ -28,13 +29,28 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 - The `lagacy_js` compile step expects input file names that differ from `data/` and needs the Annexure txt + filing-manual pdf. Make those optional when porting.
 - The Groq dev key was shared in chat. Rotate it before production.
 - **Missing legacy evidence:** `golden-DIVERGENCES.json` was reconstructed from the legacy test assertions, and `APPROVED_LIMITATIONS.json` was recreated. The MCA-validated `golden-FILING-A/B_2024-25.xml` instances, the Annexure II text export and the Filing Manual pdf are not in the repo, so ~50 regression tests skip. **Ask the `lagacy_js` author for the originals** (see `docs/04-xbrl-engine.md`).
-- **Arelle isn't installed** in the Python environment, so 7 XSD tests skip. Still open after Phase 6: add `arelle-release` (dev extra) when the XSD check is wired into Phase 9.
-- **Ind AS has no business rules yet:** its rule workbook is formalized in Phase 9. Until then an Ind AS filing gets facts, XML and structural checks only.
+- **Ind AS rule gaps (Phase 9):** SR-L4235-1 ("yes is selected in above element": unnamed) and ML-39-b (outstanding balances, ambiguous in the MCA source) stay UNIMPLEMENTED. The Ind AS exempt parent/child member sheets are read, but Ind AS has no generic parent-member rule to consume them (C&I GR-3); confirm with the MCA tool whether it enforces parent members for Ind AS.
+- **Rule ids count lines from the sheet's stored range** (SheetJS `!ref`, BIFF DIMENSIONS), not the worksheet row: kept so the C&I ids (`SR-L<line>-n`) stay stable; the coverage report's "Row" uses the same numbering.
+- **Hardcoded C&I ELR codes left in the engine** (outside the rules): `carry-forward.js` disclosure tabs [400100]–[400500] and some importer comments. Applicability now finds cash-flow ELRs by title and general information by the rule's `elrCode`; review the rest when Ind AS next-year carry-forward is exercised.
 - **Webtel's conventions** are reported by the Phase 7 import (descriptive context ids, `TAB…` fact ids, duplicate contexts). Dixon's amounts are rupees with `decimals="-3"`/`"2"` as filed; imported facts keep their own `decimals`, so the regenerated XML reports them unchanged.
-- **Next-year import of Ind AS** keeps general-information and report facts in the previous year: GR-12 ("not applicable to a previous year") is a business rule, and Ind AS has none until Phase 9.
 - **E2E can't switch projects:** a dirty project triggers the native "Save changes?" box, which CDP can't click. The statement-list fix for switching taxonomies has no E2E yet.
+- **Rebel Marketplace (Ind AS) gives 7 ERRORs** (pinned in `engine/test/rebel-known.test.ts`): ML-40 ×4, SR-L1097-1 ×2, SR-L6487-2 ×1. Not a golden until MCA acceptance of that exact instance is shown; triage then (rule or filing).
+- **Ind AS parent/child member exemptions** (from Phase 9): still read but unused; confirm with the MCA tool whether it enforces parent members for Ind AS.
+- **AI fix agent limits (Phase 10):** no patches on table (dimensional) values yet (`setDims`: table facts can now be tagged, Phase 11 step 2, but the patch model doesn't cover them); `addFootnote` / `editText` / `setMeta` deferred; MCA tool problems get no dry-run verdict; the live quality was measured on 4 synthetic problems only, so measure it on a larger non-client set; Fix all asks one problem per request (no batching).
 - **Possible legacy-test flake:** one run of `pnpm test` (while a dev Electron app was also running) failed a `golden-DIVERGENCES.json` assertion; the next three runs passed (220/0). Watch for it.
-- **`xlsx@0.18.5` (SheetJS, npm)** is the last npm release and has known advisories. It's used only at build time by the authority compiler, on the trusted MCA workbook. Never use it for user files; user Excel goes through exceljs.
+
+- **Table tagging (Phase 11 step 2) — open points:**
+  - table suggestions cover PPE, changes in equity, financial assets by category (with fair values and category totals) and related parties. Not yet:
+    - holders over 5%: refused until the Yes/No of SR-L621-1 is answered (step 5); ValueOfSharesCalled and the holding company's shares are not suggested;
+    - a text cell with several figures shows the first in the grid; the inspector switches with #1 #2 … chips. No E2E for it yet.
+    - the loan type (Dixon: *Loans given to other related parties* for "Loans given to holding company"): no label names it;
+    - related parties' names, countries and nature (text, ML-39 ×3 until then); interest received, sitting fees and consultancy are not matched to Dixon's choices;
+    - filer conventions left out: PPE classes again under "Owned assets", "Fan, cooler & AC" under *Other plant and equipment*; EPS by class (its statement tag is 0.75, under the 0.9 bar for "also").
+  - The numbered placeholders are filled in row order. Dixon numbered the non-current row last; MCA accepts any numbering.
+  - "Also report as" takes one fact at a time;
+  - the "Map as table" dialog lists all 200+ tables (searchable), not only those that fit the block;
+  - `phase11-tables.mjs` failed the inspector-chip check once (the "also" chip wasn't shown for I39), then passed three runs in a row; watch it.
+- **Ask the team** for Helmier's instance XML (an exact C&I golden; today only the PDF) and the Rebel workbook (a second Ind AS before/after pair).
 
 ## Log
 - **2026-11-10:**
@@ -180,3 +196,183 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
   - **E2E `ui/e2e/phase8-autotag.mjs` green** (13 checks on DGPL): 299 suggestions and no fact before accepting; inspector Accept (I24 → Trade receivables, current, 95%, exact) and Reject; Accept all ≥ 90% tags 114; the Form shows Total assets 1,904.45 from I34.
   - **Fixes from the run:** "Accept all" refreshed the renderer once per tag (minutes on 114 tags) → `ProjectHandle.batch()` sends one change notification at the end (the run takes seconds). The tagger broke score ties by Python set order, so a run could give 299 or 300 suggestions → ties are broken by qname (identical output across hash seeds).
   - **Next:** Phase 9, validation UI.
+- **2026-11-11, Phase 9 step 1 done: business rules from the knowledge base ([ADR-0011](decisions/ADR-0011-business-rules-from-knowledge-base.md)):**
+  - **Python rule builder** `src/services/engine_rules/` (`workbook.py` + `sheet_origin.py`, `resolver.py`, `specific.py`, `specific_fallback.py`, `mandatory_items.py`, `exemptions.py`, `generic.py`, `generic_ind_as.py`, `coverage.py`, `report.py`, `builder.py`, `store.py`; `jsre.py` gives JS regex semantics). `make engine-rules` (also in `make rebuild`) writes `knowledge_base/<kb>_engine_rules.json`, `<kb>_rule_coverage.json` and `docs/generated/rule-coverage-<kb>.md` in about 1 s.
+  - **Golden:** the TS compiler's C&I output was frozen first (`tests/fixtures/engine_rules/ci_*.ts-golden.json`); the Python port is deep-equal (rule model, exemptions, applicability, Yes/No dependencies, coverage ledger). The example filing's XML stays byte-identical. Then the TS compiler (`compile.mjs`, `rule-formalizer.mjs`, `rules-source.mjs`) and the `xlsx` dependency were deleted; `engine/scripts/assemble-authority.mjs` only joins the two KB files for tests.
+  - **Route** `GET /api/v1/taxonomies/{id}/engine-rules`; the app's `SidecarRuleBundleSource` (404 → no rules) replaces `FileRuleBundleSource`. `sidecarCall` throws `SidecarCallError` with the HTTP status.
+  - **Ind AS formalized:** reader for its layout (812 rule rows), wording normalization + further forms in a second pass that only sees clauses the C&I port leaves UNIMPLEMENTED, curated note sums (borrowings, loans/advances/provisions, trade receivables, PPE/IP/intangibles/goodwill/biological assets, other equity, share capital), the 16 generic rules (two new handlers: GR-6 closing = opening + change from sheet "formulas Linkbase", GR-16 first-time-adoption opening balance sheet). **Executable share 95.36%** (1273 / 1335; review-only 60, unimplemented 2); C&I 95.15% (962 / 1011). Share = EXECUTABLE ÷ (all − NOT_APPLICABLE).
+  - **Engine runtime made taxonomy-generic:** generic rules are found by handler, not C&I rule number (`applicability.js`, `rules.js`, `fixes.js`, `session.js`); reasons carry the rule's own id; cash-flow ELRs by title; new AST options `exemptConcepts`, prior-year `tables`/`concepts`, `elrCode`, `memberMandatory.members`; curation `softFor` (`concepts` / `scopes` incl. `PYO`) for any rule. Ind AS Yes/No answers don't restrict availability (`yes_no_restricts: False`, Dixon evidence).
+  - **Dixon acceptance: 0 ERRORs**; 6 curated exceptions in `curation/ind_as/divergences.json`, each with rule text, Dixon fact and why MCA accepted it, and each still shown as a warning. Fixed the Phase 7 known issue: next year's Ind AS filing now leaves the 207 GR-11 facts (directors'/auditors' report, general information, KMP …) out of the previous year (set aside).
+  - **Tests:** pytest 98 (+28 `test_engine_rules.py`: golden, freshness, measure ≥ 95%, readers, curation, route); engine 33 (+3 `ind-as-rules.test.ts`); legacy 219/0 (the compiler-only corpus test moved to pytest); ui 132.
+  - **Next:** Phase 9 step 2, the validation UI (ValidationService, Problems panel, locate, quick fixes, MCA tool launcher + error import).
+- **2026-11-11, Phase 9 done: validation UI:**
+  - **`ValidationService`** (Electron-free): the gate for the open filing, debounced 400 ms after every project change (about 0.3 s on Dixon's 2,666 facts, so on the main process); issues → `Problem`s with location (statement, row, table, period, fact) and the Excel cell of **approved** mappings only; quick fixes through the engine's `fixFor`; MCA tool error lists explained (`explainMcaErrors`) and kept in the project (`mca-errors/`).
+  - **`McaToolService`**: finds the tool (Settings, else `data/validation_tool` in dev and common folders), writes `output/NNN.xml` (in the `.axbrl` and next to the project), starts the tool detached. Ports `ToolLauncher`, `OutputWriter`; adapters in `infra/mca-tool.ts`.
+  - **IPC** `validation:get|run|fix|import-mca|clear-mca|changed`, `tools:launch-mca`; menu Validate and Validate in MCA Tool wired.
+  - **UI:** Problems panel (grouped by statement, severity and source filters, rule coverage, double-click locate → Form row + Excel cell, Fix, paste / load MCA errors with explanations, Ask AI disabled until Phase 10); error badge on the tab; error / warning counts in the status bar.
+  - **Arelle** (`arelle-release`, dev extra): the 7 skipped XSD tests now run. Two bugs found and fixed in `xsd-validate.mjs`: on Windows Arelle could not load the taxonomy from a `file:///D:/…%20…` schemaRef, and CRLF log lines hid every message code, so broken instances passed. All 8 XSD tests pass, including the negative ones. (uv resolved `python-dateutil` 3.0.0 for Arelle; pytest unaffected.)
+  - **Tests:** ui 141 (+9 `validation-service.test.ts`: empty view, C&I rules + coverage, approved-only source cells, quick fix, MCA import → save → clear, debounce, MCA launch numbering, missing tool); legacy 226/0 (+7 XSD); engine 33; pytest 98.
+  - **E2E `ui/e2e/phase9-validation.mjs` green** (13 checks): live problems + status-bar counts, rule coverage 95.2%, a PY-only share capital tag gives a problem on BS!D9, double-click selects D9 and opens [100100], Fix clears it, two pasted MCA errors explained and linked to ShareCapital, no renderer errors. Phase 6 and 7 E2E also green with the rules loaded through the route.
+  - **Next:** Phase 10, the AI fix agent.
+- **2026-11-11, Phase 10 done: AI fix agent ([ADR-0012](decisions/ADR-0012-ai-fix-patches.md), [07](07-ai-fix-agent.md)):**
+  - **Sidecar:**
+    - `src/services/llm/groq.py` is the one Groq client: 60 s timeout, backoff on 429/5xx, `GROQ_URL` only as https or loopback, the API's error code kept. The tagging rerank now uses it too.
+    - `src/services/fix_agent/` (`bundle.py`, `privacy.py`, `tools.py`, `agent.py`, `patches.py`) and route `POST /api/v1/fix/propose`: tool loop of at most 6 calls with a token budget, repair prompt, recovery from Groq `tool_use_failed`, structural patch check.
+    - Responses: 409 without a key, 422 for identity data (nothing sent), 502 when Groq fails.
+  - **Engine:** `src/patches.ts` (`checkPatch`, `applyFactPatch`, `dryRun`) for the ops setValue (sources cell / identity / user), setNil, remap, setScope, removeFact, setText.
+  - **Electron** (Electron-free services):
+    - `ContextBundleBuilder`: no identity data, opaque fact ids, label-matched Excel rows for untagged elements.
+    - `PatchVerifier`: engine + Excel checks + dry run.
+    - `PatchApplier`: Session / MappingService, origin `ai`.
+    - `FixAgentService`: Ask AI; Fix all with ≤ 10 problems per round, ≤ 5 rounds, token / time budgets, stop reasons.
+    - `AiHistory`: `ai/history.jsonl`.
+    - `HashFixtureGuard` + `infra/fixture-hashes.ts`: `data/` hashed at dev startup, a no-op when packaged.
+    - `SidecarFixProposer`.
+    - IPC `ai:*`.
+    - `MappingService.setScope` keeps provenance.
+    - `SidecarClient.request` takes a timeout.
+  - **UI:** ✦ Ask AI per problem and Fix all with AI (Problems and AI Agent); the AI Agent tab with diff cards (before → after, source, confidence, dry-run verdict, locate, Accept / Edit / Reject, confirmation for removals and typed values), dropped proposals with reasons, History with the exact payload, the "AI off" reason; review badge on the tab.
+  - **Live Groq** (`openai/gpt-oss-120b`, synthetic sample only, `ui/e2e/phase10-live-groq.mjs`): 4 of 4 correct Excel-sourced cards, each clearing its problem on the dry run, in 2–6 s and about 2,200 tokens each. The first live runs found three issues, all fixed with tests:
+    - `confidence: "high"` dropped every patch;
+    - a made-up fact id for a new fact;
+    - a "Note No." cell cited as the amount (caught by the Excel check; label-matched rows are now named by their year cell).
+  - **Rebel Marketplace** (Ind AS, FY 2025-26) committed as an offline fixture (XML + 2 PDFs, docs/12) with its 7 ERRORs pinned as known; the screenshot stays out of git. `knowledge_base/ci_engine_authority.json` reverted (it had been pretty-printed with the same content).
+  - **Tests:**
+    - pytest 120 (+22 `test_fix_agent.py`: Groq client retries / timeouts / URL, rerank through the shared client, privacy and the TS/Python pattern parity, tools, loop, patch checks, confidence words, made-up ids, `tool_use_failed`, route);
+    - engine 42 (+8 `patches.test.ts`, +1 `rebel-known.test.ts`); legacy 226/0;
+    - ui 156 (+11 `fix-agent-service.test.ts`, +4 `fixture-guard.test.ts`).
+  - **E2E `ui/e2e/phase10-ai-fix.mjs` green** (22 checks, dev app + mock LLM through `GROQ_URL`).
+  - **Next:** Phase 11, packaging.
+- **2026-11-11, linkage follow + robustness:**
+  - **Excel → XBRL Form follows the selection:**
+    - selecting a tagged or suggested cell opens a statement that shows its element (the open one if it does);
+    - the row scrolls into view below the sticky header, highlighted;
+    - a repeat click brings it back.
+  - The E2E found two bugs, both fixed: the row was scrolled behind the sticky header, and a repeat click did nothing. E2E `ui/e2e/linkage-follow.mjs` is green (6 checks).
+  - **A full C: drive crashed the main process** (`ENOSPC` while writing a sidecar log line to stdout). `hardenConsole()` (`ui/electron/main/util/safe-console.ts`) drops a log line that can't be written; it never throws.
+  - **Root cause of the clutter:** every `pnpm test` left ~70 temp folders in `%TEMP%` (870 folders, 1.2 GB). `ui/test/global-setup.ts` now gives each run one temp folder and removes it at the end. The 870 old folders are still there; delete `%TEMP%\xap-*` by hand.
+  - **Tests:** ui 157 (+1 `safe-console.test.ts`).
+- **2026-11-11, Phase 11 step 1: end-to-end coverage measured ([ADR-0013](decisions/ADR-0013-table-tagging.md) proposed):**
+  - `src/evaluation/coverage_eval.py` (+ `fact_kinds.py`, `workbook_index.py`; `instance_facts.read_facts` reads every fact): all 2,666 Dixon facts, by kind and section, with whether they are in the DGPL workbook, produced by us, and right / near / wrong (table in [06](06-ai-auto-tagging.md#end-to-end-coverage-every-filed-fact)).
+  - **Findings:**
+    - **Zeros:** 1,623 of the 2,186 amounts are 0, and the rules require them: removing the 1,260 zero table facts gives 73 ERRORs (ML-13 ×44 …).
+    - **Figures reported twice:** 169 of the 288 non-zero table amounts are a statement figure reported again with a member.
+    - **PPE layout:** the PPE schedule carries its period and carrying-amount member in the rows.
+    - **General information:** 31 of the 153 general-section facts are in the workbook.
+    - **ELR groups:** the engine's ELR groups are wrong for Ind AS (known issue).
+  - **Tests:** pytest 128 (+4 `test_coverage_eval.py` with exact counts and floors, +4 `test_fact_kinds.py` on C&I and Ind AS).
+  - **Housekeeping:** the 861 old `%TEMP%\xap-*` folders (1.27 GB) were deleted.
+  - **Next:** the team approves ADR-0013, then step 2: ELR groups by title, then table blocks in the engine and the app.
+- **2026-11-11, ADR-0013 accepted** with the team's additions:
+  - figures reported twice follow their cell on every value change;
+  - the zero fill runs only on demand, only for columns that already have a value, and is counted apart on the scoreboard;
+  - wrong limits: amounts ≤ 25, table amounts ≤ 10% of those produced; right / near / wrong reported per producer;
+  - xlrd, pinned and read-only, for `.xls` number formats.
+
+  Numbering: 11 = tagging, 11b = packaging, 12 = Costing. CLAUDE.md and docs/README were updated to match.
+- **2026-11-11, Phase 11 step 2a: ELR groups by title:**
+  - The engine authority's `group` now comes from `classify_elr(title)` (`builder.py`), not from C&I code ranges. This fixes the known issue: for Ind AS, the P&L had been read as a note and the 400xxx notes as disclosures.
+  - **C&I:** `ci_engine_authority.json` is byte-identical.
+  - **Ind AS:** 26 of 66 ELRs were regrouped; the rules are unchanged (`taxonomyHash` is the same). There are now 38 statement ↔ note links.
+  - **Dixon:** 0 ERRORs, no statement/note differences, nothing re-derived. Rebel: 7 known ERRORs, unchanged.
+  - **Tests:** engine 46 (+4 `elr-groups.test.ts`, which fails 2 of 4 without the fix); legacy 226/0; pytest 128; ui 157.
+- **2026-11-11, Phase 11 step 2: table tagging in the app ([ADR-0013](decisions/ADR-0013-table-tagging.md)):**
+  - **Engine:**
+    - `tableZeroPlan` / `fillTableMandatoryZeros`: rule-driven zeros, only in columns that already have a value, run to a fixpoint. "Filled column" is shared with the rule engine (`core/table-columns.js`). **Golden:** Dixon without its 1,260 zero table facts (73 ERRORs) + the fill → 0 ERRORs, and the 163 facts added are all zeros Dixon filed.
+    - `planTableBlock` / `tableOfFact`: a block → one planned fact per cell. Only period roles choose the row, and problems are given per cell.
+    - `setValue` / `setTableValue` options are typed.
+  - **App services (Electron-free):**
+    - `MappingService` tags table facts (members, table, opening role) through `setTableValue`.
+    - **Also reported as** (`addAlso` / `removeAlso`): the facts follow the cell on tag, re-tag, change of year and reapply / decimal places (tested), and go with untag. One fact ← one cell is kept.
+    - Views carry `factKeys` and `alsoViews`, and a table fact's `elrUris` is its table's note.
+    - `TableMappingService`: plan, apply (one block, a cell per tag with `blockId`, replaces a block on the same range), list, remove, `tables()`, `structure()`.
+    - `StatementService.fillTableZeros`.
+    - `EditorQueryService` builds the Form's table grids (`FormView.tables`). The linkage consumers (validation, AI bundle) use every fact key.
+    - `mapping.json` gains `also`, `blockId`, `fact.tableId` / `preferredLabel` and `blocks` (docs/03); old files read unchanged.
+  - **IPC:** `mapping:also-*`, `table:*`, `editor:fill-table-zeros`, with input validators in `ipc/table-input.ts` (docs/09).
+  - **UI (docs/08):**
+    - "Map as table" (a dragged block → `TableMapDialog`: table search, rows → line item / role / year / members, columns → members / year, Preview, Map cells);
+    - the Form shows table grids with source chips (the "also" ones marked) and "Table zeros → 0";
+    - the inspector shows "also: …" chips and "Also as…" (`AlsoReportDialog`, ★ tables that report the element);
+    - `displayLabel` drops "[Member]" / "[Table]";
+    - the default statement is chosen by group, no longer by C&I code `100100`.
+  - **Tests:**
+    - engine 56 (+4 `table-zeros`, +6 `table-mapping` on Ind AS and C&I);
+    - ui 169 (+12 `table-mapping-service.test.ts` on a synthetic DGPL-like Ind AS workbook);
+    - legacy 226/0; pytest 128.
+  - **E2E `ui/e2e/phase11-tables.mjs` green** (25 checks, DGPL, no AI). Map as table on FA → 36 cells; FA!E18 = PPE closing, computers, gross, CY, 0.73; both-way linkage; Equity share capital also as "Equity shares 1"; Table zeros → 0 clears ML-13 (4 → 0); removing the block untags its cells.
+  - **Next:** step 3, table suggestions in the sidecar, and the table producers on the scoreboard (Dixon, HPL).
+- **2026-11-11, Phase 11 step 3a: table suggestions in the sidecar ([06](06-ai-auto-tagging.md#table-suggestions-phase-11-step-3a-adr-0013)):**
+  - `src/services/tagging/tables.py`: catalog, block detection, table matching, assignment, and one-class "also report as". `suggest()` returns `blocks`, and statement suggestions can carry `also`.
+  - **Scoreboard per producer (Dixon):** table 63 right / 0 wrong / 4 extra; also 2 / 0 / 4 (gated at ≥ 0.9); statement unchanged (143 / 4 near / 39 / 113).
+  - **HPL (C&I) hand-checked key:** 13 / 13 right; 8 facts the filer put under its own member ("Plant and equipment") are listed apart.
+  - **Tests:** pytest 134 (+6 `test_table_suggestions.py`).
+  - **Not yet:**
+    - the app doesn't store or show block suggestions (AutoTagService / UI);
+    - parent-member roll-ups (changes in equity, loans and share classes file one value under several nested members) need an engine derivation;
+    - related parties, financial instruments by category and share-capital notes (counts in text) aren't suggested;
+    - DGPL's financial-instruments header is stale ("As at March 31, 2025" over FY 2026 figures): a figures-vs-statement check for column years is needed.
+- **2026-11-11, Phase 11 step 3b.1: table and "also" suggestions in the app:**
+  - **App services (Electron-free):**
+    - `TableSuggestionService` keeps the sidecar's blocks in `mapping.json` `blockSuggestions`. Accept applies a block through `TableMappingService` (origin `table`, its confidence), or applies the edited version from "Map as table" (origin `manual`); Reject. A rejected block, and a range that already holds a block, aren't suggested again. A block that tags nothing changes nothing and gives the reasons.
+    - `MappingService` keeps the statement suggestions' `also` items as `alsoSuggested`: carried on accept, moved with a change of year, `acceptAlso` / `rejectAlso` one by one.
+    - `AutoTagService` only orchestrates. "Accept all" takes cells and blocks at ≥ the bar, never "also" items.
+    - Applicability refusals now carry the rule's reason (SR-L694-1 …).
+  - **Engine:** `planTableBlock` refuses a cell with no member (`NO_MEMBER`, the statement figure of a Total column).
+  - **IPC:** `autotag:blocks|accept-block|reject-block|accept-also|reject-also`.
+  - **UI:** dashed amber outline on suggested blocks; a block bar (table, confidence, Accept / Review… / Reject); "Map as table" prefilled from a suggestion; "also: … (suggested)" chips with ✓ / ✗.
+  - **White window (reported by the user during the E2E):** a reveal right after a sheet change made Univer's `scrollToCell` throw inside a React effect, and the whole tree unmounted. The reveal now retries until the sheet has rendered and never throws. An `ErrorBoundary` around the grid shows "The Excel view stopped working" with Try again instead of a white window. The E2E checks it.
+  - **Tests:** engine 57 (+1 no-member cell); ui 176 (+7 `table-suggestion-service.test.ts`; the synthetic Ind AS filing moved to `test/helpers/synthetic-ind-as.ts`).
+  - **E2E `ui/e2e/phase11-suggestions.mjs` green** (22 checks, DGPL, no AI).
+- **2026-11-11, Phase 11 step 3b.2: parent-member roll-ups (engine):**
+  - `core/member-rollup.js` and `Session.memberRollupValue`: a child member's value derives its parent members, as Σ children, recursively up the member tree read from the authority. The axis default isn't derived. Amounts and share counts only. Entered parents that differ are kept, overrides never replaced. It follows the `applyDerived` / `refreshCalculatedCells` conventions.
+  - **Found and fixed:** the roll-forward removed a current-year roll-up when a previous-year value changed (it saw "no change figure" and took the cell for its own). The two derivations now leave each other's cells alone.
+  - **Dixon golden:** every filed parent-member value equals the sum of its filed children. Without them, the re-derivation gives the same values and 0 ERRORs. C&I: Equity shares 1 → Equity shares.
+  - **Tests:** engine 64 (+7 `member-rollup.test.ts`); legacy 226/0; ui 176.
+- **2026-11-11, Phase 11 step 3b.3: engine-side scoreboard ([06](06-ai-auto-tagging.md#engine-side-scoreboard-phase-11-step-3b-adr-0013)):**
+  - `ui/test/scoreboard-dgpl.test.ts` runs the real app pipeline on DGPL (real sidecar, LLM off): auto-tag → accept all, blocks and "also" → roll-ups → table and statement zeros. It is scored against Dixon per origin (excel / derived / zero) by `test/helpers/fact-scoreboard.ts`, with floors committed. Takes about 11 s.
+  - **Result:** amounts right 168 (target ≥ 160 ✓), wrong 68 (target ≤ 25 ✗); non-zero table amounts right 47 (target ≥ 190 ✗). 309 ERRORs.
+  - **Bugs it found, fixed:**
+    - "Table zeros" zeroed the user's share capital (a 0 in the paid-up value of the class, then the statement "followed its empty note"). The fill now skips lines a reported statement figure is the sum of, and an entered statement figure no longer follows an empty note that sums to 0.
+    - The tagger filed "Total expenses" negative (a sign taken from the negated-total label role). An exact match now takes the cell as shown.
+  - **Tests:** engine 65 (+1 share capital vs table zeros); ui 177 (+1 scoreboard); pytest 134.
+- **2026-11-11, Phase 11 step 3b.4: table-suggester yield ([06](06-ai-auto-tagging.md#table-suggestions-phase-11-step-3a-adr-0013)):**
+  - **Column years:** checked against the main statements' figures. DGPL's stale "As at March 31, 2025" header is read as FY 2026.
+  - **Sections:** a block splits where a heading follows a total.
+  - **Rows that are members:** an exact member name, else the numbered placeholder of the column's family, in row order. Rows of zeros and totals are skipped.
+  - **Matching:** member matching on the member's own words; "FVTPL" / "FVTOCI" expanded; columns of zeros dropped.
+  - **Guards:** repeated member groups must have 2+ members; minimum table score 0.6; an "also" item into a table a block maps is dropped (it double-counted profit in changes in equity).
+  - **Evaluation:** numbered placeholders compared by value (both scoreboards).
+  - **Dixon:**
+    - table producer 75 / 0 / 4 extra (was 63 / 0 / 4); "also" 2 / 0 / 2 extra (was 4 extra); HPL key 13 / 13;
+    - app pipeline: non-zero table amounts right 65 (was 47); excel table 77 right / 0 wrong; derived table wrong 2 (was 8); ERRORs 299 (was 309).
+  - **Tests:** pytest 136 (+2 synthetic: financial assets by category with a stale header, maturity buckets); floors raised (table right ≥ 75, also extra ≤ 2; app scoreboard).
+- **2026-11-11, Phase 11 step 3c: related parties, one cell → more facts, merged headers ([06](06-ai-auto-tagging.md#table-suggestions-phase-11-step-3a-adr-0013)):**
+  - **Sidecar, split by responsibility:** `table_catalog.py` (the taxonomy's tables, label matching), `tables.py` (blocks + the note-table producer), `party_tables.py` (new), `table_also.py` (new), `table_suggest.py` (runs the producers `(Block, TableContext) → suggestion | None` in turn, then `add_also`).
+  - **Related parties:** a transaction row whose figures are the sum of the rows below it is a transaction and those rows are its parties. Parties are numbered on the table's typed axis, the categories come from the column headers ("Holding Company" → Parent), and each party reports only its own non-zero columns.
+  - **One cell → more facts:** fair-value twins (`row.also`, under "Fair value …" headers) and sole-member totals (`col.alsoTotal`, the one category with figures is also the total).
+  - **Headers:** merged cells expanded, up to 8 rows above (ADR step 6, first item). The app sends the merges with `/mapping/suggest`.
+  - **Engine:** `planTableBlock` plans `also` facts, checked like the main one, and honours `row.cols`.
+  - **App:**
+    - `TableMappingService.apply` files the ready "also" facts with each cell. `MappingService.tag` leaves an "also" fact that another cell files with that cell.
+    - "Map as table" keeps the suggestion's `cols` / `also` / `alsoTotal`, and the preview counts the facts reported again.
+  - **Dixon:**
+    - table producer 117 right / 0 wrong / 7 extra (was 75 / 0 / 4); HPL key 13 / 13;
+    - app pipeline: non-zero table amounts right 115 of 305 (was 65): financial assets 56 / 56, related parties 6 / 14; excel table 119 / 0 wrong; zero-table wrong 24 (was 36);
+    - ERRORs 302: +3 ML-39 (party names, step 5).
+  - **The scoreboard** reports per table and lists every missed filed fact (`groupOf`, `missed`).
+  - **Tests:** pytest 138 (+2: fair-value twins, a related-party matrix with merged headers); engine 68 (+3 `table-mapping`); ui 178 (+1); legacy 226/0. E2E `phase11-suggestions.mjs` green (26 checks, +4).
+- **2026-11-11, Phase 11 step 3d: sub-classification "also" ([06](06-ai-auto-tagging.md#table-suggestions-phase-11-step-3a-adr-0013)):**
+  - `src/services/tagging/subclass_also.py`: a sure statement tag ("Loans, current") is also suggested in the table that sub-classifies it. The member comes from labels ("Loans" + "Current"), another axis's member from a line of the figure's own note ("(Unsecured, considered good)"), and the gross twin applies when the note shows no allowance. `NoteEvidence` reads the note sections whose heading names the line item.
+  - `TableItem.base`: a line item's standard-label words.
+  - **Dixon:**
+    - "also" producer 18 right / 0 wrong / 4 extra (was 2 / 0 / 2); trade receivables 8 / 8, loans 8 / 16;
+    - app pipeline: non-zero table amounts right 131 of 305 (was 115); zero-table right 38 (was 12); ERRORs 298 (was 302).
+  - **Tests:** pytest 139 (+1 synthetic: trade receivables and loans, with a decoy instruments note); floors raised.
+- **2026-11-11, Phase 11 step 3e: share capital note, counts in text:**
+  - `share_capital.py`: count lines tagged by number in the text (`pick`), values, par value, the reconciliation and the holders over 5%. Each fact is filed under the class member and, with one class, without it. `numbersInText` (engine basics) / `numbers_in_text` share one fixture.
+  - **App:** `MappingEntry.pick` and `TagCellInput.pick` (counts and per-share figures only). One text cell holds one entry per number (clash rules by cell + pick, reapply, change of year). Suggestions carry dims / table / label role / pick; "also" items can carry their own year. Inspector #n chips.
+  - **Eval:** only monetary facts are scaled to rupees; picks are read from the text.
+  - **Dixon:** `share` producer 50 / 0 / 0; statement wrong 39 → 29.
+  - **App pipeline:** amounts right 134 of 275 (was 116); table amounts right 153 of 305 (was 131); ERRORs 293 (GR-1 +2).
+  - **Tests:** pytest 147; engine 69; ui 178. E2E not re-run for this step (the session ran out).

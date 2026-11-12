@@ -43,4 +43,40 @@ export {
   type FactDifference,
 } from './instance-import'
 export { nondimAllowed } from './core/dimensions.js'
-export { mandatoryZeroPlan, fillMandatoryZeros, type ZeroFill } from './mandatory-zeros'
+export {
+  mandatoryZeroPlan,
+  fillMandatoryZeros,
+  tableZeroPlan,
+  fillTableMandatoryZeros,
+  type ZeroFill,
+  type TableZeroFill,
+  type TableDim,
+} from './mandatory-zeros'
+export {
+  planTableBlock,
+  tableOfFact,
+  UnknownTableError,
+  NO_MEMBER,
+  type TableBlockSpec,
+  type TableBlockRow,
+  type TableBlockColumn,
+  type PlannedTableFact,
+  type PlannedAlsoFact,
+  type TableBlockAlsoItem,
+  type TableScope,
+} from './table-mapping'
+export {
+  checkPatch,
+  applyFactPatch,
+  dryRun,
+  isFactPatch,
+  PatchError,
+  type FixPatch,
+  type FactPatch,
+  type PatchCheck,
+  type PatchCell,
+  type PatchFactTarget,
+  type PatchScope,
+  type PatchSource,
+  type DryRunResult,
+} from './patches'

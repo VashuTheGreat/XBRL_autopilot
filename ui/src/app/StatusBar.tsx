@@ -2,10 +2,14 @@ import { taxonomyLabel } from '@xap/engine/basics'
 import { cn } from '@/lib/cn'
 import { useProject } from '@/stores/project'
 import { useSidecar } from '@/stores/sidecar'
+import { useUi } from '@/stores/ui'
+import { useValidation } from '@/stores/validation'
 
 export function StatusBar() {
   const { status, app } = useSidecar()
   const filing = useProject((s) => s.summary)
+  const problems = useValidation((s) => s.view?.summary ?? null)
+  const openProblems = useUi((s) => s.setBottomTab)
   const dot =
     status.state === 'ready' ? 'bg-ok' : status.state === 'starting' ? 'bg-warn animate-pulse' : 'bg-err'
   const label =
@@ -30,6 +34,12 @@ export function StatusBar() {
           <span className={filing.dirty ? 'text-warn' : ''} data-testid="save-state">
             {filing.readOnlyReason ? 'Read-only' : filing.dirty ? (filing.path ? 'Unsaved changes' : 'Not saved yet') : 'Saved'}
           </span>
+          {problems && (
+            <button className="flex items-center gap-2 hover:text-fg" onClick={() => openProblems('problems')} title="Problems (live validation)" data-testid="status-problems">
+              <span className={problems.errors ? 'text-err' : ''}>{problems.errors} errors</span>
+              <span className={problems.warnings ? 'text-warn' : ''}>{problems.warnings} warnings</span>
+            </button>
+          )}
         </>
       ) : (
         <span>No filing open</span>
