@@ -1,5 +1,6 @@
-import { CheckCheck, FileSpreadsheet, Loader2, Sparkles, Table2, Upload } from 'lucide-react'
-import { lazy, Suspense } from 'react'
+import { CheckCheck, Columns3, FileSpreadsheet, Loader2, Sparkles, Table2, Upload } from 'lucide-react'
+import { lazy, Suspense, useState } from 'react'
+import { columnLetter, fromA1 } from '@shared/workbook'
 import { EmptyState } from '@/components/EmptyState'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Button } from '@/components/ui/primitives'
@@ -7,7 +8,9 @@ import { cn } from '@/lib/cn'
 import { useEditor } from '@/stores/editor'
 import { useTables } from '@/stores/tables'
 import { BlockSuggestionBar } from '@/features/tables/BlockSuggestionBar'
+import { AutoTagColumnDialog } from './AutoTagColumnDialog'
 import { MappingInspector } from './MappingInspector'
+import { SheetColumnsDialog } from './SheetColumnsDialog'
 
 // Univer is large: load it only when a workbook is shown, keeping app start-up fast.
 const UniverGrid = lazy(() => import('./UniverGrid').then((m) => ({ default: m.UniverGrid })))
@@ -34,6 +37,7 @@ export function ExcelPane() {
           </button>
         ))}
         <div className="flex-1" />
+        {workbooks.length > 0 && <SheetColumnsButton />}
         {workbooks.length > 0 && <MapAsTableButton />}
         {workbooks.length > 0 && <AutoTagButtons />}
         {workbooks.length > 0 && (
@@ -66,6 +70,57 @@ export function ExcelPane() {
   )
 }
 
+/** Sheet column configuration button (CY / PY). */
+function SheetColumnsButton() {
+  const { sheetColumns, activeSource, workbooks, selection } = useEditor()
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const activeWb = workbooks.find((w) => w.source === activeSource) ?? workbooks[0]
+  const currentSheet = selection.cell?.sheet ?? activeWb?.sheets[0]?.name
+
+  const cy = sheetColumns?.cyColumn
+  const py = sheetColumns?.pyColumn
+
+  return (
+    <>
+      <button
+        className={cn(
+          'flex shrink-0 items-center gap-1.5 whitespace-nowrap border-l border-border px-3 text-xs transition-colors',
+          cy ? 'text-muted hover:text-fg' : 'bg-warn/10 text-warn font-medium hover:bg-warn/20',
+        )}
+        onClick={() => setDialogOpen(true)}
+        title={
+          cy
+            ? `Columns for ${currentSheet ?? 'sheet'}: CY = Col ${cy}${py ? `, PY = Col ${py}` : ''}. Click to reconfigure.`
+            : `No CY / PY columns set for ${currentSheet ?? 'this sheet'}. Click to configure figure columns.`
+        }
+        data-testid="sheet-columns-btn"
+      >
+        <Columns3 size={13} className={cy ? 'text-accent' : 'text-warn'} />
+        {cy ? (
+          <span>
+            CY: <strong className="font-semibold text-fg">Col {cy}</strong>
+            {py && (
+              <>
+                <span className="mx-1 opacity-40">·</span>
+                PY: <strong className="font-semibold text-fg">Col {py}</strong>
+              </>
+            )}
+          </span>
+        ) : (
+          <span>Set CY / PY Columns</span>
+        )}
+      </button>
+
+      <SheetColumnsDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        workbookSource={activeWb?.source}
+        sheetName={currentSheet}
+      />
+    </>
+  )
+}
+
 /** "Map as table": enabled after dragging over a block of rows and columns (ADR-0013). */
 function MapAsTableButton() {
   const blockRange = useEditor((s) => s.blockRange)
@@ -85,12 +140,18 @@ function MapAsTableButton() {
 
 const ACCEPT_ALL_MIN = 0.9
 
-/** "Auto-tag" (suggest tags for every imported workbook) and "Accept all ≥ 90%" once there are suggestions. */
+/** "Auto-tag" (suggest tags for user-specified column) and "Accept all ≥ 90%" once there are suggestions. */
 function AutoTagButtons() {
-  const { autoTag, autoTagging, acceptAllSuggestions, mappings, blockSuggestions } = useEditor()
+  const { autoTagging, acceptAllSuggestions, mappings, blockSuggestions, selection, activeSource, workbooks } = useEditor()
+  const [dialogOpen, setDialogOpen] = useState(false)
   const open = mappings.filter((m) => m.status === 'suggested')
   const sureBlocks = blockSuggestions.filter((b) => b.status === 'suggested' && b.confidence >= ACCEPT_ALL_MIN).length
   const sure = open.filter((m) => (m.confidence ?? 0) >= ACCEPT_ALL_MIN).length + sureBlocks
+
+  const activeWb = workbooks.find((w) => w.source === activeSource) ?? workbooks[0]
+  const defaultCol = selection.cell?.ref ? columnLetter(fromA1(selection.cell.ref)?.c ?? 1) : 'B'
+  const sheetName = selection.cell?.sheet ?? activeWb?.sheets[0]?.name
+
   return (
     <>
       {sure > 0 && (
@@ -105,13 +166,21 @@ function AutoTagButtons() {
       )}
       <button
         className="flex shrink-0 items-center gap-1 whitespace-nowrap border-l border-border px-3 text-muted hover:text-fg disabled:opacity-50"
-        onClick={() => void autoTag()}
+        onClick={() => setDialogOpen(true)}
         disabled={autoTagging}
-        title="Suggest a taxonomy element for every figure of the statements and notes. Nothing is tagged until you accept."
+        title="Open Auto-Tag column dialog to specify line-item column, CY column, and PY gap"
         data-testid="auto-tag"
       >
         {autoTagging ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />} {autoTagging ? 'Auto-tagging…' : 'Auto-tag'}
       </button>
+
+      <AutoTagColumnDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        defaultCol={defaultCol}
+        workbookSource={activeWb?.source}
+        sheetName={sheetName}
+      />
     </>
   )
 }

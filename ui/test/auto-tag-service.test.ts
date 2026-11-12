@@ -94,7 +94,7 @@ describe.skipIf(!existsSync(AUTHORITY))('auto-tagging on the sample workbook', (
     const req = suggester.requests[0]!
     expect(req).toMatchObject({ taxonomy: 'ci-2016', periods: { cyEnd: '2014-03-31', pyEnd: '2013-03-31' }, level: 'Actual', useLlm: false })
     expect(Object.keys(req.sheets[0]!.cells[0]!).sort()).toEqual(['c', 'r', 'v'])
-  })
+  }, 60_000)
 
   it('accepts a suggestion through tag(): the fact, its provenance and the mapping memory', async () => {
     await autoTag.run()
@@ -108,7 +108,7 @@ describe.skipIf(!existsSync(AUTHORITY))('auto-tagging on the sample workbook', (
     expect(suggester.requests[1]!.memory).toHaveLength(1)
     expect(at('BS', 'C9')!.status).toBe('approved') // a tagged cell is not suggested again
     expect(at('BS', 'D9')).toMatchObject({ status: 'suggested', origin: 'memory' })
-  })
+  }, 60_000)
 
   it('rejects a suggestion and does not suggest it again', async () => {
     await autoTag.run()

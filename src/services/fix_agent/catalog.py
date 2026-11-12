@@ -12,8 +12,8 @@ from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
-from src.services.tagging.bm25 import Bm25Index
-from src.services.tagging.text import norm_label, tokens
+from src.services.fix_agent.bm25 import Bm25Index
+from src.utils.text_utils import norm_label, tokens
 
 # label roles a row label is compared with, best first
 MATCH_ROLES = ("label", "terseLabel", "totalLabel", "netLabel", "periodEndLabel", "periodStartLabel",

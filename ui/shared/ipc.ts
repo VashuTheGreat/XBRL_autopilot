@@ -13,10 +13,13 @@ import type {
 import type {
   AcceptAllResult,
   AlsoReportInput,
+  AutoTagColumnOptions,
   AutoTagSummary,
   BlockSuggestion,
   CellInfo,
   ColumnPeriod,
+  SetSheetColumnsInput,
+  SheetColumns,
   ZeroFilled,
   ConceptHit,
   FormView,
@@ -124,6 +127,8 @@ export const IPC = {
   mappingSetStatus: 'mapping:set-status',
   mappingCellInfo: 'mapping:cell-info',
   mappingSetColumnPeriod: 'mapping:set-column-period',
+  mappingSheetColumns: 'mapping:sheet-columns',
+  mappingSetSheetColumns: 'mapping:set-sheet-columns',
   mappingAlsoAdd: 'mapping:also-add',
   mappingAlsoRemove: 'mapping:also-remove',
   tableCatalog: 'table:catalog',
@@ -221,6 +226,10 @@ export interface XapApi {
     cellInfo(cell: CellRef): Promise<Result<CellInfo>>
     /** remembers the period of the cell's column on its sheet; null forgets the choice */
     setColumnPeriod(cell: CellRef, scope: Scope | null): Promise<Result<ColumnPeriod>>
+    /** gets the sheet's configured or inferred CY and PY columns */
+    sheetColumns(workbook: string, sheet: string): Promise<Result<SheetColumns>>
+    /** sets the sheet's CY and PY figure columns */
+    setSheetColumns(input: SetSheetColumnsInput): Promise<Result<SheetColumns>>
     form(elrUri: string): Promise<Result<FormView>>
     xml(): Promise<Result<XmlView>>
     /** reports the statement's empty mandatory amounts as 0; returns what was filled */
@@ -242,7 +251,7 @@ export interface XapApi {
     removeTable(blockId: string): Promise<Result<void>>
     searchConcepts(query: string): Promise<Result<ConceptHit[]>>
     /** asks the tagger for every imported workbook; stores suggestions (status 'suggested'), writes no fact */
-    autoTag(): Promise<Result<AutoTagSummary>>
+    autoTag(opts?: AutoTagColumnOptions): Promise<Result<AutoTagSummary>>
     /** tags a suggested cell with its suggestion, or with `concept` (one of its alternatives) */
     acceptSuggestion(id: string, concept?: string): Promise<Result<MappingView>>
     rejectSuggestion(id: string): Promise<Result<MappingView>>

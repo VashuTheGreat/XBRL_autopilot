@@ -2,7 +2,7 @@
 import { readFile } from 'node:fs/promises'
 import { basename } from 'node:path'
 import { dialog, type BrowserWindow } from 'electron'
-import type { MappingStatus, Scope } from '@shared/editor'
+import type { AutoTagColumnOptions, MappingStatus, Scope, SetSheetColumnsInput } from '@shared/editor'
 import { IPC, type AppInfo, type HttpMethod } from '@shared/ipc'
 import type { AppSettings, NewFilingInput } from '@shared/project'
 import type { ProjectController } from '../project/project-controller'
@@ -165,6 +165,12 @@ function registerEditorIpc({ sources, mapping, tables, columns, editor, statemen
     if (scope !== null && !SCOPES.includes(scope as Scope)) throw new Error('Invalid scope')
     return columns.set(requireCell(cell), scope as Scope | null)
   })
+  handleResult(IPC.mappingSheetColumns, (_e, workbook: unknown, sheet: unknown) =>
+    columns.sheetColumns(requireString(workbook, 'workbook'), requireString(sheet, 'sheet')),
+  )
+  handleResult(IPC.mappingSetSheetColumns, (_e, input: unknown) =>
+    columns.setSheetColumns(requireSetSheetColumnsInput(input)),
+  )
   handleResult(IPC.editorForm, (_e, uri: unknown) => editor.form(requireString(uri, 'statement')))
   handleResult(IPC.editorXml, () => editor.xml())
   handleResult(IPC.editorFillMandatoryZeros, (_e, uri: unknown) => statements.fillMandatoryZeros(requireString(uri, 'statement')))
@@ -176,7 +182,9 @@ function registerEditorIpc({ sources, mapping, tables, columns, editor, statemen
 }
 
 function registerAutoTagIpc({ autoTag, mapping, tableSuggestions }: IpcDeps): void {
-  handleResult(IPC.autotagRun, () => autoTag.run())
+  handleResult(IPC.autotagRun, (_e, opts?: unknown) =>
+    opts && typeof opts === 'object' ? autoTag.runColumn(opts as AutoTagColumnOptions) : autoTag.run(),
+  )
   handleResult(IPC.autotagAccept, (_e, id: unknown, concept?: unknown) =>
     autoTag.accept(requireString(id, 'id'), concept === undefined || concept === null ? undefined : requireString(concept, 'concept')),
   )
@@ -240,4 +248,16 @@ function registerAiIpc({ fixAgent }: IpcDeps): void {
   handleResult(IPC.aiReject, (_e, id: unknown, reason?: unknown) => fixAgent.reject(requireString(id, 'patch'), typeof reason === 'string' ? reason.slice(0, 300) : undefined))
   handleResult(IPC.aiClear, () => fixAgent.clear())
   handleResult(IPC.aiHistory, () => fixAgent.historyEntries())
+}
+
+function requireSetSheetColumnsInput(v: unknown): SetSheetColumnsInput {
+  if (!v || typeof v !== 'object') throw new Error('Invalid input')
+  const o = v as Record<string, unknown>
+  const workbook = requireString(o.workbook, 'workbook')
+  const sheet = requireString(o.sheet, 'sheet')
+  const cyColumn = requireString(o.cyColumn, 'cyColumn')
+  const pyColumn = o.pyColumn !== undefined && o.pyColumn !== null ? String(o.pyColumn) : null
+  const gap = typeof o.gap === 'number' ? o.gap : undefined
+  const applyToAllSheets = o.applyToAllSheets === true
+  return { workbook, sheet, cyColumn, pyColumn, gap, applyToAllSheets }
 }

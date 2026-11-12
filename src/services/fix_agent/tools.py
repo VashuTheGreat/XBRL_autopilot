@@ -11,8 +11,8 @@ from typing import Any, Callable
 
 from src.core.taxonomy_loader import load_taxonomy
 from src.services.fix_agent.bundle import FixRequest
-from src.services.tagging.catalog import catalog_for
-from src.services.tagging.text import tokens
+from src.services.fix_agent.catalog import catalog_for
+from src.utils.text_utils import tokens
 
 MAX_RESULT_CHARS = 6000
 MAX_FACTS_PER_CALL = 80

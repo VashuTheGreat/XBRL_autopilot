@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from src.services.tagging.text import numbers_in_text
+from src.utils.text_utils import numbers_in_text
 
 CASES = json.loads((Path(__file__).parent / "fixtures" / "numbers_in_text.json").read_text(encoding="utf-8"))["cases"]
 

@@ -154,6 +154,49 @@ describe.skipIf(!existsSync(AUTHORITY))('editor services on the sample workbook'
     expect((await mapping.cellInfo(cell('BS', 'C14'))).column.basis).toBe('outside')
   })
 
+  it('configures sheet CY and PY columns, remembers them per sheet, and supports apply-to-all', async () => {
+    const sc = await columns.setSheetColumns({
+      workbook: 'workbook-1.xlsx',
+      sheet: 'BS',
+      cyColumn: 'C',
+      pyColumn: 'D',
+      gap: 1,
+    })
+    expect(sc).toMatchObject({
+      cyColumn: 'C',
+      pyColumn: 'D',
+      gap: 1,
+      basis: 'remembered',
+    })
+
+    // Now any cell in column C of sheet BS has CY remembered, and D has PY remembered
+    expect((await mapping.cellInfo(cell('BS', 'C20'))).column).toMatchObject({
+      column: 'C',
+      scope: 'CY',
+      basis: 'remembered',
+    })
+    expect((await mapping.cellInfo(cell('BS', 'D20'))).column).toMatchObject({
+      column: 'D',
+      scope: 'PY',
+      basis: 'remembered',
+    })
+
+    // Test applyToAllSheets
+    await columns.setSheetColumns({
+      workbook: 'workbook-1.xlsx',
+      sheet: 'BS',
+      cyColumn: 'C',
+      pyColumn: 'D',
+      applyToAllSheets: true,
+    })
+    const plCols = await columns.sheetColumns('workbook-1.xlsx', 'PL')
+    expect(plCols).toMatchObject({
+      cyColumn: 'C',
+      pyColumn: 'D',
+      basis: 'remembered',
+    })
+  })
+
   it('refuses an amount whose shown digits a rupee filing cannot hold (finer than paise): nothing is rounded away', async () => {
     const sheet = await sources.sheet(cell('BS', 'C9'))
     const c9 = sheet.cells.find((c) => c.r === 8 && c.c === 2)!

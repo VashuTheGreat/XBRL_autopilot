@@ -11,11 +11,13 @@
  * Sends: the workbook cells (values only), the filing's period ends and rounding level, and the mapping memory.
  * The LLM rerank runs only with the user's AI consent (Settings) and a Groq key (the sidecar checks the key).
  */
-import { displayLabel, type AcceptAllResult, type AutoTagSummary, type MappingView, type SuggestedAlso } from '@shared/editor'
-import type { WorkbookModel } from '@shared/workbook'
+import { displayLabel, type AcceptAllResult, type AutoTagColumnOptions, type AutoTagSummary, type MappingView, type SuggestedAlso } from '@shared/editor'
+import { columnLetter, fromA1, toA1, type WorkbookModel } from '@shared/workbook'
+import { sidecarCall } from '../infra/sidecar-call'
+import { KB_TAXONOMY_ID } from '../infra/sidecar-taxonomy-catalog'
 import { ValidationError } from './errors'
 import type { MappingService, NewSuggestion } from './mapping-service'
-import type { MappingMemoryRepository, MappingSuggester, ProjectAccess, Suggestion, SuggestRequest, SuggestedBlock } from './ports'
+import type { MappingMemoryRepository, MappingSuggester, ProjectAccess, SidecarClient, Suggestion, SuggestRequest, SuggestedBlock } from './ports'
 import type { SourceService } from './source-service'
 import type { NewBlockSuggestion, TableSuggestionService } from './table-suggestion-service'
 
@@ -30,6 +32,7 @@ export class AutoTagService {
     private readonly memory: MappingMemoryRepository,
     private readonly tableSuggestions: TableSuggestionService,
     private readonly aiConsent: () => boolean = () => false,
+    private readonly sidecar?: SidecarClient,
   ) {}
 
   async run(): Promise<AutoTagSummary> {
@@ -57,6 +60,149 @@ export class AutoTagService {
     return p.batch(async () => {
       const { added, skipped } = this.mapping.replaceSuggestions(items)
       return { ...summary, suggested: added, skipped, blocks: this.tableSuggestions.replace(blocks) }
+    })
+  }
+
+  async runColumn(options: AutoTagColumnOptions): Promise<AutoTagSummary> {
+    const p = this.projects.project()
+    const workbooks = await this.sources.workbooks()
+    if (!workbooks.length) throw new ValidationError(['Import the Excel financial statements first.'])
+    const wb = workbooks.find((w) => !options.workbook || w.source === options.workbook) ?? workbooks[0]!
+    const sheet = wb.sheets.find((s) => !options.sheet || s.name === options.sheet) ?? wb.sheets[0]!
+
+    const labelParsed = fromA1(`${options.labelColumn.toUpperCase()}1`)
+    const cyParsed = fromA1(`${options.cyColumn.toUpperCase()}1`)
+    if (!labelParsed || !cyParsed) {
+      throw new ValidationError(['Invalid column identifier. Use letters like B, C, D.'])
+    }
+    const labelCol = labelParsed.c
+    const cyCol = cyParsed.c
+    let pyCol: number | undefined
+    if (options.pyColumn) {
+      const pParsed = fromA1(`${options.pyColumn.toUpperCase()}1`)
+      if (pParsed) pyCol = pParsed.c
+    } else if (options.gap !== undefined && options.gap > 0) {
+      pyCol = cyCol + options.gap
+    }
+
+    // Filter out empty, blank, or purely numeric/date cells
+    const validRows: Array<{ row: number; text: string; cyCell: string; pyCell?: string }> = []
+    const cellsByRow = new Map<number, typeof sheet.cells[0]>()
+    for (const c of sheet.cells) {
+      if (c.c === labelCol) {
+        cellsByRow.set(c.r, c)
+      }
+    }
+
+    const sortedRows = Array.from(cellsByRow.keys()).sort((a, b) => a - b)
+    for (const r of sortedRows) {
+      const c = cellsByRow.get(r)!
+      const text = String(c.v ?? '').trim()
+      if (!text) continue
+      // skip pure numbers
+      if (/^-?\d+(\.\d+)?$/.test(text)) continue
+
+      validRows.push({
+        row: r,
+        text,
+        cyCell: toA1(r, cyCol),
+        pyCell: pyCol !== undefined ? toA1(r, pyCol) : undefined,
+      })
+    }
+
+    if (!validRows.length) {
+      return { suggested: 0, skipped: 0, blocks: 0, sheets: [], llmUsed: false }
+    }
+
+    if (!this.sidecar) {
+      throw new ValidationError(['AI engine sidecar is not connected.'])
+    }
+
+    const taxonomyId = KB_TAXONOMY_ID[p.authority.taxonomyId] ?? p.authority.taxonomyId
+    const recResults = await sidecarCall<Array<{
+      key: string
+      bestMatch: { qname: string; label: string; score: number; confidencePercent: number } | null
+      matches: Array<{ qname: string; label: string; score: number }>
+    }>>(this.sidecar, 'POST', '/api/v1/taxonomies/recommend', {
+      what: 'Auto-tagging recommendation',
+      body: {
+        keys: validRows.map((r) => r.text),
+        collection: taxonomyId,
+        top_k: 3,
+      },
+    })
+
+    const recMap = new Map<string, (typeof recResults)[0]>()
+    for (const res of recResults) {
+      recMap.set(res.key, res)
+    }
+
+    const items: NewSuggestion[] = []
+    const hasPy = !!p.periods().py
+
+    for (const row of validRows) {
+      const match = recMap.get(row.text)
+      if (!match || !match.bestMatch) continue
+      const best = match.bestMatch
+      const alternatives = (match.matches ?? []).map((m) => ({
+        concept: m.qname,
+        label: m.label,
+        score: m.score,
+      }))
+
+      items.push({
+        cell: { workbook: wb.source, sheet: sheet.name, ref: row.cyCell },
+        label: row.text,
+        concept: best.qname,
+        scope: 'CY',
+        confidence: best.score,
+        origin: best.score >= 0.95 ? 'exact' : 'lexical',
+        rationale: `Matched via Hybrid Retrieval (${Math.round(best.score * 100)}%)`,
+        sign: 1,
+        alternatives,
+      })
+
+      if (row.pyCell && hasPy) {
+        items.push({
+          cell: { workbook: wb.source, sheet: sheet.name, ref: row.pyCell },
+          label: row.text,
+          concept: best.qname,
+          scope: 'PY',
+          confidence: best.score,
+          origin: best.score >= 0.95 ? 'exact' : 'lexical',
+          rationale: `Matched via Hybrid Retrieval (${Math.round(best.score * 100)}%)`,
+          sign: 1,
+          alternatives,
+        })
+      }
+    }
+
+    return p.batch(async () => {
+      const colKeyCY = `${wb.source}|${sheet.name}|${columnLetter(cyCol)}`
+      p.content.mapping.columns = { ...p.content.mapping.columns, [colKeyCY]: 'CY' }
+      if (pyCol !== undefined && hasPy) {
+        const colKeyPY = `${wb.source}|${sheet.name}|${columnLetter(pyCol)}`
+        p.content.mapping.columns = { ...p.content.mapping.columns, [colKeyPY]: 'PY' }
+      }
+
+      // Remember sheet column settings
+      const m = p.content.mapping as Record<string, unknown>
+      m.sheetColumnSettings = m.sheetColumnSettings ?? {}
+      ;(m.sheetColumnSettings as Record<string, unknown>)[`${wb.source}|${sheet.name}`] = {
+        labelColumn: columnLetter(labelCol),
+        cyColumn: columnLetter(cyCol),
+        pyColumn: pyCol !== undefined ? columnLetter(pyCol) : undefined,
+        gap: options.gap,
+      }
+
+      const { added, skipped } = this.mapping.replaceSuggestions(items)
+      return {
+        suggested: added,
+        skipped,
+        blocks: 0,
+        sheets: [{ workbook: wb.source, sheet: sheet.name, kind: 'column', rows: added, note: null }],
+        llmUsed: false,
+      }
     })
   }
 
