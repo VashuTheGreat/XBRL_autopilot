@@ -1,6 +1,7 @@
+import sys
+from functools import lru_cache
 import logfire
 from src.app_config import get_app_config
-from functools import lru_cache
 
 
 @lru_cache
@@ -12,8 +13,16 @@ def initialise_logger():
         token=app_config.pydantic_logfire_api_key,
         service_name=app_config.service_name or "xbrl-autopilot",
     )
-    logfire.instrument_pydantic()
-    logfire.instrument_system_metrics()
+    # In frozen PyInstaller bundles, source files are not on disk, so inspect.getsource in instrument_pydantic fails
+    if not getattr(sys, "frozen", False):
+        try:
+            logfire.instrument_pydantic()
+        except Exception:
+            pass
+    try:
+        logfire.instrument_system_metrics()
+    except Exception:
+        pass
     logfire.info("logger.initialized", service=app_config.service_name or "xbrl-autopilot")
     return logfire
 

@@ -1,14 +1,34 @@
 # 10 · Packaging & release
 
-**Target:** one Windows installer, `XBRL-Autopilot-Setup-<version>.exe` (NSIS). The user needs nothing else: no Python, Node or Java.
+**Targets:**
+- Windows installer: `XBRL-Autopilot-Setup-<version>.exe` (NSIS).
+- Linux packages: `XBRL-Autopilot-<version>.AppImage` (universal) and `XBRL-Autopilot-<version>.deb` (Debian/Ubuntu).
+The user needs nothing else installed: no Python, Node or Java.
+
+## Quick build: `make build_app`
+Run one command whenever you change code or add a feature:
+```bash
+make build_app
+```
+This builds the Python sidecar via PyInstaller, builds UI bundles, runs `electron-builder` for Windows and Linux, and outputs the shareable installers into the top-level `./dist/` directory:
+- `dist/XBRL Autopilot-Setup-0.1.0.exe` (Windows NSIS)
+- `dist/XBRL Autopilot-0.1.0.AppImage` (Linux AppImage)
+- `dist/XBRL Autopilot-0.1.0.deb` (Debian/Ubuntu)
+
+Platform-specific targets are also available:
+- `make build-win`: builds Windows installer only.
+- `make build-linux`: builds Linux AppImage & deb only.
+- `make build-sidecar`: builds PyInstaller sidecar (`sidecar-dist/xap-sidecar/`).
+- `make build-ui`: builds Vite + React Electron bundles (`ui/out/`).
 
 ## Build pipeline
 ```
-1. engine      pnpm --filter @xap/engine build          → engine/dist (bundled into ui by Vite)
-2. knowledge   make rebuild (committed knowledge_base/*.json: taxonomies, engine authorities, business rules)
-3. sidecar     uv run pyinstaller sidecar.spec           → sidecar-dist/xap-sidecar/ (onedir)
-4. ui          pnpm --filter ui build                    → ui/out (main, preload, renderer)
-5. installer   pnpm --filter ui dist                     → ui/release/*.exe
+1. engine authority   node engine/scripts/assemble-authority.mjs
+2. knowledge base     committed knowledge_base/*.json (taxonomies, engine authorities, business rules)
+3. sidecar            uv run pyinstaller sidecar.spec           → sidecar-dist/xap-sidecar/ (onedir)
+4. ui                 pnpm --filter ui build                    → ui/out (main, preload, renderer)
+5. electron-builder   electron-builder --win --linux            → ui/release/
+6. distribution       copy to top-level dist/                   → dist/
 ```
 
 ## electron-builder (in `ui/electron-builder.yml`)
