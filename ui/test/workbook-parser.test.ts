@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { capSheet, sidecarXlsReader, workbookFormat, workbookParser } from '../electron/main/infra/workbook-parser'
+import { capSheet, capWorkbook, sidecarXlsReader, workbookFormat, workbookParser } from '../electron/main/infra/workbook-parser'
 import { readXlsx, UnsupportedWorkbookError } from '../electron/main/infra/xlsx-reader'
 import type { SidecarClient } from '../electron/main/services/ports'
 import { SidecarManager } from '../electron/main/sidecar'
@@ -27,7 +27,7 @@ describe('workbookFormat', () => {
   })
 })
 
-describe('capSheet', () => {
+describe('capSheet and capWorkbook', () => {
   it('keeps whole first rows of an oversized sheet and says so', () => {
     const cells = Array.from({ length: 30 }, (_, i) => ({ r: Math.floor(i / 3), c: i % 3, v: i }))
     const sheet = { name: 'ledger', rowCount: 10, colCount: 3, cells, merges: [{ r1: 0, c1: 0, r2: 0, c2: 1 }, { r1: 8, c1: 0, r2: 9, c2: 0 }], colWidths: {} }
@@ -36,6 +36,22 @@ describe('capSheet', () => {
     expect(cut).toMatchObject({ rowCount: 3, truncated: { totalCells: 30, keptRows: 3 } })
     expect(cut.merges).toEqual([{ r1: 0, c1: 0, r2: 0, c2: 1 }])
     expect(capSheet(sheet, 30)).toBe(sheet)
+  })
+
+  it('capWorkbook caps every sheet in a workbook model for the grid', () => {
+    const cells = Array.from({ length: 30 }, (_, i) => ({ r: Math.floor(i / 3), c: i % 3, v: i }))
+    const wb = {
+      source: 'src.xlsx',
+      fileName: 'src.xlsx',
+      sheets: [
+        { name: 's1', rowCount: 10, colCount: 3, cells, merges: [], colWidths: {} },
+        { name: 's2', rowCount: 2, colCount: 2, cells: [{ r: 0, c: 0, v: 1 }], merges: [], colWidths: {} },
+      ],
+    }
+    const capped = capWorkbook(wb, 10)
+    expect(capped.sheets[0]!.cells).toHaveLength(9)
+    expect(capped.sheets[0]!.truncated?.totalCells).toBe(30)
+    expect(capped.sheets[1]!.cells).toHaveLength(1)
   })
 })
 

@@ -15,6 +15,7 @@ import { ValidationError } from '../electron/main/services/errors'
 import { MappingService } from '../electron/main/services/mapping-service'
 import { ProjectService } from '../electron/main/services/project-service'
 import { SourceService } from '../electron/main/services/source-service'
+import { StatementService } from '../electron/main/services/statement-service'
 import { TaxonomyService } from '../electron/main/services/taxonomy-service'
 import { SidecarManager } from '../electron/main/sidecar'
 
@@ -232,5 +233,40 @@ describe.skipIf(!existsSync(AUTHORITY))('editor services on the sample workbook'
     expect(map2.list()).toEqual([expect.objectContaining({ cell: cell('BS', 'C9'), value: '60000000' })])
     expect(reopened.summary()!.dirty).toBe(false)
     expect((await new ColumnPeriodService(reopened, src2).of(cell('BS', 'D20'))).basis).toBe('remembered')
+  })
+
+  it('tags a date cell parsing DMY / text into ISO YYYY-MM-DD (ADR-0013 step 5)', async () => {
+    // BS!C5 holds "31.03.2014"
+    const tagged = await mapping.tag({ cell: cell('BS', 'C5'), concept: 'in-ca:DateOfBoardMeetingWhenFinalAccountsWereApproved', scope: 'CY' })
+    expect(tagged.value).toBe('2014-03-31')
+    expect(projects.session().getValue('in-ca:DateOfBoardMeetingWhenFinalAccountsWereApproved', 'CY')?.value).toBe('2014-03-31')
+  })
+
+  it('tags a text block range joining rows into MCA paragraphs (ADR-0013 step 5)', async () => {
+    // BS!A1:A2 holds "XBRL Ltd" and "Balance Sheet"
+    const tagged = await mapping.tag({ cell: cell('BS', 'A1:A2'), concept: 'in-gaap:AccountingPolicyOnInventoriesTextBlock', scope: 'CY' })
+    expect(tagged.value).toBe('<p>XBRL Ltd</p><p>Balance Sheet</p>')
+    expect(projects.session().getValue('in-gaap:AccountingPolicyOnInventoriesTextBlock', 'CY')?.value).toBe('<p>XBRL Ltd</p><p>Balance Sheet</p>')
+  })
+
+  it('prefills disclosure filing details from last year’s instance / set-aside facts (ADR-0013 step 5)', async () => {
+    const session = projects.session()
+    // simulate set-aside facts from last year's filing
+    const pyPeriod = session.periodForCell('in-ca:WhetherCompanyIsListedCompany', 'PY')!
+    session.filing.setAside = [
+      {
+        concept: 'in-ca:WhetherCompanyIsListedCompany',
+        period: pyPeriod,
+        dims: [],
+        value: 'false',
+        nil: false,
+        source: 'last_year.xml',
+        reason: 'notApplicablePreviousYear',
+      },
+    ]
+    const statements = new StatementService(projects)
+    const res = statements.prefillDisclosures()
+    expect(res.copied).toBeGreaterThanOrEqual(1)
+    expect(session.getValue('in-ca:WhetherCompanyIsListedCompany', 'CY')?.value).toBe('false')
   })
 })

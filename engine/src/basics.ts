@@ -180,3 +180,88 @@ export function numbersInText(text: string): string[] {
   const plain = text.replace(DATES_IN_TEXT, ' ')
   return [...plain.matchAll(NUMBER_IN_TEXT)].map((m) => m[0].replace(/,/g, ''))
 }
+
+const MONTH_MAP: Record<string, number> = {
+  jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12,
+}
+
+function daysInMonth(y: number, m: number): number {
+  return new Date(Date.UTC(y, m, 0)).getUTCDate()
+}
+
+function fmtDate(y: number, m: number, d: number): string | null {
+  if (y < 1900 || y > 2100 || m < 1 || m > 12 || d < 1 || d > daysInMonth(y, m)) return null
+  return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+}
+
+function fullYear(y: number): number {
+  return y < 100 ? (y <= 50 ? 2000 + y : 1900 + y) : y
+}
+
+/**
+ * Parses a cell value into an ISO date string (YYYY-MM-DD) or null (ADR-0013 step 5).
+ * Supports ISO strings, DMY/MDY text, named month strings ("31st March 2026", "March 31, 2026"),
+ * and Excel serial date numbers (e.g. 45747 -> 2025-03-31).
+ */
+export function parseCellDate(raw: unknown): string | null {
+  if (raw == null || raw === '') return null
+  if (raw instanceof Date) {
+    return Number.isNaN(raw.getTime()) ? null : raw.toISOString().slice(0, 10)
+  }
+  if (typeof raw === 'number' && Number.isFinite(raw)) {
+    // Excel serial date (1900 date system, day 25569 = 1970-01-01)
+    if (raw >= 1000 && raw <= 100000) {
+      const ms = Math.round((raw - 25569) * 86400 * 1000)
+      const d = new Date(ms)
+      return Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10)
+    }
+    return null
+  }
+  const s = String(raw).trim()
+  if (!s) return null
+
+  // ISO: YYYY-MM-DD (with optional time)
+  const isoMatch = /^(\d{4})-(\d{2})-(\d{2})(?:[T\s].*)?$/.exec(s)
+  if (isoMatch) {
+    return fmtDate(Number(isoMatch[1]), Number(isoMatch[2]), Number(isoMatch[3]))
+  }
+
+  // DMY numeric: DD/MM/YYYY, DD-MM-YYYY, DD.MM.YYYY
+  const dmyMatch = /^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})$/.exec(s)
+  if (dmyMatch) {
+    const d = Number(dmyMatch[1])
+    const m = Number(dmyMatch[2])
+    const y = fullYear(Number(dmyMatch[3]))
+    return fmtDate(y, m, d)
+  }
+
+  // DMY text: "31st March 2026", "31-Mar-2026", "31 March, 2026", "31-Mar-26"
+  const dmyText = /^(\d{1,2})(?:st|nd|rd|th)?\s*(?:of\s+)?[-/ ]\s*([a-z]+)[-,./ ]\s*(\d{2,4})$/i.exec(s)
+  if (dmyText) {
+    const d = Number(dmyText[1])
+    const mon = MONTH_MAP[dmyText[2]!.slice(0, 3).toLowerCase()]
+    const y = fullYear(Number(dmyText[3]))
+    if (mon) return fmtDate(y, mon, d)
+  }
+
+  // MDY text: "March 31, 2026", "Mar 31 2026"
+  const mdyText = /^([a-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{2,4})$/i.exec(s)
+  if (mdyText) {
+    const mon = MONTH_MAP[mdyText[1]!.slice(0, 3).toLowerCase()]
+    const d = Number(mdyText[2])
+    const y = fullYear(Number(mdyText[3]))
+    if (mon) return fmtDate(y, mon, d)
+  }
+
+  // Numeric serial in string form: "45747"
+  if (/^\d{4,5}$/.test(s)) {
+    const n = Number(s)
+    if (n >= 1000 && n <= 100000) {
+      const ms = Math.round((n - 25569) * 86400 * 1000)
+      const d = new Date(ms)
+      return Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10)
+    }
+  }
+
+  return null
+}

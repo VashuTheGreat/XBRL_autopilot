@@ -56,6 +56,8 @@ interface EditorState {
   fillMandatoryZeros(): Promise<void>
   /** in the active statement's tables, reports the amounts the rules require as 0 (columns with a value only) */
   fillTableZeros(): Promise<void>
+  /** prefills disclosure / filing details from last year's instance / set-aside facts */
+  prefillDisclosures(): Promise<void>
   setBlockRange(range: CellRef | null): void
   addAlso(input: AlsoReportInput): Promise<boolean>
   removeAlso(mappingId: string, index: number): Promise<void>
@@ -239,6 +241,14 @@ export const useEditor = create<EditorState>((set, get) => {
       if (!filled) return
       if (!filled.length) toast.info('Nothing to fill: no table column with a value misses an amount the rules require.')
       else toast.success(`Reported as 0 in tables: ${filled.length} amount${filled.length === 1 ? '' : 's'} (${[...new Set(filled.map((z) => z.label))].slice(0, 4).join(', ')}${filled.length > 4 ? '…' : ''}).`)
+    },
+
+    prefillDisclosures: async () => {
+      const uri = get().activeElr
+      const res = await unwrap(api().prefillDisclosures(uri ?? undefined), { onValidation: (p) => toast.error(p.join(' ')) })
+      if (!res) return
+      if (!res.copied) toast.info('No previous-year disclosures available to prefill.')
+      else toast.success(`Prefilled ${res.copied} fact${res.copied === 1 ? '' : 's'} from last year's instance.`)
     },
 
     setBlockRange: (range) => set({ blockRange: range }),

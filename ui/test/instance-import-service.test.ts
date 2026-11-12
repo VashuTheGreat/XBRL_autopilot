@@ -62,6 +62,10 @@ describe.skipIf(!kbReady || !existsSync(DIXON))('InstanceImportService', () => {
     // 207 of last year's 1,427 current-year facts out of the new previous year (set aside for Copy from previous year)
     expect(report.counts.imported).toBe(1220)
     expect(report.counts.skippedPrevious).toBe(1195 + 44)
+    // ADR-0013 step 5: prefilled disclosures (company, auditors, signatories, Yes/No questions)
+    expect(projects.session().getValue('in-ca:NameOfCompany', 'CY')?.value).toBe('DIXON GLOBAL PRIVATE LIMITED')
+    expect(projects.session().getValue('in-ca:CorporateIdentityNumber', 'CY')?.value).toBe('U51900UP2010PTC042400')
+    expect(projects.session().getValue('in-ca:WhetherCompanyIsMaintainingBooksOfAccountAndOtherRelevantBooksAndPapersInElectronicForm', 'CY')?.value).toBe('true')
   })
 
   it('recognises a C&I 2016 instance', async () => {

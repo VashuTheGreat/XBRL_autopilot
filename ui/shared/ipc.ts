@@ -145,6 +145,7 @@ export const IPC = {
   editorXml: 'editor:xml',
   editorFillMandatoryZeros: 'editor:fill-mandatory-zeros',
   editorFillTableZeros: 'editor:fill-table-zeros',
+  editorPrefillDisclosures: 'editor:prefill-disclosures',
   taxonomySearch: 'taxonomy:search',
   validationGet: 'validation:get',
   validationRun: 'validation:run',
@@ -226,6 +227,8 @@ export interface XapApi {
     fillMandatoryZeros(elrUri: string): Promise<Result<ZeroFilled[]>>
     /** in the statement's tables, reports the line items the rules require as 0 in columns that have a value */
     fillTableZeros(elrUri: string): Promise<Result<TableZeroFilled[]>>
+    /** prefills disclosure / filing details from last year's instance / set-aside facts */
+    prefillDisclosures(elrUri?: string): Promise<Result<{ copied: number; skipped: { concept: string; reason: string }[] }>>
     /** "also reported as": files the tagged cell's figure as one more fact */
     addAlso(input: AlsoReportInput): Promise<Result<MappingView>>
     removeAlso(mappingId: string, index: number): Promise<Result<MappingView>>

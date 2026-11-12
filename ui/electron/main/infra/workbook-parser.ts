@@ -59,9 +59,13 @@ export function capSheet(sheet: SheetModel, max = MAX_CELLS_PER_SHEET): SheetMod
   }
 }
 
+/** Capping applied to workbooks sent to the grid / UI renderer only (ADR-0013 step 6). */
+export function capWorkbook(model: WorkbookModel, max = MAX_CELLS_PER_SHEET): WorkbookModel {
+  return { ...model, sheets: model.sheets.map((s) => capSheet(s, max)) }
+}
+
 export function workbookParser(readers: Record<WorkbookFormat, WorkbookParser>): WorkbookParser {
   return async (source, fileName, bytes) => {
-    const model = await readers[workbookFormat(fileName, bytes)](source, fileName, bytes)
-    return { ...model, sheets: model.sheets.map((s) => capSheet(s)) }
+    return readers[workbookFormat(fileName, bytes)](source, fileName, bytes)
   }
 }

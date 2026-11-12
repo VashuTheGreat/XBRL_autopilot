@@ -64,6 +64,7 @@ const api: XapApi = {
     setColumnPeriod: (cell, scope) => invoke(IPC.mappingSetColumnPeriod, cell, scope),
     form: (elrUri) => invoke(IPC.editorForm, elrUri),
     fillTableZeros: (elrUri) => invoke(IPC.editorFillTableZeros, elrUri),
+    prefillDisclosures: (elrUri) => invoke(IPC.editorPrefillDisclosures, elrUri),
     addAlso: (input) => invoke(IPC.mappingAlsoAdd, input),
     removeAlso: (mappingId, index) => invoke(IPC.mappingAlsoRemove, mappingId, index),
     tables: () => invoke(IPC.tableCatalog),
