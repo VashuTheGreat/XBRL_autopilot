@@ -4,6 +4,8 @@
   "version": "0.1.0",
   "private": true,
   "description": "XBRL Autopilot desktop app (Electron + React)",
+  "author": "VashuTheGreat <vanshsharma7832@gmail.com>",
+  "homepage": "https://github.com/VashuTheGreat/XBRL_autopilot",
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
@@ -11,7 +13,10 @@
     "preview": "electron-vite preview",
     "test": "node ../engine/scripts/assemble-authority.mjs && vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
-    "dist": "electron-vite build && electron-builder --win"
+    "dist": "electron-vite build && electron-builder",
+    "dist:win": "electron-vite build && electron-builder --win",
+    "dist:linux": "electron-vite build && electron-builder --linux",
+    "dist:all": "electron-vite build && electron-builder -wl"
   },
   "dependencies": {
     "@monaco-editor/react": "4.7.0",

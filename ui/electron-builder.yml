@@ -1,4 +1,4 @@
-# Installer config (docs/10-packaging-release.md). Full packaging, including the PyInstaller sidecar, is Phase 8.
+# Installer config (docs/10-packaging-release.md). Phase 11b: Windows & Linux packaging.
 appId: in.xbrlautopilot.desktop
 productName: XBRL Autopilot
 copyright: Copyright © 2026 XBRL Autopilot
@@ -12,8 +12,11 @@ extraResources:
   - from: ../engine/authority
     to: authority
     filter: ['*.json']
-  # Phase 8: - from: ../sidecar-dist/xap-sidecar
-  #            to: sidecar
+  - from: ../knowledge_base
+    to: knowledge_base
+    filter: ['*.json']
+  - from: ../sidecar-dist/xap-sidecar
+    to: sidecar
 asar: true
 # Double-clicking a .axbrl project opens it in the app (ui/electron/main/index.ts → findProjectArg).
 fileAssociations:
@@ -21,6 +24,15 @@ fileAssociations:
     name: XBRL Autopilot Project
     description: XBRL Autopilot filing project
     role: Editor
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Office
+  synopsis: Offline MCA XBRL Filing Desktop Application
+  artifactName: "${productName}-${version}.${ext}"
+deb:
+  maintainer: "VashuTheGreat <vanshsharma7832@gmail.com>"
 win:
   target:
     - target: nsis
@@ -32,3 +44,4 @@ nsis:
   createDesktopShortcut: true
   createStartMenuShortcut: true
   shortcutName: XBRL Autopilot
+  artifactName: "${productName}-Setup-${version}.${ext}"

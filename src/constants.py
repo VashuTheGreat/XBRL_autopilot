@@ -1,6 +1,11 @@
+import os
 from pathlib import Path
 # ===================== EXTRACTORS =======================
-BASE_DIR = Path(__file__).parent.parent
+_env_res = os.environ.get("XAP_RESOURCES")
+if _env_res and Path(_env_res).exists():
+    BASE_DIR = Path(_env_res)
+else:
+    BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Ind_as
 INDAS_ROOT = BASE_DIR / "data" / "IND-AS taxonomy"
