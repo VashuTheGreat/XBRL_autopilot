@@ -22,6 +22,7 @@ import type { FixAgentService } from '../services/fix-agent-service'
 import type { ProjectService } from '../services/project-service'
 import type { SettingsService } from '../services/settings-service'
 import type { SidecarManager } from '../sidecar'
+import { capWorkbook } from '../infra/workbook-parser'
 import { handleQuery, handleResult, requireString } from './handle'
 import { requireAlsoInput, requireBlockInput, requireCell, requireIndex, requireTagInput } from './table-input'
 
@@ -121,7 +122,8 @@ function registerEditorIpc({ sources, mapping, tables, columns, editor, statemen
     if (path !== undefined) {
       const file = requireString(path, 'path')
       if (!/\.(xlsx|xlsm|xls)$/i.test(file)) throw new Error('Only Excel workbooks (.xlsx, .xlsm, .xls) can be imported.')
-      return sources.importWorkbook(basename(file), new Uint8Array(await readFile(file)))
+      const wb = await sources.importWorkbook(basename(file), new Uint8Array(await readFile(file)))
+      return capWorkbook(wb)
     }
     const win = getWindow()
     const opts = {
@@ -131,9 +133,14 @@ function registerEditorIpc({ sources, mapping, tables, columns, editor, statemen
     }
     const { canceled, filePaths } = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
     const file = canceled ? null : filePaths[0]
-    return file ? sources.importWorkbook(basename(file), new Uint8Array(await readFile(file))) : null
+    if (!file) return null
+    const wb = await sources.importWorkbook(basename(file), new Uint8Array(await readFile(file)))
+    return capWorkbook(wb)
   })
-  handleResult(IPC.workbookList, () => sources.workbooks())
+  handleResult(IPC.workbookList, async () => {
+    const list = await sources.workbooks()
+    return list.map((w) => capWorkbook(w))
+  })
   handleResult(IPC.mappingList, () => mapping.list())
   handleResult(IPC.mappingTag, (_e, input: unknown) => mapping.tag(requireTagInput(input)))
   handleResult(IPC.mappingAlsoAdd, (_e, input: unknown) => mapping.addAlso(requireAlsoInput(input)))
@@ -162,6 +169,9 @@ function registerEditorIpc({ sources, mapping, tables, columns, editor, statemen
   handleResult(IPC.editorXml, () => editor.xml())
   handleResult(IPC.editorFillMandatoryZeros, (_e, uri: unknown) => statements.fillMandatoryZeros(requireString(uri, 'statement')))
   handleResult(IPC.editorFillTableZeros, (_e, uri: unknown) => statements.fillTableZeros(requireString(uri, 'statement')))
+  handleResult(IPC.editorPrefillDisclosures, (_e, uri?: unknown) =>
+    statements.prefillDisclosures(uri === undefined || uri === null ? undefined : requireString(uri, 'statement')),
+  )
   handleResult(IPC.taxonomySearch, (_e, q: unknown) => taxonomy.searchConcepts(typeof q === 'string' ? q.slice(0, 200) : ''))
 }
 

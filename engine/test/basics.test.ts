@@ -61,3 +61,46 @@ describe('numbersInText', () => {
     for (const [text, want] of cases) expect(numbersInText(text), text).toEqual(want)
   })
 })
+
+describe('parseCellDate', () => {
+  it('parses ISO dates and dates with timestamps', async () => {
+    const { parseCellDate } = await import('../src/basics')
+    expect(parseCellDate('2026-03-31')).toBe('2026-03-31')
+    expect(parseCellDate('2025-04-01T00:00:00.000Z')).toBe('2025-04-01')
+    expect(parseCellDate('2025-04-01 12:30:00')).toBe('2025-04-01')
+  })
+
+  it('parses DMY strings with various separators and 2/4 digit years', async () => {
+    const { parseCellDate } = await import('../src/basics')
+    expect(parseCellDate('31/03/2026')).toBe('2026-03-31')
+    expect(parseCellDate('31-03-2026')).toBe('2026-03-31')
+    expect(parseCellDate('31.03.2026')).toBe('2026-03-31')
+    expect(parseCellDate('31/03/26')).toBe('2026-03-31')
+    expect(parseCellDate('1/4/2025')).toBe('2025-04-01')
+  })
+
+  it('parses text dates with month names', async () => {
+    const { parseCellDate } = await import('../src/basics')
+    expect(parseCellDate('31st March 2026')).toBe('2026-03-31')
+    expect(parseCellDate('31 March, 2026')).toBe('2026-03-31')
+    expect(parseCellDate('31-Mar-2026')).toBe('2026-03-31')
+    expect(parseCellDate('31-Mar-26')).toBe('2026-03-31')
+    expect(parseCellDate('March 31, 2026')).toBe('2026-03-31')
+  })
+
+  it('parses Excel serial dates in numeric and string form', async () => {
+    const { parseCellDate } = await import('../src/basics')
+    expect(parseCellDate(46112)).toBe('2026-03-31')
+    expect(parseCellDate(45747)).toBe('2025-03-31')
+    expect(parseCellDate('45747')).toBe('2025-03-31')
+  })
+
+  it('returns null on invalid or non-date values', async () => {
+    const { parseCellDate } = await import('../src/basics')
+    expect(parseCellDate(null)).toBeNull()
+    expect(parseCellDate('')).toBeNull()
+    expect(parseCellDate('not a date')).toBeNull()
+    expect(parseCellDate('31/02/2026')).toBeNull() // invalid day for Feb
+    expect(parseCellDate(500.5)).toBeNull() // not a serial date
+  })
+})

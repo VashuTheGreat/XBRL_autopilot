@@ -16,7 +16,7 @@
  * Every approved plain tag teaches the mapping memory (label → concept).
  */
 import { randomUUID } from 'node:crypto'
-import { decimal as Dec, dimKey, nondimAllowed, normDims, numbersInText, SCALE_POWERS, SHARE_CAPITAL, tableOfFact } from '@xap/engine'
+import { decimal as Dec, dimKey, nondimAllowed, normDims, numbersInText, parseCellDate, SCALE_POWERS, SHARE_CAPITAL, tableOfFact, toMca } from '@xap/engine'
 import {
   displayLabel,
   type AlsoReportedView,
@@ -121,9 +121,11 @@ export class MappingService {
     const A = p.authority.authority
     const target = this.target(p, input)
     const range = rangeOf(input.cell.ref)
-    if (range && range.c1 !== range.c2) throw new ValidationError(['Select cells in one column (one year) to tag their sum.'])
+    if (range && range.c1 !== range.c2) throw new ValidationError(['Select cells in one column (one year) to tag them.'])
     const isRange = !!range && range.r1 !== range.r2
-    if (isRange && !A.isNumeric(input.concept)) throw new ValidationError([`Only amounts can be summed: “${A.label(input.concept)}” is not a number.`])
+    if (isRange && !A.isNumeric(input.concept) && A.dataType(input.concept) !== 'textBlock') {
+      throw new ValidationError([`Only amounts and text blocks can be tagged from a range: “${A.label(input.concept)}” is not a number or text block.`])
+    }
 
     const { cells } = await this.sources.cell(input.cell)
     if (cells.every((c) => !c || c.v === null || c.v === '')) {
@@ -514,7 +516,23 @@ export class MappingService {
       if (['no', 'false', 'n'].includes(t)) return 'false'
       throw new ValidationError([`${A.label(concept)} needs Yes or No.`])
     }
-    return String(raw).trim()
+    if (A.dataType(concept) === 'date') {
+      const parsed = parseCellDate(raw)
+      if (parsed === null) throw new ValidationError([`“${String(raw)}” is not a valid date, but ${A.label(concept)} needs a date (YYYY-MM-DD).`])
+      return parsed
+    }
+    if (A.dataType(concept) === 'textBlock') {
+      const nonBlank = cells
+        .map((c) => (c?.v != null ? String(c.v).trim() : ''))
+        .filter((t) => t.length > 0)
+      if (!nonBlank.length) throw new ValidationError([`${ref.sheet}!${ref.ref} has no text.`])
+      return toMca(nonBlank.join('\n\n'))
+    }
+    const nonBlank = cells
+      .map((c) => (c?.v != null ? String(c.v).trim() : ''))
+      .filter((t) => t.length > 0)
+    if (!nonBlank.length) throw new ValidationError([`${ref.sheet}!${ref.ref} has no text.`])
+    return nonBlank.join(' ')
   }
 
   /** Never round away a digit the statement shows: MCA wants the actual figures. */

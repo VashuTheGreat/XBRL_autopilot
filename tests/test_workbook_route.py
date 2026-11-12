@@ -29,6 +29,9 @@ def test_reads_the_dgpl_xls_like_the_xlsx_reader():
     assert any("31st March 2026" in h for h in headers)
     ppe = next(c["r"] for c in bs["cells"] if c["v"] == "Property, Plant & Equipment")
     assert 29706.449999999983 in [c["v"] for c in bs["cells"] if c["r"] == ppe]  # float noise kept: the app rounds
+    ppe_cell = next(c for c in bs["cells"] if c["r"] == ppe and c["v"] == 29706.449999999983)
+    assert ppe_cell.get("numFmt")  # xlrd BIFF XF number format attached (ADR-0013 step 6)
+    assert "#,##0" in ppe_cell["numFmt"]
     assert {"r1": 96, "c1": 4, "r2": 97, "c2": 5} in bs["merges"]
     assert all(c["v"] not in ("", None) for c in bs["cells"])
 

@@ -11,12 +11,13 @@ import { useProject } from '@/stores/project'
 
 /** XBRL Form: one statement (ELR) with its CY/PY facts and the Excel cell each value came from. */
 export function FormView() {
-  const { form, activeElr, setActiveElr, selection, focusSeq, selectFact, fillMandatoryZeros, fillTableZeros } = useEditor()
+  const { form, activeElr, setActiveElr, selection, focusSeq, selectFact, fillMandatoryZeros, fillTableZeros, prefillDisclosures } = useEditor()
   const { elrs, summary } = useProject()
   const selectedCellKey = selection.cell ? cellKey(selection.cell) : null
   const hasPy = !summary?.firstFinancialYear
 
   const options = useMemo(() => elrs.map((e) => ({ uri: e.uri, label: `[${e.code}] ${e.title}` })), [elrs])
+  const activeElrInfo = useMemo(() => elrs.find((e) => e.uri === activeElr), [elrs, activeElr])
   const body = useRef<HTMLDivElement>(null)
 
   // the row of the selected cell's element comes into view (after the statement switch, when the form arrives).
@@ -58,6 +59,17 @@ export function FormView() {
             data-testid="table-zeros"
           >
             <Grid3x3 size={13} /> Table zeros → 0
+          </Button>
+        )}
+        {activeElrInfo?.group === 'Disclosures' && (
+          <Button
+            variant="ghost"
+            className="h-7 shrink-0 px-2 text-[11px]"
+            onClick={() => void prefillDisclosures()}
+            title="Prefill this disclosure form (company, auditors, directors/KMP tables, signatories, Yes/No questions) from last year's filed instance."
+            data-testid="prefill-disclosures"
+          >
+            <Copy size={13} /> Prefill from last year
           </Button>
         )}
       </div>

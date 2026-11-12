@@ -23,6 +23,7 @@ dependencies = [
     "logfire[system-metrics]>=5.4.0",
     "sentence-transformers>=6.2.0",
     "python-calamine>=0.9.1",
+    "xlrd==2.0.1",
 ]
 
 [project.optional-dependencies]

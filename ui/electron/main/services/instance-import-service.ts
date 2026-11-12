@@ -6,7 +6,7 @@
  *     that nothing was lost or changed, plus the vendor conventions that differ from ours.
  * Electron-free; the instance text comes from the caller.
  */
-import { importXbrl, instanceConventions, readSchemaRef, Session, verifyRoundTrip, type InstanceComparison } from '@xap/engine'
+import { disclosureCarry, importXbrl, instanceConventions, readSchemaRef, Session, verifyRoundTrip, type InstanceComparison } from '@xap/engine'
 import { FILING_TAXONOMIES, maxDisplayPlaces, taxonomyLabel, type RoundingLevel } from '@xap/engine/basics'
 import type { ImportReportView, InstanceImportMode, ProjectSummary } from '@shared/project'
 import { ValidationError } from './errors'
@@ -45,6 +45,20 @@ export class InstanceImportService {
     const { filing, report } = imported
     if (report.errors?.length) throw new ValidationError(report.errors.map(String))
     if (!report.counts?.imported) throw new ValidationError([`No facts of ${fileName} could be imported.`])
+
+    // ADR-0013 step 5: prefill filing details (company, auditors, directors/KMP, signatories, Yes/No questions)
+    // from last year's instance set-aside disclosures
+    if (mode === 'next') {
+      const session = new Session(loaded.authority, filing as never)
+      const discs = (loaded.authority.elrs as { group?: string; uri: string }[]).filter((e) => e.group === 'Disclosures')
+      for (const e of discs) {
+        try {
+          disclosureCarry(session, e.uri)
+        } catch {
+          // empty or non-applicable tab
+        }
+      }
+    }
 
     this.normaliseMeta(loaded, filing, fileName)
     const today = this.clock.now().toISOString().slice(0, 10)

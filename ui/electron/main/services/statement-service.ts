@@ -2,7 +2,7 @@
  * StatementService: explicit, deterministic actions on one statement (ELR) of the open filing.
  * Thin over the engine (fillMandatoryZeros); returns what changed, labelled for the user.
  */
-import { fillMandatoryZeros, fillTableMandatoryZeros } from '@xap/engine'
+import { disclosureCarry, fillMandatoryZeros, fillTableMandatoryZeros } from '@xap/engine'
 import { displayLabel, type TableZeroFilled, type ZeroFilled } from '@shared/editor'
 import { ValidationError } from './errors'
 import type { ProjectAccess } from './ports'
@@ -38,5 +38,31 @@ export class StatementService {
       scope: z.scope,
       memberLabels: z.dims.map((d) => (d.member ? displayLabel(A.label(d.member)) : String(d.typed))),
     }))
+  }
+
+  /**
+   * Prefills filing-details disclosures (company info, auditors, directors/KMP tables, signatories, Yes/No questions)
+   * from last year's instance / set-aside facts (ADR-0013 step 5).
+   * Either for a specific ELR (if provided), or across all Disclosures ELRs.
+   */
+  prefillDisclosures(elrUri?: string): { copied: number; skipped: { concept: string; reason: string }[] } {
+    const p = this.projects.project()
+    const A = p.authority.authority
+    const discs = elrUri
+      ? [{ uri: elrUri }]
+      : (A.elrs as { group?: string; uri: string }[]).filter((e) => e.group === 'Disclosures')
+    let copied = 0
+    const skipped: { concept: string; reason: string }[] = []
+    for (const e of discs) {
+      try {
+        const res = disclosureCarry(p.session, e.uri)
+        copied += res.copied
+        skipped.push(...res.skipped)
+      } catch (err) {
+        skipped.push({ concept: e.uri, reason: err instanceof Error ? err.message : String(err) })
+      }
+    }
+    if (copied) p.touch()
+    return { copied, skipped }
   }
 }

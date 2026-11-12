@@ -14,7 +14,7 @@ import type { CellRef } from '@shared/workbook'
 import { AppDatabase } from '../electron/main/infra/app-database'
 import { DirAutosaveStore } from '../electron/main/infra/dir-autosave-store'
 import { FileAuthorityProvider } from '../electron/main/infra/file-authority-provider'
-import { workbookParser } from '../electron/main/infra/workbook-parser'
+import { capWorkbook, workbookParser } from '../electron/main/infra/workbook-parser'
 import { readXlsx } from '../electron/main/infra/xlsx-reader'
 import { ColumnPeriodService } from '../electron/main/services/column-period-service'
 import { EditorQueryService } from '../electron/main/services/editor-query-service'
@@ -105,7 +105,8 @@ describe.skipIf(!existsSync(HPL) || !existsSync(AUTHORITY))('HPL (C&I) hand-tagg
       statementPlaces: 2,
     })
     const wb = await sources.importWorkbook('HPL -M26 - Financials.xlsx', readFileSync(HPL))
-    expect(wb.sheets.find((s) => s.name === 'payables- mar 26')?.truncated?.totalCells).toBeGreaterThan(1_000_000)
+    expect(wb.sheets.find((s) => s.name === 'payables- mar 26')?.cells.length).toBeGreaterThan(1_000_000)
+    expect(capWorkbook(wb).sheets.find((s) => s.name === 'payables- mar 26')?.truncated?.totalCells).toBeGreaterThan(1_000_000)
 
     const plan = [['Balance Sheet', BALANCE_SHEET, ['D', 'E']], ['P&L Statement', PROFIT_AND_LOSS, ['D', 'E']], ['Note 21-28', NOTE_21, ['E', 'F']]] as const
     for (const [sheet, rows, cols] of plan) {
