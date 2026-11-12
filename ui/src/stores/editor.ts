@@ -3,8 +3,8 @@
  * Source of truth stays in main; this store caches read-models and refreshes when the project revision changes.
  */
 import { create } from 'zustand'
-import type { AlsoReportInput, BlockSuggestion, CellInfo, FormView, MappingView, Scope, XmlView } from '@shared/editor'
-import { cellKey, rangeCells, type CellRef, type WorkbookModel } from '@shared/workbook'
+import type { AlsoReportInput, AutoTagColumnOptions, BlockSuggestion, CellInfo, FormView, MappingView, Scope, SetSheetColumnsInput, SheetColumns, XmlView } from '@shared/editor'
+import { cellKey, columnLetter, fromA1, rangeCells, type CellRef, type WorkbookModel } from '@shared/workbook'
 import { unwrap } from '@/lib/result'
 import { toast } from './toast'
 
@@ -66,10 +66,14 @@ interface EditorState {
   rejectAlso(mappingId: string, index: number): Promise<void>
   /** remembers the period of the selected cell's column (null forgets it) */
   setColumnPeriod(scope: Scope | null): Promise<void>
+  /** configured CY & PY figure columns for the active sheet */
+  sheetColumns: SheetColumns | null
+  loadSheetColumns(workbook?: string, sheet?: string): Promise<SheetColumns | null>
+  setSheetColumns(input: SetSheetColumnsInput): Promise<SheetColumns | null>
   /** an auto-tagging run is in progress */
   autoTagging: boolean
-  /** auto-tags every imported workbook: stores suggestions, writes no fact */
-  autoTag(): Promise<void>
+  /** auto-tags imported workbook / columns: stores suggestions, writes no fact */
+  autoTag(opts?: AutoTagColumnOptions): Promise<void>
   acceptSuggestion(id: string, concept?: string): Promise<void>
   rejectSuggestion(id: string): Promise<void>
   /** accepts every cell and table suggestion with confidence ≥ min (never the suggested "also" facts) */
@@ -107,6 +111,7 @@ const EMPTY = {
   loadedRevision: -1,
   busy: false,
   autoTagging: false,
+  sheetColumns: null,
 }
 
 export const useEditor = create<EditorState>((set, get) => {
@@ -126,6 +131,17 @@ export const useEditor = create<EditorState>((set, get) => {
   const loadXml = async () => {
     const xml = await unwrap(api().xml(), { quiet: true })
     if (xml) set({ xml })
+  }
+  const loadSheetColumns = async (wb?: string, sh?: string) => {
+    const activeWb = wb ?? get().selection.cell?.workbook ?? get().activeSource ?? get().workbooks[0]?.source
+    const activeSh = sh ?? get().selection.cell?.sheet ?? get().workbooks.find((w) => w.source === activeWb)?.sheets[0]?.name
+    if (!activeWb || !activeSh) return null
+    const cols = await unwrap(api().sheetColumns(activeWb, activeSh), { quiet: true })
+    if (cols) {
+      set({ sheetColumns: cols })
+      return cols
+    }
+    return null
   }
 
   return {
@@ -147,7 +163,7 @@ export const useEditor = create<EditorState>((set, get) => {
       if (workbooks) set({ workbooks, activeSource: get().activeSource ?? workbooks[0]?.source ?? null })
       if (mappings) set(index(mappings))
       if (blockSuggestions) set({ blockSuggestions })
-      await Promise.all([loadForm(), loadCellInfo(), get().xmlWanted ? loadXml() : Promise.resolve()])
+      await Promise.all([loadForm(), loadCellInfo(), loadSheetColumns(), get().xmlWanted ? loadXml() : Promise.resolve()])
     },
 
     importWorkbook: async (path) => {
@@ -158,6 +174,7 @@ export const useEditor = create<EditorState>((set, get) => {
         // the revision sync may already have fetched it: keep one entry per source
         set((s) => ({ workbooks: [...s.workbooks.filter((w) => w.source !== wb.source), wb], activeSource: wb.source }))
         toast.success(`Imported ${wb.fileName} (${wb.sheets.length} sheets)`)
+        void loadSheetColumns(wb.source, wb.sheets[0]?.name)
         const cut = wb.sheets.filter((s) => s.truncated)
         if (cut.length) {
           toast.info(
@@ -167,7 +184,11 @@ export const useEditor = create<EditorState>((set, get) => {
       }
     },
 
-    setActiveSource: (source) => set({ activeSource: source }),
+    setActiveSource: (source) => {
+      set({ activeSource: source })
+      const wb = get().workbooks.find((w) => w.source === source)
+      if (wb?.sheets[0]) void loadSheetColumns(source, wb.sheets[0].name)
+    },
 
     selectCell: (cell) => {
       const cur = get().selection.cell
@@ -175,6 +196,9 @@ export const useEditor = create<EditorState>((set, get) => {
       const m = get().byCell.get(cellKey(cell))
       set((s) => ({ selection: { cell, factKey: m?.factKey ?? null, concept: m && m.status !== 'rejected' ? m.fact.concept : null }, cellInfo: null, focusSeq: s.focusSeq + 1 }))
       void loadCellInfo()
+      if (!cur || cur.workbook !== cell.workbook || cur.sheet !== cell.sheet) {
+        void loadSheetColumns(cell.workbook, cell.sheet)
+      }
       // the Form follows the Excel selection: open a statement that shows the element (the current one if it does)
       const target = m && m.status !== 'rejected' ? (m.elrUris.includes(get().activeElr ?? '') ? get().activeElr : m.elrUris[0]) : null
       if (target && target !== get().activeElr) void get().setActiveElr(target)
@@ -205,6 +229,82 @@ export const useEditor = create<EditorState>((set, get) => {
         toast.info('Select a cell in the Excel pane first, then double-click the element.')
         return false
       }
+
+      const sheetCols = get().sheetColumns
+      const parsed = fromA1(cell.ref)
+      const currentCol = parsed ? columnLetter(parsed.c) : null
+      const row = parsed?.r
+
+      // WebXBRL style: if user selected a row's label cell (not in CY or PY column) and sheet has CY/PY columns configured:
+      const cyCol = sheetCols?.cyColumn
+      const pyCol = sheetCols?.pyColumn
+      const isParticulars = currentCol && cyCol && currentCol !== cyCol && (!pyCol || currentCol !== pyCol)
+
+      if (isParticulars && row !== undefined) {
+        if (scope === 'CY') {
+          const target = { ...cell, ref: `${cyCol}${row}` }
+          const m = await unwrap(api().tag({ cell: target, concept, scope: 'CY' }), {
+            onValidation: (p) => toast.error(p.join(' ')),
+          })
+          if (!m) return false
+          set({ selection: { cell: target, factKey: m.factKey, concept: m.fact.concept } })
+          toast.success(`${target.sheet}!${target.ref} (CY) → ${m.conceptLabel}`)
+          return true
+        }
+
+        if (scope === 'PY') {
+          if (!pyCol) {
+            toast.error('No Previous Year (PY) column configured for this sheet.')
+            return false
+          }
+          const target = { ...cell, ref: `${pyCol}${row}` }
+          const m = await unwrap(api().tag({ cell: target, concept, scope: 'PY' }), {
+            onValidation: (p) => toast.error(p.join(' ')),
+          })
+          if (!m) return false
+          set({ selection: { cell: target, factKey: m.factKey, concept: m.fact.concept } })
+          toast.success(`${target.sheet}!${target.ref} (PY) → ${m.conceptLabel}`)
+          return true
+        }
+
+        // Neither CY nor PY scope passed explicitly: tag both CY and PY together (like WebXBRL)
+        let cySuccess = false
+        let pySuccess = false
+        let label = concept
+
+        const cyTarget = { ...cell, ref: `${cyCol}${row}` }
+        const cyM = await unwrap(api().tag({ cell: cyTarget, concept, scope: 'CY' }), { quiet: true })
+        if (cyM) {
+          cySuccess = true
+          label = cyM.conceptLabel
+          set({ selection: { cell: cyTarget, factKey: cyM.factKey, concept: cyM.fact.concept } })
+        }
+
+        if (pyCol) {
+          const pyTarget = { ...cell, ref: `${pyCol}${row}` }
+          const pyM = await unwrap(api().tag({ cell: pyTarget, concept, scope: 'PY' }), { quiet: true })
+          if (pyM) {
+            pySuccess = true
+            label = pyM.conceptLabel
+          }
+        }
+
+        if (cySuccess && pySuccess) {
+          toast.success(`Row ${row}: Tagged ${cyCol}${row} (CY) & ${pyCol}${row} (PY) → ${label}`)
+          return true
+        } else if (cySuccess) {
+          toast.success(`Row ${row}: Tagged ${cyCol}${row} (CY) → ${label}`)
+          return true
+        } else if (pySuccess) {
+          toast.success(`Row ${row}: Tagged ${pyCol}${row} (PY) → ${label}`)
+          return true
+        } else {
+          toast.error(`Could not tag row ${row}: neither ${cyCol}${row} nor ${pyCol ?? ''}${row} has a numeric figure.`)
+          return false
+        }
+      }
+
+      // Standard cell tagging (e.g. user selected figure cell C12 directly)
       const m = await unwrap(api().tag({ cell, concept, ...(scope ? { scope } : {}) }), {
         onValidation: (p) => toast.error(p.join(' ')),
       })
@@ -277,12 +377,28 @@ export const useEditor = create<EditorState>((set, get) => {
       if (!cell) return
       const col = await unwrap(api().setColumnPeriod(cell, scope), { onValidation: (p) => toast.error(p.join(' ')) })
       if (col && get().selection.cell === cell) set((s) => ({ cellInfo: s.cellInfo && { ...s.cellInfo, column: col } }))
+      void loadSheetColumns(cell.workbook, cell.sheet)
     },
 
-    autoTag: async () => {
+    loadSheetColumns,
+
+    setSheetColumns: async (input) => {
+      const res = await unwrap(api().setSheetColumns(input), {
+        onValidation: (p) => toast.error(p.join(' ')),
+      })
+      if (res) {
+        set({ sheetColumns: res })
+        await loadCellInfo()
+        toast.success(`Configured columns for ${input.sheet}: CY = Col ${res.cyColumn}${res.pyColumn ? `, PY = Col ${res.pyColumn}` : ''}`)
+        return res
+      }
+      return null
+    },
+
+    autoTag: async (opts) => {
       if (get().autoTagging) return
       set({ autoTagging: true })
-      const summary = await unwrap(api().autoTag(), { onValidation: (p) => toast.error(p.join(' ')) })
+      const summary = await unwrap(api().autoTag(opts), { onValidation: (p) => toast.error(p.join(' ')) })
       set({ autoTagging: false })
       if (!summary) return
       const statements = summary.sheets.filter((s) => s.rows > 0).length

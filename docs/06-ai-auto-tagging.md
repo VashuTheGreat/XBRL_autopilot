@@ -1,15 +1,28 @@
 # 06 · AI auto-tagging (Excel → taxonomy)
 
-**Goal:** for every figure in an imported workbook, propose *which taxonomy fact it is*: element, period (CY/PY), dimensions and sign. Each proposal carries a confidence, a one-line rationale and its runner-up elements. The accountant decides; nothing goes into the filing until a suggestion is accepted. Bulk "Accept all ≥ 90%" is allowed.
+**Goal:** for every figure in an imported workbook, propose *which taxonomy fact it is*: element, period (CY/PY), dimensions and sign. Each proposal carries a confidence (0.0 to 1.0 / 0% to 100%), a one-line rationale and its runner-up elements. The accountant decides; nothing goes into the filing until a suggestion is accepted. Bulk "Accept all ≥ 90%" is allowed.
 
-**Status:** Phase 8 (2026-11-11). It's a deterministic tagger with an optional LLM rerank. On DGPL ↔ Dixon it scores precision 0.738, recall 0.793, and suggestions at ≥ 0.9 are right 73 of 78 times (see [Evaluation](#evaluation)).
+**Status:** Modern LangChain Hybrid Retrieval + Reranking Architecture (2026-11). It combines Chroma Vector DB (`all-mpnet-base-v2`), LangChain `BM25Retriever`, LangChain `EnsembleRetriever`, and LangChain `FlashrankRerank`.
 
-## Design in one paragraph
-Retrieval does the tagging; the LLM only arbitrates. The tagger runs locally in the sidecar (`src/services/tagging/`) over the same engine authority the filing uses (`knowledge_base/<kb>_engine_authority.json`, [ADR-0010](decisions/ADR-0010-engine-authority-from-knowledge-base.md)). So every suggestion is an element MappingService can actually tag: reportable, numeric, and allowed without dimensions. The LLM (Groq) is off unless the user has given AI consent and a key is set. Even then it only sees the undecided rows: their label, headings and up to 10 candidate elements, never amounts. The old `GET /taxonomies/recommend` was top-1 embedding search over a Chroma index that was never built, with no filters. This tagger supersedes it. Embeddings can come back later as one more candidate source ([Embeddings](#embeddings--packaging)).
+## Design Overview
+Retrieval does the tagging locally with beginner-friendly, standard LangChain components (`src/services/retrieval/`):
+- **Chroma Vector DB (`langchain_chroma`):** Semantic search using pre-indexed 768-dimensional embeddings generated with `sentence-transformers/all-mpnet-base-v2`.
+- **BM25 Retriever (`langchain_community.retrievers.BM25Retriever`):** Keyword search directly from the knowledge-base JSON files (`ind_as_knowledge_base.json`, `ci_knowledge_base.json`, `costing_knowledge_base.json`).
+- **Ensemble Retriever (`langchain_classic.retrievers.EnsembleRetriever`):** LangChain's built-in Reciprocal Rank Fusion (RRF) ensembling dense vector search and BM25 keywords with equal weights (50/50).
+- **Neural Cross-Encoder Reranker (`langchain_community.document_compressors.FlashrankRerank`):** Blazingly fast ONNX neural reranker (~80ms on CPU) yielding normalized relevance scores (`0.0` to `1.0`).
+- **Exact Match Boost:** When an Excel row label matches an element's official taxonomy label or normalized string, score is boosted to `1.0` (100% confidence).
+- **Reportable Filter:** Automatically filters out abstract elements, members, axes, and tables so that only valid reportable facts are suggested.
 
-## Pipeline (`POST /api/v1/mapping/suggest`)
+## Column-Based Workflow (`POST /api/v1/mapping/suggest_column`)
+Accountants organize statements with line-item descriptions in a designated column (e.g. Col B) and figures in designated period columns (e.g. Col C for CY, Col D for PY):
+1. **Global Sheet Column Configuration:** CY and PY columns are configured upfront at the sheet level (via the toolbar `[CY: Col C · PY: Col D]` button) or in the dialog, enabling both WebXBRL manual tagging and AI auto-tagging.
+2. **Auto-Tag Dialog (`AutoTagColumnDialog.tsx`):** Defaults to asking only for the Line Item Description Column (e.g. `B`), pre-filled from the current Excel selection. It displays the active CY and PY target columns automatically, with an expandable section to adjust them if needed.
+3. **Strict Empty Cell Filtering:** Empty or whitespace-only cells (`text.trim() === ''`) and pure numbers are strictly skipped.
+4. **Execution:** Suggestions are generated with confidence scores, allowing the user to review each suggestion or run "Accept all ≥ 90%".
+
+## Pipeline (`POST /api/v1/mapping/suggest_column` & `POST /api/v1/mapping/suggest`)
 ```
-sheets ─▶ 1 layout ─▶ 2 candidates (memory → exact → BM25) + filters ─▶ 3 optional LLM rerank ─▶ 4 assemble
+Excel cells ─▶ 1. Empty filter ─▶ 2. LangChain EnsembleRetriever (Chroma + BM25) ─▶ 3. Flashrank Rerank + Exact Boost ─▶ 4. Scored Suggestions
 ```
 1. **Layout** (`layout.py`, `text.py`). Per sheet:
    - **Sheet kind:** `balance_sheet` / `profit_loss` / `cash_flow` / `equity` / `notes` / `other`, from the sheet name and its top text ("IND AS BS", "Notes of IND AS P&L"). `other` sheets (trial balances, working papers) are skipped and reported.
@@ -288,11 +301,11 @@ After mapping, an optional AI pass flags suspicious tags the MCA validator can't
 
 The output is INFO / WARNING issues with suggested remaps.
 
-## Embeddings & packaging
-- **Current:** the Chroma / sentence-transformers code (`src/services/embeddings`, `vectordb`) is unused by the tagger; its index was never built, and torch adds ~1 GB to a PyInstaller bundle.
-- **Plan:** switch to an ONNX runtime (fastembed / onnxruntime, a small model such as bge-small) with a **prebuilt index** in resources. Then add it as a candidate source next to BM25 (`src/services/retrieval/hybrid.py`) for synonym-heavy rows.
+## Embeddings & Retrieval Packaging
+- **Current:** Pure local execution. LangChain Chroma vector DB uses `sentence-transformers/all-mpnet-base-v2` (768 dimensions), LangChain `BM25Retriever` uses in-memory token indices, LangChain `EnsembleRetriever` fuses them with Reciprocal Rank Fusion (RRF), and LangChain `FlashrankRerank` provides CPU-friendly ONNX cross-encoder reranking (~80 ms per batch).
+- **Air-Gapped & Offline:** Financial statement rows, cell numbers, and line items never leave the user's computer.
 
-## Groq
+## Groq (Optional)
 - **Endpoint:** OpenAI-compatible `https://api.groq.com/openai/v1/chat/completions`.
-- **Model:** default **`openai/gpt-oss-120b`**; cheaper fallback `openai/gpt-oss-20b`. Configurable via `GROQ_MODEL` / Settings.
-- **Data minimisation:** labels, headings, sheet kind and candidate elements (qname, label, period type, balance). Never amounts, company name, CIN or sheet names.
+- **When used:** Optional fix agent arbitration only when enabled by user AI consent.
+- **Data minimisation:** Only taxonomy labels and error messages. Never amounts, company name, CIN or sheet names.

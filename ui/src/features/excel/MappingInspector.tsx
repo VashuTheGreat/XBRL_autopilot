@@ -89,7 +89,7 @@ export function MappingInspector() {
         </>
       ) : (
         <>
-          {info?.amount && <ColumnPeriodText column={info.column} />}
+          {info?.column && <ColumnPeriodText column={info.column} />}
           <span className="shrink-0 text-muted">Not tagged.</span>
           <div className="flex-1" />
           <Button variant="ghost" className="h-6 shrink-0 px-2" onClick={() => setActivity('taxonomy')}>

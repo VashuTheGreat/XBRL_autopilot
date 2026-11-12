@@ -1,4 +1,4 @@
-.PHONY: dev start test rebuild rebuild-fast rebuild-skip-chroma engine-authority engine-rules clean build-sidecar build-ui build-win build-linux build_app build-app
+.PHONY: dev start test rebuild rebuild-fast rebuild-skip-chroma engine-authority engine-rules clean build-sidecar build-ui build-win build-linux build_app build-app app run dev-app
 
 # Support passing arguments like:
 # make rebuild ARGS="--skip-chroma"
@@ -11,6 +11,12 @@ EXTRA_ARGS := $(ARGS)
 ifneq (,$(filter skip-chroma --skip-chroma,$(MAKECMDGOALS)))
   EXTRA_ARGS := --skip-chroma
 endif
+
+# --- Launch Desktop Application ---
+app:
+	pnpm --filter ui dev
+
+
 
 dev:
 	uv run uvicorn api.app:app --host 127.0.0.1 --port 7860 --reload

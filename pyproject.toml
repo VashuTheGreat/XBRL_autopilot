@@ -24,6 +24,9 @@ dependencies = [
     "sentence-transformers>=6.2.0",
     "python-calamine>=0.9.1",
     "xlrd==2.0.1",
+    "langchain-community>=0.4.2",
+    "rank-bm25>=0.2.2",
+    "flashrank>=0.2.10",
 ]
 
 [project.optional-dependencies]

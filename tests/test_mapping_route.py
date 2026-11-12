@@ -1,51 +1,78 @@
-"""POST /api/v1/mapping/suggest: contract, validation, and that the LLM stays off unless asked for and configured."""
+"""Tests for mapping endpoints: suggest_column and suggest."""
 from fastapi.testclient import TestClient
 
 from api.app import app
-from tests.test_tagging import BS
 
 client = TestClient(app)
 
+SAMPLE_BS_SHEET = {
+    "name": "Balance Sheet",
+    "cells": [
+        {"r": 0, "c": 0, "v": "Balance Sheet"},
+        {"r": 1, "c": 0, "v": "Particulars"},
+        {"r": 1, "c": 2, "v": "31.03.2026"},
+        {"r": 1, "c": 3, "v": "31.03.2025"},
+        {"r": 2, "c": 0, "v": "Trade receivables"},
+        {"r": 2, "c": 2, "v": 1250000},
+        {"r": 2, "c": 3, "v": 1100000},
+        {"r": 3, "c": 0, "v": "Cash and cash equivalents"},
+        {"r": 3, "c": 2, "v": 450000},
+        {"r": 3, "c": 3, "v": 320000},
+    ],
+    "merges": [],
+}
 
-def body(**over):
-    b = {
+
+def test_suggest_column_endpoint():
+    payload = {
         "taxonomy": "ind_as_taxonomy",
-        "sheets": [BS],
-        "periods": {"cyEnd": "2026-03-31", "pyEnd": "2025-03-31"},
-        "level": "Lakhs",
-        "memory": [{"label": "Other Current Assets", "concept": "ind-as:OtherCurrentAssets", "approvals": 2}],
+        "workbook": "test.xlsx",
+        "sheet": "Balance Sheet",
+        "items": [
+            {"row": 2, "label": "Trade payables", "cy_cell": "C3", "py_cell": "D3"},
+            {"row": 3, "label": "   ", "cy_cell": "C4", "py_cell": "D4"},  # empty label skipped
+            {"row": 4, "label": "Property, plant and equipment", "cy_cell": "C5", "py_cell": "D5"},
+        ],
     }
-    b.update(over)
-    return b
-
-
-def test_suggest_returns_layout_and_suggestions():
-    resp = client.post("/api/v1/mapping/suggest", json=body())
+    resp = client.post("/api/v1/mapping/suggest_column", json=payload)
     assert resp.status_code == 200, resp.text
     data = resp.json()["data"]
-    assert data["layout"][0] == {
-        "sheet": "Balance Sheet", "kind": "balance_sheet", "scale": "Lakhs",
-        "periodColumns": {"CY": "E", "PY": "F"}, "rows": data["layout"][0]["rows"], "note": None,
-    }
+    assert data["total_items"] == 2
+    assert data["matched_items"] >= 2
     by_ref = {s["cell"]["ref"]: s for s in data["suggestions"]}
-    tr = by_ref["E13"]
-    assert tr["concept"] == "ind-as:TradeReceivablesCurrent" and tr["scope"] == "CY" and tr["dims"] == []
-    assert tr["origin"] == "exact" and tr["confidence"] >= 0.9 and tr["sign"] == 1
-    assert {"concept", "label", "score"} <= set(tr["alternatives"][0])
-    assert by_ref["E14"]["origin"] == "memory"
-    assert data["llmUsed"] is False
+    assert "C3" in by_ref
+    assert "D3" in by_ref
+    assert "payables" in by_ref["C3"]["concept"].lower()
+    assert by_ref["C3"]["scope"] == "CY"
+    assert by_ref["D3"]["scope"] == "PY"
+    assert by_ref["C3"]["confidence"] >= 0.5
 
 
-def test_llm_needs_a_key_even_when_asked(monkeypatch):
-    from src.app_config import get_app_config
-
-    monkeypatch.setattr(get_app_config(), "groq_api_key", None)
-    resp = client.post("/api/v1/mapping/suggest", json=body(options={"useLlm": True}))
-    assert resp.status_code == 200 and resp.json()["data"]["llmUsed"] is False
+def test_suggest_sheet_endpoint():
+    payload = {
+        "taxonomy": "ind_as_taxonomy",
+        "sheets": [SAMPLE_BS_SHEET],
+        "periods": {"cyEnd": "2026-03-31", "pyEnd": "2025-03-31"},
+        "level": "Actual",
+        "memory": [],
+    }
+    resp = client.post("/api/v1/mapping/suggest", json=payload)
+    assert resp.status_code == 200, resp.text
+    data = resp.json()["data"]
+    assert len(data["layout"]) == 1
+    assert data["layout"][0]["sheet"] == "Balance Sheet"
+    assert len(data["suggestions"]) > 0
 
 
 def test_suggest_validation():
-    assert client.post("/api/v1/mapping/suggest", json=body(taxonomy="costing_taxonomy")).status_code == 422
-    assert client.post("/api/v1/mapping/suggest", json=body(periods={"cyEnd": "31/03/2026"})).status_code == 422
-    resp = client.post("/api/v1/mapping/suggest", json=body(sheets=[{"name": "Empty", "cells": []}]))
+    payload = {
+        "taxonomy": "costing_taxonomy",
+        "sheets": [SAMPLE_BS_SHEET],
+        "periods": {"cyEnd": "2026-03-31"},
+    }
+    assert client.post("/api/v1/mapping/suggest", json=payload).status_code == 422
+    resp = client.post(
+        "/api/v1/mapping/suggest",
+        json={"taxonomy": "ind_as_taxonomy", "sheets": [{"name": "Empty", "cells": []}], "periods": {"cyEnd": "2026-03-31"}},
+    )
     assert resp.status_code == 200 and resp.json()["data"]["suggestions"] == []

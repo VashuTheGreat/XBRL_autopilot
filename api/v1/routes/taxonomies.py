@@ -3,7 +3,7 @@ from fastapi.responses import Response
 from src.core.logger import logger
 from typing import Annotated, Any, Dict, List, Optional
 from api.v1.schemas.taxonomies import RecommendTaxonomies as RecommendTaxonomiesSchema
-from src.pipeline.recom_taxonomies import RecommendTaxonomies
+from src.pipeline.recom_taxonomies import RecommendTaxonomies, RecommendTaxonomiesWithScores
 from src.core.authority import Authority
 from src.constants import CI_TAXONOMY_VDB, IND_AS_TAXONOMY_VDB, COSTING_TAXONOMY_VDB
 from api.responses import success_response, error_response
@@ -58,13 +58,28 @@ async def recommend_taxonomies(payload: Annotated[RecommendTaxonomiesSchema, Que
     with logger.span("taxonomies.recommend", keys_count=len(payload.keys)):
         try:
             target_coll = payload.collection
-            raw_docs = await RecommendTaxonomies(keys=payload.keys, collection=target_coll)
+            raw_docs = await RecommendTaxonomies(keys=payload.keys, collection=target_coll, top_k=payload.top_k)
             return success_response(
                 data=raw_docs,
                 message="Taxonomies recommended successfully",
             )
         except Exception:
             logger.exception("taxonomies.recommend_failed")
+            return success_response(data=[], message="Taxonomies recommendation unavailable")
+
+
+@router.post("/recommend")
+async def recommend_taxonomies_post(payload: RecommendTaxonomiesSchema):
+    with logger.span("taxonomies.recommend_post", keys_count=len(payload.keys)):
+        try:
+            target_coll = payload.collection
+            results = await RecommendTaxonomiesWithScores(keys=payload.keys, collection=target_coll, top_k=payload.top_k)
+            return success_response(
+                data=results,
+                message="Taxonomies recommended successfully",
+            )
+        except Exception:
+            logger.exception("taxonomies.recommend_post_failed")
             return success_response(data=[], message="Taxonomies recommendation unavailable")
 
 

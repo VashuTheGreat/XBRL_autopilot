@@ -79,6 +79,16 @@ export interface SuggestedAlso extends MappedFact {
   reason?: string
 }
 
+export interface AutoTagColumnOptions {
+  workbook?: string
+  sheet?: string
+  labelColumn: string
+  cyColumn: string
+  pyColumn?: string
+  gap?: number
+  saveConfig?: boolean
+}
+
 /** What one auto-tagging run found (suggestions are stored as mapping entries with status 'suggested'). */
 export interface AutoTagSummary {
   suggested: number
@@ -275,6 +285,24 @@ export interface ColumnPeriod {
   basis: 'remembered' | 'header' | 'layout' | 'outside' | 'unknown'
   /** shown to the user, e.g. column header “31.03.2014” */
   reason: string
+}
+
+export interface SheetColumns {
+  workbook: string
+  sheet: string
+  cyColumn: string | null
+  pyColumn: string | null
+  gap?: number
+  basis: 'remembered' | 'inferred' | 'unknown'
+}
+
+export interface SetSheetColumnsInput {
+  workbook: string
+  sheet: string
+  cyColumn: string
+  pyColumn?: string | null
+  gap?: number
+  applyToAllSheets?: boolean
 }
 
 /** A mandatory amount reported as 0 by "fill empty mandatory amounts". */

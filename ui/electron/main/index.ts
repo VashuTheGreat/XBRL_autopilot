@@ -95,7 +95,7 @@ const mapping = new MappingService(projects, sources, columns, db)
 const tables = new TableMappingService(projects, sources, columns, mapping)
 // Auto-tagging (docs/06): suggestions from the sidecar's tagger; the LLM rerank only with the user's AI consent
 const tableSuggestions = new TableSuggestionService(projects, tables)
-const autoTag = new AutoTagService(projects, sources, mapping, new SidecarMappingSuggester(sidecar), db, tableSuggestions, () => settings.get().aiConsent)
+const autoTag = new AutoTagService(projects, sources, mapping, new SidecarMappingSuggester(sidecar), db, tableSuggestions, () => settings.get().aiConsent, sidecar)
 const filing = new FilingPropertiesService(projects, mapping)
 const statements = new StatementService(projects)
 

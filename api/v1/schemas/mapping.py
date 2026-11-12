@@ -25,7 +25,6 @@ class Merge(BaseModel):
 class Sheet(BaseModel):
     name: str = Field(max_length=200)
     cells: list[Cell] = Field(max_length=MAX_CELLS_PER_SHEET)
-    # merged ranges: a merged header names every column it spans (ADR-0013 step 6)
     merges: list[Merge] = Field(default_factory=list, max_length=MAX_MERGES_PER_SHEET)
 
 
@@ -49,6 +48,20 @@ class SuggestRequest(BaseModel):
     taxonomy: Literal["ci_taxonomy", "ind_as_taxonomy"]
     sheets: list[Sheet] = Field(max_length=MAX_SHEETS)
     periods: Periods
-    level: str = Field("Actual", max_length=20)  # the filing's rounding level (Actual, Lakhs, …)
+    level: str = Field("Actual", max_length=20)
     memory: list[MemoryEntry] = Field(default_factory=list, max_length=20_000)
     options: SuggestOptions = Field(default_factory=SuggestOptions)
+
+
+class ColumnSuggestItem(BaseModel):
+    row: int
+    label: str
+    cy_cell: str
+    py_cell: Optional[str] = None
+
+
+class ColumnSuggestRequest(BaseModel):
+    taxonomy: str = "ind_as_taxonomy"
+    workbook: str
+    sheet: str
+    items: list[ColumnSuggestItem]

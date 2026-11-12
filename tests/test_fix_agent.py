@@ -17,7 +17,7 @@ from src.services.fix_agent.privacy import IDENTITY_ELEMENT, violations
 from src.services.fix_agent.tools import FixTools
 from src.services.llm import groq as groq_mod
 from src.services.llm.groq import ChatResult, GroqClient, GroqError, Usage, resolve_url
-from src.services.tagging.rerank import GroqReranker, RerankItem, RerankOption
+from src.services.retrieval.reranking import GroqReranker, RerankItem, RerankOption
 
 ROOT = Path(__file__).resolve().parent.parent
 CELL_PY = {"workbook": "workbook-1.xlsx", "sheet": "BS", "ref": "D9"}
