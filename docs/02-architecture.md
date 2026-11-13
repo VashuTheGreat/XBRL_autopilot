@@ -19,12 +19,15 @@
                                               │ Python sidecar (FastAPI, PyInstaller)   │
                                               │ ├ /taxonomies (knowledge_base/*.json)   │
                                               │ ├ /mapping/suggest  (auto-tagging)      │
-                                              │ ├ /fix/propose      (Groq agent)        │
-                                              │ └ /health                               │
+                                              │ ├ /conversations & /chat (in-memory)    │
+                                              │ ├ /health & /ingest                     │
+                                              │ └ Logfire observability spans           │
                                               └──────────────────┬──────────────────────┘
-                                                                 │ HTTPS (only if AI enabled)
-                                                                 ▼
-                                                             Groq API
+                                                                 │ HTTPS (AI / Vector DB)
+                                                                 ├────────────────────────┐
+                                                                 ▼                        ▼
+                                                             Groq API           Qdrant Vector DB
+                                                                                (4 Cloud Collections)
 ```
 
 ## Layer responsibilities
@@ -40,7 +43,7 @@ Each taxonomy has two generated files in `knowledge_base/`, built from the same 
 
 | File | Built by | Used for | Shape |
 |---|---|---|---|
-| `<kb>_knowledge_base.json` (C&I, Ind AS, Costing) | `src/services/extractors/*.py` | Browsing routes (`/elrs`, `/elrs/{code}/tree`, search, concept detail), Chroma index, raw MCA rule text | Labels incl. Hindi, raw arcs, raw business-rule rows: tuned for search and display |
+| `<kb>_knowledge_base.json` (C&I, Ind AS, Costing) | `src/services/extractors/*.py` | Browsing routes (`/elrs`, `/elrs/{code}/tree`, search, concept detail), Qdrant vector index, raw MCA rule text | Labels incl. Hindi, raw arcs, raw business-rule rows: tuned for search and display |
 | `<kb>_engine_authority.json` (C&I, Ind AS) | `src/services/engine_authority/` | The engine (`/{id}/authority`): facts, XML, validation | DTS from the entry points, prohibition/override applied, full definition-arc attributes, dimensional model, type facets, validator patches: exact enough to file |
 
 - **Why separate:**
@@ -51,6 +54,32 @@ Each taxonomy has two generated files in `knowledge_base/`, built from the same 
 - **Rule of thumb:** anything that decides what goes into the XML reads the engine file; anything that helps the user find or understand something reads the browsing file.
 
 Decided 2026-11-10 ([ADR-0010](decisions/ADR-0010-engine-authority-from-knowledge-base.md)).
+
+## Vector Database Architecture (Qdrant Cloud)
+Local ChromaDB has been migrated to Qdrant Cloud (`fe6c821a-bb9f-4e84-b611-fa9f7236bd69.us-west-2-0.aws.cloud.qdrant.io:6333`). Four collections are maintained with 768-dimensional embeddings (`sentence-transformers/all-mpnet-base-v2`) and Cosine distance metric:
+- `ci_taxonomy`: Corporate Insolvency taxonomy concepts.
+- `cost_taxonomy`: Costing taxonomy concepts.
+- `ind_as_taxonomy`: Indian Accounting Standards taxonomy concepts.
+- `xbrl_agent`: Statutory MCA and XBRL guidelines (`data/agent/MCA.txt`) used for agent RAG.
+
+`make rebuild` executes `python3 -m src.pipeline.rebuild_knowledge_base_pipeline`, which deletes and recreates all four collections fresh, runs extractors, compiles engine authorities and rules, and populates the vector stores.
+
+## In-Memory Chatbot Architecture
+The sidecar includes a dedicated XBRL assistant running on LangGraph:
+- **State engine:** LangGraph `StateGraph` compiled with `InMemorySaver` (`src/services/memory/inmemory.py`).
+- **Isolation:** Active threads are tracked in an in-memory dictionary; zero persistent database is required.
+- **Endpoints:**
+  - `POST /api/v1/conversations`: Create conversation.
+  - `GET /api/v1/conversations`: List active threads.
+  - `GET /api/v1/conversations/{id}`: Retrieve message history.
+  - `DELETE /api/v1/conversations/{id}`: Delete conversation and purge thread memory.
+  - `POST /api/v1/chat` and `POST /api/v1/conversations/{id}/messages`: Support Server-Sent Events (SSE) streaming and direct non-streaming JSON responses.
+- **Execution graph:** Guardrails → Planner (route to retriever vs responder) → Retriever (queries Qdrant `xbrl_agent` + FlashRank TinyBERT reranker) → Responder (Groq LLM).
+
+## Observability & Structured Logging
+Informal debugging prints and emoji logging have been eliminated in favor of structured Logfire instrumentation:
+- Execution paths are traced via spans: `API → Service → Pipeline → Retrieval → Reranker → Response`.
+- All node events and parameters are logged with sanitized attributes (converting numpy types to native Python floats/ints).
 
 ## Why hybrid (TS engine + Python AI)?
 See [ADR-0001](decisions/ADR-0001-hybrid-engine.md).

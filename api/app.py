@@ -1,16 +1,43 @@
 import hmac
-
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from api.v1.routes import fix, mapping, taxonomies, workbooks
+from api.v1.routes import (
+    chat_router,
+    conversation_router,
+    fix,
+    ingestion_router,
+    mapping,
+    taxonomies,
+    workbooks,
+)
 from src.app_config import get_app_config
-from src.constants import CI_TAXONOMY_VDB, COSTING_TAXONOMY_VDB, IND_AS_TAXONOMY_VDB
+from src.constants import (
+    CI_TAXONOMY_VDB,
+    COST_TAXONOMY_VDB,
+    IND_AS_TAXONOMY_VDB,
+    XBRL_AGENT_VDB,
+)
+from src.core.logger import initialise_logger, logger
 
 SIDECAR_VERSION = "0.1.0"
-PUBLIC_PATHS = {"/health"}
+PUBLIC_PATHS = {"/health", "/docs", "/openapi.json"}
 
-app = FastAPI(title="XBRL Autopilot sidecar", version=SIDECAR_VERSION)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    initialise_logger()
+    logger.info("app.startup", version=SIDECAR_VERSION)
+    yield
+    logger.info("app.shutdown")
+
+
+app = FastAPI(title="XBRL Autopilot sidecar", version=SIDECAR_VERSION, lifespan=lifespan)
+try:
+    logger.instrument_fastapi(app)
+except Exception:
+    pass
 
 
 @app.middleware("http")
@@ -36,12 +63,19 @@ async def health():
     return {
         "status": "ok",
         "version": SIDECAR_VERSION,
-        "taxonomies": [CI_TAXONOMY_VDB, IND_AS_TAXONOMY_VDB, COSTING_TAXONOMY_VDB],
+        "taxonomies": [CI_TAXONOMY_VDB, IND_AS_TAXONOMY_VDB, COST_TAXONOMY_VDB],
+        "collections": [CI_TAXONOMY_VDB, COST_TAXONOMY_VDB, IND_AS_TAXONOMY_VDB, XBRL_AGENT_VDB],
         "ai": {"enabled": bool(cfg.groq_api_key), "model": cfg.groq_model if cfg.groq_api_key else None},
     }
 
 
+# Sidecar core routes
 app.include_router(router=taxonomies.router, prefix="/api/v1/taxonomies")
 app.include_router(router=workbooks.router, prefix="/api/v1/workbooks")
 app.include_router(router=mapping.router, prefix="/api/v1/mapping")
 app.include_router(router=fix.router, prefix="/api/v1/fix")
+
+# In-memory chatbot and ingestion routes
+app.include_router(router=conversation_router.router, prefix="/api/v1")
+app.include_router(router=chat_router.router, prefix="/api/v1")
+app.include_router(router=ingestion_router.router, prefix="/api/v1")

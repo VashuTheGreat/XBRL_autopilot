@@ -1,6 +1,13 @@
 # 07 · AI fix agent (post-tagging errors)
 
-**Goal:** after tagging, validation errors appear, both from our engine and from the MCA tool. The agent proposes concrete, reviewable **patches** that resolve them. **The agent never edits the filing.** It returns proposals, the engine checks every one, the user accepts or rejects each, and accepted patches are applied through the ordinary editing paths and revalidated. Architecture: [ADR-0012](decisions/ADR-0012-ai-fix-patches.md). Built in Phase 10.
+> [!NOTE]
+> **Status: Deferred (2026-11-13)**
+> The AI fix agent implementation has been temporarily deferred in favor of frontend software workflows and deterministic engine validation:
+> 1. **Deterministic Resolution for Missing Lines:** Validation errors resulting from missing mandatory amounts are handled deterministically in the frontend and engine via automated zero-filling (`engine/src/core/fixes.js` and rule-driven zeros), which requires no probabilistic LLM intervention.
+> 2. **Tagging-Time Quality Over Post-Tagging Guessing:** Substantive errors (e.g. calculation mismatches or mis-tagged elements) stem from tagging decisions. High-accuracy auto-tagging (`/api/v1/mapping/suggest_column` with Hybrid Search + FlashRank reranking) coupled with accountant review solves these at the source. Any genuine discrepancies require CA judgment rather than autonomous AI adjustments.
+> 3. **Sidecar Status:** The endpoint `/api/v1/fix/propose` remains a stub returning `503 Service Unavailable`. Development effort is concentrated on frontend spreadsheet interaction, tag workflows, and deterministic validation.
+
+**Goal:** after tagging, validation errors appear, both from our engine and from the MCA tool. The agent proposes concrete, reviewable **patches** that resolve them. **The agent never edits the filing.** It returns proposals, the engine checks every one, the user accepts or rejects each, and accepted patches are applied through the ordinary editing paths and revalidated. Architecture: [ADR-0012](decisions/ADR-0012-ai-fix-patches.md).
 
 ## Escalation ladder
 1. **Deterministic quick fixes** (`engine/src/core/fixes.js`, the **Fix** button in Problems). They are instant, need no AI, and always work, with or without AI:

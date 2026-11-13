@@ -16,6 +16,7 @@ from src.constants import (
 
 )
 import os
+from src.core.logger import logger
 from src.utils.main_utils import save_json
 
 # -------------------------------------------------------------------------
@@ -28,9 +29,7 @@ def get_project_root() -> Path:
     return Path('/home/vanshsharma/projects/xbrl_autopilot')
 
 
-print(f'Project root detected: {BASE_DIR}')
-print(f'Taxonomy exists: {TAXONOMY_DIR.exists()}')
-print(f'Rules Excel exists: {RULES_EXCEL.exists()}')
+logger.debug("ci_extractor.paths", base_dir=str(BASE_DIR), taxonomy_exists=TAXONOMY_DIR.exists(), rules_exists=RULES_EXCEL.exists())
 
 # XML Namespaces
 XS = "{http://www.w3.org/2001/XMLSchema}"
@@ -43,7 +42,7 @@ XBRLI = "{http://www.xbrl.org/2003/instance}"
 # 2. STEP 1: PARSE XSD SCHEMAS (CONCEPTS, TYPES, ROLES)
 # -------------------------------------------------------------------------
 def parse_schemas():
-    print("[1/4] Parsing XSD schemas...")
+    logger.info("ci_extractor.parse_schemas_started")
     namespaces = {
         "in-ca": "http://www.icai.org/xbrl/taxonomy/2016-03-31/in-ca",
         "in-ca-roles": "http://www.icai.org/xbrl/taxonomy/2016-03-31/in-ca-roles",
@@ -124,7 +123,7 @@ def parse_schemas():
                 id_to_qname[f"{xsd_file.name}#{elem_id}"] = qname
                 id_to_qname[elem_id] = qname
 
-    print(f"  -> {len(concepts)} concepts, {len(types)} types, {len(roles)} roles found.")
+    logger.info("ci_extractor.schemas_parsed", concepts=len(concepts), types=len(types), roles=len(roles))
     return namespaces, concepts, types, roles, id_to_qname
 
 
@@ -132,7 +131,7 @@ def parse_schemas():
 # 3. STEP 2: PARSE LABELS (EN + HI) & REFERENCES
 # -------------------------------------------------------------------------
 def parse_labels_and_references(concepts, id_to_qname):
-    print("[2/4] Parsing English & Hindi labels, and MCA references...")
+    logger.info("ci_extractor.parse_labels_and_references_started")
     
     # Label files
     for lab_file in sorted(TAXONOMY_DIR.rglob("*-lab-*.xml")):
@@ -205,14 +204,14 @@ def parse_labels_and_references(concepts, id_to_qname):
                     readable = re.sub(r'\s*domain$', '', readable, flags=re.I) + ' [Domain]'
                 c["labels"]["label"] = readable
 
-    print("  -> Labels and references merged into concepts.")
+    logger.info("ci_extractor.labels_and_references_merged")
 
 
 # -------------------------------------------------------------------------
 # 4. STEP 3: PARSE LINKBASES (PRE, CAL, DEF RELATIONSHIPS)
 # -------------------------------------------------------------------------
 def parse_relationships(id_to_qname):
-    print("[3/4] Parsing PRE, CAL, DEF linkbases...")
+    logger.info("ci_extractor.parse_relationships_started")
     presentation = {}
     calculation = {}
     definition = {}
@@ -275,7 +274,12 @@ def parse_relationships(id_to_qname):
         for k in d:
             d[k].sort(key=lambda x: (x["from"], x["order"]))
 
-    print(f"  -> PRE roles: {len(presentation)}, CAL roles: {len(calculation)}, DEF roles: {len(definition)}.")
+    logger.info(
+        "ci_extractor.relationships_parsed",
+        presentation_roles=len(presentation),
+        calculation_roles=len(calculation),
+        definition_roles=len(definition),
+    )
     return presentation, calculation, definition
 
 
@@ -283,7 +287,7 @@ def parse_relationships(id_to_qname):
 # 5. STEP 4: PARSE BUSINESS RULES (MANDATORY & NULL CHECKS)
 # -------------------------------------------------------------------------
 def parse_business_rules(concepts):
-    print("[4/4] Parsing Business Rules from Excel (mandatory/null checks)...")
+    logger.info("ci_extractor.parse_business_rules_started")
     business_rules = {
         "mandatoryConcepts": [],      # Globally mandatory elements (cannot be null)
         "mandatoryConsolidated": [],  # Mandatory in Consolidated reports
@@ -292,7 +296,7 @@ def parse_business_rules(concepts):
     }
 
     if not RULES_EXCEL.exists():
-        print(f"  ! Warning: Business rules excel not found at {RULES_EXCEL}")
+        logger.warning("ci_extractor.rules_excel_missing", path=str(RULES_EXCEL))
         return business_rules
 
     wb = CalamineWorkbook.from_path(RULES_EXCEL)
@@ -359,8 +363,11 @@ def parse_business_rules(concepts):
                 if mand_qns:
                     business_rules["mandatoryLineItems"][tbl_raw] = mand_qns
 
-    print(f"  -> {len(business_rules['mandatoryConcepts'])} globally mandatory concepts found (cannot be null).")
-    print(f"  -> {len(business_rules['mandatoryLineItems'])} tables with mandatory line-items extracted.")
+    logger.info(
+        "ci_extractor.business_rules_parsed",
+        mandatory_concepts=len(business_rules["mandatoryConcepts"]),
+        mandatory_tables=len(business_rules["mandatoryLineItems"]),
+    )
     return business_rules
 
 
@@ -368,50 +375,46 @@ def parse_business_rules(concepts):
 # 6. MAIN COMPILER: RUN ALL & EXPORT JSON
 # -------------------------------------------------------------------------
 async def main():
-    print("=" * 60)
-    print("Starting C&I Taxonomy 2016 Extraction Pipeline")
-    print("=" * 60)
+    with logger.span("ci_extractor.pipeline"):
+        logger.info("ci_extractor.starting")
 
-    # 1. Schemas
-    namespaces, concepts, types, roles, id_to_qname = parse_schemas()
+        # 1. Schemas
+        namespaces, concepts, types, roles, id_to_qname = parse_schemas()
 
-    # 2. Labels & References
-    parse_labels_and_references(concepts, id_to_qname)
+        # 2. Labels & References
+        parse_labels_and_references(concepts, id_to_qname)
 
-    # 3. Relationships
-    presentation, calculation, definition = parse_relationships(id_to_qname)
+        # 3. Relationships
+        presentation, calculation, definition = parse_relationships(id_to_qname)
 
-    # 4. Business Rules
-    business_rules = parse_business_rules(concepts)
+        # 4. Business Rules
+        business_rules = parse_business_rules(concepts)
 
-    # Assemble JSON
-    canonical_kb = {
-        "meta": {
-            "name": "MCA C&I Taxonomy 2016 authority model",
-            "taxonomyVersion": "Indian C&I General Purpose Taxonomy 2016-03-31 Ver 1.0",
-            "entryPoint": "in-ci-ent-2016-03-31.xsd",
-            "schemaRef": "https://www.mca.gov.in/V3XBRL/2016/07/26/Taxonomy/CnI/in-ci-ent-2016-03-31.xsd",
-            "totalConcepts": len(concepts),
-            "mandatoryConceptsCount": len(business_rules["mandatoryConcepts"]),
-        },
-        "namespaces": namespaces,
-        "types": types,
-        "roles": roles,
-        "concepts": concepts,
-        "presentation": presentation,
-        "calculation": calculation,
-        "definition": definition,
-        "businessRules": business_rules,
-    }
+        # Assemble JSON
+        canonical_kb = {
+            "meta": {
+                "name": "MCA C&I Taxonomy 2016 authority model",
+                "taxonomyVersion": "Indian C&I General Purpose Taxonomy 2016-03-31 Ver 1.0",
+                "entryPoint": "in-ci-ent-2016-03-31.xsd",
+                "schemaRef": "https://www.mca.gov.in/V3XBRL/2016/07/26/Taxonomy/CnI/in-ci-ent-2016-03-31.xsd",
+                "totalConcepts": len(concepts),
+                "mandatoryConceptsCount": len(business_rules["mandatoryConcepts"]),
+            },
+            "namespaces": namespaces,
+            "types": types,
+            "roles": roles,
+            "concepts": concepts,
+            "presentation": presentation,
+            "calculation": calculation,
+            "definition": definition,
+            "businessRules": business_rules,
+        }
 
-    directory = os.path.dirname(OUTPUT_JSON)
-    os.makedirs(directory,exist_ok=True)
-        
-    # Save to file
-    await save_json(path=OUTPUT_JSON,data=canonical_kb)
-    
-    print("=" * 60)
-    print(f"DONE! File generated: {OUTPUT_JSON}")
-    print(f"Size: {OUTPUT_JSON.stat().st_size / (1024*1024):.2f} MB")
-    print("=" * 60)
+        directory = os.path.dirname(OUTPUT_JSON)
+        os.makedirs(directory, exist_ok=True)
+
+        # Save to file
+        await save_json(path=OUTPUT_JSON, data=canonical_kb)
+        size_mb = OUTPUT_JSON.stat().st_size / (1024 * 1024) if OUTPUT_JSON.exists() else 0.0
+        logger.info("ci_extractor.completed", output_path=str(OUTPUT_JSON), size_mb=round(size_mb, 2))
 

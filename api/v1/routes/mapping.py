@@ -8,7 +8,7 @@ from fastapi import APIRouter
 from api.responses import success_response
 from api.v1.schemas.mapping import ColumnSuggestRequest, SuggestRequest
 from src.core.logger import logger
-from src.pipeline.recom_taxonomies import RecommendTaxonomiesWithScores
+from src.pipeline.recom_taxonomies_pipeline import RecommendTaxonomiesWithScores
 
 router = APIRouter()
 

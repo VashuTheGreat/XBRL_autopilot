@@ -7,6 +7,7 @@ from __future__ import annotations
 import sys
 import time
 
+from src.core.logger import logger
 from src.services.engine_authority.builder import write
 from src.services.engine_authority.specs import SPECS
 
@@ -17,10 +18,19 @@ def main(ids: list[str] | None = None) -> None:
         t0 = time.perf_counter()
         a = write(spec)
         s = a["meta"]["relationshipStats"]
-        print(
+        msg = (
             f"{tid}: concepts={len(a['concepts'])} elrs={len(a['elrs'])} tables={len(a['tables'])} "
             f"all={s['all']} notAll={s['notAll']} defaults={s['dimensionDefault']} calcArcs={s['calculationArcs']} "
             f"-> {spec.output.name} ({spec.output.stat().st_size / 1e6:.1f} MB, {time.perf_counter() - t0:.1f}s)"
+        )
+        logger.info(
+            "engine_authorities.built",
+            taxonomy_id=tid,
+            concepts=len(a["concepts"]),
+            elrs=len(a["elrs"]),
+            tables=len(a["tables"]),
+            duration_s=round(time.perf_counter() - t0, 2),
+            output=spec.output.name,
         )
 
 

@@ -32,16 +32,25 @@ INDAS_ENGINE_AUTHORITY_JSON = BASE_DIR / "knowledge_base" / "ind_as_engine_autho
 # ===================== TAXONOMIES_NAME ============
 IND_AS_TAXONOMY_VDB: str = "ind_as_taxonomy"
 CI_TAXONOMY_VDB: str = "ci_taxonomy"
-COSTING_TAXONOMY_VDB: str = "costing_taxonomy"
+COST_TAXONOMY_VDB: str = "cost_taxonomy"
+COSTING_TAXONOMY_VDB: str = COST_TAXONOMY_VDB
+XBRL_AGENT_VDB: str = "xbrl_agent"
+ALL_QDRANT_COLLECTIONS: list[str] = [
+    CI_TAXONOMY_VDB,
+    COST_TAXONOMY_VDB,
+    IND_AS_TAXONOMY_VDB,
+    XBRL_AGENT_VDB,
+]
+
 # ============ VectorDb Config ========================
 VECTOR_DB_PATH = BASE_DIR / "chroma_langchain_db"
 BATCH_SIZE = 500
 
-
-
-
-
 # Aliases used by tests and the API (taxonomy ids of the knowledge bases)
 TAXONOMY_CI: str = CI_TAXONOMY_VDB
 TAXONOMY_IND_AS: str = IND_AS_TAXONOMY_VDB
-TAXONOMY_COSTING: str = COSTING_TAXONOMY_VDB
+TAXONOMY_COSTING: str = COST_TAXONOMY_VDB
+
+# knowledge base for agent
+AGENT_KNOWLEDGE_DATA_DIR = BASE_DIR / "data" / "agent"
+AGENT_COLLECTION_NAME: str = XBRL_AGENT_VDB

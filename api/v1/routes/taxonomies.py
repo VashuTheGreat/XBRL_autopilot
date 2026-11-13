@@ -3,7 +3,7 @@ from fastapi.responses import Response
 from src.core.logger import logger
 from typing import Annotated, Any, Dict, List, Optional
 from api.v1.schemas.taxonomies import RecommendTaxonomies as RecommendTaxonomiesSchema
-from src.pipeline.recom_taxonomies import RecommendTaxonomies, RecommendTaxonomiesWithScores
+from src.pipeline.recom_taxonomies_pipeline import RecommendTaxonomies, RecommendTaxonomiesWithScores
 from src.core.authority import Authority
 from src.constants import CI_TAXONOMY_VDB, IND_AS_TAXONOMY_VDB, COSTING_TAXONOMY_VDB
 from api.responses import success_response, error_response

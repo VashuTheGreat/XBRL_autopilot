@@ -34,3 +34,14 @@ class HuggingFaceEmbedding(BaseEmbedding):
 
     async def embedd(self, text: Union[str, List[str]]) -> Union[List[float], List[List[float]]]:
         return await self.aembed(text)
+
+    # fall back for some files
+    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+        return self.embedding_model.embed_documents(texts)
+
+    def embed_query(self, text: str) -> List[float]:
+        return self.embedding_model.embed_query(text)
+
+    @property
+    def dim(self) -> int:
+        return 768

@@ -1,11 +1,9 @@
-"""Retrieval Service: LangChain Ensemble (Chroma Vector DB + BM25) and LangChain FlashRank Reranker."""
+"""Retrieval Service: LangChain Ensemble (Qdrant Vector DB + BM25) and FlashRank Reranker."""
 from .hybrid import HybridCandidate, HybridSearchService, get_hybrid_search_service
-from .reranking import (
-    GroqReranker,
+from .reranker import (
     RankedDocument,
-    RerankItem,
-    RerankOption,
     RerankerService,
+    flaskreranker,
     get_reranker_service,
 )
 
@@ -16,7 +14,5 @@ __all__ = [
     "RankedDocument",
     "RerankerService",
     "get_reranker_service",
-    "GroqReranker",
-    "RerankItem",
-    "RerankOption",
+    "flaskreranker",
 ]

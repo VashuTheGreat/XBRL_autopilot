@@ -1,0 +1,52 @@
+# Ministry of Corporate Affairs (MCA) - XBRL Filing Guidelines & Architecture
+
+## 1. Overview of MCA XBRL Filing
+In India, the Ministry of Corporate Affairs (MCA) mandates the filing of financial statements in eXtensible Business Reporting Language (XBRL) format for eligible companies using Form AOC-4 XBRL (and Form CRA-4 for Cost Audit Reports).
+XBRL is an open international standard for digital business reporting, allowing financial data to be tagged, validated, exchanged, and analyzed automatically.
+
+## 2. Applicability Criteria for AOC-4 XBRL
+Under the Companies Act, 2013 and relevant MCA notifications, the following classes of companies are required to file their financial statements in XBRL:
+1. All companies listed with any Stock Exchange in India and their Indian subsidiaries.
+2. All companies having paid-up capital of Rs. 5 crore and above.
+3. All companies having turnover of Rs. 100 crore and above.
+4. All companies which are required to prepare their financial statements in accordance with Companies (Indian Accounting Standards) Rules, 2015 (Ind AS).
+Exemptions: Banking companies, Insurance companies, Power sector companies, and Non-Banking Financial Companies (NBFCs) not governed by Ind AS are generally exempt or follow specific sectoral taxonomies.
+
+## 3. MCA XBRL Taxonomies
+The MCA maintains separate taxonomies for different accounting frameworks and statutory filings:
+1. **Commercial & Industrial (C&I) Taxonomy 2016 (V1.2@31-03-2016)**:
+   - Applicable for non-Ind AS companies (AS / Indian GAAP).
+   - Governed by Schedule III Division I of the Companies Act, 2013.
+   - Covers Balance Sheet, Statement of Profit and Loss, Cash Flow Statement, Corporate Information, and Notes to Accounts.
+2. **Indian Accounting Standards (Ind AS) Taxonomy 2017 (V1.2@31-03-2017)**:
+   - Applicable for companies adopting Indian Accounting Standards converged with IFRS.
+   - Governed by Schedule III Division II of the Companies Act, 2013.
+   - Distinct elements for Other Comprehensive Income (OCI), Financial Instruments, Leases, and Fair Value measurements.
+3. **Costing Taxonomy 2019 (Version 1.1@31-03-2019)**:
+   - Applicable for filing Cost Audit Reports and Compliance Reports via Form CRA-4.
+   - Includes production statistics, cost of sales, cost of materials consumed, and reconciliation with financial records.
+
+## 4. Key Tagging Principles & Concepts
+- **Concept QName**: Every reporting concept has a unique Qualified Name consisting of a prefix and a local element name (e.g., `in-gaap:CashAndCashEquivalents`, `ind-as:RevenueFromOperations`).
+- **Period Types**:
+  - `instant`: Represents financial position at a single point in time (e.g., Balance Sheet items as of March 31).
+  - `duration`: Represents financial activity over a period of time (e.g., Profit & Loss line items, Cash Flow movements from April 1 to March 31).
+- **Balance Type**:
+  - `debit`: Typical for assets, expenses, losses.
+  - `credit`: Typical for liabilities, equity, revenue, gains.
+- **Reporting Scope**:
+  - Current Year (CY) and Previous Year (PY) comparisons.
+  - Consolidated vs. Standalone filings.
+- **Dimensional Modeling & Tables**:
+  - Dimensional hypercubes define multi-axis tables (e.g., Share Capital classes, Related Party disclosures, Segment reporting).
+  - Explicit members and typed dimensions ensure data points are uniquely identified by their axis combinations.
+
+## 5. MCA Validation Rules & Error Handling
+The MCA Validation Tool applies strict deterministic business rules before an instance document (`.xml`) can be pre-scrutinized and uploaded:
+1. **Mandatory Non-Null Items**: Key demographic and financial elements must not be empty or nil (e.g., CIN, Company Name, Balance Sheet dates, Auditor Details, Signatory Details).
+2. **Arithmetic & Continuity Equations**:
+   - Total Assets = Total Equity and Liabilities.
+   - Net Profit after Tax = Profit Before Tax - Tax Expense.
+   - Opening Cash + Net Cash Inflow/Outflow = Closing Cash.
+3. **Period Consistency**: Dates across contexts must strictly align with the reporting financial year and prior year.
+4. **Sign Conventions**: Negative figures should only be reported where the element documentation explicitly permits debit/credit reversal or negative values.
