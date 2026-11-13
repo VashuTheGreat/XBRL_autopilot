@@ -15,6 +15,12 @@ export interface Selection {
   concept?: string | null
 }
 
+export interface ManualTagTarget {
+  cell?: CellRef | null
+  concept?: string | null
+  label?: string | null
+}
+
 interface EditorState {
   workbooks: WorkbookModel[]
   activeSource: string | null
@@ -78,6 +84,10 @@ interface EditorState {
   rejectSuggestion(id: string): Promise<void>
   /** accepts every cell and table suggestion with confidence ≥ min (never the suggested "also" facts) */
   acceptAllSuggestions(min: number): Promise<void>
+  manualTagOpen: boolean
+  manualTagTarget: ManualTagTarget | null
+  openManualTag(target?: ManualTagTarget): void
+  closeManualTag(): void
 }
 
 const api = () => window.xap.editor
@@ -112,6 +122,8 @@ const EMPTY = {
   busy: false,
   autoTagging: false,
   sheetColumns: null,
+  manualTagOpen: false,
+  manualTagTarget: null,
 }
 
 export const useEditor = create<EditorState>((set, get) => {
@@ -233,7 +245,7 @@ export const useEditor = create<EditorState>((set, get) => {
       const sheetCols = get().sheetColumns
       const parsed = fromA1(cell.ref)
       const currentCol = parsed ? columnLetter(parsed.c) : null
-      const row = parsed?.r
+      const row = parsed ? parsed.r + 1 : undefined
 
       // WebXBRL style: if user selected a row's label cell (not in CY or PY column) and sheet has CY/PY columns configured:
       const cyCol = sheetCols?.cyColumn
@@ -290,15 +302,23 @@ export const useEditor = create<EditorState>((set, get) => {
         }
 
         if (cySuccess && pySuccess) {
-          toast.success(`Row ${row}: Tagged ${cyCol}${row} (CY) & ${pyCol}${row} (PY) → ${label}`)
+          toast.success(`${cyCol}${row} (CY) & ${pyCol}${row} (PY) → ${label}`)
           return true
         } else if (cySuccess) {
-          toast.success(`Row ${row}: Tagged ${cyCol}${row} (CY) → ${label}`)
+          toast.success(`${cyCol}${row} (CY) → ${label}`)
           return true
         } else if (pySuccess) {
-          toast.success(`Row ${row}: Tagged ${pyCol}${row} (PY) → ${label}`)
+          toast.success(`${pyCol}${row} (PY) → ${label}`)
           return true
         } else {
+          // If neither cy nor py column in that row has a numeric figure,
+          // try tagging the selected cell directly as fallback
+          const fallback = await unwrap(api().tag({ cell, concept, ...(scope ? { scope } : {}) }), { quiet: true })
+          if (fallback) {
+            set({ selection: { cell, factKey: fallback.factKey, concept: fallback.fact.concept } })
+            toast.success(`${cell.sheet}!${cell.ref} → ${fallback.conceptLabel}`)
+            return true
+          }
           toast.error(`Could not tag row ${row}: neither ${cyCol}${row} nor ${pyCol ?? ''}${row} has a numeric figure.`)
           return false
         }
@@ -428,6 +448,25 @@ export const useEditor = create<EditorState>((set, get) => {
       if (r.accepted || r.blocks) toast.success(`Tagged ${r.accepted} suggested cell${r.accepted === 1 ? '' : 's'}${tables} (confidence ≥ ${Math.round(min * 100)}%).`)
       else if (!r.problems.length) toast.info(`No suggestions at ≥ ${Math.round(min * 100)}% confidence.`)
       if (r.problems.length) toast.error(`${r.problems.length} could not be tagged and stay suggested: ${r.problems.slice(0, 3).join('; ')}${r.problems.length > 3 ? '…' : ''}`)
+    },
+
+    openManualTag: (target) => {
+      const cell = target?.cell ?? get().selection.cell
+      if (cell && (!get().selection.cell || cellKey(get().selection.cell!) !== cellKey(cell))) {
+        get().selectCell(cell)
+      }
+      set({
+        manualTagOpen: true,
+        manualTagTarget: {
+          cell: cell ?? null,
+          concept: target?.concept ?? null,
+          label: target?.label ?? null,
+        },
+      })
+    },
+
+    closeManualTag: () => {
+      set({ manualTagOpen: false, manualTagTarget: null })
     },
   }
 })

@@ -29,9 +29,9 @@ The layout is IDE-like, built for accountants: dense, keyboard-friendly and calm
 | 📁 | **Filing explorer** | ELR tree grouped Statements / Notes / Disclosures / General info, with status dots: ● complete, ◐ partial, ○ empty, ⛔ errors |
 | 🔎 | **Taxonomy** | Search concepts (label/qname). Filters: ELR, type, period. Drag a concept onto an Excel cell to tag it |
 | ⚠ | **Problems** | Same as the bottom panel, larger, grouped by ELR |
-| ✨ | **AI** | Auto-tag the workbook, the tagging-quality review, the fix-agent chat and patch cards |
+| ✨ | **AI Copilot** | Interactive MCA/XBRL filing copilot (`AiChatPanel`), conversation threads, prompt suggestions, expandable RAG citations, and rich GFM markdown preview |
 | 🏢 | **Masters** | Company / directors / auditor (General Information 400100 form) |
-| ⚙ | **Settings** | Groq key, model, MCA tool path, theme, autosave interval, data-consent toggle |
+| ⚙ | **Settings** | MCA tool path, theme, autosave interval, data-consent toggle (model and API keys configured securely backend/env-side) |
 
 ## Mapping colours (Excel pane)
 | Colour | Meaning |
@@ -79,6 +79,26 @@ On the right, the XBRL Form shows the reverse: the source cell ref shows as a ch
 - **A failing Excel view** shows "The Excel view stopped working" with Try again (`ErrorBoundary`), never a white window. Reveal requests wait until Univer has rendered the sheet (2026-11-11: a reveal right after a sheet change threw and blanked the app).
 - **Hovering a cell** → tooltip: concept label + qname, period, dimensions, confidence, rule status.
 - **Drag** a taxonomy concept onto a cell → creates a manual mapping, `origin: manual`.
+- **Double-click manual tagging (`ManualTagDialog.tsx`):**
+  - Double-clicking any financial statement line item, particulars row, or figure cell (in Univer grid or FormView) opens the Manual Tag dialog immediately.
+  - Search taxonomy elements by label or technical QName with debounced queries.
+  - Inspect element details (data type, period type, balance type, abstract status, documentation).
+  - Period scope selector: tag both Current & Previous Year (`Both CY & PY`), `CY only`, or `PY only`.
+  - Direct 1-click tagging: pressing Enter on search, double-clicking any taxonomy element card, or clicking the hover `[Tag]` button directly binds the tag without repetitive confirmation dialogs.
+  - Coexists with AI suggestions: preserves AI candidate alternatives and displays clear visual distinction in the Mapping Inspector (green `[Manual]` vs amber `[AI Suggestion]`).
+
+## AI Copilot Chatbot (`AiChatPanel.tsx`)
+- Located in the left activity bar (`✨` icon).
+- Connected to the sidecar FastAPI service (`/api/v1/conversations`, `/api/v1/conversations/{id}/messages`) backed by LangGraph's `InMemorySaver` and Qdrant hybrid retrieval over MCA rules and taxonomies.
+- **Features:**
+  - Thread switcher and multi-conversation management (`+ New Conversation`, delete thread, automatic titles).
+  - Quick suggested prompt chips for common MCA/Ind AS compliance questions.
+  - Expandable citations showing retrieved MCA rule and taxonomy context snippets.
+  - **Rich GFM Markdown Preview:** Powered by the `marked` library with custom styling (`.markdown-body` in `ui/src/styles.css`), rendering GFM tables, headings (`h1`–`h4`), code blocks, bullet/numbered lists, bold/italics, and quotes.
+
+## Model & API Configuration
+- Preconfigured securely at the backend / environment level (`.env`).
+- User-facing model selection dropdown and Groq API key configuration inputs removed from the Settings panel to prevent manual tampering and streamline the accountant workflow.
 
 ## Screens
 1. **Welcome:** New filing · Open… · Import XBRL… · Recent projects (company, FY, last opened) · Recover unsaved work (if any).

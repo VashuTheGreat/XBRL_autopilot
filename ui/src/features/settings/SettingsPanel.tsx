@@ -1,68 +1,18 @@
-import { KeyRound, ShieldCheck } from 'lucide-react'
-import { useState } from 'react'
-import { Button, Checkbox, Field, Input, Section, Select } from '@/components/ui/primitives'
+import { ShieldCheck } from 'lucide-react'
+import { Button, Checkbox, Field, Input, Section } from '@/components/ui/primitives'
 import { useSettings } from '@/stores/settings'
 
-const MODELS = [
-  { id: 'openai/gpt-oss-120b', label: 'GPT-OSS 120B (best quality, default)' },
-  { id: 'openai/gpt-oss-20b', label: 'GPT-OSS 20B (faster, cheaper)' },
-  { id: 'qwen/qwen3.8-27b', label: 'Qwen 3.8 27B' },
-]
-
 export function SettingsPanel() {
-  const { state, update, setGroqKey, clearGroqKey, pickMcaTool } = useSettings()
-  const [key, setKey] = useState('')
-  const [keyError, setKeyError] = useState<string | null>(null)
+  const { state, update, pickMcaTool } = useSettings()
   if (!state) return null
-
-  const saveKey = async () => {
-    const problem = await setGroqKey(key)
-    setKeyError(problem)
-    if (!problem) setKey('')
-  }
 
   return (
     <div className="flex flex-col gap-6 p-3">
-      <Section title="AI (Groq)">
-        <div className="flex items-center gap-2 text-xs">
-          <KeyRound size={14} className={state.hasGroqKey ? 'text-ok' : 'text-muted'} />
-          {state.hasGroqKey ? (state.groqKeyFromEnv ? 'Using the key from .env (development)' : 'API key saved, encrypted on this PC') : 'No API key — AI features are off'}
-        </div>
-        <Field label="Groq API key" error={keyError} hint="Stored encrypted with Windows DPAPI. Never shown again or sent anywhere except Groq.">
-          <Input
-            type="password"
-            autoComplete="off"
-            spellCheck={false}
-            value={key}
-            onChange={(e) => setKey(e.target.value)}
-            placeholder="gsk_…"
-            disabled={!state.canEncrypt}
-          />
-        </Field>
-        <div className="flex gap-2">
-          <Button variant="primary" disabled={!key.trim()} onClick={() => void saveKey()}>
-            Save key
-          </Button>
-          {state.hasGroqKey && !state.groqKeyFromEnv && (
-            <Button variant="danger" onClick={() => void clearGroqKey()}>
-              Remove key
-            </Button>
-          )}
-        </div>
-        {!state.canEncrypt && <p className="text-[11px] text-err">Secure storage is unavailable on this system, so a key cannot be saved.</p>}
-        <Field label="Model">
-          <Select value={state.groqModel} onChange={(e) => void update({ groqModel: e.target.value })}>
-            {MODELS.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.label}
-              </option>
-            ))}
-          </Select>
-        </Field>
+      <Section title="AI Assistance">
         <Checkbox
           checked={state.aiConsent}
           onChange={(aiConsent) => void update({ aiConsent })}
-          label="Allow sending row labels and validation messages to Groq"
+          label="Allow sending row labels and validation messages for AI assistance"
         />
         <p className="flex gap-1.5 text-[11px] leading-relaxed text-muted">
           <ShieldCheck size={13} className="mt-px shrink-0" />

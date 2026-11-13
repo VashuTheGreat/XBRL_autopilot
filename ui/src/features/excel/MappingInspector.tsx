@@ -1,4 +1,4 @@
-import { CalendarRange, Check, Copy, Link2, Search, Sparkles, Table2, Unlink, X } from 'lucide-react'
+import { CalendarRange, Check, Copy, Link2, Search, Sparkles, Table2, Tag, Unlink, X } from 'lucide-react'
 import { formatIndian } from '@xap/engine/basics'
 import { useState, type ReactNode } from 'react'
 import type { CellAmount, ColumnPeriod, MappingView, Scope, SuggestedAlsoView } from '@shared/editor'
@@ -13,7 +13,7 @@ const SCOPES: Scope[] = ['CY', 'PY']
 
 /** Strip under the grid: what the selected cell is tagged as, with quick actions (docs/08-ui-ux.md). */
 export function MappingInspector() {
-  const { selection, byCell, mappings, workbooks, cellInfo, untag, setScope, selectFact } = useEditor()
+  const { selection, byCell, mappings, workbooks, cellInfo, untag, setScope, selectFact, openManualTag } = useEditor()
   const setActivity = useUi((s) => s.setActivity)
   // a text cell can hold several figures (share counts in a note), one mapping each: which one the strip shows
   const [figure, setFigure] = useState<{ key: string; i: number }>({ key: '', i: 0 })
@@ -68,21 +68,35 @@ export function MappingInspector() {
             Suggestion rejected.
           </span>
           <div className="flex-1" />
+          <Button variant="ghost" className="h-6 shrink-0 px-2" onClick={() => openManualTag({ cell })} title="Open manual tagging interface (or double-click cell)">
+            <Tag size={13} className="mr-1" /> Tag Element…
+          </Button>
           <Button variant="ghost" className="h-6 shrink-0 px-2" onClick={() => setActivity('taxonomy')}>
-            <Search size={13} /> Find an element…
+            <Search size={13} /> Browse taxonomy
           </Button>
         </>
       ) : m ? (
         <>
-          <button className="flex min-w-0 items-center gap-1.5 hover:underline" title={m.fact.concept} onClick={() => selectFact(m.factKey)}>
+          <button className="flex min-w-0 items-center gap-1.5 hover:underline" title={`${m.fact.concept}\nClick to scroll in statement, or double-click to edit`} onClick={() => selectFact(m.factKey)}>
             {m.fact.dims.length ? <Table2 size={13} className="shrink-0 text-ok" /> : <Link2 size={13} className="shrink-0 text-ok" />}
             <span className="truncate">{m.conceptLabel}</span>
+            <span
+              className={cn(
+                'rounded px-1.5 py-0.2 font-sans text-[10px] font-semibold',
+                m.origin === 'manual' ? 'bg-ok/20 text-ok border border-ok/30' : 'bg-accent/20 text-accent border border-accent/30',
+              )}
+            >
+              {m.origin === 'manual' ? 'Manual' : m.origin}
+            </span>
             {m.fact.dims.length > 0 && <span className="shrink-0 text-[11px] text-muted">in table</span>}
           </button>
           <Segmented label="Period" value={m.fact.scope} onPick={(s) => void setScope(m.id, s)} />
           {m.sign === -1 && <span className="text-[11px] text-warn">sign reversed</span>}
           <AlsoReported m={m} />
           <div className="flex-1" />
+          <Button variant="ghost" className="h-6 px-2 text-xs" onClick={() => openManualTag({ cell })} title="Edit tag (or double-click cell)">
+            <Tag size={12} className="mr-1" /> Edit Tag
+          </Button>
           <Button variant="ghost" className="h-6 px-2" onClick={() => void untag(m.id)} title="Remove this tag">
             <Unlink size={13} /> Untag
           </Button>
@@ -92,8 +106,11 @@ export function MappingInspector() {
           {info?.column && <ColumnPeriodText column={info.column} />}
           <span className="shrink-0 text-muted">Not tagged.</span>
           <div className="flex-1" />
+          <Button variant="ghost" className="h-6 shrink-0 px-2" onClick={() => openManualTag({ cell })} title="Open manual tagging interface (or double-click cell)">
+            <Tag size={13} className="mr-1" /> Tag Element…
+          </Button>
           <Button variant="ghost" className="h-6 shrink-0 px-2" onClick={() => setActivity('taxonomy')}>
-            <Search size={13} /> Find an element…
+            <Search size={13} /> Browse taxonomy
           </Button>
         </>
       )}

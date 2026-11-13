@@ -68,6 +68,7 @@ export function UniverGrid({ model }: { model: WorkbookModel }) {
     // creation also means StrictMode's throwaway mount creates nothing: two live Univer instances break event delivery.
     let instance: { dispose(): void } | null = null
     let subs: IDisposable[] = []
+    let dblClickCleanup: (() => void) | null = null
     const create = setTimeout(() => {
       const { univer, univerAPI } = createUniver({
         locale: LocaleType.EN_US,
@@ -106,8 +107,45 @@ export function UniverGrid({ model }: { model: WorkbookModel }) {
         if (g.c2 !== g.c1 || g.r2 - g.r1 + 1 > MAX_RANGE_CELLS) g = { r1: g.r1, c1: g.c1, r2: g.r1, c2: g.c1 }
         useEditor.getState().selectCell({ workbook: model.source, sheet: ws.getSheetName(), ref: rangeA1(g) })
       }
+
+      // Double-click interaction for manual XBRL tagging
+      let lastClickTime = 0
+      let lastCell = ''
+      let lastOpenTime = 0
+
+      const openTagModal = () => {
+        const now = Date.now()
+        if (now - lastOpenTime < 500) return
+        lastOpenTime = now
+        const cell = useEditor.getState().selection.cell
+        if (cell) {
+          useEditor.getState().openManualTag({ cell })
+        }
+      }
+
+      const onPointerUp = () => {
+        onSelection()
+        const now = Date.now()
+        const cur = useEditor.getState().selection.cell
+        const key = cur ? cellKey(cur) : ''
+        if (key && key === lastCell && now - lastClickTime < 450) {
+          lastClickTime = 0
+          lastCell = ''
+          openTagModal()
+        } else {
+          lastClickTime = now
+          lastCell = key
+        }
+      }
+
+      const onDblClick = () => {
+        openTagModal()
+      }
+      el.addEventListener('dblclick', onDblClick)
+      dblClickCleanup = () => el.removeEventListener('dblclick', onDblClick)
+
       subs = [
-        univerAPI.addEvent(univerAPI.Event.CellPointerUp, onSelection),
+        univerAPI.addEvent(univerAPI.Event.CellPointerUp, onPointerUp),
         univerAPI.addEvent(univerAPI.Event.SelectionMoveEnd, onSelection),
         univerAPI.addEvent(univerAPI.Event.SelectionChanged, onSelection),
         univerAPI.addEvent(univerAPI.Event.ActiveSheetChanged, () => drawOverlay()),
@@ -116,6 +154,7 @@ export function UniverGrid({ model }: { model: WorkbookModel }) {
     }, 0)
     return () => {
       clearTimeout(create)
+      if (dblClickCleanup) dblClickCleanup()
       subs.forEach((d) => d.dispose())
       overlays.current.forEach((d) => d.dispose())
       overlays.current = []

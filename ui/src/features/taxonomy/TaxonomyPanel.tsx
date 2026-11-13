@@ -18,6 +18,7 @@ export function TaxonomyPanel() {
 
   const parsed = selection.cell ? fromA1(selection.cell.ref) : null
   const currentCol = parsed ? columnLetter(parsed.c) : null
+  const rowNum = parsed ? parsed.r + 1 : undefined
   const isParticulars = !!(
     parsed &&
     currentCol &&
@@ -54,7 +55,7 @@ export function TaxonomyPanel() {
           {selection.cell ? (
             isParticulars ? (
               <>
-                Double-click to tag Row <span className="font-mono text-fg">{parsed?.r}</span> (CY: Col {sheetColumns?.cyColumn}
+                Double-click to tag Row <span className="font-mono text-fg">{rowNum}</span> (CY: Col {sheetColumns?.cyColumn}
                 {sheetColumns?.pyColumn ? `, PY: Col ${sheetColumns?.pyColumn}` : ''})
               </>
             ) : (
@@ -87,14 +88,14 @@ export function TaxonomyPanel() {
                       <button
                         onClick={(e) => { e.stopPropagation(); tag(h) }}
                         className="rounded border border-border px-1 text-[10px] text-muted hover:text-fg"
-                        title={`Tag both CY (${sheetColumns?.cyColumn}${parsed?.r}) and PY (${sheetColumns?.pyColumn}${parsed?.r})`}
+                        title={`Tag both CY (${sheetColumns?.cyColumn}${rowNum}) and PY (${sheetColumns?.pyColumn}${rowNum})`}
                       >
                         Both
                       </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); tag(h, 'CY') }}
                         className="rounded border border-border px-1 text-[10px] text-muted hover:text-fg"
-                        title={`Tag CY (${sheetColumns?.cyColumn}${parsed?.r}) only`}
+                        title={`Tag CY (${sheetColumns?.cyColumn}${rowNum}) only`}
                       >
                         CY
                       </button>
@@ -102,7 +103,7 @@ export function TaxonomyPanel() {
                         <button
                           onClick={(e) => { e.stopPropagation(); tag(h, 'PY') }}
                           className="rounded border border-border px-1 text-[10px] text-muted hover:text-fg"
-                          title={`Tag PY (${sheetColumns?.pyColumn}${parsed?.r}) only`}
+                          title={`Tag PY (${sheetColumns?.pyColumn}${rowNum}) only`}
                         >
                           PY
                         </button>

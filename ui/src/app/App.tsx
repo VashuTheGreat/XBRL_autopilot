@@ -5,6 +5,7 @@ import { NewFilingDialog } from '@/features/new-filing/NewFilingDialog'
 import { ImportReportDialog } from '@/features/import-xbrl/ImportReportDialog'
 import { ImportXbrlDialog } from '@/features/import-xbrl/ImportXbrlDialog'
 import { TableDialogs } from '@/features/tables/TableDialogs'
+import { ManualTagDialog } from '@/features/excel/ManualTagDialog'
 import { useEditor } from '@/stores/editor'
 import { useProject } from '@/stores/project'
 import { useSettings } from '@/stores/settings'
@@ -78,6 +79,7 @@ export function App() {
       <ImportXbrlDialog />
       <ImportReportDialog />
       <TableDialogs />
+      <ManualTagDialog />
       <Toasts />
     </div>
   )
