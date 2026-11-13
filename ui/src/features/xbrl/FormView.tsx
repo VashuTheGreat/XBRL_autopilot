@@ -128,9 +128,20 @@ function Row(props: { row: FormRow; hasPy: boolean; selectedFact: string | null;
   const active = [r.cy, r.py].some((c) => c?.factKey && c.factKey === props.selectedFact)
   // a suggested (not yet accepted) tag has no fact: its row is marked by the element
   const suggested = !active && !!r.concept && r.concept === props.selectedConcept
+  const openManualTag = useEditor((s) => s.openManualTag)
   return (
     // scroll-mt: a row scrolled into view stops below the sticky column header, not behind it
-    <tr className={cn('scroll-mt-9 scroll-mb-2 border-b border-border/50 hover:bg-panel-2', active && 'bg-accent/10', suggested && 'bg-warn/10')} data-concept={r.concept ?? undefined} data-testid="form-row">
+    <tr
+      className={cn('scroll-mt-9 scroll-mb-2 border-b border-border/50 hover:bg-panel-2', active && 'bg-accent/10', suggested && 'bg-warn/10')}
+      data-concept={r.concept ?? undefined}
+      data-testid="form-row"
+      onDoubleClick={() => {
+        if (r.concept) {
+          openManualTag({ concept: r.concept, label: r.label, cell: r.cy?.source ?? r.py?.source ?? undefined })
+        }
+      }}
+      title={r.concept ? `${r.concept}\nDouble-click to open manual tagging` : undefined}
+    >
       <td style={indent} className="py-1 pr-3" title={r.concept}>
         {r.label}
       </td>
@@ -170,7 +181,17 @@ function TableGrid(props: { table: FormTable; selectedFact: string | null; selec
             </thead>
             <tbody>
               {filled.map((r) => (
-                <tr key={`${r.concept}|${r.preferredLabel ?? ''}`} className="scroll-mt-9 border-b border-border/50 hover:bg-panel-2" data-concept={r.concept}>
+                <tr
+                  key={`${r.concept}|${r.preferredLabel ?? ''}`}
+                  className="scroll-mt-9 border-b border-border/50 hover:bg-panel-2 cursor-pointer"
+                  data-concept={r.concept}
+                  onDoubleClick={() => {
+                    if (r.concept) {
+                      useEditor.getState().openManualTag({ concept: r.concept, label: r.label })
+                    }
+                  }}
+                  title={r.concept ? `${r.concept}\nDouble-click to open manual tagging` : undefined}
+                >
                   <td className="py-1 pr-3" style={{ paddingLeft: `${0.75 + Math.max(0, r.depth - 1) * 0.9}rem` }} title={r.concept}>
                     {r.label}
                   </td>
@@ -195,7 +216,16 @@ function ValueCell(props: { cell: FormCell | undefined; selectedFact: string | n
   if (!c) return <td />
   const selected = !!c.factKey && c.factKey === props.selectedFact
   return (
-    <td className="px-3 py-1 text-right" data-fact={c.factKey ?? undefined}>
+    <td
+      className="px-3 py-1 text-right"
+      data-fact={c.factKey ?? undefined}
+      onDoubleClick={(e) => {
+        if (c.source) {
+          e.stopPropagation()
+          useEditor.getState().openManualTag({ cell: c.source })
+        }
+      }}
+    >
       <button
         disabled={!c.factKey}
         onClick={() => props.onPick(c.factKey)}

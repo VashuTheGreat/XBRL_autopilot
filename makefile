@@ -19,7 +19,7 @@ app:
 
 
 dev:
-	with reload run python + ui serviers
+	with reload run python + ui serviers --reload
 
 start:
 	pnpm --filter ui dev

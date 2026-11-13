@@ -28,6 +28,7 @@
     "exceljs": "4.4.0",
     "jszip": "3.10.2",
     "lucide-react": "1.71.0",
+    "marked": "^18.2.0",
     "monaco-editor": "0.57.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
