@@ -16,13 +16,10 @@ from src.constants import (
     COST_OUTPUT_JSON as OUTPUT_JSON
 )
 import os
+from src.core.logger import logger
 from src.utils.main_utils import save_json
 
-
-
-print(f"Project root detected: {BASE_DIR}")
-print(f"Taxonomy directory exists: {TAXONOMY_DIR.exists()}")
-print(f"Rules Excel exists: {RULES_EXCEL.exists()}")
+logger.debug("cost_extractor.paths", base_dir=str(BASE_DIR), taxonomy_exists=TAXONOMY_DIR.exists(), rules_exists=RULES_EXCEL.exists())
 
 # XML Namespaces
 XS = "{http://www.w3.org/2001/XMLSchema}"
@@ -35,7 +32,7 @@ XBRLI = "{http://www.xbrl.org/2003/instance}"
 # 2. STEP 1: PARSE XSD SCHEMAS (CONCEPTS, TYPES, ROLES)
 # -------------------------------------------------------------------------
 def parse_schemas():
-    print("[1/4] Parsing XSD schemas...")
+    logger.info("cost_extractor.parse_schemas_started")
     namespaces = {
         "in-cost": "http://www.icmai.in/xbrl/2018-04-01/in-cost",
         "in-cost-type": "http://www.icmai.in/xbrl/2018-04-01/in-cost-type",
@@ -113,7 +110,7 @@ def parse_schemas():
                 id_to_qname[f"{xsd_file.name}#{elem_id}"] = qname
                 id_to_qname[elem_id] = qname
 
-    print(f"  -> {len(concepts)} concepts, {len(types)} types, {len(roles)} roles found.")
+    logger.info("cost_extractor.schemas_parsed", concepts=len(concepts), types=len(types), roles=len(roles))
     return namespaces, concepts, types, roles, id_to_qname
 
 
@@ -121,7 +118,7 @@ def parse_schemas():
 # 3. STEP 2: PARSE LABELS (EN + HI) & REFERENCES
 # -------------------------------------------------------------------------
 def parse_labels_and_references(concepts, id_to_qname):
-    print("[2/4] Parsing English & Hindi labels, and Cost references...")
+    logger.info("cost_extractor.parse_labels_and_references_started")
     
     # Label files
     for lab_file in sorted(TAXONOMY_DIR.rglob("*-lab-*.xml")):
@@ -188,14 +185,14 @@ def parse_labels_and_references(concepts, id_to_qname):
             if qn and to_lbl in ref_resources and qn in concepts:
                 concepts[qn]["references"].append(ref_resources[to_lbl])
 
-    print("  -> Labels and references merged into concepts.")
+    logger.info("cost_extractor.labels_and_references_merged")
 
 
 # -------------------------------------------------------------------------
 # 4. STEP 3: PARSE LINKBASES (PRE, CAL, DEF RELATIONSHIPS)
 # -------------------------------------------------------------------------
 def parse_relationships(concepts, id_to_qname):
-    print("[3/4] Parsing PRE, CAL, DEF linkbases...")
+    logger.info("cost_extractor.parse_relationships_started")
     presentation = {}
     calculation = {}
     definition = {}
@@ -264,7 +261,12 @@ def parse_relationships(concepts, id_to_qname):
         for k in d:
             d[k].sort(key=lambda x: (x["from"], x["order"]))
 
-    print(f"  -> PRE roles: {len(presentation)}, CAL roles: {len(calculation)}, DEF roles: {len(definition)}.")
+    logger.info(
+        "cost_extractor.relationships_parsed",
+        presentation_roles=len(presentation),
+        calculation_roles=len(calculation),
+        definition_roles=len(definition),
+    )
     return presentation, calculation, definition
 
 
@@ -272,7 +274,7 @@ def parse_relationships(concepts, id_to_qname):
 # 5. STEP 4: PARSE BUSINESS RULES (MANDATORY & NULL CHECKS)
 # -------------------------------------------------------------------------
 def parse_business_rules(concepts):
-    print("[4/4] Parsing Business Rules from Excel (mandatory/null checks)...")
+    logger.info("cost_extractor.parse_business_rules_started")
     business_rules = {
         "mandatoryConcepts": [],      # Cannot be null
         "conditionalMandatory": [],   # Mandatory on condition (e.g. date check)
@@ -282,7 +284,7 @@ def parse_business_rules(concepts):
     }
 
     if not RULES_EXCEL.exists():
-        print(f"  ! Warning: Business rules excel not found at {RULES_EXCEL}")
+        logger.warning("cost_extractor.rules_excel_missing", path=str(RULES_EXCEL))
         return business_rules
 
     wb = CalamineWorkbook.from_path(RULES_EXCEL)
@@ -358,8 +360,11 @@ def parse_business_rules(concepts):
                     "description": str(r[1]).strip()
                 })
 
-    print(f"  -> {len(business_rules['mandatoryConcepts'])} mandatory concepts found (cannot be null).")
-    print(f"  -> {len(business_rules['mandatoryLineItems'])} tables with mandatory line-items extracted.")
+    logger.info(
+        "cost_extractor.business_rules_parsed",
+        mandatory_concepts=len(business_rules["mandatoryConcepts"]),
+        mandatory_tables=len(business_rules["mandatoryLineItems"]),
+    )
     return business_rules
 
 
@@ -367,52 +372,46 @@ def parse_business_rules(concepts):
 # 6. MAIN COMPILER: RUN ALL & EXPORT JSON
 # -------------------------------------------------------------------------
 async def main():
-    print("=" * 60)
-    print("Starting MCA Costing Taxonomy 2019 Extraction Pipeline")
-    print("=" * 60)
+    with logger.span("cost_extractor.pipeline"):
+        logger.info("cost_extractor.starting")
 
-    # 1. Schemas
-    namespaces, concepts, types, roles, id_to_qname = parse_schemas()
+        # 1. Schemas
+        namespaces, concepts, types, roles, id_to_qname = parse_schemas()
 
-    # 2. Labels & References
-    parse_labels_and_references(concepts, id_to_qname)
+        # 2. Labels & References
+        parse_labels_and_references(concepts, id_to_qname)
 
-    # 3. Relationships
-    presentation, calculation, definition = parse_relationships(concepts, id_to_qname)
+        # 3. Relationships
+        presentation, calculation, definition = parse_relationships(concepts, id_to_qname)
 
-    # 4. Business Rules
-    business_rules = parse_business_rules(concepts)
+        # 4. Business Rules
+        business_rules = parse_business_rules(concepts)
 
-    # Assemble JSON
-    canonical_kb = {
-        "meta": {
-            "name": "MCA Costing Taxonomy 2019 authority model",
-            "taxonomyVersion": "Costing Taxonomy 2019 Version 1.1@31-03-2019",
-            "entryPoint": "in-cost-aud-2018-04-01.xsd",
-            "schemaRef": "http://www.icmai.in/xbrl/2018-04-01/in-cost-aud/in-cost-aud-2018-04-01.xsd",
-            "totalConcepts": len(concepts),
-            "mandatoryConceptsCount": len(business_rules["mandatoryConcepts"]),
-        },
-        "namespaces": namespaces,
-        "types": types,
-        "roles": roles,
-        "concepts": concepts,
-        "presentation": presentation,
-        "calculation": calculation,
-        "definition": definition,
-        "businessRules": business_rules,
-    }
+        # Assemble JSON
+        canonical_kb = {
+            "meta": {
+                "name": "MCA Costing Taxonomy 2019 authority model",
+                "taxonomyVersion": "Costing Taxonomy 2019 Version 1.1@31-03-2019",
+                "entryPoint": "in-cost-aud-2018-04-01.xsd",
+                "schemaRef": "http://www.icmai.in/xbrl/2018-04-01/in-cost-aud/in-cost-aud-2018-04-01.xsd",
+                "totalConcepts": len(concepts),
+                "mandatoryConceptsCount": len(business_rules["mandatoryConcepts"]),
+            },
+            "namespaces": namespaces,
+            "types": types,
+            "roles": roles,
+            "concepts": concepts,
+            "presentation": presentation,
+            "calculation": calculation,
+            "definition": definition,
+            "businessRules": business_rules,
+        }
 
-    # Save to file
+        # Save to file
+        directory = os.path.dirname(OUTPUT_JSON)
+        os.makedirs(directory, exist_ok=True)
+        await save_json(OUTPUT_JSON, data=canonical_kb)
 
-    directory = os.path.dirname(OUTPUT_JSON)
-    os.makedirs(directory,exist_ok=True)
-    await save_json(OUTPUT_JSON,data=canonical_kb)
-    
-
-
-    print("=" * 60)
-    print(f"DONE! File generated: {OUTPUT_JSON}")
-    print(f"Size: {OUTPUT_JSON.stat().st_size / (1024*1024):.2f} MB")
-    print("=" * 60)
+        size_mb = OUTPUT_JSON.stat().st_size / (1024 * 1024) if OUTPUT_JSON.exists() else 0.0
+        logger.info("cost_extractor.completed", output_path=str(OUTPUT_JSON), size_mb=round(size_mb, 2))
 

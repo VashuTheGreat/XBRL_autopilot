@@ -2,14 +2,14 @@
 
 **Goal:** for every figure in an imported workbook, propose *which taxonomy fact it is*: element, period (CY/PY), dimensions and sign. Each proposal carries a confidence (0.0 to 1.0 / 0% to 100%), a one-line rationale and its runner-up elements. The accountant decides; nothing goes into the filing until a suggestion is accepted. Bulk "Accept all ≥ 90%" is allowed.
 
-**Status:** Modern LangChain Hybrid Retrieval + Reranking Architecture (2026-11). It combines Chroma Vector DB (`all-mpnet-base-v2`), LangChain `BM25Retriever`, LangChain `EnsembleRetriever`, and LangChain `FlashrankRerank`.
+**Status:** Modern LangChain Hybrid Retrieval + Reranking Architecture (2026-11). It combines Qdrant Vector DB (`all-mpnet-base-v2`, 768 dim), LangChain `BM25Retriever`, LangChain `EnsembleRetriever`, and LangChain `FlashrankRerank` (`ms-marco-TinyBERT-L-2-v2`).
 
 ## Design Overview
-Retrieval does the tagging locally with beginner-friendly, standard LangChain components (`src/services/retrieval/`):
-- **Chroma Vector DB (`langchain_chroma`):** Semantic search using pre-indexed 768-dimensional embeddings generated with `sentence-transformers/all-mpnet-base-v2`.
-- **BM25 Retriever (`langchain_community.retrievers.BM25Retriever`):** Keyword search directly from the knowledge-base JSON files (`ind_as_knowledge_base.json`, `ci_knowledge_base.json`, `costing_knowledge_base.json`).
-- **Ensemble Retriever (`langchain_classic.retrievers.EnsembleRetriever`):** LangChain's built-in Reciprocal Rank Fusion (RRF) ensembling dense vector search and BM25 keywords with equal weights (50/50).
-- **Neural Cross-Encoder Reranker (`langchain_community.document_compressors.FlashrankRerank`):** Blazingly fast ONNX neural reranker (~80ms on CPU) yielding normalized relevance scores (`0.0` to `1.0`).
+Retrieval does the tagging locally with standard LangChain components (`src/services/retrieval/`):
+- **Qdrant Vector DB (`src/services/vectordb/qdrant.py`):** Semantic search using pre-indexed 768-dimensional embeddings generated with `sentence-transformers/all-mpnet-base-v2` against target Qdrant collections (`ci_taxonomy`, `cost_taxonomy`, `ind_as_taxonomy`).
+- **BM25 Retriever (`langchain_community.retrievers.BM25Retriever`):** Keyword search directly from the knowledge-base JSON files (`ind_as_knowledge_base.json`, `ci_knowledge_base.json`, `cost_knowledge_base.json`).
+- **Ensemble Retriever (`langchain_classic.retrievers.EnsembleRetriever`):** LangChain's built-in Reciprocal Rank Fusion (RRF) ensembling dense vector search and BM25 keywords with equal weights (50/50). If Qdrant is unpopulated or offline, it falls back smoothly to BM25.
+- **Neural Cross-Encoder Reranker (`langchain_community.document_compressors.FlashrankRerank`):** Blazingly fast ONNX neural reranker using `ms-marco-TinyBERT-L-2-v2` (~25ms on CPU) yielding normalized relevance scores (`0.0` to `1.0`). All scores are sanitized to native Python floats.
 - **Exact Match Boost:** When an Excel row label matches an element's official taxonomy label or normalized string, score is boosted to `1.0` (100% confidence).
 - **Reportable Filter:** Automatically filters out abstract elements, members, axes, and tables so that only valid reportable facts are suggested.
 
@@ -22,7 +22,7 @@ Accountants organize statements with line-item descriptions in a designated colu
 
 ## Pipeline (`POST /api/v1/mapping/suggest_column` & `POST /api/v1/mapping/suggest`)
 ```
-Excel cells ─▶ 1. Empty filter ─▶ 2. LangChain EnsembleRetriever (Chroma + BM25) ─▶ 3. Flashrank Rerank + Exact Boost ─▶ 4. Scored Suggestions
+Excel cells ─▶ 1. Empty filter ─▶ 2. LangChain EnsembleRetriever (Qdrant + BM25) ─▶ 3. Flashrank Rerank + Exact Boost ─▶ 4. Scored Suggestions
 ```
 1. **Layout** (`layout.py`, `text.py`). Per sheet:
    - **Sheet kind:** `balance_sheet` / `profit_loss` / `cash_flow` / `equity` / `notes` / `other`, from the sheet name and its top text ("IND AS BS", "Notes of IND AS P&L"). `other` sheets (trial balances, working papers) are skipped and reported.

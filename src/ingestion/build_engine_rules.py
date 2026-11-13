@@ -9,6 +9,7 @@ from __future__ import annotations
 import sys
 import time
 
+from src.core.logger import logger
 from src.services.engine_rules.builder import write
 from src.services.engine_rules.specs import RULE_SPECS
 
@@ -19,10 +20,14 @@ def main(ids: list[str] | None = None) -> None:
         t0 = time.perf_counter()
         _, coverage = write(spec)
         m = coverage["measure"]
-        print(
-            f"{tid}: {coverage['summary']} executable share {m['executableShare']:.1%} "
-            f"({m['executable']}/{m['denominator']}; review-only {m['reviewOnly']}, unimplemented {m['unimplemented']}) "
-            f"-> {spec.rules_file.name} ({time.perf_counter() - t0:.1f}s)"
+        logger.info(
+            "engine_rules.built",
+            taxonomy_id=tid,
+            summary=coverage["summary"],
+            executable=m["executable"],
+            denominator=m["denominator"],
+            duration_s=round(time.perf_counter() - t0, 2),
+            output=spec.rules_file.name,
         )
 
 

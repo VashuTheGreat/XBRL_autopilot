@@ -1,30 +1,27 @@
-"""Taxonomy recommendation pipeline powered by Hybrid Retrieval and Reranking."""
+"""Taxonomy recommendation pipeline powered by Hybrid Retrieval (Qdrant + BM25) and FlashRank Reranker."""
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any, List, Literal, Optional
 from langchain_core.documents import Document
 
-from src.constants import CI_TAXONOMY_VDB, COSTING_TAXONOMY_VDB, IND_AS_TAXONOMY_VDB
+from src.constants import CI_TAXONOMY_VDB, COST_TAXONOMY_VDB, IND_AS_TAXONOMY_VDB
 from src.core.logger import logger
 from src.services.retrieval.hybrid import get_hybrid_search_service
-from src.services.retrieval.reranking import get_reranker_service
+from src.services.retrieval.reranker import get_reranker_service
 from src.utils.main_utils import restore_metadata
+from .base import Pipeline
 
-TaxonomyCollection = Literal["ind_as_taxonomy", "ci_taxonomy", "costing_taxonomy"]
+TaxonomyCollection = Literal["ind_as_taxonomy", "ci_taxonomy", "cost_taxonomy", "costing_taxonomy"]
 
 
 async def RecommendTaxonomies(
     keys: list[str],
     collection: TaxonomyCollection = IND_AS_TAXONOMY_VDB,
     top_k: int = 1,
-) -> list[Document | dict[str, Any] | None]:
-    """Recommends taxonomy concepts for a list of line item keys using Hybrid Search + Reranker.
-    
-    Empty keys are stripped and skipped.
-    Each returned document has restored metadata and an added 'score' field.
-    """
+) -> list[Document | None]:
+    """Recommend top taxonomy concepts for a list of line item keys using Hybrid Search + Reranker."""
     clean_keys = [k.strip() if isinstance(k, str) else "" for k in keys]
-    with logger.span("pipeline.recommend_taxonomies", total_keys=len(keys), clean_keys=len([k for k in clean_keys if k])):
+    with logger.span("pipeline.recommend_taxonomies", total_keys=len(keys)):
         hybrid_svc = get_hybrid_search_service()
         reranker = get_reranker_service()
         results: list[Document | None] = []
@@ -73,7 +70,7 @@ async def RecommendTaxonomiesWithScores(
 
             candidates = await hybrid_svc.asearch(query=key, collection=collection, k=10)
             ranked = reranker.rerank(query=key, candidates=candidates, top_k=top_k)
-            
+
             item_recs = []
             for r in ranked:
                 meta = restore_metadata(r.metadata)
@@ -93,4 +90,18 @@ async def RecommendTaxonomiesWithScores(
                 "bestMatch": item_recs[0] if item_recs else None,
             })
 
+        logger.info("pipeline.recommend_taxonomies_with_scores.completed", count=len(results))
         return results
+
+
+class RecommendationPipeline(Pipeline):
+    def __init__(self):
+        pass
+
+    async def initiate(
+        self,
+        keys: list[str],
+        collection: TaxonomyCollection = IND_AS_TAXONOMY_VDB,
+        top_k: int = 3,
+    ) -> list[dict[str, Any]]:
+        return await RecommendTaxonomiesWithScores(keys=keys, collection=collection, top_k=top_k)

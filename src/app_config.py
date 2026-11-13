@@ -20,6 +20,15 @@ class AppConfig(BaseSettings):
     xap_port: int = Field(7860, validation_alias="XAP_PORT")
     xap_token: Optional[str] = Field(None, validation_alias="XAP_TOKEN")
 
+    # Qdrant Vector DB
+    qdrant_api_key: Optional[str] = Field(None, validation_alias="QDRANT_API_KEY")
+    qdrant_cluster_endpoint: Optional[str] = Field(None, validation_alias="QDRANT_CLUSTER_ENDPOINT")
+    embedding_dim: int = Field(768, validation_alias="EMBEDDING_DIM")
+    collection_name: str = Field("xbrl_agent", validation_alias="COLLECTION_NAME")
+
+    # Ingestion / Security (Optional password protection)
+    ingestion_password: Optional[str] = Field(None, validation_alias="INGESTION_PASSWORD")
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_ignore_empty=True,

@@ -87,11 +87,20 @@ type SidecarStatus =
 | `GET /api/v1/taxonomies/{id}/concepts?search=` | Concept list/filter | exists |
 | `GET /api/v1/taxonomies/{id}/relationships/{kind}` | presentation/calculation/definition | exists |
 | `GET /api/v1/taxonomies/{id}/business-rules?concept=` | Raw rules | exists |
-| `GET /api/v1/taxonomies/recommend?keys=` | Legacy top-1 embedding recommend (needs the Chroma index, not built) | superseded by `/mapping/suggest` |
+| `GET /api/v1/taxonomies/recommend?keys=` | Query-parameter recommendation using Hybrid Retrieval (Qdrant + BM25) and FlashRank reranking | active |
+| `POST /api/v1/taxonomies/recommend` | Hybrid retrieval and FlashRank reranking for line-item lists: `{"keys": [...], "collection": "ind_as_taxonomy", "top_k": 3}` | active |
+| `POST /api/v1/mapping/suggest_column` | Column-based line-item auto-tagging: `{"workbook", "sheet", "items": [{"row", "label"}], "cy_col", "py_col", "taxonomy"}` | **used by the UI** |
 | `POST /api/v1/workbooks/read` | `{fileName, contentBase64}` → `{sheets:[{name,rowCount,colCount,cells,merges,colWidths}]}` (the `WorkbookModel` shape). python-calamine reads `.xls`; there are no number formats, so amounts round to the filing's decimal places. 422 for unreadable files | **used by the UI** (Phase 5) |
 | `POST /api/v1/mapping/suggest` | Auto-tagging: `{taxonomy, sheets:[{name, cells:[{r,c,v}], merges?:[{r1,c1,r2,c2}]}], periods:{cyEnd, pyEnd}, level, memory:[{label, concept, approvals}], options:{useLlm, maxCandidates}}` → `{layout[], suggestions[] (each may carry `also[]`), blocks[] (rows / cols as `table:plan` takes them; `cells[].also` = the extra facts), llmUsed, level}`. `ci_taxonomy`, `ind_as_taxonomy` (others 422). Stateless; LLM rerank only with `useLlm` **and** a Groq key. See [06](06-ai-auto-tagging.md) | **used by the app** (Phase 8, `SidecarMappingSuggester`) |
 | `POST /api/v1/mapping/review` | Tagging-quality review | later |
-| `POST /api/v1/fix/propose` | Fix agent ([07](07-ai-fix-agent.md), [ADR-0012](decisions/ADR-0012-ai-fix-patches.md)): `{taxonomy, problem, facts[], sources[], meta, options:{maxSteps ≤ 6, maxTokens}}` (`src/services/fix_agent/bundle.py`) → `{summary, patches[], dropped[], resolves[], needsHuman, steps, usage, toolCalls[], stop, model}`. 409 `ai.disabled` (no key), 422 `privacy` (identity data in the bundle; nothing sent), 502 `ai.failed`. The app calls it with a 6.5 min timeout (`SidecarClient.request(…, timeoutMs)`) | **used by the app** (Phase 10, `SidecarFixProposer`) |
+| `POST /api/v1/conversations` | Create a new in-memory conversation thread: `{"title": "..."}` → `{"conversation_id": "conv_...", "title": "..."}` | active |
+| `GET /api/v1/conversations` | List all active in-memory conversation threads | active |
+| `GET /api/v1/conversations/{id}` | Retrieve message history for thread (404 if thread not found) | active |
+| `DELETE /api/v1/conversations/{id}` | Delete conversation thread and wipe in-memory checkpoint state | active |
+| `POST /api/v1/conversations/{id}/messages` | Send message to thread: `{"message": "...", "stream": true|false}` (SSE stream or JSON response) | active |
+| `POST /api/v1/chat` | Direct chat endpoint with flexible thread ID handling and streaming/non-streaming support | active |
+| `POST /api/v1/ingest/file` | Ingest local documentation file into `xbrl_agent` Qdrant collection | active |
+| `POST /api/v1/fix/propose` | Fix agent ([07](07-ai-fix-agent.md), [ADR-0012](decisions/ADR-0012-ai-fix-patches.md)) | deferred (503; deterministic zero-fills and tagging review prioritized) |
 
 **Rules:**
 1. Validate every request with a Pydantic schema in `api/v1/schemas/`.

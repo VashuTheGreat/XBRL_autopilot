@@ -1,4 +1,7 @@
-"""POST /api/v1/fix/propose: one validation problem and its context bundle (src/services/fix_agent/bundle.py)."""
-from src.services.fix_agent.bundle import FixRequest
+from typing import Any, Dict
+from pydantic import BaseModel, Field
 
-__all__ = ["FixRequest"]
+
+class FixRequest(BaseModel):
+    """Stub schema for fix requests while fix-agent is temporarily removed."""
+    model_config = {"extra": "allow"}
