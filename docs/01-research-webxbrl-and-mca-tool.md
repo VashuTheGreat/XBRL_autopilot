@@ -49,6 +49,21 @@ The colleague's reference videos:
   - Backup/restore, live updates, yearly FY registration licence.
   - The Cost XBRL (CRA-4) Rev 8.3, released 2026-03-25, uses MCA Validation Tool 5.1.
 
+**Update 2026-11-13:** the full feature checklist, our status for each feature, and the gaps are in [13-webxbrl-parity.md](13-webxbrl-parity.md). It adds:
+- webXBRL release 32.7: recent companies, "Current Year Tagging Only", CIN/PAN format check, Live Update;
+- a click-by-click walkthrough taken from the video captions (§11);
+- the curated video list.
+
+Facts from the walkthrough that correct or extend the list above:
+- **Add / Replace** when a line already has a value.
+- A line's **"L" / F7 jump to its note table**. The table footer shows the BS-vs-note difference and turns green at 0.
+- **Ctrl+E** expands the taxonomy tree.
+- **F2** tags notes from Excel.
+- **Narration master** for F-key text snippets.
+- **Utilities → Reset Settings** for the rounding level and the CY/PY column gap.
+- 3-year tagging for Ind AS.
+- No public user manual exists. The videos are the documentation.
+
 ## 2. Competitors
 | Product | Notable features |
 |---|---|
