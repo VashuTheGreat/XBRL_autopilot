@@ -10,6 +10,7 @@ import { GenerateDialog } from '@/features/mandatory/GenerateDialog'
 import { MandatoryDialog } from '@/features/mandatory/MandatoryDialog'
 import { AddReplaceDialog } from '@/features/sources/AddReplaceDialog'
 import { SourceDetailsDialog } from '@/features/sources/SourceDetailsDialog'
+import { NoteEditorDialog } from '@/features/notes/NoteEditorDialog'
 import { useMandatory } from '@/stores/mandatory'
 import { useEditor } from '@/stores/editor'
 import { useProject } from '@/stores/project'
@@ -91,6 +92,7 @@ export function App() {
       <MandatoryDialog />
       <AddReplaceDialog />
       <SourceDetailsDialog />
+      <NoteEditorDialog />
       <Toasts />
     </div>
   )

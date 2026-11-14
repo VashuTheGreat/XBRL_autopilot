@@ -1,4 +1,4 @@
-import { CheckCheck, Columns3, FileSpreadsheet, Loader2, Sparkles, Table2, Upload } from 'lucide-react'
+import { CheckCheck, Columns3, FileSpreadsheet, FileText, Loader2, Sparkles, Table2, Upload } from 'lucide-react'
 import { lazy, Suspense, useState } from 'react'
 import { columnLetter, fromA1 } from '@shared/workbook'
 import { EmptyState } from '@/components/EmptyState'
@@ -6,6 +6,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Button } from '@/components/ui/primitives'
 import { cn } from '@/lib/cn'
 import { useEditor } from '@/stores/editor'
+import { useNotes } from '@/stores/notes'
 import { useTables } from '@/stores/tables'
 import { BlockSuggestionBar } from '@/features/tables/BlockSuggestionBar'
 import { AutoTagColumnDialog } from './AutoTagColumnDialog'
@@ -37,6 +38,7 @@ export function ExcelPane() {
           </button>
         ))}
         <div className="flex-1" />
+        <WordButton />
         {workbooks.length > 0 && <SheetColumnsButton />}
         {workbooks.length > 0 && <MapAsTableButton />}
         {workbooks.length > 0 && <AutoTagButtons />}
@@ -182,5 +184,20 @@ function AutoTagButtons() {
         sheetName={sheetName}
       />
     </>
+  )
+}
+
+/** Opens a Word document as a notes view (docs/14 Step 6), or goes back to the documents already open. */
+function WordButton() {
+  const { documents, openDocx, showDoc } = useNotes()
+  const first = documents[0]
+  return (
+    <button
+      className="flex items-center gap-1 px-3 text-muted hover:text-fg"
+      onClick={() => (first ? showDoc(first.id) : void openDocx())}
+      title={first ? 'Show the Word documents' : "Open a Word document (Directors’ report, notes) to tag its text blocks"}
+    >
+      <FileText size={12} /> {first ? `Word (${documents.length})` : 'Open Word'}
+    </button>
   )
 }

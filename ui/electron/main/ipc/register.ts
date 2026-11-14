@@ -23,6 +23,8 @@ import type { GenerateService } from '../services/generate-service'
 import type { MandatoryInputService } from '../services/mandatory-input-service'
 import type { PdfExportService } from '../services/pdf-export-service'
 import type { PreviewService } from '../services/preview-service'
+import type { MastersService } from '../services/masters-service'
+import type { NoteEditorService } from '../services/note-editor-service'
 import type { ValidationService } from '../services/validation-service'
 import type { FixAgentService } from '../services/fix-agent-service'
 import type { ProjectService } from '../services/project-service'
@@ -30,6 +32,8 @@ import type { SettingsService } from '../services/settings-service'
 import type { SidecarManager } from '../sidecar'
 import { capWorkbook } from '../infra/workbook-parser'
 import { handleQuery, handleResult, requireString } from './handle'
+import { requireNoteCheckInput, requireNoteHtml, requireSaveNoteInput } from './notes-input'
+import { requireFillInput, requireRowRef, requireSaveInput, requireSetCellInput, requireSetItemInput } from './masters-input'
 import { requireAlsoInput, requireBlockInput, requireCell, requireIndex, requireTagInput } from './table-input'
 
 export interface IpcDeps {
@@ -55,6 +59,8 @@ export interface IpcDeps {
   generate: GenerateService
   preview: PreviewService
   pdfExport: PdfExportService
+  masters: MastersService
+  notes: NoteEditorService
   fixAgent: FixAgentService
   getWindow: () => BrowserWindow | null
 }
@@ -69,6 +75,8 @@ export function registerIpc(d: IpcDeps): void {
   registerValidationIpc(d)
   registerMandatoryIpc(d)
   registerPreviewIpc(d)
+  registerMastersIpc(d)
+  registerNotesIpc(d)
   registerAiIpc(d)
 }
 
@@ -285,6 +293,32 @@ function requireFormatPatch(v: unknown): Partial<PreviewFormat> {
   if (typeof x.boldHeadings === 'boolean') out.boldHeadings = x.boldHeadings
   if (PREVIEW_SPACINGS.includes(x.spacing as PreviewFormat['spacing'])) out.spacing = x.spacing as PreviewFormat['spacing']
   return out
+}
+
+function registerMastersIpc({ masters }: IpcDeps): void {
+  handleResult(IPC.mastersView, () => masters.view())
+  handleResult(IPC.mastersSetItem, (_e, input: unknown) => masters.setItem(requireSetItemInput(input)))
+  handleResult(IPC.mastersSetCell, (_e, input: unknown) => masters.setCell(requireSetCellInput(input)))
+  handleResult(IPC.mastersNewRow, (_e, tableId: unknown) => masters.newRow(requireString(tableId, 'table')))
+  handleResult(IPC.mastersRemoveRow, (_e, ref: unknown) => masters.removeRow(requireRowRef(ref)))
+  handleResult(IPC.mastersFill, (_e, input: unknown) => masters.fill(requireFillInput(input)))
+  handleResult(IPC.mastersSave, (_e, input: unknown) => masters.save(requireSaveInput(input)))
+  handleResult(IPC.mastersForget, (_e, id: unknown) => masters.forget(requireString(id, 'master')))
+}
+
+function registerNotesIpc({ notes, getWindow }: IpcDeps): void {
+  handleResult(IPC.notesOpen, (_e, concept: unknown) => notes.open(requireString(concept, 'concept')))
+  handleResult(IPC.notesCheck, (_e, input: unknown) => notes.check(requireNoteCheckInput(input)))
+  handleResult(IPC.notesAutoFormat, (_e, html: unknown) => notes.autoFormat(requireNoteHtml(html)))
+  handleResult(IPC.notesClean, (_e, html: unknown) => notes.clean(requireNoteHtml(html)))
+  handleResult(IPC.notesSave, (_e, input: unknown) => notes.save(requireSaveNoteInput(input)))
+  handleResult(IPC.notesOpenDocx, async () => {
+    const win = getWindow()
+    const opts: Electron.OpenDialogOptions = { title: 'Open a Word document', properties: ['openFile'], filters: [{ name: 'Word document', extensions: ['docx'] }] }
+    const { canceled, filePaths } = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
+    const file = canceled ? null : filePaths[0]
+    return file ? notes.openDocx(basename(file), new Uint8Array(await readFile(file))) : null
+  })
 }
 
 /** Values typed in a review card are short (an amount or a text of at most 200 characters). */

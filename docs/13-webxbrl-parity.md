@@ -75,9 +75,9 @@
 ## 2. Masters
 | webXBRL feature | Ours | Status | To do | Pri |
 |---|---|---|---|---|
-| Company master: CIN → **Prefill** company data | CIN entered in the New Filing wizard; nothing fetched | ❌ | Needs an MCA data source; manual entry is fine for v1. Show the 400100 fields in the Masters panel | P1 |
-| Directors: **Prefill** (one) / **Autofill** (all, by CIN or DIN) | Typed in the Form | ❌ | Directors grid in Masters (name, DIN, designation, signing), written to the 400100 facts | P1 |
-| Auditor master, membership-number check | Typed in the Form; pattern checked by validation | 🟡 | Auditor card in Masters with a live format check | P1 |
+| Company master: CIN → **Prefill** company data | Masters panel **Company** card: every General information item, under its heading; saved companies in the master library fill the next filing (Step 9, 2026-11-14). Nothing fetched from MCA | ✅ (no MCA fetch) | An MCA data source, later | — |
+| Directors: **Prefill** (one) / **Autofill** (all, by CIN or DIN) | Masters **Directors and signatories**: directors signing grid (name, DIN, designation list, signing date), CS / CFO, managers, written to the signatory facts; saved directors reused from the library (Step 9, 2026-11-14). Nothing fetched from MCA | ✅ (no MCA fetch) | — | — |
+| Auditor master, membership-number check | Masters **Auditor** grid: live membership-number (6 digits), PAN and SRN format checks; PAN holder type and initial checked against the name (Step 9, 2026-11-14) | ✅ | — | — |
 | Masters reused across years | Prefill from last year's instance (`prefillDisclosures`) | ✅ | — | — |
 | Mandatory string pop-up during financial tagging 🔍 | **Mandatory items** dialog (Form toolbar, and Review… in Generate): the text / date / Yes-No / list items still empty per year, grouped by statement, with inline inputs; tables an answer makes mandatory; double-click → the Form (Step 5, 2026-11-14) | ✅ | — | — |
 
@@ -85,7 +85,7 @@
 | webXBRL feature | Ours | Status | To do | Pri |
 |---|---|---|---|---|
 | Excel import of BS / P&L | `.xlsx` / `.xls`, every sheet | ✅ | — | — |
-| Import Directors' / Auditors' report and notes from **Word** | — | ❌ | `.docx` → MCA HTML (`richtext.ts` subset) → text block | P0 |
+| Import Directors' / Auditors' report and notes from **Word** | **Open Word** (Excel pane): the `.docx` as a notes view of blocks in the MCA subset; select blocks, double-click a text block to tag (Step 6, 2026-11-14) | ✅ | — | — |
 | CY and PY mapped in one pass | Sheet CY/PY columns, "Both" scope | ✅ | — | — |
 | Load PY data (fixed assets, related parties, investments) | Import an instance from any vendor → "Start next year's filing" | ✅ | — | — |
 | Fixed-asset schedule **template** with auto-tagging | Map as table / suggested tables on the client's own schedule | 🟡 | Optional blank template (Excel) for clients with no schedule. Low value if table suggestions keep improving | P2 |
@@ -101,8 +101,8 @@
 | **Right-click menu on taxonomy items** 🔍 | — | ❌ | Right-click on an element (Taxonomy panel and Form): Tag selected cell · Tag CY only · Tag PY only · Untag · Show reference · Copy name. Right-click on an Excel cell: Tag… · Untag · Accept / Reject suggestion · Map as table | P1 |
 | Colour: tagged Excel cell **green**, tagged taxonomy item **red** | Excel: green / amber / red outline / grey hatch. Form: tagged lines green, mandatory-empty lines red (one `rowTone` with the note colours); Taxonomy panel and Manual Tag results show a tick plus "tagged at Sheet!C14 (CY)" (Step 2, 2026-11-14) | ✅ | — | — |
 | **Reference link per line item** (Schedule III / Ind AS para) | Not shown | ❌ | Show the element's references (already in the taxonomy KB) in the Element Inspector | P1 |
-| Notes: select text, double-click the heading | Range → text block via the dialog | 🟡 | Text blocks need their own flow: the dialog should rank `textBlockItemType` elements first when the cell is text | P0 |
-| Note / report **editor** (create or edit inside the software) | — | ❌ | Rich-text editor limited to the MCA HTML subset, with a live "will it render in the MCA PDF" check | P1 |
+| Notes: select text, double-click the heading | Word notes view: select blocks, double-click the text block in the Taxonomy panel; Excel text: F2 → choose the text block (Step 6, 2026-11-14). The Manual Tag dialog's ranking is Step 4 | ✅ | — | — |
+| Note / report **editor** (create or edit inside the software) | **F2** note editor: MCA-subset rich text, live "will render in the MCA PDF" check (Step 6, 2026-11-14) | ✅ | — | — |
 | "On Document" tagging of scattered facts | Any cell, anywhere; `pick` for numbers inside text | ✅ | — | — |
 | Dimensions / tables | Map as table, Also as…, suggestions | ✅ | — | — |
 | Abstract / non-taggable rows hidden | Dialog marks "table only" | 🟡 | Never offer abstract elements; grey out elements whose period type does not match the cell | P1 |
@@ -285,14 +285,14 @@ For each screen, write what you see, every button, right-click item and shortcut
 | Tag a **blank cell → 0** | "Empty mandatory → 0" (whole statement) | ✅ (different) | — |
 | Generate pre-check of untagged mandatory items and mismatches | Generate dialog (Ctrl+G): key answers to confirm, mandatory items still empty (Review…), validation errors block with **Fix first**; main refuses a gated filing (Step 5, 2026-11-14) | ✅ | — |
 | **Copy PY → CY** in note tables ("Load data from 24-25") | — | ❌ | P1 |
-| Fill auditor / signatories **from masters** | Masters panel is a placeholder | ❌ | P1 |
-| **Auditor name ↔ PAN, membership no. ↔ name** consistency (top pre-scrutiny errors) | — | ❌ | P1 (a warning: "check the name exactly as on the PAN") |
+| Fill auditor / signatories **from masters** | **Fill from master** in the Masters panel: library auditors → the auditor grid; director rows → the directors' report signatories (Step 9, 2026-11-14) | ✅ | — |
+| **Auditor name ↔ PAN, membership no. ↔ name** consistency (top pre-scrutiny errors) | "Enter it exactly as on the PAN" on the auditor names; the PAN's holder type (firm F / individual P) and 5th character checked against the name by category (Step 9, 2026-11-14). Membership no. ↔ name needs the ICAI database | ✅ (PAN) | — |
 | Cash-flow type / "not applicable" hides cash-flow statements | — | ❌ | P1 |
 | Home **process-flow chart** (where am I in the filing) | Filing explorer status dots | 🟡 | P1 |
 | Share capital master with **auto total** | Share capital AI producer (counts read from the note) | ✅ (different) | — |
 | **Narration master**: F-key text snippets ("Not applicable") | — | ❌ | P2 |
 | 3-year tagging (Ind AS "prior to previous year") | CY / PY only | ❌ | P1 (Ind AS only, when it applies) |
-| Notes: document view, select text → double-click element; F2 from Excel | Text range in Excel → dialog | 🟡 | **P0** (with Word import) |
+| Notes: document view, select text → double-click element; F2 from Excel | Word notes view (select blocks → double-click element); F2 on a Form row or an Excel text cell (Step 6, 2026-11-14) | ✅ | — |
 | Per-company login and password | `.axbrl` file per filing | ➖ | — |
 
 ## 12. Webtel playlist (6 videos, read 2026-11-14)
@@ -494,15 +494,15 @@ Only what §11 doesn't already say is listed here.
 ### 13.4 What this adds to our gap list
 | webXBRL behaviour | Ours | Status | Pri |
 |---|---|---|---|
-| **Note editor** (F2): rich text with tables, paste from Word/Excel, **Auto format** of pasted tables, MCA HTML subset | — | ❌ | **P0** (raised from P1 in §4: every Directors' report and MGT-9 table goes through it) |
+| **Note editor** (F2): rich text with tables, paste from Word/Excel, **Auto format** of pasted tables, MCA HTML subset | F2 editor: paste from Word / Excel keeps paragraphs and tables (cleaned to the MCA subset), **Auto format** rebuilds tables on a grid and drops empty rows / columns / paragraphs, live check; CY only (Step 6, 2026-11-14) | ✅ | — |
 | **Conditional mandatory** (CSR = No skips CSR; qualified = Yes requires remarks) shown while tagging | `mandatoryCell` drives the Form's red markers and the Mandatory items dialog: CSR = No no longer requires the CSR items (C&I also closes them), qualified = Yes requires the remarks (Ind AS field; C&I table SR-L3893-1, listed as a required table) (Step 5, 2026-11-14) | ✅ | — |
-| **Parent text block required** when a sub-item is tagged | — | ❌ | P1 (warning) |
-| **Enumerated fields as dropdowns** (designation, category…) | Form inputs | 🟡 | P1: use the taxonomy's enumerations / MCA lists |
+| **Parent text block required** when a sub-item is tagged | Note editor warns on open / save; Problems panel lists it as info (MCA accepts it: Dixon has 14) (Step 6, 2026-11-14) | ✅ | — |
+| **Enumerated fields as dropdowns** (designation, category…) | Masters panel: taxonomy enumerations as strict lists (category of auditor); the designation of a director offered from the taxonomy's KMP list (curated, still accepts other text) (Step 9, 2026-11-14). Form inputs unchanged | ✅ (Masters) | — |
 | **Frozen computed totals** in the statement and tables | Calculation rules; Form shows totals | 🟡 | P1: show computed totals read-only, with a tick or cross against the tagged total |
 | **Merged-cell warning** on Excel import | — | ❌ | P1 (cheap: flag merged cells in tagged ranges) |
 | **"Zero tags" list at Generate** (mandatory items that will go out as 0) | "Empty mandatory → 0" | ✅ (different) | — |
 | **Load static table data from PY** (KMP DOB, qualification) | `prefillDisclosures` for general disclosures | 🟡 | P1: extend to typed tables |
-| **"Load company name from master"** in group-company tables | — | ❌ | P2 |
+| **"Load company name from master"** in group-company tables | Masters panel: saved companies → the holding / subsidiary / associate companies table (same element, `NameOfCompany`) (Step 9, 2026-11-14) | ✅ | — |
 | Footnote on a table cell (Ctrl+F) | No footnotes UI | ❌ | P1 (same work as §3) |
 
 **What still needs a hands-on webXBRL run:** only the exact fixed-asset template fields and the layout of the error report. Neither blocks us: tables cover fixed assets, and our Problems panel is our error report.

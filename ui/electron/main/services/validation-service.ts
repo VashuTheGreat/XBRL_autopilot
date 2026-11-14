@@ -9,7 +9,7 @@
  * the project (mca-errors/<name>.txt). Electron-free: unit-tested without a window.
  * Measured: about 0.3 s per run on the 2,666-fact Dixon filing, so it runs on the main process.
  */
-import { explainMcaErrors, fixFor } from '@xap/engine'
+import { explainMcaErrors, fixFor, noteStructureIssues, type Session } from '@xap/engine'
 import type { MappingView } from '@shared/editor'
 import type { Problem, ProblemFamily, ProblemLocation, ProblemSeverity, RuleCoverageSummary, ValidationView } from '@shared/validation'
 import type { CellRef } from '@shared/workbook'
@@ -110,7 +110,8 @@ export class ValidationService {
     const problems: Problem[] = []
     const seen = new Map<string, number>()
     this.issues.clear()
-    for (const issue of gate.issues) {
+    // docs/14 Step 6: the text-block hierarchy hints (INFO) join the gate's issues
+    for (const issue of [...gate.issues, ...noteStructureIssues(p.session as Session)]) {
       const base = issueSignature(issue)
       const n = (seen.get(base) ?? 0) + 1
       seen.set(base, n)

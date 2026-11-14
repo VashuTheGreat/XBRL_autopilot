@@ -42,6 +42,17 @@ import type { CellRef, WorkbookModel } from './workbook'
 import type { McaLaunchResult, ValidationView } from './validation'
 import type { GenerateResult, KeyAnswerView, MandatoryView, SetMandatoryInput } from './mandatory'
 import type { PdfExportResult, PreviewDocument, PreviewFormat } from './preview'
+import type {
+  FillFromMasterInput,
+  FillFromMasterResult,
+  LibraryRecord,
+  MasterRowRef,
+  MastersView,
+  SaveMasterInput,
+  SetMasterCellInput,
+  SetMasterItemInput,
+} from './masters'
+import type { AutoFormatView, NoteCheckInput, NoteCheckView, NoteDocument, NoteEditorView, SaveNoteInput, SaveNoteResult } from './notes'
 import type { AiHistoryEntry, AiView } from './ai'
 
 /**
@@ -175,6 +186,20 @@ export const IPC = {
   previewDocument: 'preview:document',
   previewSetFormat: 'preview:set-format',
   previewExportPdf: 'preview:export-pdf',
+  mastersView: 'masters:view',
+  mastersSetItem: 'masters:set-item',
+  mastersSetCell: 'masters:set-cell',
+  mastersNewRow: 'masters:new-row',
+  mastersRemoveRow: 'masters:remove-row',
+  mastersFill: 'masters:fill',
+  mastersSave: 'masters:save',
+  mastersForget: 'masters:forget',
+  notesOpen: 'notes:open',
+  notesCheck: 'notes:check',
+  notesAutoFormat: 'notes:auto-format',
+  notesClean: 'notes:clean',
+  notesSave: 'notes:save',
+  notesOpenDocx: 'notes:open-docx',
   aiGet: 'ai:get',
   aiPropose: 'ai:propose',
   aiFixAll: 'ai:fix-all',
@@ -321,6 +346,31 @@ export interface XapApi {
     setFormat(patch: Partial<PreviewFormat>): Promise<Result<PreviewDocument>>
     /** Save dialog, then printToPDF; `null` = cancelled */
     exportPdf(): Promise<Result<PdfExportResult | null>>
+  }
+  /** docs/14 Step 9: company card, auditor / signatory grids, master library, fill from master */
+  masters: {
+    view(): Promise<Result<MastersView>>
+    setItem(input: SetMasterItemInput): Promise<Result<void>>
+    setCell(input: SetMasterCellInput): Promise<Result<void>>
+    /** the typed member of a new row (it exists once one of its cells has a value) */
+    newRow(tableId: string): Promise<Result<string>>
+    removeRow(ref: MasterRowRef): Promise<Result<void>>
+    fill(input: FillFromMasterInput): Promise<Result<FillFromMasterResult>>
+    save(input: SaveMasterInput): Promise<Result<LibraryRecord>>
+    forget(id: string): Promise<Result<void>>
+  }
+  /** docs/14 Step 6: the F2 note editor and Word documents as a notes view */
+  notes: {
+    /** a text block / text item's CY value as editor HTML */
+    open(concept: string): Promise<Result<NoteEditorView>>
+    /** will it render in the MCA PDF */
+    check(input: NoteCheckInput): Promise<Result<NoteCheckView>>
+    autoFormat(html: string): Promise<Result<AutoFormatView>>
+    /** pasted HTML reduced to the MCA subset, as editor HTML */
+    clean(html: string): Promise<Result<string>>
+    save(input: SaveNoteInput): Promise<Result<SaveNoteResult>>
+    /** asks for a .docx and converts it; null when cancelled */
+    openDocx(): Promise<Result<NoteDocument | null>>
   }
   /** Phase 10: AI fix agent (proposals only; the user accepts each patch) */
   ai: {

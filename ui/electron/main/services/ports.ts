@@ -5,6 +5,7 @@
 import type { Authority, Session } from '@xap/engine'
 import type { TaxonomyId } from '@xap/engine/basics'
 import type { AiPatch } from '@shared/ai'
+import type { LibraryRecord } from '@shared/masters'
 import type { TableBlockColumnInput, TableBlockRowInput } from '@shared/editor'
 import type { HttpMethod, SidecarResponse } from '@shared/ipc'
 import type { ElrInfo, RecentProject } from '@shared/project'
@@ -322,3 +323,19 @@ export interface PdfRenderer {
 
 /** Writes bytes to a file the user chose. */
 export type FileWriter = (path: string, data: Uint8Array) => Promise<void>
+// ------------------------------------------------------------------ masters (docs/14 Step 9)
+
+/** The master library: companies, auditors, directors the user saved, reused across filings. Local to this machine. */
+export interface MasterLibraryStore {
+  list(): LibraryRecord[]
+  /** saves a record; the same kind and values again only refreshes the saved one */
+  save(record: Pick<LibraryRecord, 'kind' | 'title' | 'values'>): LibraryRecord
+  remove(id: string): void
+}
+
+// ------------------------------------------------------------------ note editor (docs/14 Step 6)
+
+/** Converts a Word document (.docx bytes) to HTML; what it could not keep comes back as messages. */
+export interface DocxConverter {
+  toHtml(bytes: Uint8Array): Promise<{ html: string; messages: string[] }>
+}

@@ -62,7 +62,7 @@ describe.skipIf(!kbReady)('preview and PDF export', () => {
 
   it('exports the preview as PDF through printToPDF (mocked) to the chosen path', async () => {
     preview.setFormat({ boldHeadings: true })
-    const render = vi.fn(async () => new Uint8Array([0x25, 0x50, 0x44, 0x46]))
+    const render = vi.fn(async (_html: string) => new Uint8Array([0x25, 0x50, 0x44, 0x46]))
     const write = vi.fn(async () => {})
     const pdf = new PdfExportService(preview, { render } satisfies PdfRenderer, write)
     const r = await pdf.export(join(dir, 'out'))
