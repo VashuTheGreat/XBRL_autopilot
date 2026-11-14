@@ -23,6 +23,15 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 | 12 | Costing CRA-4 (its KB exists; no engine authority, rules or wizard entry yet), masters prefill, trial-balance mapping, Groq proxy, auto-update | ⏳ |
 
 ## Known issues / debt
+- **Tests to run again (parity Steps 9 + 6, branch `feat/step9-6-masters-notes`, 2026-11-14):** committed with `pnpm typecheck` green, engine 123/123 and UI 219/225.
+  - **After merging Steps 1–3, 5–7 and 9 (`554e557`, 2026-11-15):** typecheck green; engine 226 + 132 pass; Python 34/34; UI 239/244. The 5 failures are the same sidecar auto-tag timeouts (`auto-tag-service` 4, `scoreboard-dgpl` 1).
+  - To do:
+  - Rerun `pnpm test` when the sidecar is warm (start it once with `make dev`, or run the suite twice). The 6 failures were timeouts in tests that call the real sidecar's auto-tag route: `ui/test/auto-tag-service.test.ts` (5) and `ui/test/scoreboard-dgpl.test.ts` (1). The branch does not change that code. They ran on a new worktree's first sidecar start with the C: drive nearly full.
+  - Check the new screens by hand in the running app (`env -u ELECTRON_RUN_AS_NODE pnpm dev`); no Electron E2E covers them yet:
+    - **Masters panel:** edit the Company card, the Auditor and Directors grids, Fill from master, Load company name from master, save and remove library records.
+    - **F2 note editor:** on a Form row and on an Excel text cell; paste from Word and Excel; Auto format; the live check.
+    - **Open Word** and the notes view: select blocks, then double-click a text block in the Taxonomy panel.
+  - Then remove this item.
 - `src/services/retrieval/hybrid.py` and `reranking.py` [RESOLVED 2026-11-13]: Fully implemented using Qdrant Vector DB, LangChain `EnsembleRetriever` (Qdrant dense + BM25 keyword), and FlashRank neural reranker (`ms-marco-TinyBERT-L-2-v2`).
 - **Auto-tagging gaps (Phase 8):** no dimensional (table) cells; free-worded cash-flow lines are weak; the memory ignores sheet kind; the Groq rerank has never been measured (the evaluation runs with the LLM off, by rule) — measure it on a non-client workbook.
 - `pyproject.toml` `[project.scripts]` points at modules that don't exist; `huggingface` is a stray dependency.

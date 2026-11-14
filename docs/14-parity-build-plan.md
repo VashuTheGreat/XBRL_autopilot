@@ -211,6 +211,7 @@ So this step is wiring plus the dialog, not new rule logic.
 - **Text blocks are CY only:** the editor writes CY. Dixon carries one PY text block, so a PY text block is not reported.
 - **App:** `NoteEditorService` (ports: `ProjectAccess`, `DocxConverter`), `MammothDocxConverter` (mammoth 1.8.0, images dropped), IPC `notes:*`, `ui/shared/notes.ts`; `ValidationService` adds the hints.
 - **UI:** F2 (`useNoteEditorShortcut`: the last Form row clicked, or the selected Excel cell — its element, or its text with a text block to choose); `NoteEditorDialog` (rich text for text blocks, plain text for text items; paste cleaned in main; Auto format; live check; Save disabled while it would not render); `DocumentPane` (a Word document's blocks, Ctrl / Shift + click; double-click a text block in the Taxonomy panel tags them); **Open Word** in the Excel pane header.
+- **Still to verify:** the full `pnpm test` with a warm sidecar, and F2 / paste / Open Word in the running app (see STATUS → Known issues).
 - **Not done here:** opened Word documents are not saved in `.axbrl` (that format belonged to Step 3); there is no in-editor "insert table" (tables come in through paste).
 
 ## Step 7 · Preview + PDF
@@ -254,6 +255,7 @@ So this step is wiring plus the dialog, not new rule logic.
 - **Engine** `masters.ts`: sections = an ELR's non-dimensional items (a card, under their headings) and its single-typed-axis tables (grids); field lists (own enumeration = strict, curated vocabulary = suggestions); formats (type pattern → rule `format` assertion → curated); read / write CY items and rows through the Session; fill targets = other typed tables that report the same elements; `fillTableFromRecords` skips rows already there. `basics.ts`: `formatProblem`, `panNameProblems` (PAN holder type = 4th character, initial = 5th).
 - **App:** `MastersService` (ports: `ProjectAccess`, `MasterLibraryStore`), `KeyValueMasterLibrary` (app.db; values by local name so a C&I master fills an Ind AS filing), IPC `masters:*`, `ui/shared/masters.ts` (contract + live `fieldProblems`).
 - **UI:** Masters side panel: Company card, Auditor grid, Directors and signatories (directors grid, CS / CFO card, managers grid), each row a card; live format / list / PAN checks and the "exactly as on the PAN" reminder; **Fill from master** (library → a grid; director rows → the directors' report signatories), **Load company name from master** (library companies → the holding / subsidiary / associate table); the master library list.
+- **Still to verify:** the full `pnpm test` with a warm sidecar, and the panel in the running app (see STATUS → Known issues).
 - **Not done here:** the Form itself has no fill buttons (they are in the Masters panel, to stay out of the Form files Step 3 was changing).
 
 ## Step 10 · Table extras
