@@ -175,21 +175,19 @@ export function UniverGrid({ model }: { model: WorkbookModel }) {
     const { mappings, selection, blockSuggestions } = useEditor.getState()
     const sheetName = ws.getSheetName()
     const groups = new Map<keyof typeof STYLE, string[]>()
+    const onSheet = (c: CellRef) => c.workbook === model.source && c.sheet === sheetName
     for (const m of mappings as MappingView[]) {
-      if (m.cell.workbook !== model.source || m.cell.sheet !== sheetName) continue
-      const list = groups.get(m.status) ?? []
-      list.push(m.cell.ref)
-      groups.set(m.status, list)
+      // every source of a summed tag is highlighted (ADR-0015)
+      const refs = m.sources.filter((s) => onSheet(s.cell)).map((s) => s.cell.ref)
+      if (refs.length) groups.set(m.status, [...(groups.get(m.status) ?? []), ...refs])
     }
     for (const [status, refs] of groups) {
       overlays.current.push(ws.highlightRanges(refs.map((a1) => ws.getRange(a1)), overlayStyle(STYLE[status])))
     }
     const blocks = blockSuggestions.filter((b) => b.status === 'suggested' && b.cell.workbook === model.source && b.cell.sheet === sheetName)
     for (const b of blocks) overlays.current.push(ws.highlightRanges([ws.getRange(b.cell.ref)], overlayStyle(STYLE.block, 2, 8)))
-    const linked = selection.factKey ? useEditor.getState().byFact.get(selection.factKey)?.cell : null
-    if (linked && linked.workbook === model.source && linked.sheet === sheetName) {
-      overlays.current.push(ws.highlightRanges([ws.getRange(linked.ref)], overlayStyle(STYLE.linked, 2)))
-    }
+    const linked = (selection.factKey ? useEditor.getState().byFact.get(selection.factKey)?.sources ?? [] : []).filter((s) => onSheet(s.cell))
+    if (linked.length) overlays.current.push(ws.highlightRanges(linked.map((s) => ws.getRange(s.cell.ref)), overlayStyle(STYLE.linked, 2)))
   }
 
   useEffect(drawOverlay, [mappings, blockSuggestions, selection.factKey])

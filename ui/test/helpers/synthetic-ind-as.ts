@@ -50,11 +50,11 @@ export const WORKBOOK = [
 
 export const cell = (s: string, ref: string): CellRef => ({ workbook: 'workbook-1.xlsx', sheet: s, ref })
 
-/** A new FY 2025-26 Ind AS filing in lakhs (2 places) with WORKBOOK imported, and the mapping services over it. */
-export async function syntheticIndAsFiling() {
+/** A new FY 2025-26 Ind AS filing in lakhs (2 places) with `workbook` (WORKBOOK) imported, and the mapping services over it. */
+export async function syntheticIndAsFiling(workbook: SheetModel[] = WORKBOOK) {
   const dir = mkdtempSync(join(tmpdir(), 'xap-tables-'))
   const projects = new ProjectService({ authority: kbAuthorityService(), recents: new AppDatabase(':memory:'), autosave: new DirAutosaveStore(join(dir, 'a')), appVersion: '0.1.0' })
-  const sources = new SourceService(projects, async (source, fileName) => ({ source, fileName, sheets: structuredClone(WORKBOOK) }))
+  const sources = new SourceService(projects, async (source, fileName) => ({ source, fileName, sheets: structuredClone(workbook) }))
   const columns = new ColumnPeriodService(projects, sources)
   const mapping = new MappingService(projects, sources, columns)
   const tables = new TableMappingService(projects, sources, columns, mapping)

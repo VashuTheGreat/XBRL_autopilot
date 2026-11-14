@@ -72,11 +72,11 @@ Each step is meant to be done in a fresh chat with no memory of earlier ones. Th
 |---|---|---|---|---|
 | 1 | Statement ↔ note matching: difference per line, red / green, Go to note (F7), statement Difference footer | §11.6, §12.2, §12.9 | P0 | ✅ |
 | 2 | Statement tree: E / L / T markers, mandatory red, tagged green, expand / collapse all; tagged marks in the Taxonomy panel | §4, §11.6, §12.2 | P0 | ✅ |
-| 3 | Add / Replace on a tagged line + View details (cells that aren't next to each other summed into one fact) | §11.6, §12.9 | P0 | ⬜ |
+| 3 | Add / Replace on a tagged line + View details (cells that aren't next to each other summed into one fact) | §11.6, §12.9 | P0 | ✅ |
 | 4 | Manual Tag dialog fixes (AI for untagged rows, scoped to the statement, used elements marked, text-aware ranking, range kept, description column, Next untagged, single open) | §8 | P0 | ⬜ |
 | 5 | Mandatory text / date / Yes-No dialog + conditional mandatory (CSR, auditor qualification) + Generate confirmation of key answers | §2, §12.5, §13.4 | P0 | ✅ |
 | 6 | Note editor (F2): MCA-subset rich text, paste from Word / Excel, Auto format tables, open a `.docx` as a document; parent-text-block warning | §3, §4, §13.1–13.4 | P0 | ⬜ |
-| 7 | Preview tab (MCA-like render) + PDF with MCA-style format settings | §7, §12.1 | P0 | ⬜ |
+| 7 | Preview tab (MCA-like render) + PDF with MCA-style format settings | §7, §12.1 | P0 | ✅ |
 | 8 | Right-click menus + footnotes UI (CY / PY, table cells, one on many) + change sign + properties | §3, §4, §12.2 | P1 | ⬜ |
 | 9 | Masters panel: company, directors grid, auditor; fill auditor / signatories from masters; dropdown enumerations; PAN and name checks | §2, §11.6, §13.4 | P1 | ⬜ |
 | 10 | Tables: show / hide members, copy PY → CY, load static data from PY, read-only computed totals | §11.6, §12.3, §13.4 | P1 | ⬜ |
@@ -154,6 +154,7 @@ For a combined chat, use the template with "Steps N and M (in that order)".
 - Tagging a line that already has a value asks **Add / Replace / Cancel**.
 - **View details** lists every source cell with its value and the total, and offers to save the list as a footnote.
 - Tests: mapping-service add / replace / untag-one-source; `.axbrl` round trip and migration.
+- **Done (2026-11-14):** [ADR-0015](decisions/ADR-0015-multi-source-mapping.md). `MappingEntry.sources` (format 2, migration in `project/migrations.ts`); `MappingService.conflict / addSource / removeSource / details`; engine `sumAmounts`; `SourceFootnoteService` (engine footnotes now exported); renderer `stores/sources.ts`, `features/sources/` (Add / Replace dialog, View details). Tests: `ui/test/mapping-sources.test.ts`, `axbrl.test.ts` migration, `engine/test/amounts.test.ts`.
 
 ## Step 4 · Manual Tag dialog fixes
 **Already done (skip):**
@@ -213,6 +214,7 @@ So this step is wiring plus the dialog, not new rule logic.
 - Settings: borders, bold headings, spacing.
 - **Export PDF** via Electron `printToPDF`.
 - Tests: preview HTML snapshot on a synthetic filing; a PDF smoke in E2E.
+- **Done (2026-11-14):** engine `buildPreviewHtml` gets `format` / `printBar` options, `core/preview-format.js` (CSS), `PreviewFormat` + `normalizePreviewFormat` in `basics.ts`; `.axbrl` `preview.json`; `PreviewService`, `PdfExportService` (ports `PdfRenderer`, `FileWriter`), `infra/electron-pdf-renderer.ts`; IPC `preview:document | set-format | export-pdf`; renderer `PreviewView.tsx`, `stores/preview.ts`. Tests: `engine/test/preview.test.ts` (snapshot), `ui/test/preview-service.test.ts` (settings round trip, printToPDF mocked), `axbrl.test.ts`. The E2E PDF smoke isn't written yet: the service test covers the flow with printToPDF mocked.
 
 ## Step 8 · Right-click menus, footnotes, change sign
 **Already in the code:**

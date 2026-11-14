@@ -32,10 +32,22 @@ export function displayLabel(label: string): string {
   return label.replace(/\s*\[(member|table|axis|domain|line items|abstract)\]\s*$/i, '')
 }
 
+/** One Excel source of a fact (ADR-0015): a cell or a one-column range, and the sign applied to its amount. */
+export interface MappingSource {
+  cell: CellRef
+  sign: 1 | -1
+}
+
 /** Persisted in the project's mapping.json (docs/03-project-file-axbrl.md). */
 export interface MappingEntry {
   id: string
+  /** the first source (the anchor: suggestions, blocks, picks, AI patches and the column's period key on it) */
   cell: CellRef
+  /**
+   * Every source of the figure, the first being `cell` / `sign` (ADR-0015). An amount can be the sum of several
+   * cells or ranges on any sheet ("BS!C14 + Notes!D20"); every other entry has exactly one.
+   */
+  sources: MappingSource[]
   /** row label next to the cell when tagged (for review and AI memory) */
   label: string | null
   fact: MappedFact
@@ -52,7 +64,7 @@ export interface MappingEntry {
    * count and the par value). One text cell can hold one entry per number. Counts and per-share figures only.
    */
   pick?: number
-  /** applied to the cell's number (e.g. an expense shown as a negative) */
+  /** applied to the first source's number (e.g. an expense shown as a negative); `sources[0].sign` */
   sign: 1 | -1
   origin: MappingOrigin
   confidence: number | null
@@ -139,6 +151,48 @@ export interface MappingView extends MappingEntry {
   alsoViews: AlsoReportedView[]
   /** the suggested "also reported as" facts (`alsoSuggested`), labelled */
   alsoSuggestedViews: SuggestedAlsoView[]
+}
+
+/** "BS!C14" for one source; "BS!C14 + Notes!D20" (− for a reversed sign) for several. */
+export function sourcesText(sources: MappingSource[]): string {
+  return sources.map((s, i) => `${i === 0 ? (s.sign === -1 ? '−' : '') : s.sign === -1 ? ' − ' : ' + '}${s.cell.sheet}!${s.cell.ref}`).join('')
+}
+
+/** How tagging a fact that already has a value goes on (docs/14 Step 3). */
+export type TagMode = 'add' | 'replace'
+
+/**
+ * The fact a tag would write already has a value: what it is and where it comes from, so the user picks Add (one more
+ * source, summed) or Replace. `addBlocked` says why Add isn't possible (a typed / imported value, text, …).
+ */
+export interface TagConflict {
+  concept: string
+  conceptLabel: string
+  scope: Scope
+  /** the value now filed, as displayed */
+  value: string
+  /** the tag that files it now (null when typed in the Form or imported) */
+  mappingId: string | null
+  sources: MappingSource[]
+  addBlocked: string | null
+}
+
+/** View details (docs/14 Step 3): every source of a tag with its amount, and the total that is filed. */
+export interface MappingDetails {
+  mappingId: string
+  concept: string
+  conceptLabel: string
+  scope: Scope
+  factKey: string | null
+  sources: MappingSourceDetail[]
+  /** the filed value, as displayed (Σ sources) */
+  total: string | null
+}
+
+export interface MappingSourceDetail extends MappingSource {
+  /** the source's signed amount as it goes into the sum (null when it no longer reads as one) */
+  value: string | null
+  problem?: string
 }
 
 export interface AlsoReportedView {
@@ -332,7 +386,10 @@ export interface ConceptHit {
 export interface FormCell {
   factKey: string | null
   display: string
+  /** the first source cell */
   source: CellRef | null
+  /** every source when the figure is a sum of several (ADR-0015); absent for one */
+  sources?: MappingSource[]
   mappingId: string | null
   /** the value is an "also reported as" fact of its source cell (the cell's main tag is another fact) */
   also?: boolean
@@ -439,14 +496,14 @@ export interface ConceptUse {
  */
 export function conceptUses(mappings: MappingView[]): Map<string, ConceptUse[]> {
   const out = new Map<string, ConceptUse[]>()
-  const add = (concept: string, cell: CellRef, scope: Scope) => {
+  const add = (concept: string, m: MappingView, scope: Scope) => {
     const list = out.get(concept) ?? out.set(concept, []).get(concept)!
-    list.push({ cell, scope, text: `${cell.sheet}!${cell.ref} (${scope})` })
+    list.push({ cell: m.cell, scope, text: `${sourcesText(m.sources)} (${scope})` })
   }
   for (const m of mappings) {
     if (m.status !== 'approved') continue
-    add(m.fact.concept, m.cell, m.fact.scope)
-    for (const a of m.also ?? []) add(a.concept, m.cell, a.scope)
+    add(m.fact.concept, m, m.fact.scope)
+    for (const a of m.also ?? []) add(a.concept, m, a.scope)
   }
   return out
 }

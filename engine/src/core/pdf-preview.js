@@ -13,6 +13,7 @@ import { tableSlices } from './views.js';
 import { reportingYear } from './periods.js';
 import { sortSlices } from './member-hints.js';
 import { toMca, plainText } from './richtext.js';
+import { previewFormatCss } from './preview-format.js';
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const dmy = (iso) => (/^\d{4}-\d{2}-\d{2}$/.test(iso || '') ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}` : iso || '');
@@ -45,10 +46,12 @@ export function formatValue(S, f) {
 
 /**
  * @param S session
- * @param {{ build?: string }} opts
+ * @param {{ build?: string, format?: { borders: boolean, boldHeadings: boolean, spacing: string }, printBar?: boolean }} opts
+ *   format: MCA-style format settings (preview-format.js); printBar: false drops the in-page "Print" bar (the app shows
+ *   the preview in a sandboxed frame with its own Export PDF)
  * @returns {string} complete HTML document
  */
-export function buildPreviewHtml(S, { build = 'dev' } = {}) {
+export function buildPreviewHtml(S, { build = 'dev', format = null, printBar = true } = {}) {
   const A = S.A, filing = S.filing, m = filing.meta, P = m.periods;
   const emit = new Set(S.app.planFacts(filing).emit.map((f) => f.key));
   const get = (q, scope, dims, pl) => { const f = S.getValue(q, scope, dims, pl || null); return f && !f.nil && emit.has(f.key) ? f : null; };
@@ -204,8 +207,9 @@ table.st td.v { text-align: right; } table.st tr.ab td { font-weight: normal; }
 .mca .noteText1 { margin-left: 8px; } .mca .noteText2 { margin-left: 16px; } .mca .noteText3 { margin-left: 24px; } .mca .noteText4 { margin-left: 32px; }
 .mca .tableHeader { font-weight: bold; } .mca .numericValue, .mca .tableRowValue { text-align: right; }
 @media print { .bar { display: none; } body { max-width: none; padding: 0; } }
+${previewFormatCss(format)}
 </style></head><body>
-<div class="bar"><button type="button" onclick="window.print()">Print / Save as PDF</button><span>Preview only — not the MCA rendering. In the print dialog choose “Save as PDF”.</span></div>
+${printBar ? '<div class="bar"><button type="button" onclick="window.print()">Print / Save as PDF</button><span>Preview only — not the MCA rendering. In the print dialog choose “Save as PDF”.</span></div>' : ''}
 <div class="notice">${notice}</div>
 <div class="doc-head"><b>${esc(company)}</b>${esc(title)}</div>
 ${sections.join('\n') || '<p>No facts to show.</p>'}

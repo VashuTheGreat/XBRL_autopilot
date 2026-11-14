@@ -1,11 +1,12 @@
-import { CalendarRange, Check, Copy, Link2, Search, Sparkles, Table2, Tag, Unlink, X } from 'lucide-react'
+import { CalendarRange, Check, Copy, Link2, ListTree, Search, Sparkles, Table2, Tag, Unlink, X } from 'lucide-react'
 import { formatIndian } from '@xap/engine/basics'
 import { useState, type ReactNode } from 'react'
-import type { CellAmount, ColumnPeriod, MappingView, Scope, SuggestedAlsoView } from '@shared/editor'
+import { sourcesText, type CellAmount, type ColumnPeriod, type MappingView, type Scope, type SuggestedAlsoView } from '@shared/editor'
 import { cellKey, rangeOf, rangeSize } from '@shared/workbook'
 import { Button } from '@/components/ui/primitives'
 import { cn } from '@/lib/cn'
 import { useEditor } from '@/stores/editor'
+import { useSources } from '@/stores/sources'
 import { useTables } from '@/stores/tables'
 import { useUi } from '@/stores/ui'
 
@@ -15,6 +16,7 @@ const SCOPES: Scope[] = ['CY', 'PY']
 export function MappingInspector() {
   const { selection, byCell, mappings, workbooks, cellInfo, untag, setScope, selectFact, openManualTag } = useEditor()
   const setActivity = useUi((s) => s.setActivity)
+  const openDetails = useSources((s) => s.openDetails)
   // a text cell can hold several figures (share counts in a note), one mapping each: which one the strip shows
   const [figure, setFigure] = useState<{ key: string; i: number }>({ key: '', i: 0 })
   const cell = selection.cell
@@ -94,6 +96,14 @@ export function MappingInspector() {
           {m.sign === -1 && <span className="text-[11px] text-warn">sign reversed</span>}
           <AlsoReported m={m} />
           <div className="flex-1" />
+          {m.sources.length > 1 && (
+            <span className="shrink-0 font-mono text-[11px] text-muted" title="The figure is the sum of these cells" data-testid="inspector-sources">
+              = {sourcesText(m.sources)}
+            </span>
+          )}
+          <Button variant="ghost" className="h-6 px-2 text-xs" onClick={() => void openDetails(m.id)} title="Sources, amounts and total" data-testid="inspector-details">
+            <ListTree size={12} className="mr-1" /> Details
+          </Button>
           <Button variant="ghost" className="h-6 px-2 text-xs" onClick={() => openManualTag({ cell })} title="Edit tag (or double-click cell)">
             <Tag size={12} className="mr-1" /> Edit Tag
           </Button>

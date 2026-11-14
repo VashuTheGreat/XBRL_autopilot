@@ -70,7 +70,7 @@
 | 2 | Financial tagging + fixed-asset templates | Auto-tag, double-click manual tag, Taxonomy panel. No fixed-asset template | 🟡 |
 | 3 | Tables (dimensions) | "Map as table", suggested tables, "Also as…" | ✅ |
 | 4 | Notes tagging (text blocks) | Text range → text block (`<p>` per row). No note editor, no Word import | 🟡 |
-| 5 | Generate instance → validate → pre-scrutiny | Generate XML, our validator, launch the MCA tool. **Preview tab is a placeholder** | 🟡 |
+| 5 | Generate instance → validate → pre-scrutiny | Generate XML, our validator, launch the MCA tool, Preview tab + Export PDF (Step 7) | ✅ |
 
 ## 2. Masters
 | webXBRL feature | Ours | Status | To do | Pri |
@@ -130,8 +130,8 @@
 | webXBRL feature | Ours | Status | To do | Pri |
 |---|---|---|---|---|
 | Generate instance, save anywhere | Generate XML dialog | ✅ | — | — |
-| **View / print the instance** (in-built viewer) | **Preview tab is a placeholder** | ❌ | MCA-like HTML render of every statement, Indian grouping, print / PDF | P0 |
-| PDF of the filing | — | ❌ | From the preview (Electron `printToPDF`) | P1 |
+| **View / print the instance** (in-built viewer) | Preview tab: MCA-like render of every statement, note table and text block with Indian grouping, in a sandboxed frame, re-rendered on every change (engine `buildPreviewHtml`, `PreviewService`; Step 7, 2026-11-14) | ✅ | — | — |
+| PDF of the filing | **Export PDF** in the Preview tab: Electron `printToPDF` in a hidden sandboxed window, A4, to a chosen path (`PdfExportService`; Step 7, 2026-11-14) | ✅ | — | — |
 
 ## 8. Double-click manual tagging: how it works with AI, and what to fix
 **Today** ([ManualTagDialog.tsx](../ui/src/features/excel/ManualTagDialog.tsx)):
@@ -278,7 +278,7 @@ For each screen, write what you see, every button, right-click item and shortcut
 ### 11.6 What this adds to our gap list
 | webXBRL behaviour | Ours | Status | Pri |
 |---|---|---|---|
-| **Add / Replace** when tagging a line that already has a value (sum cells that aren't next to each other) | Contiguous range sum only; re-tag replaces silently | ❌ | **P0** |
+| **Add / Replace** when tagging a line that already has a value (sum cells that aren't next to each other) | Tagging a line with a value asks **Add / Replace / Cancel** (Manual Tag, Form, Taxonomy panel share one flow); Add makes the fact the exact decimal sum of its sources on any sheet ([ADR-0015](decisions/ADR-0015-multi-source-mapping.md), Step 3, 2026-11-14) | ✅ | — |
 | **Line → note table jump** (yellow L / F7 / right-click) with a **BS-vs-note difference footer**, green at 0 | Form line labels green / red against their note (tooltip: statement · note · difference); **Go to note** button and **F7** open the note at its table or row; statement **Difference** footer (CY / PY), green at 0 (Step 1, 2026-11-14) | ✅ | — |
 | Statement **tree with + / − and Ctrl+E**, mandatory lines red, tagged lines green | Form tree folds per head and per table (+ / −), Ctrl+E for all; empty mandatory lines red per year (engine `mandatoryCell`), tagged lines green (Step 2, 2026-11-14) | ✅ | — |
 | **Pending Issues** button in the tagging toolbar | Problems panel | ✅ | — |
@@ -409,13 +409,13 @@ Only what §11 doesn't already say is listed here.
 | **Statement "Difference" footer** (CY and PY), 0 = fully tagged | Form footer "Difference CY · PY" from the statement's own calculation totals, green at 0; click lists that statement's problems (Step 1, 2026-11-14) | ✅ | — |
 | **Red head until its note / table matches** ("matching concept") | Engine `noteTies`: a line stays red while its note is empty or differs, green once it adds up (Step 1, 2026-11-14) | ✅ | — |
 | **E / L / T markers** on tree lines with double-click into text block / table | E (text block), L (text block also presented in other ELRs), T (table) from taxonomy data; double-click T opens and scrolls to the table, E / L opens Manual Tag preset to the element (Step 2, 2026-11-14) | ✅ | — |
-| **View details** (every cell summed into a line) | Source chip shows one range | ❌ | P0 (with Add / Replace) |
+| **View details** (every cell summed into a line) | Double-click a Form value (or **Details** in the inspector): every source with its amount, the total, remove one source (the last untags), **Save as footnote**; the source chip reads "BS!C14 + Notes!D20" (Step 3, 2026-11-14) | ✅ | — |
 | **Change sign** on a tagged value | Sign handled by the tagger and rules | ❌ | P1 |
 | **Go to linked cell** from a taxonomy line | `locate` from a fact | ✅ | — |
 | **Properties** of an element (label, type, period, definition) | Element Inspector | ✅ | — |
 | **Show / Hide members** in a table | All members shown | ❌ | P1 |
 | Column-gap setting, re-tag when PY is blank | Per-sheet CY/PY columns picked by auto-tag | ✅ (different) | — |
-| **PDF format settings** (MCA style: borders, bold, spacing) | No PDF | ❌ | P1 (with the Preview tab) |
+| **PDF format settings** (MCA style: borders, bold, spacing) | Borders, bold headings and spacing in the Preview toolbar, saved per filing (`.axbrl` `preview.json`), applied to the preview and the PDF (Step 7, 2026-11-14) | ✅ | — |
 | **Generate confirmation of the key Yes/No answers** (subsidiary, holding, CSR applicable) | Generate dialog confirms holding / subsidiaries / CSR applicable / auditor qualified (curated `keyAnswers` in the KB rule bundle, each a Yes/No dependency parent), with what each answer requires (Step 5, 2026-11-14) | ✅ | — |
 | Error colour code (line item / member / table) | Problems panel by severity | 🟡 | P2 |
 | **Backup / Restore** | `.axbrl` save; no versioned backup | 🟡 | P2 (autosave copies) |

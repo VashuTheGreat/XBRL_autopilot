@@ -23,8 +23,10 @@ import type {
   ZeroFilled,
   ConceptHit,
   FormView,
+  MappingDetails,
   MappingStatus,
   MappingView,
+  TagConflict,
   Scope,
   TableBlock,
   TableBlockInput,
@@ -39,6 +41,7 @@ import type {
 import type { CellRef, WorkbookModel } from './workbook'
 import type { McaLaunchResult, ValidationView } from './validation'
 import type { GenerateResult, KeyAnswerView, MandatoryView, SetMandatoryInput } from './mandatory'
+import type { PdfExportResult, PreviewDocument, PreviewFormat } from './preview'
 import type { AiHistoryEntry, AiView } from './ai'
 
 /**
@@ -132,6 +135,11 @@ export const IPC = {
   mappingSetSheetColumns: 'mapping:set-sheet-columns',
   mappingAlsoAdd: 'mapping:also-add',
   mappingAlsoRemove: 'mapping:also-remove',
+  mappingConflict: 'mapping:conflict',
+  mappingAddSource: 'mapping:add-source',
+  mappingRemoveSource: 'mapping:remove-source',
+  mappingDetails: 'mapping:details',
+  mappingSourcesFootnote: 'mapping:sources-footnote',
   tableCatalog: 'table:catalog',
   tableStructure: 'table:structure',
   tablePlan: 'table:plan',
@@ -164,6 +172,9 @@ export const IPC = {
   mandatorySet: 'mandatory:set',
   mandatoryKeyAnswers: 'mandatory:key-answers',
   filingGenerate: 'filing:generate',
+  previewDocument: 'preview:document',
+  previewSetFormat: 'preview:set-format',
+  previewExportPdf: 'preview:export-pdf',
   aiGet: 'ai:get',
   aiPropose: 'ai:propose',
   aiFixAll: 'ai:fix-all',
@@ -225,6 +236,16 @@ export interface XapApi {
     mappings(): Promise<Result<MappingView[]>>
     tag(input: TagCellInput): Promise<Result<MappingView>>
     untag(id: string): Promise<Result<void>>
+    /** the fact a tag would write already has a value (Add / Replace / Cancel); null = tag without asking */
+    tagConflict(input: TagCellInput): Promise<Result<TagConflict | null>>
+    /** Add: the cell becomes one more source of the tag filing that fact (the figure is their sum, ADR-0015) */
+    addSource(input: TagCellInput): Promise<Result<MappingView>>
+    /** removes one source of a tag; removing the last one untags (null) */
+    removeSource(mappingId: string, index: number): Promise<Result<MappingView | null>>
+    /** View details: every source with its amount, and the total */
+    mappingDetails(mappingId: string): Promise<Result<MappingDetails>>
+    /** writes the make-up of a summed figure as a footnote on its fact */
+    saveSourcesFootnote(mappingId: string): Promise<Result<{ footnoteId: string; text: string }>>
     setScope(id: string, scope: Scope): Promise<Result<MappingView>>
     setStatus(id: string, status: MappingStatus): Promise<Result<MappingView>>
     /** the cell's amount (rounded to the statement's precision) and its column's period */
@@ -292,6 +313,14 @@ export interface XapApi {
     keyAnswers(): Promise<Result<KeyAnswerView[]>>
     /** writes output/NNN.xml; refused while validation errors remain */
     generate(): Promise<Result<GenerateResult>>
+  }
+  /** docs/14 Step 7: MCA-like preview of the open filing, its format settings, Export PDF */
+  preview: {
+    document(): Promise<Result<PreviewDocument>>
+    /** saves format settings with the filing; returns the re-rendered preview */
+    setFormat(patch: Partial<PreviewFormat>): Promise<Result<PreviewDocument>>
+    /** Save dialog, then printToPDF; `null` = cancelled */
+    exportPdf(): Promise<Result<PdfExportResult | null>>
   }
   /** Phase 10: AI fix agent (proposals only; the user accepts each patch) */
   ai: {

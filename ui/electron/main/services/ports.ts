@@ -312,3 +312,13 @@ export interface FixtureGuard {
   /** the fixture's file name when the project's workbook or imported XML is one of them, else null */
   match(content: AxbrlContent): string | null
 }
+
+// ------------------------------------------------------------------ preview / PDF (docs/14 Step 7)
+
+/** Renders a complete HTML document to PDF bytes (Electron: a hidden, sandboxed window's printToPDF). */
+export interface PdfRenderer {
+  render(html: string): Promise<Uint8Array>
+}
+
+/** Writes bytes to a file the user chose. */
+export type FileWriter = (path: string, data: Uint8Array) => Promise<void>

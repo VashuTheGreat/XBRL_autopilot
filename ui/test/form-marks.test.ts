@@ -54,7 +54,7 @@ describe.skipIf(!kbReady)('form(): tree markers, mandatory and tagged lines (C&I
     const S = projects.project().session
     S.setValue(Q('ShareholdersFunds'), 'CY', '5')
     const key = (S.getValue(Q('ShareholdersFunds'), 'CY') as { key: string }).key
-    mappings = [{ id: 'm1', cell: CELL, factKey: key, factKeys: [key], status: 'approved', fact: { concept: Q('ShareholdersFunds'), scope: 'CY', dims: [] } } as unknown as MappingView]
+    mappings = [{ id: 'm1', cell: CELL, sources: [{ cell: CELL, sign: 1 }], factKey: key, factKeys: [key], status: 'approved', fact: { concept: Q('ShareholdersFunds'), scope: 'CY', dims: [] } } as unknown as MappingView]
     const BS = await editor.form(uri('100100'))
     expect(row(BS, 'ShareholdersFunds')).toMatchObject({ tagged: true, cy: { source: CELL } })
     expect(rowTone(row(BS, 'ShareholdersFunds'))).toBe('ok')
@@ -92,11 +92,16 @@ describe('rowTone: one colour for a Form line', () => {
 describe('conceptUses: where elements are already tagged', () => {
   it('approved tags and their "also reported as" facts, by concept; suggestions are not uses', () => {
     const m = (id: string, concept: string, status: string, also: unknown[] = []) =>
-      ({ id, cell: { ...CELL, ref: id }, status, fact: { concept, scope: 'CY', dims: [] }, also }) as unknown as MappingView
+      ({ id, cell: { ...CELL, ref: id }, sources: [{ cell: { ...CELL, ref: id }, sign: 1 }], status, fact: { concept, scope: 'CY', dims: [] }, also }) as unknown as MappingView
     const uses = conceptUses([m('C14', 'q:A', 'approved', [{ concept: 'q:B', scope: 'PY', dims: [] }]), m('C15', 'q:A', 'approved'), m('C16', 'q:C', 'suggested')])
     expect(uses.get('q:A')!.map((u) => u.text)).toEqual(['Balance Sheet!C14 (CY)', 'Balance Sheet!C15 (CY)'])
     expect(uses.get('q:B')!.map((u) => u.text)).toEqual(['Balance Sheet!C14 (PY)'])
     expect(uses.has('q:C')).toBe(false)
+  })
+
+  it('a summed tag shows every source', () => {
+    const sum = { id: 's', cell: CELL, status: 'approved', fact: { concept: 'q:S', scope: 'CY', dims: [] }, sources: [{ cell: { ...CELL, ref: 'C14' }, sign: 1 }, { cell: { ...CELL, sheet: 'Notes', ref: 'D20' }, sign: -1 }] } as unknown as MappingView
+    expect(conceptUses([sum]).get('q:S')!.map((u) => u.text)).toEqual(['Balance Sheet!C14 − Notes!D20 (CY)'])
   })
 })
 

@@ -1,9 +1,10 @@
-import { Braces, Eye } from 'lucide-react'
+import { Braces } from 'lucide-react'
 import { lazy, Suspense } from 'react'
 import { EmptyState } from '@/components/EmptyState'
 import { Tabs } from '@/components/Tabs'
 import { useUi } from '@/stores/ui'
 import { FormView } from './FormView'
+import { PreviewView } from './PreviewView'
 
 // Monaco is large: load it only when the XML tab is opened.
 const XmlView = lazy(() => import('./XmlView').then((m) => ({ default: m.XmlView })))
@@ -29,11 +30,7 @@ export function XbrlPane() {
             <XmlView />
           </Suspense>
         )}
-        {rightTab === 'preview' && (
-          <EmptyState icon={Eye} title="Preview" phase="Phase 6">
-            An MCA-like rendering of the filing, exportable to PDF.
-          </EmptyState>
-        )}
+        {rightTab === 'preview' && <PreviewView />}
       </div>
     </section>
   )

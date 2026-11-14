@@ -5,9 +5,11 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { copyFile, open, readFile, rename, rm } from 'node:fs/promises'
 import JSZip from 'jszip'
+import { MAPPING_VERSION, migrateMapping } from './migrations'
 
 export const AXBRL_FORMAT = 'axbrl'
-export const AXBRL_FORMAT_VERSION = 1
+/** 2: a mapping entry has a list of sources (ADR-0015); format 1 files are migrated on open */
+export const AXBRL_FORMAT_VERSION = 2
 export const AXBRL_EXTENSION = '.axbrl'
 
 export interface AxbrlManifest {
@@ -38,7 +40,7 @@ export interface AxbrlContent {
   filing: unknown
   /** Excel cell ↔ fact linkage (Phase 4/5) */
   mapping: {
-    version: 1
+    version: typeof MAPPING_VERSION
     entries: unknown[]
     /** "workbook|sheet|column letter" → period the user chose for that value column */
     columns?: Record<string, 'CY' | 'PY'>
@@ -61,13 +63,15 @@ export interface AxbrlContent {
   /** import/<name>.xml (the instance the filing was imported from, unchanged) and import/<name>.report.json */
   imports: Record<string, string>
   uiState: unknown | null
+  /** preview.json: the Preview / PDF format settings of this filing (engine PreviewFormat); null = defaults */
+  preview: unknown | null
   /** entries this version doesn't know; preserved byte-for-byte on save */
   extra: Record<string, Uint8Array>
 }
 
 export class AxbrlFormatError extends Error {}
 
-const KNOWN = new Set(['manifest.json', 'filing.json', 'mapping.json', 'validation.json', 'source/edits.json', 'ai/history.jsonl', 'ui-state.json'])
+const KNOWN = new Set(['manifest.json', 'filing.json', 'mapping.json', 'validation.json', 'source/edits.json', 'ai/history.jsonl', 'ui-state.json', 'preview.json'])
 const IMPORT_ENTRY = /^import\/[^/]+\.(xml|json)$/i
 const isKnown = (name: string) =>
   KNOWN.has(name) || /^source\/[^/]+\.xlsx?$/i.test(name) || /^mca-errors\/[^/]+\.txt$/.test(name) || /^output\/[^/]+\.xml$/.test(name) || IMPORT_ENTRY.test(name)
@@ -76,7 +80,7 @@ export function emptyContent(manifest: AxbrlManifest, filing: unknown): AxbrlCon
   return {
     manifest,
     filing,
-    mapping: { version: 1, entries: [] },
+    mapping: { version: MAPPING_VERSION, entries: [] },
     validation: null,
     sources: {},
     sourceEdits: {},
@@ -85,6 +89,7 @@ export function emptyContent(manifest: AxbrlManifest, filing: unknown): AxbrlCon
     outputs: {},
     imports: {},
     uiState: null,
+    preview: null,
     extra: {},
   }
 }
@@ -107,6 +112,7 @@ export async function packAxbrl(c: AxbrlContent): Promise<Buffer> {
   for (const [name, xml] of Object.entries(c.outputs)) add(`output/${name}`, xml)
   for (const [name, text] of Object.entries(c.imports)) add(`import/${name}`, text)
   if (c.uiState != null) add('ui-state.json', json(c.uiState))
+  if (c.preview != null) add('preview.json', json(c.preview))
   for (const [name, bytes] of Object.entries(c.extra)) if (!isKnown(name)) add(name, bytes)
   return zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE', compressionOptions: { level: 6 } })
 }
@@ -144,11 +150,13 @@ export async function unpackAxbrl(buf: Uint8Array): Promise<UnpackResult> {
   if (filing == null) throw new AxbrlFormatError('The project file is damaged: filing.json is missing.')
 
   const content = emptyContent(manifest, filing)
-  content.mapping = (await parse<AxbrlContent['mapping']>('mapping.json')) ?? content.mapping
+  const mapping = await parse<AxbrlContent['mapping']>('mapping.json')
+  content.mapping = mapping ? migrateMapping(mapping) : content.mapping
   content.validation = await parse('validation.json')
   content.sourceEdits = (await parse<Record<string, unknown>>('source/edits.json')) ?? {}
   content.aiHistory = (await text('ai/history.jsonl')) ?? ''
   content.uiState = await parse('ui-state.json')
+  content.preview = await parse('preview.json')
 
   for (const entry of Object.values(zip.files)) {
     if (entry.dir) continue

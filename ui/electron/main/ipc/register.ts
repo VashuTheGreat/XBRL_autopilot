@@ -5,6 +5,7 @@ import { dialog, type BrowserWindow } from 'electron'
 import type { AutoTagColumnOptions, MappingStatus, Scope, SetSheetColumnsInput } from '@shared/editor'
 import { IPC, type AppInfo, type HttpMethod } from '@shared/ipc'
 import type { AppSettings, NewFilingInput } from '@shared/project'
+import { PREVIEW_SPACINGS, type PreviewFormat } from '@xap/engine/basics'
 import type { ProjectController } from '../project/project-controller'
 import type { AutoTagService } from '../services/auto-tag-service'
 import type { ColumnPeriodService } from '../services/column-period-service'
@@ -12,6 +13,7 @@ import type { EditorQueryService } from '../services/editor-query-service'
 import type { FilingPropertiesService } from '../services/filing-properties-service'
 import type { MappingService } from '../services/mapping-service'
 import type { SourceService } from '../services/source-service'
+import type { SourceFootnoteService } from '../services/source-footnote-service'
 import type { StatementService } from '../services/statement-service'
 import type { TableMappingService } from '../services/table-mapping-service'
 import type { TableSuggestionService } from '../services/table-suggestion-service'
@@ -19,6 +21,8 @@ import type { TaxonomyService } from '../services/taxonomy-service'
 import type { McaToolService } from '../services/mca-tool-service'
 import type { GenerateService } from '../services/generate-service'
 import type { MandatoryInputService } from '../services/mandatory-input-service'
+import type { PdfExportService } from '../services/pdf-export-service'
+import type { PreviewService } from '../services/preview-service'
 import type { ValidationService } from '../services/validation-service'
 import type { FixAgentService } from '../services/fix-agent-service'
 import type { ProjectService } from '../services/project-service'
@@ -36,6 +40,7 @@ export interface IpcDeps {
   settings: SettingsService
   sources: SourceService
   mapping: MappingService
+  sourceFootnotes: SourceFootnoteService
   tables: TableMappingService
   editor: EditorQueryService
   columns: ColumnPeriodService
@@ -48,6 +53,8 @@ export interface IpcDeps {
   mcaTool: McaToolService
   mandatory: MandatoryInputService
   generate: GenerateService
+  preview: PreviewService
+  pdfExport: PdfExportService
   fixAgent: FixAgentService
   getWindow: () => BrowserWindow | null
 }
@@ -61,6 +68,7 @@ export function registerIpc(d: IpcDeps): void {
   registerAutoTagIpc(d)
   registerValidationIpc(d)
   registerMandatoryIpc(d)
+  registerPreviewIpc(d)
   registerAiIpc(d)
 }
 
@@ -122,7 +130,7 @@ function registerSettingsIpc({ settings, getWindow }: IpcDeps): void {
 const SCOPES: Scope[] = ['CY', 'PY']
 const STATUSES: MappingStatus[] = ['suggested', 'approved', 'rejected']
 
-function registerEditorIpc({ sources, mapping, tables, columns, editor, statements, taxonomy, getWindow }: IpcDeps): void {
+function registerEditorIpc({ sources, mapping, sourceFootnotes, tables, columns, editor, statements, taxonomy, getWindow }: IpcDeps): void {
   handleResult(IPC.workbookImport, async (_e, path?: unknown) => {
     if (path !== undefined) {
       const file = requireString(path, 'path')
@@ -148,6 +156,11 @@ function registerEditorIpc({ sources, mapping, tables, columns, editor, statemen
   })
   handleResult(IPC.mappingList, () => mapping.list())
   handleResult(IPC.mappingTag, (_e, input: unknown) => mapping.tag(requireTagInput(input)))
+  handleResult(IPC.mappingConflict, (_e, input: unknown) => mapping.conflict(requireTagInput(input)))
+  handleResult(IPC.mappingAddSource, (_e, input: unknown) => mapping.addSource(requireTagInput(input)))
+  handleResult(IPC.mappingRemoveSource, (_e, id: unknown, i: unknown) => mapping.removeSource(requireString(id, 'id'), requireIndex(i)))
+  handleResult(IPC.mappingDetails, (_e, id: unknown) => mapping.details(requireString(id, 'id')))
+  handleResult(IPC.mappingSourcesFootnote, (_e, id: unknown) => sourceFootnotes.save(requireString(id, 'id')))
   handleResult(IPC.mappingAlsoAdd, (_e, input: unknown) => mapping.addAlso(requireAlsoInput(input)))
   handleResult(IPC.mappingAlsoRemove, (_e, id: unknown, i: unknown) => mapping.removeAlso(requireString(id, 'id'), requireIndex(i)))
   handleResult(IPC.tableCatalog, () => tables.tables())
@@ -250,6 +263,28 @@ function registerMandatoryIpc({ mandatory, generate }: IpcDeps): void {
     return mandatory.set({ concept: requireString(i.concept, 'concept'), scope: i.scope as Scope, value: i.value })
   })
   handleResult(IPC.filingGenerate, () => generate.generate())
+}
+
+function registerPreviewIpc({ preview, pdfExport, getWindow }: IpcDeps): void {
+  handleResult(IPC.previewDocument, () => preview.document())
+  handleResult(IPC.previewSetFormat, (_e, patch: unknown) => preview.setFormat(requireFormatPatch(patch)))
+  handleResult(IPC.previewExportPdf, async () => {
+    const win = getWindow()
+    const opts = { title: 'Export preview as PDF', defaultPath: preview.suggestedFileName(), filters: [{ name: 'PDF', extensions: ['pdf'] }] }
+    const { canceled, filePath } = win ? await dialog.showSaveDialog(win, opts) : await dialog.showSaveDialog(opts)
+    return canceled || !filePath ? null : pdfExport.export(filePath)
+  })
+}
+
+/** Only the known format keys, each of its own type (values are checked again by normalizePreviewFormat). */
+function requireFormatPatch(v: unknown): Partial<PreviewFormat> {
+  if (!v || typeof v !== 'object') throw new Error('Invalid format')
+  const x = v as Record<string, unknown>
+  const out: Partial<PreviewFormat> = {}
+  if (typeof x.borders === 'boolean') out.borders = x.borders
+  if (typeof x.boldHeadings === 'boolean') out.boldHeadings = x.boldHeadings
+  if (PREVIEW_SPACINGS.includes(x.spacing as PreviewFormat['spacing'])) out.spacing = x.spacing as PreviewFormat['spacing']
+  return out
 }
 
 /** Values typed in a review card are short (an amount or a text of at most 200 characters). */

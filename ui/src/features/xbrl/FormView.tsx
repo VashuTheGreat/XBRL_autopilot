@@ -1,12 +1,13 @@
 import { ArrowRightToLine, ChevronDown, ChevronRight, CircleSlash, Copy, FileSpreadsheet, Grid3x3, ListChecks, Table2 } from 'lucide-react'
 import { useEffect, useMemo, useRef, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { formatIndian } from '@xap/engine/basics'
-import { rowTone, type FormCell, type FormDifference, type FormRow, type FormRowNote, type FormTable, type NoteTieView } from '@shared/editor'
+import { rowTone, sourcesText, type FormCell, type FormDifference, type FormRow, type FormRowNote, type FormTable, type NoteTieView } from '@shared/editor'
 import { cellKey } from '@shared/workbook'
 import { EmptyState } from '@/components/EmptyState'
 import { Button, Select } from '@/components/ui/primitives'
 import { cn } from '@/lib/cn'
 import { useEditor } from '@/stores/editor'
+import { useSources } from '@/stores/sources'
 import { useMandatory } from '@/stores/mandatory'
 import { useProject } from '@/stores/project'
 import { useValidation } from '@/stores/validation'
@@ -323,6 +324,9 @@ function TableGrid(props: { table: FormTable; closed: boolean; onToggle(): void;
   )
 }
 
+/** The cell's sources: all of a sum, else its one source cell. */
+const chipSources = (c: FormCell) => c.sources ?? (c.source ? [{ cell: c.source, sign: 1 as const }] : [])
+
 function ValueCell(props: { cell: FormCell | undefined; selectedFact: string | null; selectedCell: string | null; onPick(factKey: string | null): void }) {
   const c = props.cell
   if (!c) return <td />
@@ -332,11 +336,12 @@ function ValueCell(props: { cell: FormCell | undefined; selectedFact: string | n
       className="px-3 py-1 text-right"
       data-fact={c.factKey ?? undefined}
       onDoubleClick={(e) => {
-        if (c.source) {
+        if (c.mappingId) {
           e.stopPropagation()
-          useEditor.getState().openManualTag({ cell: c.source })
+          void useSources.getState().openDetails(c.mappingId)
         }
       }}
+      title={c.mappingId ? 'Double-click for details (sources and total)' : undefined}
     >
       <button
         disabled={!c.factKey}
@@ -346,11 +351,12 @@ function ValueCell(props: { cell: FormCell | undefined; selectedFact: string | n
         {c.source && (
           <span
             className={cn('flex items-center gap-0.5 rounded bg-ok/15 px-1 font-mono text-[10px] text-ok', props.selectedCell === cellKey(c.source) && 'bg-accent/20 text-accent')}
-            title={c.also ? `Also reported from ${c.source.sheet}!${c.source.ref} (the same figure as that cell’s tag)` : `From ${c.source.sheet}!${c.source.ref}`}
+            title={`${c.also ? 'Also reported from' : 'From'} ${sourcesText(chipSources(c))}${c.also ? ' (the same figure as that tag)' : ''}
+Double-click the value for details`}
             data-testid="source-chip"
           >
             {c.also ? <Copy size={9} /> : <FileSpreadsheet size={9} />}
-            {c.source.ref}
+            {c.sources ? sourcesText(c.sources) : c.source.ref}
           </span>
         )}
         <span>{formatIndian(c.display)}</span>

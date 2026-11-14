@@ -265,3 +265,29 @@ export function parseCellDate(raw: unknown): string | null {
 
   return null
 }
+
+/** Line spacing of the Preview / PDF (docs/14 Step 7). */
+export const PREVIEW_SPACINGS = ['compact', 'normal', 'relaxed'] as const
+export type PreviewSpacing = (typeof PREVIEW_SPACINGS)[number]
+
+/** MCA-style format settings of the Preview / PDF, saved per filing (`.axbrl` preview.json). */
+export interface PreviewFormat {
+  /** grid lines around statement and table cells */
+  borders: boolean
+  /** headings, table titles and abstract (heading) rows in bold */
+  boldHeadings: boolean
+  spacing: PreviewSpacing
+}
+
+/** As the MCA PDFs seen: no grid, headings not bold in tables, normal spacing. */
+export const DEFAULT_PREVIEW_FORMAT: PreviewFormat = { borders: false, boldHeadings: false, spacing: 'normal' }
+
+/** A stored or requested format, completed from the defaults; unknown values fall back to them. */
+export function normalizePreviewFormat(v: unknown): PreviewFormat {
+  const x = (v && typeof v === 'object' ? v : {}) as Partial<Record<keyof PreviewFormat, unknown>>
+  return {
+    borders: typeof x.borders === 'boolean' ? x.borders : DEFAULT_PREVIEW_FORMAT.borders,
+    boldHeadings: typeof x.boldHeadings === 'boolean' ? x.boldHeadings : DEFAULT_PREVIEW_FORMAT.boldHeadings,
+    spacing: PREVIEW_SPACINGS.includes(x.spacing as PreviewSpacing) ? (x.spacing as PreviewSpacing) : DEFAULT_PREVIEW_FORMAT.spacing,
+  }
+}

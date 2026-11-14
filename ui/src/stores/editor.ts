@@ -3,9 +3,10 @@
  * Source of truth stays in main; this store caches read-models and refreshes when the project revision changes.
  */
 import { create } from 'zustand'
-import { conceptUses, type AlsoReportInput, type AutoTagColumnOptions, type BlockSuggestion, type CellInfo, type ConceptUse, type FormRowNote, type FormView, type MappingView, type Scope, type SetSheetColumnsInput, type SheetColumns, type XmlView } from '@shared/editor'
+import { conceptUses, type AlsoReportInput, type TagCellInput, type AutoTagColumnOptions, type BlockSuggestion, type CellInfo, type ConceptUse, type FormRowNote, type FormView, type MappingView, type Scope, type SetSheetColumnsInput, type SheetColumns, type XmlView } from '@shared/editor'
 import { cellKey, columnLetter, fromA1, rangeCells, type CellRef, type WorkbookModel } from '@shared/workbook'
 import { unwrap } from '@/lib/result'
+import { useSources } from './sources'
 import { toast } from './toast'
 import { useUi } from './ui'
 
@@ -101,6 +102,22 @@ interface EditorState {
 
 const api = () => window.xap.editor
 let revealSeq = 0
+
+type UnwrapOptions = Parameters<typeof unwrap>[1]
+
+/**
+ * Tags a cell, asking Add / Replace / Cancel first when the fact already has a value (docs/14 Step 3): the one confirm
+ * flow behind the Manual Tag dialog, Form double-click and Taxonomy panel double-click. Undefined when cancelled or
+ * refused.
+ */
+async function tagWithConfirm(input: TagCellInput, opts: UnwrapOptions = {}): Promise<MappingView | undefined> {
+  const conflict = await unwrap(api().tagConflict(input), opts)
+  if (conflict === undefined) return undefined
+  const mode = conflict ? await useSources.getState().ask(conflict) : 'replace'
+  if (!mode) return undefined
+  // Add files into the conflicting fact's year (the cell's column may not name one)
+  return mode === 'add' ? unwrap(api().addSource({ ...input, scope: conflict!.scope }), opts) : unwrap(api().tag(input), opts)
+}
 let noteSeq = 0
 
 /** A text cell holding several figures has one mapping per figure: the cell shows its first one. */
@@ -108,8 +125,12 @@ const firstFigureLast = (mappings: MappingView[]) => [...mappings].sort((a, b) =
 
 const index = (mappings: MappingView[]) => ({
   mappings,
-  // keyed by the mapping's own reference and by every cell a summed range covers
-  byCell: new Map(firstFigureLast(mappings).flatMap((m) => [[cellKey(m.cell), m] as const, ...rangeCells(m.cell.ref).map((a1) => [cellKey({ ...m.cell, ref: a1 }), m] as const)])),
+  // keyed by each source's own reference and by every cell a summed range covers (all sources of a sum, ADR-0015)
+  byCell: new Map(
+    firstFigureLast(mappings).flatMap((m) =>
+      m.sources.flatMap(({ cell }) => [[cellKey(cell), m] as const, ...rangeCells(cell.ref).map((a1) => [cellKey({ ...cell, ref: a1 }), m] as const)]),
+    ),
+  ),
   // every fact a cell supplies (its main tag and its "also reported as" facts) leads back to the cell
   byFact: new Map(mappings.flatMap((m) => (m.factKeys ?? (m.factKey ? [m.factKey] : [])).map((k) => [k, m] as const))),
   uses: conceptUses(mappings),
@@ -276,7 +297,7 @@ export const useEditor = create<EditorState>((set, get) => {
       if (isParticulars && row !== undefined) {
         if (scope === 'CY') {
           const target = { ...cell, ref: `${cyCol}${row}` }
-          const m = await unwrap(api().tag({ cell: target, concept, scope: 'CY' }), {
+          const m = await tagWithConfirm({ cell: target, concept, scope: 'CY' }, {
             onValidation: (p) => toast.error(p.join(' ')),
           })
           if (!m) return false
@@ -291,7 +312,7 @@ export const useEditor = create<EditorState>((set, get) => {
             return false
           }
           const target = { ...cell, ref: `${pyCol}${row}` }
-          const m = await unwrap(api().tag({ cell: target, concept, scope: 'PY' }), {
+          const m = await tagWithConfirm({ cell: target, concept, scope: 'PY' }, {
             onValidation: (p) => toast.error(p.join(' ')),
           })
           if (!m) return false
@@ -306,7 +327,7 @@ export const useEditor = create<EditorState>((set, get) => {
         let label = concept
 
         const cyTarget = { ...cell, ref: `${cyCol}${row}` }
-        const cyM = await unwrap(api().tag({ cell: cyTarget, concept, scope: 'CY' }), { quiet: true })
+        const cyM = await tagWithConfirm({ cell: cyTarget, concept, scope: 'CY' }, { quiet: true })
         if (cyM) {
           cySuccess = true
           label = cyM.conceptLabel
@@ -315,7 +336,7 @@ export const useEditor = create<EditorState>((set, get) => {
 
         if (pyCol) {
           const pyTarget = { ...cell, ref: `${pyCol}${row}` }
-          const pyM = await unwrap(api().tag({ cell: pyTarget, concept, scope: 'PY' }), { quiet: true })
+          const pyM = await tagWithConfirm({ cell: pyTarget, concept, scope: 'PY' }, { quiet: true })
           if (pyM) {
             pySuccess = true
             label = pyM.conceptLabel
@@ -334,7 +355,7 @@ export const useEditor = create<EditorState>((set, get) => {
         } else {
           // If neither cy nor py column in that row has a numeric figure,
           // try tagging the selected cell directly as fallback
-          const fallback = await unwrap(api().tag({ cell, concept, ...(scope ? { scope } : {}) }), { quiet: true })
+          const fallback = await tagWithConfirm({ cell, concept, ...(scope ? { scope } : {}) }, { quiet: true })
           if (fallback) {
             set({ selection: { cell, factKey: fallback.factKey, concept: fallback.fact.concept } })
             toast.success(`${cell.sheet}!${cell.ref} → ${fallback.conceptLabel}`)
@@ -346,7 +367,7 @@ export const useEditor = create<EditorState>((set, get) => {
       }
 
       // Standard cell tagging (e.g. user selected figure cell C12 directly)
-      const m = await unwrap(api().tag({ cell, concept, ...(scope ? { scope } : {}) }), {
+      const m = await tagWithConfirm({ cell, concept, ...(scope ? { scope } : {}) }, {
         onValidation: (p) => toast.error(p.join(' ')),
       })
       if (!m) return false

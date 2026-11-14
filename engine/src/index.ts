@@ -28,6 +28,8 @@ export { compareFilings } from './core/compare.js'
 export { carryForwardPlan, carryForward, disclosureCarryPlan, disclosureCarry, previousYearValues } from './core/carry-forward.js'
 export { buildExample, completeMandatory } from './core/example.js'
 export * as decimal from './core/decimal.js'
+export { sumAmounts } from './amounts'
+export { listFootnotes, footnotesOf, addFootnote, updateFootnoteText, linkFootnote, unlinkFootnote, removeFootnote } from './core/footnotes.js'
 export { indexFactLines } from './xml-index'
 export {
   importXbrl,

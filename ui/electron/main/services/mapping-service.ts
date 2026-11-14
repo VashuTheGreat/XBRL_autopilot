@@ -1,10 +1,11 @@
 /**
- * MappingService: Excel cell (or a one-column range, summed) ↔ taxonomy fact. Tagging writes the value into the engine
- * filing; untagging removes it. The engine stays the source of truth for values; mapping.json records where they came
- * from.
+ * MappingService: Excel cells ↔ taxonomy fact. Tagging writes the value into the engine filing; untagging removes it.
+ * The engine stays the source of truth for values; mapping.json records where they came from.
  *
- * Invariants (ADR-0013):
- * - one fact ← one cell (ranges count by their cells);
+ * Invariants (ADR-0013, ADR-0015):
+ * - one fact ← one tag; a tag's figure is the exact sum of its sources (cells or one-column ranges, any sheet, each
+ *   with its sign). Most tags have one source; "Add" on a tagged amount makes it a sum ("BS!C14 + Notes!D20"), and
+ *   removing a sum's last source untags it. A cell is a source of one tag at most;
  * - one cell → one main fact, plus "also reported as" facts of the same figure (a balance-sheet line that is also a
  *   table's member column). Every value change of the cell (tag, re-tag, change of year, reapply after the decimal
  *   places change) writes all of them; untagging removes all of them.
@@ -16,7 +17,7 @@
  * Every approved plain tag teaches the mapping memory (label → concept).
  */
 import { randomUUID } from 'node:crypto'
-import { decimal as Dec, dimKey, nondimAllowed, normDims, numbersInText, parseCellDate, SCALE_POWERS, SHARE_CAPITAL, tableOfFact, toMca } from '@xap/engine'
+import { decimal as Dec, dimKey, nondimAllowed, normDims, numbersInText, parseCellDate, SCALE_POWERS, SHARE_CAPITAL, sumAmounts, tableOfFact, toMca } from '@xap/engine'
 import {
   displayLabel,
   type AlsoReportedView,
@@ -26,14 +27,19 @@ import {
   type ColumnPeriod,
   type DimRef,
   type MappedFact,
+  sourcesText,
+  type MappingDetails,
   type MappingEntry,
   type MappingOrigin,
+  type MappingSource,
+  type MappingSourceDetail,
   type MappingStatus,
   type MappingView,
   type Scope,
   type SuggestedAlso,
   type SuggestionAlternative,
   type TagCellInput,
+  type TagConflict,
 } from '@shared/editor'
 import { overlaps, rangeCells, rangeOf, sameCell, type CellModel, type CellRef } from '@shared/workbook'
 import { withSign } from '../mapping/amounts'
@@ -89,6 +95,9 @@ const NO_MEMORY: MappingMemoryRepository = { recall: () => [], remember: () => {
 const hasFact = (e: MappingEntry) => e.status === 'approved'
 /** the main fact, then the "also reported as" facts */
 const factsOf = (e: MappingEntry): MappedFact[] => [e.fact, ...(e.also ?? [])]
+/** an approved tag whose figure adds up several sources */
+const isSum = (e: MappingEntry) => hasFact(e) && e.sources.length > 1
+const hasSourceAt = (e: MappingEntry, cell: CellRef) => e.sources.some((s) => overlaps(s.cell, cell))
 /** Only the opening-balance role changes which fact a row is (its period); negated / total roles are display. */
 const periodRole = (f: MappedFact) => (f.preferredLabel === 'periodStartLabel' ? 'start' : '')
 export const sameFact = (a: MappedFact, b: MappedFact): boolean =>
@@ -120,9 +129,7 @@ export class MappingService {
     const p = this.projects.project()
     const A = p.authority.authority
     const target = this.target(p, input)
-    const range = rangeOf(input.cell.ref)
-    if (range && range.c1 !== range.c2) throw new ValidationError(['Select cells in one column (one year) to tag them.'])
-    const isRange = !!range && range.r1 !== range.r2
+    const isRange = oneColumnRange(input.cell)
     if (isRange && !A.isNumeric(input.concept) && A.dataType(input.concept) !== 'textBlock') {
       throw new ValidationError([`Only amounts and text blocks can be tagged from a range: “${A.label(input.concept)}” is not a number or text block.`])
     }
@@ -145,21 +152,27 @@ export class MappingService {
 
     // one cell (or one number of a cell's text) → one main fact, and one fact ← one cell: older mappings that clash
     // are replaced. Re-tagging the same cell keeps its "also reported as" facts: they follow the cell's figure.
+    // A sum that counts this cell among its sources gives it up; its other sources stay summed (gone when none is left).
     const entries = this.entries(p)
-    const samePlace = (e: MappingEntry) => overlaps(e.cell, input.cell) && e.pick === pick
+    const samePlace = (e: MappingEntry) =>
+      e.pick === pick && (isSum(e) ? e.sources.every((x) => overlaps(x.cell, input.cell)) : overlaps(e.cell, input.cell))
     const clash = (e: MappingEntry) => samePlace(e) || (hasFact(e) ? factsOf(e).some((f) => sameFact(f, fact)) : sameFact(e.fact, fact))
-    const previous = entries.find((e) => hasFact(e) && sameCell(e.cell, input.cell) && e.pick === pick)
+    const previous = entries.find((e) => hasFact(e) && !isSum(e) && sameCell(e.cell, input.cell) && e.pick === pick)
     const kept = opts.also ?? previous?.also ?? []
     // one fact ← one cell: an "also" fact another (kept) cell already files stays that cell's
     const filedElsewhere = (f: MappedFact) => entries.some((e) => hasFact(e) && !clash(e) && factsOf(e).some((x) => sameFact(x, f)))
     const also = kept.filter((f) => !sameFact(f, fact) && !filedElsewhere(f))
     const alsoSuggested = (opts.alsoSuggested ?? previous?.alsoSuggested ?? []).filter((f) => ![fact, ...also].some((x) => sameFact(x, f)))
     for (const old of entries.filter(clash)) if (hasFact(old)) this.removeFacts(p, old, [fact, ...also])
+    for (const sum of entries.filter((e) => isSum(e) && !clash(e) && hasSourceAt(e, input.cell))) {
+      await this.setSources(p, sum, sum.sources.filter((x) => !overlaps(x.cell, input.cell)))
+    }
     for (const f of also) this.applyFact(p, f, this.displayValue(p, f.concept, input.cell, cells, sign, pick))
     const label = await this.sources.rowLabel(input.cell)
     const entry: MappingEntry = {
       id: this.newId(),
       cell: { ...input.cell },
+      sources: [{ cell: { ...input.cell }, sign }],
       label,
       fact,
       ...(also.length ? { also } : {}),
@@ -192,8 +205,7 @@ export class MappingService {
     if (factsOf(e).some((f) => sameFact(f, fact))) throw new ValidationError(['This cell already reports that fact.'])
     const other = this.entries(p).find((x) => x.id !== e.id && hasFact(x) && factsOf(x).some((f) => sameFact(f, fact)))
     if (other) throw new ValidationError([`That fact already comes from ${other.cell.sheet}!${other.cell.ref}. Untag it there first.`])
-    const { cells } = await this.sources.cell(e.cell)
-    this.applyFact(p, fact, this.displayValue(p, fact.concept, e.cell, cells, e.sign, e.pick))
+    this.applyFact(p, fact, await this.figure(p, fact.concept, e.sources, e.pick))
     e.also = [...(e.also ?? []), fact]
     p.touch()
     return this.view(p, e)
@@ -265,6 +277,7 @@ export class MappingService {
       added.push({
         id: this.newId(),
         cell: { ...s.cell },
+        sources: [{ cell: { ...s.cell }, sign: s.sign }],
         label: s.label,
         fact,
         sign: s.sign,
@@ -287,8 +300,98 @@ export class MappingService {
   /** The approved tag of exactly this cell (or range), if any. */
   approvedAt(cell: CellRef): MappingView | null {
     const p = this.projects.project()
-    const e = this.entries(p).find((x) => hasFact(x) && sameCell(x.cell, cell))
+    const e = this.entries(p).find((x) => hasFact(x) && x.sources.some((s) => sameCell(s.cell, cell)))
     return e ? this.view(p, e) : null
+  }
+
+  /**
+   * Tagging `input` would write a fact that already has a value (and the cell isn't already one of its sources):
+   * the value, where it comes from and whether Add is possible, so the user picks Add / Replace / Cancel. Null when
+   * tagging needs no question.
+   */
+  async conflict(input: TagCellInput): Promise<TagConflict | null> {
+    const p = this.projects.project()
+    const A = p.authority.authority
+    const scope = input.scope ?? scopeOrExplain(await this.columns.of(input.cell))
+    const fact: MappedFact = { ...this.target(p, input), scope }
+    const filed = this.fact(p, fact)
+    if (!filed || ((filed.value === null || filed.value === '') && !filed.nil)) return null
+    const owner = this.ownerOf(p, fact)
+    if (owner && owner.pick === input.pick && hasSourceAt(owner, input.cell)) return null
+    return {
+      concept: fact.concept,
+      conceptLabel: A.label(fact.concept),
+      scope,
+      value: String(p.session.displayOf(filed)),
+      mappingId: owner?.id ?? null,
+      sources: owner?.sources.map((x) => ({ ...x })) ?? [],
+      addBlocked: this.addBlocked(p, fact, owner, input),
+    }
+  }
+
+  /**
+   * Add: one more source for the tag that files `input`'s fact; the fact becomes the exact sum of its sources (and so
+   * do the tag's "also reported as" facts). The cell must not be a source of another tag.
+   */
+  async addSource(input: TagCellInput): Promise<MappingView> {
+    const p = this.projects.project()
+    oneColumnRange(input.cell)
+    const column = await this.columns.of(input.cell)
+    const scope = input.scope ?? scopeOrExplain(column)
+    const fact: MappedFact = { ...this.target(p, input), scope }
+    const where = `${input.cell.sheet}!${input.cell.ref}`
+    if (column.scope && column.scope !== scope) {
+      throw new ValidationError([`${where} is in a ${column.scope} column, but the tag being added to is ${scope}. Pick a ${scope} cell, or set the column’s period.`])
+    }
+    const owner = this.ownerOf(p, fact)
+    const blocked = this.addBlocked(p, fact, owner, input)
+    if (blocked || !owner) throw new ValidationError([blocked ?? 'Nothing to add to.'])
+    if (hasSourceAt(owner, input.cell)) throw new ValidationError([`${where} is already part of this figure.`])
+    const other = this.entries(p).find((e) => e !== owner && hasFact(e) && e.pick === undefined && hasSourceAt(e, input.cell))
+    if (other) throw new ValidationError([`${where} is already tagged to “${p.authority.authority.label(other.fact.concept)}”. Untag it there first.`])
+    await this.setSources(p, owner, [...owner.sources, { cell: { ...input.cell }, sign: input.sign ?? 1 }])
+    p.touch()
+    return this.view(p, owner)
+  }
+
+  /** Removes one source of a tag (by its position); the rest stay summed. Removing the last one untags (→ null). */
+  async removeSource(id: string, index: number): Promise<MappingView | null> {
+    const p = this.projects.project()
+    const e = this.find(p, id)
+    if (!hasFact(e) || !e.sources[index]) throw new ValidationError(['That source is no longer part of the tag.'])
+    if (e.sources.length === 1) {
+      this.untag(id)
+      return null
+    }
+    await this.setSources(p, e, e.sources.filter((_, i) => i !== index))
+    p.touch()
+    return this.view(p, e)
+  }
+
+  /** View details: every source of a tag with its signed amount, and the filed total. */
+  async details(id: string): Promise<MappingDetails> {
+    const p = this.projects.project()
+    const e = this.find(p, id)
+    if (!hasFact(e)) throw new ValidationError(['Only a tagged cell has details: accept the suggestion first.'])
+    const sources: MappingSourceDetail[] = []
+    for (const s of e.sources) {
+      try {
+        const { cells } = await this.sources.cell(s.cell)
+        sources.push({ ...s, value: this.displayValue(p, e.fact.concept, s.cell, cells, s.sign, e.pick) })
+      } catch (err) {
+        sources.push({ ...s, value: null, problem: err instanceof ValidationError ? err.problems.join(' ') : String(err) })
+      }
+    }
+    const filed = this.fact(p, e.fact)
+    return {
+      mappingId: e.id,
+      concept: e.fact.concept,
+      conceptLabel: p.authority.authority.label(e.fact.concept),
+      scope: e.fact.scope,
+      factKey: filed?.key ?? null,
+      sources,
+      total: filed ? String(p.session.displayOf(filed)) : null,
+    }
   }
 
   /** A stored entry by id (for AutoTagService's accept / reject). */
@@ -329,9 +432,14 @@ export class MappingService {
       alsoSuggested,
       ...(e.blockId ? { blockId: e.blockId } : {}),
     })
+    // a sum keeps all its sources in the other year too
+    if (e.sources.length > 1) {
+      const moved = this.find(p, view.id)
+      await this.setSources(p, moved, e.sources)
+    }
     // correcting a cell's period corrects its column: later cells of the column follow
     await this.columns.set(e.cell, scope)
-    return view
+    return this.view(p, this.find(p, view.id))
   }
 
   /**
@@ -344,10 +452,9 @@ export class MappingService {
     const problems: string[] = []
     for (const e of this.entries(p).filter(hasFact)) {
       try {
-        const { cells } = await this.sources.cell(e.cell)
-        for (const f of factsOf(e)) this.applyFact(p, f, this.displayValue(p, f.concept, e.cell, cells, e.sign, e.pick))
+        for (const f of factsOf(e)) this.applyFact(p, f, await this.figure(p, f.concept, e.sources, e.pick))
       } catch (err) {
-        problems.push(`${e.cell.sheet}!${e.cell.ref}: ${err instanceof ValidationError ? err.problems.join(' ') : String(err)}`)
+        problems.push(`${sourcesText(e.sources)}: ${err instanceof ValidationError ? err.problems.join(' ') : String(err)}`)
       }
     }
     p.touch()
@@ -358,7 +465,7 @@ export class MappingService {
   async cellInfo(ref: CellRef): Promise<CellInfo> {
     const p = this.projects.project()
     const { cells } = await this.sources.cell(ref)
-    const tagged = this.entries(p).find((e) => sameCell(e.cell, ref))
+    const tagged = this.entries(p).find((e) => e.sources.some((s) => sameCell(s.cell, ref)))
     const amount = rangeAmount(cells, this.precisionFor(p, tagged?.fact.concept ?? null))
     return { cell: { ...ref }, amount, column: await this.columns.of(ref) }
   }
@@ -392,7 +499,7 @@ export class MappingService {
     const out = new Map<string, MappingView>()
     // a text cell with several figures (picks) is keyed by its first one
     const ordered = this.list().sort((a, b) => (b.pick ?? -1) - (a.pick ?? -1))
-    for (const m of ordered) for (const a1 of rangeCells(m.cell.ref)) out.set(`${m.cell.workbook}|${m.cell.sheet}|${a1}`, m)
+    for (const m of ordered) for (const { cell } of m.sources) for (const a1 of rangeCells(cell.ref)) out.set(`${cell.workbook}|${cell.sheet}|${a1}`, m)
     return out
   }
 
@@ -449,6 +556,45 @@ export class MappingService {
       alsoViews,
       alsoSuggestedViews,
     }
+  }
+
+  /** The approved tag that files `fact` as its main fact or as an "also reported as" fact. */
+  private ownerOf(p: ProjectHandle, fact: MappedFact): MappingEntry | undefined {
+    return this.entries(p).find((e) => hasFact(e) && factsOf(e).some((f) => sameFact(f, fact)))
+  }
+
+  /** Why `input` can't be added to the figure that files `fact` (null when it can). */
+  private addBlocked(p: ProjectHandle, fact: MappedFact, owner: MappingEntry | undefined, input: TagCellInput): string | null {
+    const A = p.authority.authority
+    if (!A.isNumeric(fact.concept)) return `Only amounts can add up several cells: “${A.label(fact.concept)}” is not an amount.`
+    if (!owner) return 'The value was typed or imported, not tagged from Excel: replace it instead.'
+    if (!sameFact(owner.fact, fact)) return `It is reported from ${sourcesText(owner.sources)} as the same figure as another element: add to that cell’s own tag instead.`
+    if (owner.pick !== undefined || input.pick !== undefined) return 'A figure taken from a cell’s text can’t be added up with other cells.'
+    return null
+  }
+
+  /**
+   * Gives a tag new sources: every fact it files is re-written as their exact sum (computed first, so a source that no
+   * longer reads as an amount changes nothing), and the first source becomes the entry's `cell` / `sign`.
+   */
+  private async setSources(p: ProjectHandle, e: MappingEntry, sources: MappingSource[]): Promise<void> {
+    const facts = factsOf(e)
+    const values: string[] = []
+    for (const f of facts) values.push(await this.figure(p, f.concept, sources, e.pick))
+    facts.forEach((f, i) => this.applyFact(p, f, values[i]!))
+    e.sources = sources.map((s) => ({ cell: { ...s.cell }, sign: s.sign }))
+    e.cell = { ...sources[0]!.cell }
+    e.sign = sources[0]!.sign
+  }
+
+  /** The figure `sources` file as `concept`: one source's value, or the exact decimal sum of several. */
+  private async figure(p: ProjectHandle, concept: string, sources: MappingSource[], pick?: number): Promise<string> {
+    const parts: string[] = []
+    for (const s of sources) {
+      const { cells } = await this.sources.cell(s.cell)
+      parts.push(this.displayValue(p, concept, s.cell, cells, s.sign, pick))
+    }
+    return parts.length === 1 ? parts[0]! : sumAmounts(parts)
   }
 
   private dropAlsoSuggestion(e: MappingEntry, s: SuggestedAlso): void {
@@ -580,6 +726,13 @@ export class MappingService {
     }
     if (this.fact(p, f)) p.session.filing.removeFact(fact.key)
   }
+}
+
+/** True for a range over several rows; refuses a range over several columns (each column is one year). */
+function oneColumnRange(cell: CellRef): boolean {
+  const range = rangeOf(cell.ref)
+  if (range && range.c1 !== range.c2) throw new ValidationError(['Select cells in one column (one year) to tag them.'])
+  return !!range && range.r1 !== range.r2
 }
 
 /** The column's period, or a ValidationError that says why it is unknown and what to do. */

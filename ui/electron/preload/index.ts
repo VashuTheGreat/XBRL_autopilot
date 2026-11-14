@@ -58,6 +58,11 @@ const api: XapApi = {
     mappings: () => invoke(IPC.mappingList),
     tag: (input) => invoke(IPC.mappingTag, input),
     untag: (id) => invoke(IPC.mappingUntag, id),
+    tagConflict: (input) => invoke(IPC.mappingConflict, input),
+    addSource: (input) => invoke(IPC.mappingAddSource, input),
+    removeSource: (mappingId, index) => invoke(IPC.mappingRemoveSource, mappingId, index),
+    mappingDetails: (mappingId) => invoke(IPC.mappingDetails, mappingId),
+    saveSourcesFootnote: (mappingId) => invoke(IPC.mappingSourcesFootnote, mappingId),
     setScope: (id, scope) => invoke(IPC.mappingSetScope, id, scope),
     setStatus: (id, status) => invoke(IPC.mappingSetStatus, id, status),
     cellInfo: (cell) => invoke(IPC.mappingCellInfo, cell),
@@ -102,6 +107,11 @@ const api: XapApi = {
     set: (input) => invoke(IPC.mandatorySet, input),
     keyAnswers: () => invoke(IPC.mandatoryKeyAnswers),
     generate: () => invoke(IPC.filingGenerate),
+  },
+  preview: {
+    document: () => invoke(IPC.previewDocument),
+    setFormat: (patch) => invoke(IPC.previewSetFormat, patch),
+    exportPdf: () => invoke(IPC.previewExportPdf),
   },
   ai: {
     get: () => invoke(IPC.aiGet),

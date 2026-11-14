@@ -43,6 +43,7 @@ export class EditorQueryService {
         factKey: fact?.key ?? null,
         display: fact ? String(p.session.displayOf(fact)) : '',
         source: (m?.cell as CellRef | undefined) ?? null,
+        ...(m && m.sources.length > 1 ? { sources: m.sources } : {}),
         mappingId: m?.id ?? null,
         ...(m && fact && m.factKey !== fact.key ? { also: true } : {}),
       }

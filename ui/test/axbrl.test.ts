@@ -44,6 +44,7 @@ function fullContent() {
   c.aiHistory = '{"t":1}\n{"t":2}\n'
   c.outputs['001.xml'] = '<xbrli:xbrl/>'
   c.uiState = { rightTab: 'xml' }
+  c.preview = { borders: true, boldHeadings: true, spacing: 'compact' }
   return c
 }
 
@@ -58,6 +59,7 @@ describe('.axbrl pack/unpack', () => {
     expect(content.validation).toEqual(c.validation)
     expect(Buffer.from(content.sources['workbook-1.xlsx']!)).toEqual(Buffer.from(c.sources['workbook-1.xlsx']!))
     expect(content.sourceEdits).toEqual(c.sourceEdits)
+    expect(content.preview).toEqual(c.preview)
     expect(content.mcaErrors).toEqual(c.mcaErrors)
     expect(content.aiHistory).toBe(c.aiHistory)
     expect(content.outputs).toEqual(c.outputs)
@@ -119,5 +121,41 @@ describe('.axbrl on disk', () => {
     const junk = join(dir, 'junk.axbrl')
     writeFileSync(junk, 'junk')
     expect(await readManifest(junk)).toBeNull()
+  })
+})
+
+describe('.axbrl migration: format 1 → 2 (ADR-0015, a list of sources per mapping entry)', () => {
+  const cell = (ref: string) => ({ workbook: 'workbook-1.xlsx', sheet: 'BS', ref })
+
+  async function formatOneFile(entries: unknown[]): Promise<Buffer> {
+    const zip = new JSZip()
+    zip.file('manifest.json', JSON.stringify(manifest({ formatVersion: 1 })))
+    zip.file('filing.json', '{}')
+    zip.file('mapping.json', JSON.stringify({ version: 1, entries, columns: { 'workbook-1.xlsx|BS|C': 'CY' } }))
+    return zip.generateAsync({ type: 'nodebuffer' })
+  }
+
+  it('turns each entry’s one cell into a list of one source, keeping its sign and everything else', async () => {
+    const { content, readOnlyReason } = await unpackAxbrl(
+      await formatOneFile([
+        { id: 'a', cell: cell('C5'), sign: 1, status: 'approved', fact: { concept: 'q:A', scope: 'CY', dims: [] } },
+        { id: 'b', cell: cell('D7:D9'), sign: -1, status: 'suggested', fact: { concept: 'q:B', scope: 'PY', dims: [] } },
+      ]),
+    )
+    expect(readOnlyReason).toBeNull()
+    expect(content.mapping.version).toBe(2)
+    expect(content.mapping.columns).toEqual({ 'workbook-1.xlsx|BS|C': 'CY' })
+    expect(content.mapping.entries).toEqual([
+      { id: 'a', cell: cell('C5'), sign: 1, sources: [{ cell: cell('C5'), sign: 1 }], status: 'approved', fact: { concept: 'q:A', scope: 'CY', dims: [] } },
+      { id: 'b', cell: cell('D7:D9'), sign: -1, sources: [{ cell: cell('D7:D9'), sign: -1 }], status: 'suggested', fact: { concept: 'q:B', scope: 'PY', dims: [] } },
+    ])
+  })
+
+  it('round-trips a summed entry in the current format', async () => {
+    const c = emptyContent(manifest(), {})
+    c.mapping.entries.push({ id: 's', cell: cell('C14'), sign: 1, sources: [{ cell: cell('C14'), sign: 1 }, { cell: { ...cell('D20'), sheet: 'Notes' }, sign: -1 }] })
+    const { content } = await unpackAxbrl(await packAxbrl(c))
+    expect(content.manifest.formatVersion).toBe(AXBRL_FORMAT_VERSION)
+    expect(content.mapping).toEqual(c.mapping)
   })
 })

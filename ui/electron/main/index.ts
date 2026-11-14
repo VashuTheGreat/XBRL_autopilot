@@ -4,6 +4,7 @@
  * into the services, and wires services ↔ window ↔ IPC.
  */
 import { existsSync, mkdirSync, readFileSync } from 'node:fs'
+import { writeFile } from 'node:fs/promises'
 import { userInfo } from 'node:os'
 import { join, resolve } from 'node:path'
 import { app, BrowserWindow, Menu, shell } from 'electron'
@@ -40,6 +41,10 @@ import { ColumnPeriodService } from './services/column-period-service'
 import { EditorQueryService } from './services/editor-query-service'
 import { FilingPropertiesService } from './services/filing-properties-service'
 import { MappingService } from './services/mapping-service'
+import { SourceFootnoteService } from './services/source-footnote-service'
+import { PreviewService } from './services/preview-service'
+import { PdfExportService } from './services/pdf-export-service'
+import { ElectronPdfRenderer } from './infra/electron-pdf-renderer'
 import { TableMappingService } from './services/table-mapping-service'
 import { TableSuggestionService } from './services/table-suggestion-service'
 import { SourceService } from './services/source-service'
@@ -94,6 +99,7 @@ const autosave = new AutosaveScheduler(projects, () => settings.get().autosaveSe
 const sources = new SourceService(projects, workbookParser({ xlsx: readXlsx, xls: sidecarXlsReader(sidecar) }))
 const columns = new ColumnPeriodService(projects, sources)
 const mapping = new MappingService(projects, sources, columns, db)
+const sourceFootnotes = new SourceFootnoteService(projects, (id) => mapping.details(id))
 const tables = new TableMappingService(projects, sources, columns, mapping)
 // Auto-tagging (docs/06): suggestions from the sidecar's tagger; the LLM rerank only with the user's AI consent
 const tableSuggestions = new TableSuggestionService(projects, tables)
@@ -122,6 +128,8 @@ const mcaTool = new McaToolService(
 // docs/14 Step 5: mandatory text / date / Yes-No items and Generate (only a clean filing is written)
 const mandatory = new MandatoryInputService(projects)
 const generate = new GenerateService(projects, new FileOutputWriter(join(userData, 'output')))
+const preview = new PreviewService(projects, app.getVersion())
+const pdfExport = new PdfExportService(preview, new ElectronPdfRenderer(), (path, data) => writeFile(path, data))
 
 // Phase 10: AI fix agent. Proposals only; every patch is checked by the engine and applied by the user. The fixture
 // guard reads data/ in development (client files never go to an AI service); the packaged app has no data/.
@@ -270,6 +278,7 @@ if (!app.requestSingleInstanceLock()) {
       settings,
       sources,
       mapping,
+      sourceFootnotes,
       tables,
       editor,
       columns,
@@ -282,6 +291,8 @@ if (!app.requestSingleInstanceLock()) {
       mcaTool,
       mandatory,
       generate,
+      preview,
+      pdfExport,
       fixAgent,
       getWindow,
     })
