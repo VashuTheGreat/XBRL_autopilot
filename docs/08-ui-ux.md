@@ -76,6 +76,14 @@ On the right, the XBRL Form shows the reverse: the source cell ref shows as a ch
   - **Also reported as:** the inspector of a tagged cell shows "also: Equity shares 1" chips and an "Also as…" button. The dialog lists the tables that report the cell's element first (★), preselects the element and asks for the members. The extra fact follows the cell on every value change. In the Form its chip is marked "also reported from I39".
   - **Suggested tables (auto-tagging):** a block the tagger matched to a taxonomy table has a dashed amber outline. Selecting one of its cells shows a bar above the inspector: the table, its confidence, the range and the number of cells, plus **Accept** (tag as suggested), **Review…** ("Map as table" prefilled; Map cells accepts it as edited) and **Reject**. A suggested "also reported as" fact shows in the inspector as "also: … (suggested)", with ✓ / ✗ once the cell is tagged. "Accept all ≥ 90%" never files those.
   - **Table zeros → 0** (Form toolbar, for statements with tables): reports as 0 what the mandatory-line-items rules require, in columns that already have a value, and lists what it filled in a toast.
+- **Statement ↔ note matching (XBRL Form, [14 Step 1](14-parity-build-plan.md#step-1--statement--note-matching)):** on a main statement, every line that a note supplies (share capital, borrowings, other current liabilities, revenue …) is coloured against its note:
+  - **green:** every year adds up;
+  - **red:** the note is still empty, or it differs;
+  - no colour: nothing to compare (empty line, closed year, not applicable).
+
+  The label's tooltip shows each year as "CY: statement 1,23,456 · note 1,20,000 · difference 3,456 (differs from the note)".
+  - **Go to note:** the ⇥ button after the label, or **F7** on the selected line (selected in the Form or through its Excel cell). It opens the note and scrolls to its table, or to the element's row for a note total.
+  - **Difference footer:** under a main statement, "Difference CY 0 · PY 0" is the gap of the statement's own totals (Σ |reported − computed|). It is green at 0 and red with "(n totals don't add up)" otherwise. Clicking it opens Problems filtered to that statement ("Only [100100] Balance sheet ✕"), validating first if needed. The model is `FormRow.note` / `FormView.difference`, filled by `EditorQueryService.form()` through `note-tie-view.ts`.
 - **A failing Excel view** shows "The Excel view stopped working" with Try again (`ErrorBoundary`), never a white window. Reveal requests wait until Univer has rendered the sheet (2026-11-11: a reveal right after a sheet change threw and blanked the app).
 - **Hovering a cell** → tooltip: concept label + qname, period, dimensions, confidence, rule status.
 - **Drag** a taxonomy concept onto a cell → creates a manual mapping, `origin: manual`.
@@ -125,6 +133,7 @@ On the right, the XBRL Form shows the reverse: the source cell ref shows as a ch
 | Ctrl+G | Generate XML |
 | Ctrl+P | Quick-switch ELR / sheet |
 | Ctrl+Shift+F | Search taxonomy |
+| F7 | Go to note (the selected statement line's note, at its table or row) |
 | F8 / Shift+F8 | Next / previous problem |
 | Ctrl+. | Quick fix for the selected problem |
 | Enter / Delete (on suggestion) | Approve / reject mapping |

@@ -42,7 +42,7 @@
 - Ind AS conversion: https://www.youtube.com/watch?v=iw_35mR1v10
 - Ind AS financial tagging: https://www.youtube.com/watch?v=yGgpJH4zeyU
 
-**Not found:** no video shows the fixed-asset template. For that, request the setup from Webtel (webtel.in → Register Software → Setup Download Request → Web-e-XBRL).
+**Not found:** no video shows the fixed-asset template; §13.3 has what the web says. For the rest, request the setup from Webtel (webtel.in → Register Software → Setup Download Request → Web-e-XBRL).
 
 ## 0. Recent webXBRL changes (revision 32.7)
 | webXBRL 32.7 | Ours | Status | Pri |
@@ -183,7 +183,7 @@ For each screen, write what you see, every button, right-click item and shortcut
 - [ ] Every keyboard shortcut seen
 
 ## 11. webXBRL click by click (from the videos)
-**Sources:** captions of Webtel's help videos (Creating Master, Financial Tagging, Notes Tagging), the description of the Ind AS help video, and the 53-minute FY 2025-26 practical by MycsOnline (a CS filing a real company in Web-XBRL). Captions were pulled with `yt-dlp` on 2026-11-13. The "Mastering AOC-4" video's captions were rate-limited and not read.
+**Sources:** captions of Webtel's help videos (Creating Master, Financial Tagging, Notes Tagging), the description of the Ind AS help video, and the 53-minute FY 2025-26 practical by MycsOnline (a CS filing a real company in Web-XBRL). Captions were pulled with `yt-dlp` on 2026-11-13. The "Mastering AOC-4" video was read on 2026-11-14; see §12.
 
 ### 11.1 Company, login, year
 1. **Create New Company:**
@@ -279,7 +279,7 @@ For each screen, write what you see, every button, right-click item and shortcut
 | webXBRL behaviour | Ours | Status | Pri |
 |---|---|---|---|
 | **Add / Replace** when tagging a line that already has a value (sum cells that aren't next to each other) | Contiguous range sum only; re-tag replaces silently | ❌ | **P0** |
-| **Line → note table jump** (yellow L / F7 / right-click) with a **BS-vs-note difference footer**, green at 0 | Tables shown under the statement in the Form; GR-1 rule after validation | 🟡 | **P0** |
+| **Line → note table jump** (yellow L / F7 / right-click) with a **BS-vs-note difference footer**, green at 0 | Form line labels green / red against their note (tooltip: statement · note · difference); **Go to note** button and **F7** open the note at its table or row; statement **Difference** footer (CY / PY), green at 0 (Step 1, 2026-11-14) | ✅ | — |
 | Statement **tree with + / − and Ctrl+E**, mandatory lines red, tagged lines green | Form rows; mandatory dots in the explorer | 🟡 | **P0** |
 | **Pending Issues** button in the tagging toolbar | Problems panel | ✅ | — |
 | Tag a **blank cell → 0** | "Empty mandatory → 0" (whole statement) | ✅ (different) | — |
@@ -295,23 +295,241 @@ For each screen, write what you see, every button, right-click item and shortcut
 | Notes: document view, select text → double-click element; F2 from Excel | Text range in Excel → dialog | 🟡 | **P0** (with Word import) |
 | Per-company login and password | `.axbrl` file per filing | ➖ | — |
 
+## 12. Webtel playlist (6 videos, read 2026-11-14)
+**Sources:** the Webtel playlist `PLE270oTr8XpFNm7MLwMwCxIq852Q31UHz`. Transcripts were pulled with `youtube-transcript-api` (English auto-captions; Hindi auto-captions for videos 5 and 6).
+
+| # | Video | Length | Useful for |
+|---|---|---|---|
+| 1 | What is financial tagging & notes tagging (`XscMCGRx4oU`) | 9 min | Right-click menu, E/L/T markers, notes flow, mandatory notes list |
+| 2 | Generate XML, resolve errors, validate, PDF (`GGJLPlH8ZpA`) | 5 min | MCA tool flow, error colours |
+| 3 | Quality tagging & common mistakes (`sTDnVOz8fNw`) | 6 min | The top errors and how webXBRL prevents them |
+| 4 | Outsourcing benefits (`sWNaU6V43kk`) | 5 min | Marketing only, nothing to build |
+| 5 | Comprehensive guide to XBRL filing (`O515SsZ5AEI`) | 13 min | Applicability, required documents, due dates, penalties |
+| 6 | Mastering XBRL AOC-4 filing (`oVGs4zOvnzo`) | 33 min | The full flow on a sample company (masters → tagging → tables → notes → generate → MCA tool → PDF → backup) |
+
+Only what §11 doesn't already say is listed here.
+
+### 12.1 Settings that decide whether figures come out right
+- **Utilities → Reset Settings (F9)**, set before tagging:
+  - **Label column:** the Excel column that holds the particulars.
+  - **Column difference CY ↔ PY.** Video 6 shows the classic bug: PY came out blank because the gap was 1 but should have been 2. Fix the gap, untag, re-tag, and PY fills.
+  - **Rounding level** (thousands in the demo).
+  - **Statement to tag:** Balance Sheet / Income Statement / Both.
+- **Utilities → Other Settings (F8): the PDF format.**
+  - **General:** plain text, no borders, no bold, tables not aligned.
+  - **As per MCA → Advanced:** borders, bold headings and sub-headings, auto page layout, line and paragraph spacing in text blocks.
+  - This changes how the text blocks look in the MCA PDF.
+
+### 12.2 Financial tagging screen (more detail)
+- **Search element (Ctrl+S)** jumps to the element in the tree.
+- **Right-click on an Excel cell** → list of uploaded documents → pick one to switch sheet.
+- **Right-click on a tagged taxonomy line:**
+
+| Item | What it does |
+|---|---|
+| Remove tagging / Delete | Untag |
+| Go to linked cell | Jumps to the Excel cell the value came from, or to the linked note sheet (e.g. "Disclosure of classes of share capital") |
+| Footnote (CY / PY separately) | Adds a footnote per period. The line is then underlined, and hovering shows the text |
+| Remove footnote | — |
+| Change sign (Ctrl+N) | Stores the value as negative |
+| View details | Lists every cell summed into the line (after **Add**), e.g. share capital + reserves |
+| Go to notes (F7) | Opens the note or text block for this line |
+| Properties | Standard label, element name, data type, period type, definition |
+| Expand all | Opens the whole tree |
+
+- **Markers on taxonomy lines:**
+  - **E** = explanatory text block. Double-click opens notes tagging for it, and **F2** adds the text.
+  - **L** = a linked text block.
+  - **T** = a table. Double-click opens the table.
+- **Statement footer: "Difference".** 0 means the statement is fully tagged and balanced for CY and PY. Anything else means a line is missing or wrong.
+- **Red head after tagging** = its sub-schedule (note or table) is still empty. It turns green once the note is filled and matches. This is their "matching concept".
+
+### 12.3 Tables
+- A **Documents** button (top left) picks the source sheet inside the table view. Double-click tags into a table cell.
+- **Show / Hide members:** hide members the company doesn't use (e.g. "Other buildings" in PPE), so the table only shows real columns.
+- Mandatory cells are red.
+- The footer shows **value as per balance sheet vs table value, and the difference**. A non-zero difference means the table isn't tagged correctly.
+
+### 12.4 Notes tagging (Excel route)
+- Format the note text in Excel first; it gives a better PDF.
+- Select the text in Excel → find the heading in the tree → **F2** → paste → **Auto format** → Save.
+- Or open a Word document (Directors' report) in notes tagging, copy a block, then double-click the element.
+- **Mandatory notes (video 1):**
+  - **Category 1:** share capital, statement of changes in equity, borrowings, investments, PPE, accounting policies, corporate information, Ind AS RPT, financial instruments / fair value, employee benefits, EPS, CSR, Directors' report, Auditor's report, secretarial audit report.
+  - **Category 2:** other notes to accounts not covered by financial tagging; text of notes from sub-classification; notes on income and expenses; notes on assets and liabilities; additional P&L and BS disclosures.
+
+### 12.5 Generate, MCA tool, PDF
+1. **Generate:**
+   - Pick the CY start period, the PY and (Ind AS) the prior-to-previous year.
+   - It lists the **mandatory items not tagged** first. The user may still generate.
+   - A **final confirmation dialog** asks them to review subsidiary status, holding status, **CSR applicability** and other Yes/No answers, because "incorrect information may affect filing (e.g. CSR-2)".
+2. **MCA Validation Tool:** pick the taxonomy (it loads in about 3 min) → File → Open → Validate.
+   - Error colours: **blue / purple = line item missing, orange = member missing, green = table**.
+   - Click the underlined label → jumps to where the error is.
+   - Then **pre-scrutinize**, then **PDF**.
+3. **Export to PDF** inside webXBRL, using the F8 format.
+
+### 12.6 Utilities
+- **Backup / Restore** of all work.
+- **Import data from XBRL** made by any software, as long as the company's CIN, standalone or consolidated, FY and taxonomy already exist.
+- **Quick links:** MCA, ICAI, ICSI.
+- **Taxonomy master:** choose the taxonomy (C&I / Ind AS) and the year per company.
+- **Auditor master:** a **Verify** button checks the membership number.
+- **Directors:** double-click a row to edit. Red fields are mandatory.
+- **Document master** also accepts PDF and other formats.
+
+### 12.7 The common errors, and what webXBRL does about them (video 3)
+| Error | Cause | webXBRL guard |
+|---|---|---|
+| **Reported value** | PY closing ≠ CY opening | Red alert with the amounts on save |
+| **At least one child member** | A table has a CY value but no PY value | The table footer and red cells |
+| **Mandatory line item** | A mandatory head left untagged | Red head |
+
+**Quality mistakes reviewers find** (no software guard; a good target for AI review):
+- Only one subsidiary disclosed when the company has several.
+- Related-party transactions incomplete.
+- Additional disclosures untagged: forex, segments, contingent liabilities, commitments.
+- No footnote when an amount is tagged as "Others".
+- Rounding differs between the PDF and the XBRL (thousands vs actuals).
+- Wrong element, e.g. power & fuel tagged as electricity.
+- Salaries tagged 0 or clubbed into other expenses.
+
+### 12.8 Filing facts for the New Filing wizard (video 5)
+- **Who must file in XBRL:**
+  - Ind AS companies with net worth ≥ ₹250 cr, listed companies, and their holding, subsidiary, JV or associate companies.
+  - Other companies with paid-up capital ≥ ₹5 cr or turnover ≥ ₹100 cr.
+  - **Exempt:** NBFCs, housing finance companies, banking and insurance (their formats differ from Schedule III).
+- **Holding companies** file standalone **and** consolidated. Subsidiaries and JVs file standalone.
+- **Required documents:** BS with notes, P&L with notes, cash flow, SOCIE, Board's report with annexures, auditor's report with annexures, CSR report, AOC-1, significant accounting policies.
+- **Due date:** 30 days from the AGM (AGM by 30 Sep → 30 Oct). **Late fee:** ₹100 per day.
+
+### 12.9 What this adds to our gap list
+| webXBRL behaviour | Ours | Status | Pri |
+|---|---|---|---|
+| **Statement "Difference" footer** (CY and PY), 0 = fully tagged | Form footer "Difference CY · PY" from the statement's own calculation totals, green at 0; click lists that statement's problems (Step 1, 2026-11-14) | ✅ | — |
+| **Red head until its note / table matches** ("matching concept") | Engine `noteTies`: a line stays red while its note is empty or differs, green once it adds up (Step 1, 2026-11-14) | ✅ | — |
+| **E / L / T markers** on tree lines with double-click into text block / table | Form shows tables under the statement | 🟡 | **P0** |
+| **View details** (every cell summed into a line) | Source chip shows one range | ❌ | P0 (with Add / Replace) |
+| **Change sign** on a tagged value | Sign handled by the tagger and rules | ❌ | P1 |
+| **Go to linked cell** from a taxonomy line | `locate` from a fact | ✅ | — |
+| **Properties** of an element (label, type, period, definition) | Element Inspector | ✅ | — |
+| **Show / Hide members** in a table | All members shown | ❌ | P1 |
+| Column-gap setting, re-tag when PY is blank | Per-sheet CY/PY columns picked by auto-tag | ✅ (different) | — |
+| **PDF format settings** (MCA style: borders, bold, spacing) | No PDF | ❌ | P1 (with the Preview tab) |
+| **Generate confirmation of the key Yes/No answers** (subsidiary, holding, CSR applicable) | Blocking errors only | ❌ | **P0** (cheap, and prevents the CSR-2 mistake) |
+| Error colour code (line item / member / table) | Problems panel by severity | 🟡 | P2 |
+| **Backup / Restore** | `.axbrl` save; no versioned backup | 🟡 | P2 (autosave copies) |
+| **Membership-number Verify** button | Pattern check only | 🟡 | P1 (needs ICAI data; pattern check for now) |
+| **Mandatory notes checklist** (category 1 / 2) | Filing explorer dots | 🟡 | P1 (a "Notes checklist" view) |
+| **AI quality review** for the §12.7 list (one subsidiary, "Others" without footnote, salaries zero, power ≠ electricity, rounding) | — | ❌ | **P1, our differentiator:** deterministic checks where possible, AI only proposes |
+| **Applicability check** in the New Filing wizard (§12.8), standalone + consolidated reminder for holding companies | — | ❌ | P2 |
+
+## 13. The two long webinars and the web (read 2026-11-14)
+**Sources:**
+- "Notes tagging through Web-XBRL" (`fIGpH2vgvn0`, Webtel Talks session 3, English captions).
+- "Directors' report & other tagging" (`GCLUAczd2NY`, session 2, Hindi captions).
+- webtel.in/xbrl-filing-software, webxbrl.com/Web_XBRL.aspx, and the SlideShare "XBRL process flow" deck (27 slides).
+
+### 13.1 Notes, tables and generation (session 3)
+- **Home page buttons are shortcuts** into each step.
+- **Totals are grey and frozen.** Totals such as "Total non-current assets" are computed from the tagged children and can't be edited. This is the cross-check while tagging.
+- **One tag fills CY and PY.** If the PY column isn't next to the CY column, set the gap in F9.
+- **Re-tagging a tagged line** prompts "already tagged, tag with new?" (Yes / No).
+- **F7 goes to the line's table or detail schedule**, depending on the tag.
+  - Tables **auto-calculate their totals** and show whether they match the statement.
+  - Tables have **CY / PY** buttons; PY can be loaded from last year.
+- **F2 on a text item opens a Word-like editor** (bold, tables).
+  - **Auto format** fixes pasted tables. MGT-9 is full of them: shareholding, promoter holding, KMP remuneration.
+  - **F2 on a figure** edits it.
+- **Text-block hierarchy:**
+  - The parent is a **text block** and its sub-items are **string items**.
+  - Tagging a sub-item without its parent prompts "the parent text block must be tagged".
+- **Yes/No items are conditional.**
+  - **Auditor's report:** "Auditor's report applicable?", then "Qualified or reservations?". If that is **Yes**, the remarks become mandatory (F2).
+  - **CSR applicable = No** skips the whole CSR section. **Yes** makes its fields mandatory.
+- **Tables with fixed vocabularies:**
+  - The KMP / director remuneration table has red mandatory columns.
+  - **Designation must come from the dropdown** (MD, CS, CFO…), because free text fails the MCA tool.
+  - Dates have a fixed format.
+  - **Ctrl+F** adds a footnote on a table cell.
+- **Generate:**
+  - Asks for both years' start and end dates.
+  - Lists **mandatory items not tagged**; double-click one to jump to it and tag it.
+  - Lists the **"zero tags"**: mandatory items that will go out as 0. The user can tag those residual items, or generate anyway.
+- **Formatting tips from the trainer:**
+  - **Unmerge merged cells before tagging.** "99% of formatting problems are merged cells."
+  - F8 has an **"enable HTML content"** option. It is off by default because it causes "exceptional errors" in the MCA tool.
+  - Blank lines or blank pages in the MCA PDF come from the MCA tool's handling of special characters and HTML, not from the tagging software.
+- **Text blocks are CY only.** Monetary items are always tagged for both years.
+
+### 13.2 Directors' report (session 2)
+- **Long text:**
+  - Format the report in Word or Excel first.
+  - In notes tagging, find the item (widen the column, because Directors' report element names are long) → **F2** → paste → Save.
+- **Short items** (one line): click the text, then double-click the element, as in financial tagging. That is faster than F2.
+- **If F2 doesn't open the editor:** Utilities → Other Settings, last option (a fallback editor).
+- **Mandatory items:**
+  - Generate lists every mandatory Directors' report item still empty; click one to tag it.
+  - Examples: details of foreign exchange earnings and outgo, the state of the company's affairs, energy conservation.
+  - Sub-items under a mandatory text block are optional.
+- **Numeric parts are in financial tagging,** not notes: number of board meetings, dividend paid.
+- **MGT-9 / extract of annual return (sec 92(3)) tables:**
+  - principal business activities (≥ 10 % of turnover);
+  - particulars of holding, subsidiary and associate companies, with a **"Load company name from master"** button;
+  - shareholding pattern, top-10 shareholders, change in promoter holding;
+  - shareholding of directors and KMP;
+  - remuneration of directors and KMP.
+- **"Load data from <PY>"** in these tables copies the static details (DOB, qualification) from last year's filing. Only shares and salary change.
+- **Directors who joined or resigned during the year:** add a footnote (Ctrl+F) with the dates.
+- **Signatories:** "Load details from director master".
+- **Unsaved changes:** closing a screen prompts to save.
+
+### 13.3 What the web says about the three open items
+| Item | What we found | Confidence |
+|---|---|---|
+| **Fixed-asset template** | "No need to punch fixed assets schedule data; import from template for automatic tagging." The deck's step 2 screenshot shows "Method of depreciation" and "Details of taxonomy"; PY fixed-asset data can be loaded. No procedure published | Vendor claim only. Our "Map as table" on the client's own schedule covers the same need |
+| **Word import** | "Import Auditor's Report / Directors' Report / Notes from Word file / create in software itself." In both webinars the actual flow is **open the Word document in notes tagging and select text**, or **copy → F2 editor → paste → Auto format** | Confirmed by the webinars |
+| **Error report** | Made by the in-software validation **before the XML is generated**: a list of errors, double-click → the field. After it is clean: generate, then the MCA tool, then pre-scrutiny | Confirmed (deck slide 20 + webinars). Layout not published |
+
+### 13.4 What this adds to our gap list
+| webXBRL behaviour | Ours | Status | Pri |
+|---|---|---|---|
+| **Note editor** (F2): rich text with tables, paste from Word/Excel, **Auto format** of pasted tables, MCA HTML subset | — | ❌ | **P0** (raised from P1 in §4: every Directors' report and MGT-9 table goes through it) |
+| **Conditional mandatory** (CSR = No skips CSR; qualified = Yes requires remarks) shown while tagging | Engine business rules after validation | 🟡 | **P0**: drive the Form's red markers from the same rules |
+| **Parent text block required** when a sub-item is tagged | — | ❌ | P1 (warning) |
+| **Enumerated fields as dropdowns** (designation, category…) | Form inputs | 🟡 | P1: use the taxonomy's enumerations / MCA lists |
+| **Frozen computed totals** in the statement and tables | Calculation rules; Form shows totals | 🟡 | P1: show computed totals read-only, with a tick or cross against the tagged total |
+| **Merged-cell warning** on Excel import | — | ❌ | P1 (cheap: flag merged cells in tagged ranges) |
+| **"Zero tags" list at Generate** (mandatory items that will go out as 0) | "Empty mandatory → 0" | ✅ (different) | — |
+| **Load static table data from PY** (KMP DOB, qualification) | `prefillDisclosures` for general disclosures | 🟡 | P1: extend to typed tables |
+| **"Load company name from master"** in group-company tables | — | ❌ | P2 |
+| Footnote on a table cell (Ctrl+F) | No footnotes UI | ❌ | P1 (same work as §3) |
+
+**What still needs a hands-on webXBRL run:** only the exact fixed-asset template fields and the layout of the error report. Neither blocks us: tables cover fixed assets, and our Problems panel is our error report.
+
 ## 10. Suggested order
+> The step-by-step build plan, one chat per step, is in [14-parity-build-plan.md](14-parity-build-plan.md).
+
 1. **P0 tagging:**
    - §8 fixes 1–6;
    - **Add / Replace** when a line already has a value (§11.6);
    - **line → note table jump with the BS-vs-note difference**, green at 0 (§11.6);
    - "This statement" tree;
    - tagged marks in the Taxonomy panel;
-   - the mandatory text/date/Yes-No dialog.
+   - the mandatory text/date/Yes-No dialog;
+   - the statement **Difference footer**, **E / L / T markers**, **View details** (§12.9);
+   - the **Generate confirmation** of subsidiary / holding / CSR answers (§12.9).
 2. **P0 output:** the Preview tab (MCA-like view + print).
-3. **P0 notes:** Word import → text block.
+3. **P0 notes:** the F2 note editor (paste from Word / Excel, Auto format of tables, MCA HTML subset) → text block; conditional mandatory markers (CSR, auditor qualification) (§13.4).
 4. **P1:**
    - Masters panel (company, directors, auditor);
    - footnotes UI;
    - right-click menus;
    - references in the inspector;
    - side Problems panel;
-   - PDF.
+   - PDF with MCA-style format settings;
+   - change sign, show / hide members, notes checklist;
+   - AI quality review (§12.7).
 5. **P2:**
    - Excel export of the mapping;
    - fixed-asset template;

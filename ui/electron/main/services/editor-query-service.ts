@@ -8,6 +8,7 @@ import { dimKey, indexFactLines, nondimAllowed } from '@xap/engine'
 import { displayLabel, type DimRef, type FormCell, type FormRow, type FormTable, type FormTableColumn, type FormView, type MappingView, type Scope, type XmlView } from '@shared/editor'
 import type { CellRef } from '@shared/workbook'
 import { ValidationError } from './errors'
+import { formDifference, rowNotes } from './note-tie-view'
 import type { ElrTreeNode, ProjectAccess, TaxonomyCatalog } from './ports'
 
 /** Presentation-tree nodes that are structure, not reportable values (XBRL dimensional constructs). */
@@ -32,6 +33,7 @@ export class EditorQueryService {
     const byFact = new Map<string, MappingView>()
     for (const m of this.mappings()) for (const k of m.factKeys ?? []) byFact.set(k, m)
     const hasPy = p.periods().py !== null
+    const notes = rowNotes(p.session, elrUri, hasPy)
 
     const cellFor = (concept: string, scope: Scope, dims: DimRef[] = [], preferredLabel: string | null = null): FormCell => {
       const fact = p.session.getValue(concept, scope, dims, preferredLabel) as { key: string } | null
@@ -60,6 +62,7 @@ export class EditorQueryService {
           dataType: A.dataType(n.qname),
           cy: cellFor(n.qname, 'CY'),
           ...(hasPy ? { py: cellFor(n.qname, 'PY') } : {}),
+          ...(notes.has(n.qname) ? { note: notes.get(n.qname)! } : {}),
         })
       } else {
         // reported only inside a dimensional table (or unknown to the engine): shown, not editable here
@@ -68,7 +71,8 @@ export class EditorQueryService {
       for (const child of n.children) visit(child, depth + 1)
     }
     for (const root of tree.tree) visit(root, 0)
-    return { elrUri, code: elr.code, title: elr.title, rows, tableCount, tables: this.tables(elrUri, hasPy, cellFor) }
+    const difference = formDifference(p.session, elrUri, elr.group === 'Statements', hasPy)
+    return { elrUri, code: elr.code, title: elr.title, rows, tableCount, tables: this.tables(elrUri, hasPy, cellFor), ...(difference ? { difference } : {}) }
   }
 
   /**

@@ -338,6 +338,31 @@ export interface FormCell {
   also?: boolean
 }
 
+/**
+ * How a statement line compares with its note (engine noteTies, docs/04 "Statement ↔ note matching").
+ * - ok: the note adds up to the statement figure · mismatch: they differ · note-empty: the note has nothing yet
+ * - no-statement: nothing to compare (empty line, closed year, not applicable) · undetermined: the note can't be added up
+ */
+export type NoteTieStatus = 'ok' | 'mismatch' | 'note-empty' | 'no-statement' | 'undetermined'
+
+/** One year of a statement ↔ note comparison; amounts as displayed (the filing's level of rounding). */
+export interface NoteTieView {
+  status: NoteTieStatus
+  statement: string | null
+  note: string | null
+  /** statement − note */
+  difference: string | null
+}
+
+/** Where a statement line's figure comes from: its note (ELR), the note's table, and the element added up there. */
+export interface FormRowNote {
+  elrUri: string
+  tableId?: string
+  concept: string
+  cy?: NoteTieView
+  py?: NoteTieView
+}
+
 export interface FormRow {
   kind: 'header' | 'item' | 'table'
   depth: number
@@ -349,6 +374,26 @@ export interface FormRow {
   dimensional?: boolean
   cy?: FormCell
   py?: FormCell
+  /** a main-statement line that a note supplies (Go to note, F7) */
+  note?: FormRowNote
+}
+
+/**
+ * Whether the statement adds up: Σ |reported − computed| of its own calculation totals per year (as displayed), and
+ * how many totals don't add up. A year that is closed has no figure.
+ */
+export interface FormDifference {
+  cy?: string
+  py?: string
+  issues: number
+}
+
+/** The row is red (its note doesn't add up to it), green (every year ties), or neither. */
+export function noteTone(note: FormRowNote | undefined): 'ok' | 'bad' | null {
+  if (!note) return null
+  const years = [note.cy, note.py].filter((y): y is NoteTieView => !!y && y.status !== 'no-statement' && y.status !== 'undetermined')
+  if (!years.length) return null
+  return years.some((y) => y.status === 'mismatch' || y.status === 'note-empty') ? 'bad' : 'ok'
 }
 
 export interface FormView {
@@ -360,6 +405,8 @@ export interface FormView {
   tableCount: number
   /** the ELR's tables with their values (ADR-0013) */
   tables: FormTable[]
+  /** main statements only: whether the statement's own totals add up */
+  difference?: FormDifference
 }
 
 /** One column of a table in the Form: a member combination (a "slice") in one year. */

@@ -3,10 +3,11 @@
  * Source of truth stays in main; this store caches read-models and refreshes when the project revision changes.
  */
 import { create } from 'zustand'
-import type { AlsoReportInput, AutoTagColumnOptions, BlockSuggestion, CellInfo, FormView, MappingView, Scope, SetSheetColumnsInput, SheetColumns, XmlView } from '@shared/editor'
+import type { AlsoReportInput, AutoTagColumnOptions, BlockSuggestion, CellInfo, FormRowNote, FormView, MappingView, Scope, SetSheetColumnsInput, SheetColumns, XmlView } from '@shared/editor'
 import { cellKey, columnLetter, fromA1, rangeCells, type CellRef, type WorkbookModel } from '@shared/workbook'
 import { unwrap } from '@/lib/result'
 import { toast } from './toast'
+import { useUi } from './ui'
 
 export interface Selection {
   cell: CellRef | null
@@ -39,6 +40,8 @@ interface EditorState {
   /** a request for the Excel pane to show a cell; `seq` changes on every request */
   reveal: { cell: CellRef; seq: number } | null
   activeElr: string | null
+  /** a request for the Form to scroll to a note's table or row (Go to note); `seq` changes on every request */
+  noteTarget: { elrUri: string; tableId?: string; concept: string; seq: number } | null
   form: FormView | null
   xml: XmlView | null
   xmlWanted: boolean
@@ -53,6 +56,8 @@ interface EditorState {
   selectFact(factKey: string | null): void
   revealCell(cell: CellRef): void
   setActiveElr(uri: string): Promise<void>
+  /** Go to note (F7): opens the note that supplies a statement line and scrolls to its table or row */
+  goToNote(note: FormRowNote): Promise<void>
   setXmlWanted(wanted: boolean): Promise<void>
   /** tags the selected cell; returns false when nothing happened */
   tagSelected(concept: string, scope?: Scope): Promise<boolean>
@@ -92,6 +97,7 @@ interface EditorState {
 
 const api = () => window.xap.editor
 let revealSeq = 0
+let noteSeq = 0
 
 /** A text cell holding several figures has one mapping per figure: the cell shows its first one. */
 const firstFigureLast = (mappings: MappingView[]) => [...mappings].sort((a, b) => (b.pick ?? -1) - (a.pick ?? -1))
@@ -116,6 +122,7 @@ const EMPTY = {
   cellInfo: null,
   blockRange: null,
   reveal: null,
+  noteTarget: null,
   form: null,
   xml: null,
   loadedRevision: -1,
@@ -228,6 +235,12 @@ export const useEditor = create<EditorState>((set, get) => {
     setActiveElr: async (uri) => {
       set({ activeElr: uri })
       await loadForm()
+    },
+
+    goToNote: async (note) => {
+      useUi.getState().setRightTab('form')
+      if (get().activeElr !== note.elrUri) await get().setActiveElr(note.elrUri)
+      set({ noteTarget: { elrUri: note.elrUri, ...(note.tableId ? { tableId: note.tableId } : {}), concept: note.concept, seq: ++noteSeq } })
     },
 
     setXmlWanted: async (wanted) => {

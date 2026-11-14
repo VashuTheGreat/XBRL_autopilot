@@ -143,6 +143,9 @@ export function ProblemsPanel() {
   const { view, severities, source, setSource, run, setPasteOpen, launchMca, clearMca } = useValidation()
   const ai = useAi((s) => s.view)
   const fixAll = useAi((s) => s.fixAll)
+  const elrFilter = useValidation((st) => st.elrFilter)
+  const setElrFilter = useValidation((st) => st.setElrFilter)
+  const filterElr = useProject((st) => st.elrs.find((e) => e.uri === elrFilter))
   if (!hasProject) {
     return (
       <EmptyState icon={TriangleAlert} title="No filing open">
@@ -150,7 +153,7 @@ export function ProblemsPanel() {
       </EmptyState>
     )
   }
-  const shown = visibleProblems(view, severities, source)
+  const shown = visibleProblems(view, severities, source, elrFilter)
   const groups = groupByStatement(shown)
   const c = view?.coverage
   return (
@@ -169,6 +172,14 @@ export function ProblemsPanel() {
           <option value="engine">This app</option>
           <option value="mca">MCA tool{view?.mca ? ` (${view.mca.count})` : ''}</option>
         </select>
+        {elrFilter && (
+          <span className="flex items-center gap-1 rounded bg-accent/15 px-1.5 py-0.5 text-[11px] text-accent" data-testid="problems-elr-filter">
+            Only {filterElr ? `[${filterElr.code}] ${filterElr.title}` : 'this statement'}
+            <button className="hover:text-fg" onClick={() => setElrFilter(null)} title="Show the problems of every statement">
+              <X size={11} />
+            </button>
+          </span>
+        )}
         {c && c.executableShare !== null && (
           <span className="flex items-center gap-1 text-[11px] text-muted" title={`${c.executable} executed · ${c.reviewOnly} review-only (MCA21 data) · ${c.unimplemented} not formalized · ${c.notApplicable} not applicable`} data-testid="rule-coverage">
             <ListChecks size={12} /> Rules {(c.executableShare * 100).toFixed(1)}% executable

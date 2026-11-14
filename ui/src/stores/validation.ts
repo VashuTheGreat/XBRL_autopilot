@@ -14,6 +14,8 @@ interface ValidationStore {
   /** a problem selected in the panel (keyboard / single click) */
   selected: string | null
   pasteOpen: boolean
+  /** only the problems of this statement / note (ELR URI) are listed; null lists all */
+  elrFilter: string | null
   init(): () => void
   run(): Promise<void>
   fix(p: Problem): Promise<void>
@@ -21,6 +23,9 @@ interface ValidationStore {
   select(id: string | null): void
   toggleSeverity(s: ProblemSeverity): void
   setSource(s: SourceFilter): void
+  /** opens Problems listing one statement's problems (the Form's Difference footer); validates first if needed */
+  showStatement(elrUri: string): Promise<void>
+  setElrFilter(elrUri: string | null): void
   setPasteOpen(open: boolean): void
   importMcaText(text: string): Promise<boolean>
   importMcaFile(): Promise<void>
@@ -43,6 +48,7 @@ export const useValidation = create<ValidationStore>((set, get) => {
     source: 'all',
     selected: null,
     pasteOpen: false,
+    elrFilter: null,
 
     init: () => {
       if (!window.xap) return () => {}
@@ -81,6 +87,14 @@ export const useValidation = create<ValidationStore>((set, get) => {
     setSource: (source) => set({ source }),
     setPasteOpen: (pasteOpen) => set({ pasteOpen }),
 
+    showStatement: async (elrUri) => {
+      set({ elrFilter: elrUri })
+      useUi.getState().setBottomTab('problems')
+      if (!get().view?.at) await get().run()
+    },
+
+    setElrFilter: (elrFilter) => set({ elrFilter }),
+
     importMcaText: async (text) => {
       const view = await unwrap(api().importMca(text), { onValidation: (m) => toast.error(m.join(' ')) })
       if (!view) return false
@@ -114,10 +128,10 @@ export const useValidation = create<ValidationStore>((set, get) => {
   }
 })
 
-/** The problems the panel shows, after the severity and source filters. */
-export function visibleProblems(view: ValidationView | null, severities: Record<ProblemSeverity, boolean>, source: SourceFilter): Problem[] {
+/** The problems the panel shows, after the severity, source and statement filters. */
+export function visibleProblems(view: ValidationView | null, severities: Record<ProblemSeverity, boolean>, source: SourceFilter, elrFilter: string | null = null): Problem[] {
   if (!view) return []
-  return view.problems.filter((p) => severities[p.severity] && (source === 'all' || p.source === source))
+  return view.problems.filter((p) => severities[p.severity] && (source === 'all' || p.source === source) && (!elrFilter || p.location?.elrUri === elrFilter))
 }
 
 /** Problems grouped by statement / note (in order of first appearance); "Filing" for those without one. */

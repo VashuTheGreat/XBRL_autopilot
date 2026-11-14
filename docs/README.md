@@ -19,6 +19,7 @@ Read the doc that matches the task. Keep docs short, factual and current. When c
 | 11 | [Security & privacy](11-security-privacy.md) | Keys, financial data, Electron hardening |
 | 12 | [Reference data](12-reference-data.md) | The real client files in `data/`, what they teach us, and the tests built on them |
 | 13 | [webXBRL parity](13-webxbrl-parity.md) | Picking the next feature: every webXBRL feature, our status, gaps and priority; manual-tagging fixes |
+| 14 | [Parity build plan](14-parity-build-plan.md) | The 13 build steps toward webXBRL parity, one chat each, with the context a new chat needs and a prompt template |
 | — | [decisions/](decisions/) | Why a big choice was made (ADRs; e.g. [ADR-0014](decisions/ADR-0014-qdrant-vector-db-and-inmemory-chat-integration.md) for Qdrant, in-memory chat, & hybrid reranking) |
 
 ## Glossary

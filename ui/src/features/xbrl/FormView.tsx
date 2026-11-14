@@ -1,17 +1,18 @@
-import { CircleSlash, Copy, FileSpreadsheet, Grid3x3, Table2 } from 'lucide-react'
+import { ArrowRightToLine, CircleSlash, Copy, FileSpreadsheet, Grid3x3, Table2 } from 'lucide-react'
 import { useEffect, useMemo, useRef } from 'react'
 import { formatIndian } from '@xap/engine/basics'
-import type { FormCell, FormRow, FormTable } from '@shared/editor'
+import { noteTone, type FormCell, type FormDifference, type FormRow, type FormRowNote, type FormTable, type NoteTieView } from '@shared/editor'
 import { cellKey } from '@shared/workbook'
 import { EmptyState } from '@/components/EmptyState'
 import { Button, Select } from '@/components/ui/primitives'
 import { cn } from '@/lib/cn'
 import { useEditor } from '@/stores/editor'
 import { useProject } from '@/stores/project'
+import { useValidation } from '@/stores/validation'
 
 /** XBRL Form: one statement (ELR) with its CY/PY facts and the Excel cell each value came from. */
 export function FormView() {
-  const { form, activeElr, setActiveElr, selection, focusSeq, selectFact, fillMandatoryZeros, fillTableZeros, prefillDisclosures } = useEditor()
+  const { form, activeElr, setActiveElr, selection, focusSeq, selectFact, fillMandatoryZeros, fillTableZeros, prefillDisclosures, goToNote, noteTarget } = useEditor()
   const { elrs, summary } = useProject()
   const selectedCellKey = selection.cell ? cellKey(selection.cell) : null
   const hasPy = !summary?.firstFinancialYear
@@ -30,6 +31,29 @@ export function FormView() {
       body.current?.querySelector<HTMLElement>(`tr[data-concept="${CSS.escape(selection.concept)}"]`)
     row?.scrollIntoView({ block: 'nearest' })
   }, [form, selection.concept, focusSeq])
+
+  // Go to note: once the note is open, its table (or the element's row) comes to the top
+  useEffect(() => {
+    if (!form || !noteTarget || form.elrUri !== noteTarget.elrUri) return
+    const table = noteTarget.tableId ? body.current?.querySelector<HTMLElement>(`[data-table="${CSS.escape(noteTarget.tableId)}"]`) : null
+    const target = table ?? body.current?.querySelector<HTMLElement>(`tr[data-concept="${CSS.escape(noteTarget.concept)}"]`)
+    target?.scrollIntoView({ block: 'start' })
+  }, [form, noteTarget])
+
+  // F7 = Go to note for the selected statement line (selected in the Form or through its Excel cell)
+  const selectedNote = useMemo(
+    () => form?.rows.find((r) => r.note && (r.concept === selection.concept || [r.cy, r.py].some((c) => c?.factKey && c.factKey === selection.factKey)))?.note,
+    [form, selection.concept, selection.factKey],
+  )
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'F7' || !selectedNote) return
+      e.preventDefault()
+      void goToNote(selectedNote)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [selectedNote, goToNote])
 
   return (
     <div className="flex h-full flex-col">
@@ -87,7 +111,7 @@ export function FormView() {
             </thead>
             <tbody>
               {form.rows.map((r, i) => (
-                <Row key={`${r.concept ?? r.tableId ?? 'h'}-${i}`} row={r} hasPy={hasPy} selectedFact={selection.factKey} selectedConcept={selection.concept ?? null} selectedCell={selectedCellKey} onPick={selectFact} />
+                <Row key={`${r.concept ?? r.tableId ?? 'h'}-${i}`} row={r} hasPy={hasPy} selectedFact={selection.factKey} selectedConcept={selection.concept ?? null} selectedCell={selectedCellKey} onPick={selectFact} onGoToNote={goToNote} />
               ))}
             </tbody>
           </table>
@@ -96,12 +120,22 @@ export function FormView() {
           ))}
         </div>
       )}
+      {form?.difference && <DifferenceFooter difference={form.difference} hasPy={hasPy} onShow={() => void useValidation.getState().showStatement(form.elrUri)} />}
     </div>
   )
 }
 
-function Row(props: { row: FormRow; hasPy: boolean; selectedFact: string | null; selectedConcept: string | null; selectedCell: string | null; onPick(factKey: string | null): void }) {
+function Row(props: {
+  row: FormRow
+  hasPy: boolean
+  selectedFact: string | null
+  selectedConcept: string | null
+  selectedCell: string | null
+  onPick(factKey: string | null): void
+  onGoToNote(note: FormRowNote): void
+}) {
   const { row: r } = props
+  const openManualTag = useEditor((s) => s.openManualTag)
   const indent = { paddingLeft: `${0.75 + r.depth * 0.9}rem` }
   if (r.kind !== 'item') {
     return (
@@ -128,7 +162,7 @@ function Row(props: { row: FormRow; hasPy: boolean; selectedFact: string | null;
   const active = [r.cy, r.py].some((c) => c?.factKey && c.factKey === props.selectedFact)
   // a suggested (not yet accepted) tag has no fact: its row is marked by the element
   const suggested = !active && !!r.concept && r.concept === props.selectedConcept
-  const openManualTag = useEditor((s) => s.openManualTag)
+  const tone = noteTone(r.note)
   return (
     // scroll-mt: a row scrolled into view stops below the sticky column header, not behind it
     <tr
@@ -142,8 +176,23 @@ function Row(props: { row: FormRow; hasPy: boolean; selectedFact: string | null;
       }}
       title={r.concept ? `${r.concept}\nDouble-click to open manual tagging` : undefined}
     >
-      <td style={indent} className="py-1 pr-3" title={r.concept}>
-        {r.label}
+      <td style={indent} className="py-1 pr-3" title={r.note ? noteTooltip(r.note, props.hasPy) : r.concept}>
+        <span className={cn(tone === 'ok' && 'text-ok', tone === 'bad' && 'text-err')} data-testid={tone ? 'note-tie' : undefined} data-tone={tone ?? undefined}>
+          {r.label}
+        </span>
+        {r.note && (
+          <button
+            className="ml-1.5 inline-flex align-middle text-muted hover:text-accent"
+            onClick={(e) => {
+              e.stopPropagation()
+              props.onGoToNote(r.note!)
+            }}
+            title="Go to note (F7)"
+            data-testid="go-to-note"
+          >
+            <ArrowRightToLine size={12} />
+          </button>
+        )}
       </td>
       <ValueCell cell={r.cy} {...props} />
       {props.hasPy && <ValueCell cell={r.py} {...props} />}
@@ -244,5 +293,48 @@ function ValueCell(props: { cell: FormCell | undefined; selectedFact: string | n
         <span>{formatIndian(c.display)}</span>
       </button>
     </td>
+  )
+}
+
+const TIE_TEXT: Record<NoteTieView['status'], string> = {
+  ok: 'agrees with the note',
+  mismatch: 'differs from the note',
+  'note-empty': 'note not entered yet',
+  'no-statement': 'nothing to compare',
+  undetermined: 'the note’s values can’t be added up',
+}
+
+/** "CY: statement 1,23,456 · note 1,20,000 · difference 3,456 (differs from the note)", one line per year. */
+function noteTooltip(note: FormRowNote, hasPy: boolean): string {
+  const year = (label: string, y: NoteTieView | undefined) => {
+    if (!y) return null
+    const parts = [y.statement != null && `statement ${formatIndian(y.statement)}`, y.note != null && `note ${formatIndian(y.note)}`, y.difference != null && `difference ${formatIndian(y.difference)}`].filter(Boolean)
+    return `${label}: ${parts.length ? `${parts.join(' · ')} (${TIE_TEXT[y.status]})` : TIE_TEXT[y.status]}`
+  }
+  return [year('CY', note.cy), hasPy ? year('PY', note.py) : null, 'Go to note: F7'].filter(Boolean).join('\n')
+}
+
+/** "Difference CY 0 · PY 0": whether the statement's own totals add up; green at 0. Click: its problems. */
+function DifferenceFooter(props: { difference: FormDifference; hasPy: boolean; onShow(): void }) {
+  const d = props.difference
+  const years = [['CY', d.cy], ...(props.hasPy ? [['PY', d.py]] : [])].filter((y): y is [string, string] => y[1] != null)
+  const balanced = d.issues === 0 && years.every(([, v]) => v.replace(/[-0.,]/g, '') === '') // "0", "0.00", "-0": no float arithmetic on amounts
+  return (
+    <button
+      className={cn('flex shrink-0 items-center gap-2 border-t border-border px-3 py-1 text-left text-[11px] hover:bg-panel-2', balanced ? 'text-ok' : 'text-err')}
+      onClick={props.onShow}
+      title={balanced ? 'Every total of this statement adds up. Click to list its problems.' : `${d.issues} total${d.issues === 1 ? '' : 's'} of this statement don’t add up. Click to list them in Problems.`}
+      data-testid="form-difference"
+      data-balanced={balanced}
+    >
+      <span className="font-medium">Difference</span>
+      {years.map(([label, v], i) => (
+        <span key={label} className="tabular">
+          {i > 0 && '· '}
+          {label} {formatIndian(v)}
+        </span>
+      ))}
+      {d.issues > 0 && <span className="text-muted">({d.issues} total{d.issues === 1 ? '' : 's'} don’t add up)</span>}
+    </button>
   )
 }

@@ -8,7 +8,7 @@ import { existsSync, mkdtempSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { Gate } from '@xap/engine'
+import { calculationNetworks, Gate, noteTies, statementDifference } from '@xap/engine'
 import type { Scope } from '@shared/editor'
 import type { CellRef } from '@shared/workbook'
 import { AppDatabase } from '../electron/main/infra/app-database'
@@ -176,6 +176,37 @@ describe.skipIf(!existsSync(HPL) || !existsSync(AUTHORITY))('HPL (C&I) hand-tagg
         rules.get(i.code.replace(/^rule\./, ''))?.ast?.type === 'tableRequired' || /none of its calculation children are entered \(\[[23]\d{5}\] Notes/.test(i.message)
       expect(errors.filter((i) => !asksForNotes(i)).map((i) => `${i.code}: ${i.message}`), code).toEqual([])
     }
+  })
+
+  /**
+   * Statement ↔ note matching (docs/14 Step 1): only the statements are tagged, so every line a note supplies is
+   * waiting for its note (red in the Form), the lines reported as 0 need none, and both statements add up. Filling one
+   * note line ties it; a note that then changes on its own shows the difference.
+   */
+  it('statement ↔ note: notes pending, zeros tie, statements add up; a filled note ties, a changed one differs', () => {
+    const S = projects.session()
+    const A = projects.project().authority.authority
+    const uri = (code: string) => (A.elrs as { code: string; uri: string }[]).find((e) => e.code === code)!.uri
+    for (const code of ['100100', '100200']) {
+      expect(statementDifference(S, uri(code)), code).toEqual({ cy: { difference: '0', issues: [] }, py: { difference: '0', issues: [] } })
+      const ties = noteTies(S, uri(code))
+      expect(ties.flatMap((t) => [t.cy, t.py]).filter((p) => p.status === 'mismatch' || p.status === 'undetermined'), code).toEqual([])
+    }
+    const bs = () => new Map(noteTies(S, uri('100100')).map((t) => [t.concept.split(':')[1], t]))
+    expect(bs().get('ShareCapital')!.cy).toEqual({ statement: '417830', note: null, difference: null, status: 'note-empty' })
+    expect(bs().get('LongTermBorrowings')!.cy.status).toBe('ok') // filled with 0: nothing to disclose
+    expect(bs().get('NoncurrentInvestments')!.cy.status).toBe('no-statement') // not reported
+    expect([...bs().values()].filter((t) => t.cy.status === 'note-empty').length).toBeGreaterThanOrEqual(15)
+
+    // Other current liabilities (₹1,004.52 lakhs) entered in its note as one part, then that part alone changes
+    const part = (calculationNetworks(A) as { elr: string; parent: string; children: { to: string }[] }[]).find(
+      (n) => n.parent === 'in-gaap:OtherCurrentLiabilities' && n.elr === bs().get('OtherCurrentLiabilities')!.target.elrUri,
+    )!.children[0]!.to
+    S.setValue(part, 'CY', '1004.52', { recalc: true })
+    expect(bs().get('OtherCurrentLiabilities')!.cy).toEqual({ statement: '100452000', note: '100452000', difference: '0', status: 'ok' })
+    S.setValue(part, 'CY', '1000')
+    expect(bs().get('OtherCurrentLiabilities')!.cy).toEqual({ statement: '100452000', note: '100000000', difference: '452000', status: 'mismatch' })
+    S.setValue(part, 'CY', '') // leave the filing as the other tests expect it
   })
 
   it('generates the XML with every tagged fact', () => {

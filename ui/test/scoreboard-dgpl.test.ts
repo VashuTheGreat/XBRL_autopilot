@@ -12,7 +12,7 @@ import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { importXbrl, tableOfFact } from '@xap/engine'
+import { importXbrl, noteTies, statementDifference, tableOfFact } from '@xap/engine'
 import { AppDatabase } from '../electron/main/infra/app-database'
 import { DirAutosaveStore } from '../electron/main/infra/dir-autosave-store'
 import { SidecarMappingSuggester } from '../electron/main/infra/sidecar-mapping-suggester'
@@ -64,7 +64,7 @@ describe.skipIf(!kbReady || !existsSync(DGPL) || !existsSync(DIXON))('scoreboard
     })
     await sources.importWorkbook('BS DGPL Mar-2026-V1.xls', new Uint8Array(readFileSync(DGPL)))
     const p = projects.project()
-    const A = p.authority.authority as unknown as { elrs: { uri: string }[]; tables: { presentationElr: string }[] }
+    const A = p.authority.authority as unknown as { elrs: { uri: string; code: string; group?: string }[]; tables: { presentationElr: string }[] }
     const facts = () => (p.session.filing as unknown as { all(): Fact[] }).all()
     const wizard = new Set(facts().map((f) => f.key)) // the new filing's own facts (company, periods)
 
@@ -125,6 +125,20 @@ describe.skipIf(!kbReady || !existsSync(DGPL) || !existsSync(DIXON))('scoreboard
     // ≥ 190 of the 270 in a presentation sheet and wrong ≤ 10% of those produced
     const o = board.byOrigin
     const amounts = { right: o.excel!.amount.right + o.derived!.amount.right, wrong: o.excel!.amount.wrong + o.derived!.amount.wrong }
+    // statement ↔ note matching (docs/14 Step 1): per status, over every statement line its note supplies, both years
+    const statementElrs = A.elrs.filter((e) => e.group === 'Statements')
+    const ties: Record<string, number> = {}
+    const mismatches: string[] = []
+    for (const e of statementElrs) {
+      for (const t of noteTies(p.session, e.uri)) {
+        for (const [y, x] of [['CY', t.cy], ['PY', t.py]] as const) {
+          ties[x.status] = (ties[x.status] ?? 0) + 1
+          if (x.status === 'mismatch') mismatches.push(`${e.code} ${t.concept} ${y}: statement ${x.statement} vs note ${x.note}`)
+        }
+      }
+    }
+    const calcIssues = statementElrs.reduce((n, e) => { const d = statementDifference(p.session, e.uri); return n + (d.cy?.issues.length ?? 0) + (d.py?.issues.length ?? 0) }, 0)
+    console.log([`note ties: ${JSON.stringify(ties)}; statement totals not adding up: ${calcIssues}`, ...mismatches.map((m) => `  ${m}`)].join('\n'))
     console.log(`ADR-0013 targets: amounts right ${amounts.right} (≥ 160), wrong ${amounts.wrong} (≤ 25); non-zero table amounts right ${board.rightNonZero.table} (≥ 190)`)
 
     // floors (2026-11-11): raise them when a producer improves; a drop is a regression

@@ -53,6 +53,17 @@ export {
   type TableDim,
 } from './mandatory-zeros'
 export {
+  noteTies,
+  statementDifference,
+  type NoteTie,
+  type TiePeriod,
+  type TieStatus,
+  type TieScope,
+  type CalcIssue,
+  type PeriodDifference,
+  type StatementDifference,
+} from './note-ties'
+export {
   planTableBlock,
   tableOfFact,
   UnknownTableError,

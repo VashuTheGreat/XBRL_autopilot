@@ -87,7 +87,7 @@ function sameDisplay(S, fact, display) {
   return typed === shown;
 }
 // a total agrees with the sum of its parts when equal after rounding both to the total's decimals (XBRL Calculations 1.1)
-function agrees(x, sum) {
+export function agrees(x, sum) {
   const d = x.decimals == null || x.decimals === 'INF' ? 'INF' : Number(x.decimals);
   return Dec.eq(Dec.round(Dec.parse(x.value), d), Dec.round(sum.total, d));
 }
