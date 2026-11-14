@@ -6,7 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api.app import app
-from src.services.engine_rules.builder import apply_curation, build, measure
+from src.services.engine_rules.builder import apply_curation, build, load_key_answers, measure
 from src.services.engine_rules.jsre import ji, trim
 from src.services.engine_rules.sheet_origin import sheet_origins
 from src.services.engine_rules.specific import split_clauses
@@ -32,7 +32,9 @@ def test_ci_rules_equal_the_frozen_typescript_output(built):
     """The Python port builds exactly the rule model the retired TS compiler built (same keys, same order)."""
     rules, coverage = built["ci_taxonomy"]
     golden = load(FIXTURES / "ci_rules.ts-golden.json")
-    assert json.dumps(rules["businessRules"]) == json.dumps(golden["businessRules"])
+    # keyAnswers (docs/14 Step 5) is product curation added after the TS compiler was retired
+    model = {k: v for k, v in rules["businessRules"].items() if k != "keyAnswers"}
+    assert json.dumps(model) == json.dumps(golden["businessRules"])
     for k in ("taxonomyId", "taxonomyHash", "acceptedSchemaRefs"):
         assert rules["meta"][k] == golden["meta"][k], k
 
@@ -236,3 +238,25 @@ def test_engine_rules_route_without_rules(tid):
     resp = client.get(f"/api/v1/taxonomies/{tid}/engine-rules")
     assert resp.status_code == 404
     assert resp.json()["success"] is False
+
+
+# ------------------------------------------------------------------------------------------------- key answers
+@pytest.mark.parametrize("tid", list(RULE_SPECS))
+def test_key_answers_are_curated_yes_no_dependency_parents(built, tid):
+    """Generate confirms the curated key answers (docs/14 Step 5): each one is a boolean dependency parent."""
+    rules, _ = built[tid]
+    model = rules["businessRules"]
+    parents = {d["parentConcept"] for d in model["booleanDependencies"]}
+    assert len(model["keyAnswers"]) == 4
+    assert set(model["keyAnswers"]) <= parents
+    assert any(s["file"].endswith("key_answers.json") for s in rules["meta"]["sources"])
+
+
+def test_key_answers_reject_an_element_that_decides_nothing(tmp_path):
+    (tmp_path / "key_answers.json").write_text(json.dumps({"keyAnswers": [{"concept": "in-gaap:ShareCapital"}]}), encoding="utf-8")
+
+    class Spec:
+        curation_dir = tmp_path
+
+    with pytest.raises(ValueError, match="not a Yes/No dependency parent"):
+        load_key_answers(Spec(), {"booleanDependencies": [{"parentConcept": "in-ca:WhetherCompanyIsSubsidiaryCompany"}]})

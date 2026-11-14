@@ -376,6 +376,26 @@ export interface FormRow {
   py?: FormCell
   /** a main-statement line that a note supplies (Go to note, F7) */
   note?: FormRowNote
+  /**
+   * Tree marker (engine form-marks, from taxonomy data): E = text block, L = linked text block (the element is also
+   * presented in `linkedElrs`), T = dimensional table (`tableId` names it)
+   */
+  marker?: 'E' | 'L' | 'T'
+  /** L: the other statements / notes (codes) that show the same text block */
+  linkedElrs?: string[]
+  /** the line is empty and the MCA rules require it for that year (engine mandatoryCell) */
+  mandatory?: FormRowMandatory
+  /** a value of the line comes from an Excel cell */
+  tagged?: boolean
+}
+
+/** Per year: the line is empty and mandatory now; the rules that require it. */
+export interface FormRowMandatory {
+  cy?: boolean
+  py?: boolean
+  rules: string[]
+  /** required because of another answer ("mandatory if Yes / if > 0") */
+  conditional?: boolean
 }
 
 /**
@@ -394,6 +414,41 @@ export function noteTone(note: FormRowNote | undefined): 'ok' | 'bad' | null {
   const years = [note.cy, note.py].filter((y): y is NoteTieView => !!y && y.status !== 'no-statement' && y.status !== 'undetermined')
   if (!years.length) return null
   return years.some((y) => y.status === 'mismatch' || y.status === 'note-empty') ? 'bad' : 'ok'
+}
+
+/**
+ * The one colour of a Form line: red while its note doesn't add up or a mandatory year is empty, green once its note
+ * ties or it is tagged from Excel, else neither.
+ */
+export function rowTone(row: Pick<FormRow, 'note' | 'mandatory' | 'tagged'>): 'ok' | 'bad' | null {
+  const note = noteTone(row.note)
+  if (note === 'bad' || row.mandatory?.cy || row.mandatory?.py) return 'bad'
+  return note === 'ok' || row.tagged ? 'ok' : null
+}
+
+/** Where an element is already tagged: "Balance Sheet!C14 (CY)", one per fact a cell supplies. */
+export interface ConceptUse {
+  cell: CellRef
+  scope: Scope
+  text: string
+}
+
+/**
+ * The tagged (not suggested / rejected) uses of each element, by concept: a cell's main tag and its "also reported as"
+ * facts. Feeds the tick and "tagged at …" on taxonomy search results.
+ */
+export function conceptUses(mappings: MappingView[]): Map<string, ConceptUse[]> {
+  const out = new Map<string, ConceptUse[]>()
+  const add = (concept: string, cell: CellRef, scope: Scope) => {
+    const list = out.get(concept) ?? out.set(concept, []).get(concept)!
+    list.push({ cell, scope, text: `${cell.sheet}!${cell.ref} (${scope})` })
+  }
+  for (const m of mappings) {
+    if (m.status !== 'approved') continue
+    add(m.fact.concept, m.cell, m.fact.scope)
+    for (const a of m.also ?? []) add(a.concept, m.cell, a.scope)
+  }
+  return out
 }
 
 export interface FormView {

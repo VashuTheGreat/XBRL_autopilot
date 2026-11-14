@@ -8,6 +8,7 @@ import { dimKey, indexFactLines, nondimAllowed } from '@xap/engine'
 import { displayLabel, type DimRef, type FormCell, type FormRow, type FormTable, type FormTableColumn, type FormView, type MappingView, type Scope, type XmlView } from '@shared/editor'
 import type { CellRef } from '@shared/workbook'
 import { ValidationError } from './errors'
+import { itemMarks, tableMarks } from './form-marks-view'
 import { formDifference, rowNotes } from './note-tie-view'
 import type { ElrTreeNode, ProjectAccess, TaxonomyCatalog } from './ports'
 
@@ -52,17 +53,19 @@ export class EditorQueryService {
     const visit = (n: ElrTreeNode, depth: number) => {
       if (/\[table\]$/i.test(n.label)) tableCount++
       if (n.abstract || STRUCTURAL.test(n.label)) {
-        rows.push({ kind: /\[table\]$/i.test(n.label) ? 'table' : 'header', depth, label: n.label, concept: n.qname })
+        const table = /\[table\]$/i.test(n.label)
+        rows.push({ kind: table ? 'table' : 'header', depth, label: n.label, concept: n.qname, ...(table ? tableMarks(p.session, elrUri, n.qname) : {}) })
       } else if (A.has(n.qname) && nondimAllowed(A, n.qname)) {
+        const cells = { cy: cellFor(n.qname, 'CY'), ...(hasPy ? { py: cellFor(n.qname, 'PY') } : {}) }
         rows.push({
           kind: 'item',
           depth,
           label: n.label,
           concept: n.qname,
           dataType: A.dataType(n.qname),
-          cy: cellFor(n.qname, 'CY'),
-          ...(hasPy ? { py: cellFor(n.qname, 'PY') } : {}),
+          ...cells,
           ...(notes.has(n.qname) ? { note: notes.get(n.qname)! } : {}),
+          ...itemMarks(p.session, elrUri, n.qname, cells),
         })
       } else {
         // reported only inside a dimensional table (or unknown to the engine): shown, not editable here

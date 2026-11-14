@@ -15,6 +15,8 @@ import { readXlsx } from './infra/xlsx-reader'
 import { SidecarAuthoritySource, SidecarRuleBundleSource } from './infra/sidecar-authority-source'
 import { DetachedLauncher, FileOutputWriter, findMcaTool } from './infra/mca-tool'
 import { McaToolService } from './services/mca-tool-service'
+import { GenerateService } from './services/generate-service'
+import { MandatoryInputService } from './services/mandatory-input-service'
 import { ValidationService } from './services/validation-service'
 import { AiHistory } from './services/ai-history'
 import { ContextBundleBuilder } from './services/context-bundle-builder'
@@ -117,6 +119,9 @@ const mcaTool = new McaToolService(
   new FileOutputWriter(join(userData, 'output')),
   new DetachedLauncher(),
 )
+// docs/14 Step 5: mandatory text / date / Yes-No items and Generate (only a clean filing is written)
+const mandatory = new MandatoryInputService(projects)
+const generate = new GenerateService(projects, new FileOutputWriter(join(userData, 'output')))
 
 // Phase 10: AI fix agent. Proposals only; every patch is checked by the engine and applied by the user. The fixture
 // guard reads data/ in development (client files never go to an AI service); the packaged app has no data/.
@@ -275,6 +280,8 @@ if (!app.requestSingleInstanceLock()) {
       tableSuggestions,
       validation,
       mcaTool,
+      mandatory,
+      generate,
       fixAgent,
       getWindow,
     })

@@ -38,6 +38,7 @@ import type {
 } from './editor'
 import type { CellRef, WorkbookModel } from './workbook'
 import type { McaLaunchResult, ValidationView } from './validation'
+import type { GenerateResult, KeyAnswerView, MandatoryView, SetMandatoryInput } from './mandatory'
 import type { AiHistoryEntry, AiView } from './ai'
 
 /**
@@ -159,6 +160,10 @@ export const IPC = {
   validationClearMca: 'validation:clear-mca',
   validationChanged: 'validation:changed',
   toolsLaunchMca: 'tools:launch-mca',
+  mandatoryList: 'mandatory:list',
+  mandatorySet: 'mandatory:set',
+  mandatoryKeyAnswers: 'mandatory:key-answers',
+  filingGenerate: 'filing:generate',
   aiGet: 'ai:get',
   aiPropose: 'ai:propose',
   aiFixAll: 'ai:fix-all',
@@ -279,6 +284,14 @@ export interface XapApi {
     /** writes output/NNN.xml and starts the MCA XBRL Validation Tool */
     launchMca(): Promise<Result<McaLaunchResult>>
     onChanged(cb: (v: ValidationView) => void): () => void
+  }
+  /** docs/14 Step 5: mandatory text / date / Yes-No items, required tables, key answers, Generate */
+  mandatory: {
+    list(): Promise<Result<MandatoryView>>
+    set(input: SetMandatoryInput): Promise<Result<void>>
+    keyAnswers(): Promise<Result<KeyAnswerView[]>>
+    /** writes output/NNN.xml; refused while validation errors remain */
+    generate(): Promise<Result<GenerateResult>>
   }
   /** Phase 10: AI fix agent (proposals only; the user accepts each patch) */
   ai: {

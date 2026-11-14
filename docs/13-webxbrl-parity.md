@@ -79,7 +79,7 @@
 | Directors: **Prefill** (one) / **Autofill** (all, by CIN or DIN) | Typed in the Form | ❌ | Directors grid in Masters (name, DIN, designation, signing), written to the 400100 facts | P1 |
 | Auditor master, membership-number check | Typed in the Form; pattern checked by validation | 🟡 | Auditor card in Masters with a live format check | P1 |
 | Masters reused across years | Prefill from last year's instance (`prefillDisclosures`) | ✅ | — | — |
-| Mandatory string pop-up during financial tagging 🔍 | "Empty mandatory → 0" fills numbers only | ❌ | One dialog listing the mandatory **text, date and Yes/No** items still empty, with inline inputs | P0 |
+| Mandatory string pop-up during financial tagging 🔍 | **Mandatory items** dialog (Form toolbar, and Review… in Generate): the text / date / Yes-No / list items still empty per year, grouped by statement, with inline inputs; tables an answer makes mandatory; double-click → the Form (Step 5, 2026-11-14) | ✅ | — | — |
 
 ## 3. Import / export
 | webXBRL feature | Ours | Status | To do | Pri |
@@ -99,7 +99,7 @@
 | **Single-click source, double-click target element** | Double-click a cell → Manual Tag dialog; double-click an element in the Taxonomy panel | ✅ | See §8 for the fixes the dialog needs | P0 |
 | Taxonomy shown as the **statement's tree** (Form layout), not a flat search | Flat search in the dialog; tree in the XBRL Form | 🟡 | Add a "This statement" tab in the dialog: the open ELR's tree, untagged rows first | P0 |
 | **Right-click menu on taxonomy items** 🔍 | — | ❌ | Right-click on an element (Taxonomy panel and Form): Tag selected cell · Tag CY only · Tag PY only · Untag · Show reference · Copy name. Right-click on an Excel cell: Tag… · Untag · Accept / Reject suggestion · Map as table | P1 |
-| Colour: tagged Excel cell **green**, tagged taxonomy item **red** | Excel: green / amber / red outline / grey hatch. Form: highlighted row, source chip | 🟡 | Mark tagged rows in the Taxonomy panel and in the dialog results (a tick plus the cell ref), so already-used elements are obvious | P0 |
+| Colour: tagged Excel cell **green**, tagged taxonomy item **red** | Excel: green / amber / red outline / grey hatch. Form: tagged lines green, mandatory-empty lines red (one `rowTone` with the note colours); Taxonomy panel and Manual Tag results show a tick plus "tagged at Sheet!C14 (CY)" (Step 2, 2026-11-14) | ✅ | — | — |
 | **Reference link per line item** (Schedule III / Ind AS para) | Not shown | ❌ | Show the element's references (already in the taxonomy KB) in the Element Inspector | P1 |
 | Notes: select text, double-click the heading | Range → text block via the dialog | 🟡 | Text blocks need their own flow: the dialog should rank `textBlockItemType` elements first when the cell is text | P0 |
 | Note / report **editor** (create or edit inside the software) | — | ❌ | Rich-text editor limited to the MCA HTML subset, with a live "will it render in the MCA PDF" check | P1 |
@@ -113,7 +113,7 @@
 | Colour-wise matching of notes vs schedules | Calculation rules (GR-1), statement ≠ note checks | 🟡 | A "note ties to statement" tick or cross per note in the Filing explorer | P1 |
 | Alert: opening ≠ closing, negative closing value | Rules GR-7, sign checks | ✅ | — | — |
 | Duplicate PAN / DIN alert | — | ❌ | Rule on directors and related parties | P2 |
-| Mandatory items shown in red | Filing explorer dots; "Empty mandatory" | 🟡 | Red marker on mandatory empty rows in the Form | P1 |
+| Mandatory items shown in red | Form: empty mandatory lines red per year (Step 2, 2026-11-14) | ✅ | — | — |
 | Audio-visual help | — | ❌ | Short help videos or GIFs per screen | P2 |
 
 ## 6. Validation and errors
@@ -280,10 +280,10 @@ For each screen, write what you see, every button, right-click item and shortcut
 |---|---|---|---|
 | **Add / Replace** when tagging a line that already has a value (sum cells that aren't next to each other) | Contiguous range sum only; re-tag replaces silently | ❌ | **P0** |
 | **Line → note table jump** (yellow L / F7 / right-click) with a **BS-vs-note difference footer**, green at 0 | Form line labels green / red against their note (tooltip: statement · note · difference); **Go to note** button and **F7** open the note at its table or row; statement **Difference** footer (CY / PY), green at 0 (Step 1, 2026-11-14) | ✅ | — |
-| Statement **tree with + / − and Ctrl+E**, mandatory lines red, tagged lines green | Form rows; mandatory dots in the explorer | 🟡 | **P0** |
+| Statement **tree with + / − and Ctrl+E**, mandatory lines red, tagged lines green | Form tree folds per head and per table (+ / −), Ctrl+E for all; empty mandatory lines red per year (engine `mandatoryCell`), tagged lines green (Step 2, 2026-11-14) | ✅ | — |
 | **Pending Issues** button in the tagging toolbar | Problems panel | ✅ | — |
 | Tag a **blank cell → 0** | "Empty mandatory → 0" (whole statement) | ✅ (different) | — |
-| Generate pre-check of untagged mandatory items and mismatches | Generate dialog: blocking errors, "Fix first" | ✅ | — |
+| Generate pre-check of untagged mandatory items and mismatches | Generate dialog (Ctrl+G): key answers to confirm, mandatory items still empty (Review…), validation errors block with **Fix first**; main refuses a gated filing (Step 5, 2026-11-14) | ✅ | — |
 | **Copy PY → CY** in note tables ("Load data from 24-25") | — | ❌ | P1 |
 | Fill auditor / signatories **from masters** | Masters panel is a placeholder | ❌ | P1 |
 | **Auditor name ↔ PAN, membership no. ↔ name** consistency (top pre-scrutiny errors) | — | ❌ | P1 (a warning: "check the name exactly as on the PAN") |
@@ -408,7 +408,7 @@ Only what §11 doesn't already say is listed here.
 |---|---|---|---|
 | **Statement "Difference" footer** (CY and PY), 0 = fully tagged | Form footer "Difference CY · PY" from the statement's own calculation totals, green at 0; click lists that statement's problems (Step 1, 2026-11-14) | ✅ | — |
 | **Red head until its note / table matches** ("matching concept") | Engine `noteTies`: a line stays red while its note is empty or differs, green once it adds up (Step 1, 2026-11-14) | ✅ | — |
-| **E / L / T markers** on tree lines with double-click into text block / table | Form shows tables under the statement | 🟡 | **P0** |
+| **E / L / T markers** on tree lines with double-click into text block / table | E (text block), L (text block also presented in other ELRs), T (table) from taxonomy data; double-click T opens and scrolls to the table, E / L opens Manual Tag preset to the element (Step 2, 2026-11-14) | ✅ | — |
 | **View details** (every cell summed into a line) | Source chip shows one range | ❌ | P0 (with Add / Replace) |
 | **Change sign** on a tagged value | Sign handled by the tagger and rules | ❌ | P1 |
 | **Go to linked cell** from a taxonomy line | `locate` from a fact | ✅ | — |
@@ -416,7 +416,7 @@ Only what §11 doesn't already say is listed here.
 | **Show / Hide members** in a table | All members shown | ❌ | P1 |
 | Column-gap setting, re-tag when PY is blank | Per-sheet CY/PY columns picked by auto-tag | ✅ (different) | — |
 | **PDF format settings** (MCA style: borders, bold, spacing) | No PDF | ❌ | P1 (with the Preview tab) |
-| **Generate confirmation of the key Yes/No answers** (subsidiary, holding, CSR applicable) | Blocking errors only | ❌ | **P0** (cheap, and prevents the CSR-2 mistake) |
+| **Generate confirmation of the key Yes/No answers** (subsidiary, holding, CSR applicable) | Generate dialog confirms holding / subsidiaries / CSR applicable / auditor qualified (curated `keyAnswers` in the KB rule bundle, each a Yes/No dependency parent), with what each answer requires (Step 5, 2026-11-14) | ✅ | — |
 | Error colour code (line item / member / table) | Problems panel by severity | 🟡 | P2 |
 | **Backup / Restore** | `.axbrl` save; no versioned backup | 🟡 | P2 (autosave copies) |
 | **Membership-number Verify** button | Pattern check only | 🟡 | P1 (needs ICAI data; pattern check for now) |
@@ -495,7 +495,7 @@ Only what §11 doesn't already say is listed here.
 | webXBRL behaviour | Ours | Status | Pri |
 |---|---|---|---|
 | **Note editor** (F2): rich text with tables, paste from Word/Excel, **Auto format** of pasted tables, MCA HTML subset | — | ❌ | **P0** (raised from P1 in §4: every Directors' report and MGT-9 table goes through it) |
-| **Conditional mandatory** (CSR = No skips CSR; qualified = Yes requires remarks) shown while tagging | Engine business rules after validation | 🟡 | **P0**: drive the Form's red markers from the same rules |
+| **Conditional mandatory** (CSR = No skips CSR; qualified = Yes requires remarks) shown while tagging | `mandatoryCell` drives the Form's red markers and the Mandatory items dialog: CSR = No no longer requires the CSR items (C&I also closes them), qualified = Yes requires the remarks (Ind AS field; C&I table SR-L3893-1, listed as a required table) (Step 5, 2026-11-14) | ✅ | — |
 | **Parent text block required** when a sub-item is tagged | — | ❌ | P1 (warning) |
 | **Enumerated fields as dropdowns** (designation, category…) | Form inputs | 🟡 | P1: use the taxonomy's enumerations / MCA lists |
 | **Frozen computed totals** in the statement and tables | Calculation rules; Form shows totals | 🟡 | P1: show computed totals read-only, with a tick or cross against the tagged total |

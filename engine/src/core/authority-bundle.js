@@ -18,6 +18,7 @@ export function emptyRuleModel() {
     applicableElrs: [],
     tableApplicability: {},
     booleanDependencies: [],
+    keyAnswers: [],
     corpus: null,
   };
 }

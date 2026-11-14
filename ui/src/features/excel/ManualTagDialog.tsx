@@ -4,6 +4,7 @@ import { formatIndian } from '@xap/engine/basics'
 import type { ConceptHit, MappingView, Scope } from '@shared/editor'
 import { cellKey, columnLetter, fromA1, rangeOf } from '@shared/workbook'
 import { Button, Dialog } from '@/components/ui/primitives'
+import { TaggedMark } from '@/components/TaggedMark'
 import { cn } from '@/lib/cn'
 import { unwrap } from '@/lib/result'
 import { useEditor } from '@/stores/editor'
@@ -34,6 +35,7 @@ export function ManualTagDialog() {
     untag,
     acceptSuggestion,
     rejectSuggestion,
+    uses,
   } = useEditor()
 
   const cell = manualTagTarget?.cell ?? selection.cell
@@ -558,6 +560,7 @@ export function ManualTagDialog() {
                         {h.periodType && <span>· {h.periodType}</span>}
                         {h.balance && <span>· {h.balance}</span>}
                       </div>
+                      <TaggedMark uses={uses.get(h.qname)} className="self-start" />
                     </div>
                   )
                 })

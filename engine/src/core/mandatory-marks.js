@@ -43,6 +43,14 @@ function factsOf(filing, q) {
   return cache.byConcept.get(q) || [];
 }
 
+// a rule the curation narrows to warnings for some elements / years (softFor, softConcepts: MCA-accepted evidence),
+// as the rule engine reports them (rules.js out): not marked there either
+function softFor(a, concept, scope) {
+  const s = a.softFor;
+  if (s && (!s.concepts || s.concepts.includes(concept)) && (!s.scopes || s.scopes.includes(scope))) return true;
+  return !!a.softConcepts?.includes(concept);
+}
+
 /**
  * @returns {{ mandatory: boolean, rules: string[], conditional: boolean }}
  */
@@ -56,6 +64,7 @@ export function mandatoryCell(S, concept, scope, dims = [], tableId = null) {
   for (const r of index(A).get(concept) || []) {
     if (r.scope?.periods && !r.scope.periods.includes(scope)) continue;
     const a = r.ast;
+    if (softFor(a, concept, scope)) continue;
     let hit = false, cond = false;
     switch (a.type) {
       case 'mandatory':

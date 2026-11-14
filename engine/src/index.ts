@@ -63,6 +63,18 @@ export {
   type PeriodDifference,
   type StatementDifference,
 } from './note-ties'
+export { mandatoryCell } from './core/mandatory-marks.js'
+export {
+  textBlockMark,
+  elrTableOf,
+  mandatoryGap,
+  type ElementMarker,
+  type TreeMarker,
+  type MarkScope,
+  type TextBlockMark,
+  type MandatoryGap,
+} from './form-marks'
+export { mandatoryInputs, requiredTables, keyAnswers, type MandatoryInput, type RequiredTable, type KeyAnswer } from './mandatory-inputs'
 export {
   planTableBlock,
   tableOfFact,

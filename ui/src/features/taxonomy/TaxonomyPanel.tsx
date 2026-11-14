@@ -2,6 +2,7 @@ import { MousePointerClick, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { ConceptHit, Scope } from '@shared/editor'
 import { columnLetter, fromA1 } from '@shared/workbook'
+import { TaggedMark } from '@/components/TaggedMark'
 import { unwrap } from '@/lib/result'
 import { cn } from '@/lib/cn'
 import { useEditor } from '@/stores/editor'
@@ -14,7 +15,7 @@ export function TaxonomyPanel() {
   const [query, setQuery] = useState('')
   const [hits, setHits] = useState<ConceptHit[]>([])
   const [active, setActive] = useState<string | null>(null)
-  const { selection, tagSelected, sheetColumns } = useEditor()
+  const { selection, tagSelected, sheetColumns, uses } = useEditor()
 
   const parsed = selection.cell ? fromA1(selection.cell.ref) : null
   const currentCol = parsed ? columnLetter(parsed.c) : null
@@ -131,6 +132,7 @@ export function TaxonomyPanel() {
               {h.elrCodes.length > 0 && <span>[{h.elrCodes.slice(0, 3).join(', ')}]</span>}
               {!h.nonDimensional && <span className="text-warn">table only</span>}
             </div>
+            <TaggedMark uses={uses.get(h.qname)} className="mt-0.5" />
           </li>
         ))}
         {query.trim().length >= 2 && hits.length === 0 && <li className="px-3 py-4 text-center text-xs text-muted">No elements match.</li>}

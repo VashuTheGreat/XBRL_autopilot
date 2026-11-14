@@ -8,8 +8,8 @@ import { existsSync, mkdtempSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { calculationNetworks, Gate, noteTies, statementDifference } from '@xap/engine'
-import type { Scope } from '@shared/editor'
+import { calculationNetworks, Gate, mandatoryInputs, noteTies, statementDifference } from '@xap/engine'
+import { rowTone, type Scope } from '@shared/editor'
 import type { CellRef } from '@shared/workbook'
 import { AppDatabase } from '../electron/main/infra/app-database'
 import { DirAutosaveStore } from '../electron/main/infra/dir-autosave-store'
@@ -22,6 +22,7 @@ import { MappingService } from '../electron/main/services/mapping-service'
 import { ProjectService } from '../electron/main/services/project-service'
 import { SourceService } from '../electron/main/services/source-service'
 import { StatementService } from '../electron/main/services/statement-service'
+import { authorityCatalog } from './helpers/authority-catalog'
 
 const AUTHORITY = resolve(__dirname, '../../engine/authority/ci-2016.authority.json')
 const HPL = resolve(__dirname, '../../data/HPL -M26 - Financials_final cross checked with print_8th sep (3).xlsx')
@@ -207,6 +208,47 @@ describe.skipIf(!existsSync(HPL) || !existsSync(AUTHORITY))('HPL (C&I) hand-tagg
     S.setValue(part, 'CY', '1000')
     expect(bs().get('OtherCurrentLiabilities')!.cy).toEqual({ statement: '100452000', note: '100000000', difference: '452000', status: 'mismatch' })
     S.setValue(part, 'CY', '') // leave the filing as the other tests expect it
+  })
+
+  /**
+   * Statement tree marks (docs/14 Step 2): with the statements tagged and the missing mandatory lines filled with 0,
+   * no statement line is red for being mandatory and empty; every tagged line is marked tagged; a tagged line whose
+   * note is still empty stays red (the note), a tagged total with no note is green.
+   */
+  it('tree marks: no empty mandatory statement line; tagged lines tagged; red while the note is pending', async () => {
+    const form = new EditorQueryService(projects, () => mapping.list(), authorityCatalog(projects), () => TODAY)
+    const A = projects.project().authority.authority
+    const uri = (code: string) => (A.elrs as { code: string; uri: string }[]).find((e) => e.code === code)!.uri
+    for (const [code, lines] of [['100100', BALANCE_SHEET], ['100200', PROFIT_AND_LOSS]] as const) {
+      const rows = (await form.form(uri(code))).rows
+      expect(rows.filter((r) => r.mandatory).map((r) => r.concept), code).toEqual([])
+      const tagged = new Set(rows.filter((r) => r.tagged).map((r) => r.concept!.split(':')[1]))
+      expect(lines.map(([, local]) => local).filter((l) => !tagged.has(l)), code).toEqual([])
+    }
+    const bs = (await form.form(uri('100100'))).rows
+    const line = (local: string) => bs.find((r) => r.concept === `in-gaap:${local}`)!
+    expect(rowTone(line('ShareCapital'))).toBe('bad') // its note (classes of share capital) is not tagged yet
+    expect(rowTone(line('ShareholdersFunds'))).toBe('ok')
+  })
+
+  /**
+   * Mandatory non-numeric items (docs/14 Step 5): with only the statements tagged, the list asks for text / date /
+   * Yes-No items only (amounts were filled with 0), the key CSR question among them; answering CSR = No through the
+   * service closes the CSR policy question (C&I's dependency). The answer is removed afterwards for the other tests.
+   */
+  it('mandatory items: non-numeric only; CSR = No closes the CSR policy question', () => {
+    const S = projects.session()
+    const A = projects.project().authority.authority
+    const items = mandatoryInputs(S)
+    expect(items.length).toBeGreaterThan(5)
+    expect(items.filter((i) => A.isNumeric(i.concept))).toEqual([])
+    const listed = (q: string) => mandatoryInputs(S).some((i) => i.concept === q && i.scope === 'CY')
+    expect(listed('in-gaap:WhetherProvisionsOfCorporateSocialResponsibilityAreApplicableOnCompany')).toBe(true)
+    S.setValue('in-gaap:WhetherProvisionsOfCorporateSocialResponsibilityAreApplicableOnCompany', 'CY', 'true')
+    expect(listed('in-gaap:WhetherCompanyHasWrittenCSRPolicy')).toBe(true)
+    S.setValue('in-gaap:WhetherProvisionsOfCorporateSocialResponsibilityAreApplicableOnCompany', 'CY', 'false')
+    expect(listed('in-gaap:WhetherCompanyHasWrittenCSRPolicy')).toBe(false)
+    S.setValue('in-gaap:WhetherProvisionsOfCorporateSocialResponsibilityAreApplicableOnCompany', 'CY', '')
   })
 
   it('generates the XML with every tagged fact', () => {

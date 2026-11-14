@@ -3,7 +3,7 @@
  * Source of truth stays in main; this store caches read-models and refreshes when the project revision changes.
  */
 import { create } from 'zustand'
-import type { AlsoReportInput, AutoTagColumnOptions, BlockSuggestion, CellInfo, FormRowNote, FormView, MappingView, Scope, SetSheetColumnsInput, SheetColumns, XmlView } from '@shared/editor'
+import { conceptUses, type AlsoReportInput, type AutoTagColumnOptions, type BlockSuggestion, type CellInfo, type ConceptUse, type FormRowNote, type FormView, type MappingView, type Scope, type SetSheetColumnsInput, type SheetColumns, type XmlView } from '@shared/editor'
 import { cellKey, columnLetter, fromA1, rangeCells, type CellRef, type WorkbookModel } from '@shared/workbook'
 import { unwrap } from '@/lib/result'
 import { toast } from './toast'
@@ -30,6 +30,8 @@ interface EditorState {
   blockSuggestions: BlockSuggestion[]
   byCell: Map<string, MappingView>
   byFact: Map<string, MappingView>
+  /** where each element is already tagged (taxonomy search results show a tick and the cells) */
+  uses: Map<string, ConceptUse[]>
   selection: Selection
   /** bumped on every cell / fact selection, also a repeat click: the Form scrolls the row back into view */
   focusSeq: number
@@ -58,6 +60,8 @@ interface EditorState {
   setActiveElr(uri: string): Promise<void>
   /** Go to note (F7): opens the note that supplies a statement line and scrolls to its table or row */
   goToNote(note: FormRowNote): Promise<void>
+  /** opens a statement / note in the Form and scrolls to a table or an element's row (Go to note, mandatory items) */
+  showInForm(target: { elrUri: string; concept: string; tableId?: string }): Promise<void>
   setXmlWanted(wanted: boolean): Promise<void>
   /** tags the selected cell; returns false when nothing happened */
   tagSelected(concept: string, scope?: Scope): Promise<boolean>
@@ -108,6 +112,7 @@ const index = (mappings: MappingView[]) => ({
   byCell: new Map(firstFigureLast(mappings).flatMap((m) => [[cellKey(m.cell), m] as const, ...rangeCells(m.cell.ref).map((a1) => [cellKey({ ...m.cell, ref: a1 }), m] as const)])),
   // every fact a cell supplies (its main tag and its "also reported as" facts) leads back to the cell
   byFact: new Map(mappings.flatMap((m) => (m.factKeys ?? (m.factKey ? [m.factKey] : [])).map((k) => [k, m] as const))),
+  uses: conceptUses(mappings),
 })
 
 const EMPTY = {
@@ -117,6 +122,7 @@ const EMPTY = {
   blockSuggestions: [],
   byCell: new Map<string, MappingView>(),
   byFact: new Map<string, MappingView>(),
+  uses: new Map<string, ConceptUse[]>(),
   selection: { cell: null, factKey: null },
   focusSeq: 0,
   cellInfo: null,
@@ -237,10 +243,12 @@ export const useEditor = create<EditorState>((set, get) => {
       await loadForm()
     },
 
-    goToNote: async (note) => {
+    goToNote: (note) => get().showInForm(note),
+
+    showInForm: async (target) => {
       useUi.getState().setRightTab('form')
-      if (get().activeElr !== note.elrUri) await get().setActiveElr(note.elrUri)
-      set({ noteTarget: { elrUri: note.elrUri, ...(note.tableId ? { tableId: note.tableId } : {}), concept: note.concept, seq: ++noteSeq } })
+      if (get().activeElr !== target.elrUri) await get().setActiveElr(target.elrUri)
+      set({ noteTarget: { elrUri: target.elrUri, ...(target.tableId ? { tableId: target.tableId } : {}), concept: target.concept, seq: ++noteSeq } })
     },
 
     setXmlWanted: async (wanted) => {

@@ -1,0 +1,9 @@
+{
+  "_provenance": "The Yes/No answers Generate asks the filer to confirm before writing the instance (docs/14 Step 5, webXBRL's confirmation of key answers). Each one decides which other items MCA requires (a booleanDependencies parent): a wrong answer silently opens or closes whole disclosures. The builder checks every concept is a boolean dependency parent of this taxonomy. Chosen by the product owner 2026-11-14.",
+  "keyAnswers": [
+    { "concept": "in-ca:WhetherCompanyIsSubsidiaryCompany", "why": "Holding company: opens the holding company's shareholding in the share capital note." },
+    { "concept": "in-ca:WhetherCompanyHasSubsidiaryCompanies", "why": "Subsidiaries: opens the number of subsidiaries and the subsidiary disclosures." },
+    { "concept": "ind-as:WhetherProvisionsOfCorporateSocialResponsibilityAreApplicableOnCompany", "why": "CSR applicable: No closes the CSR policy, prescribed expenditure and spending items." },
+    { "concept": "in-ca:WhetherAuditorsReportHasBeenQualifiedOrHasAnyReservationsOrContainsAdverseRemarks", "why": "Auditor's report qualified: Yes requires the auditor's qualifications / reservations / adverse remarks." }
+  ]
+}

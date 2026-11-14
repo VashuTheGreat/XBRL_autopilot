@@ -17,6 +17,8 @@ import type { TableMappingService } from '../services/table-mapping-service'
 import type { TableSuggestionService } from '../services/table-suggestion-service'
 import type { TaxonomyService } from '../services/taxonomy-service'
 import type { McaToolService } from '../services/mca-tool-service'
+import type { GenerateService } from '../services/generate-service'
+import type { MandatoryInputService } from '../services/mandatory-input-service'
 import type { ValidationService } from '../services/validation-service'
 import type { FixAgentService } from '../services/fix-agent-service'
 import type { ProjectService } from '../services/project-service'
@@ -44,6 +46,8 @@ export interface IpcDeps {
   tableSuggestions: TableSuggestionService
   validation: ValidationService
   mcaTool: McaToolService
+  mandatory: MandatoryInputService
+  generate: GenerateService
   fixAgent: FixAgentService
   getWindow: () => BrowserWindow | null
 }
@@ -56,6 +60,7 @@ export function registerIpc(d: IpcDeps): void {
   registerEditorIpc(d)
   registerAutoTagIpc(d)
   registerValidationIpc(d)
+  registerMandatoryIpc(d)
   registerAiIpc(d)
 }
 
@@ -230,6 +235,21 @@ function registerValidationIpc({ validation, mcaTool, getWindow }: IpcDeps): voi
   })
   handleResult(IPC.validationClearMca, () => validation.clearMcaErrors())
   handleResult(IPC.toolsLaunchMca, () => mcaTool.launch())
+}
+
+/** A mandatory text item is a paragraph or a text block, never a document. */
+const MAX_MANDATORY_VALUE = 100_000
+
+function registerMandatoryIpc({ mandatory, generate }: IpcDeps): void {
+  handleResult(IPC.mandatoryList, () => mandatory.list())
+  handleResult(IPC.mandatoryKeyAnswers, () => mandatory.keyAnswers())
+  handleResult(IPC.mandatorySet, (_e, input: unknown) => {
+    const i = (input ?? {}) as Record<string, unknown>
+    if (!SCOPES.includes(i.scope as Scope)) throw new Error('Invalid scope')
+    if (typeof i.value !== 'string' || i.value.length > MAX_MANDATORY_VALUE) throw new Error('Invalid value')
+    return mandatory.set({ concept: requireString(i.concept, 'concept'), scope: i.scope as Scope, value: i.value })
+  })
+  handleResult(IPC.filingGenerate, () => generate.generate())
 }
 
 /** Values typed in a review card are short (an amount or a text of at most 200 characters). */

@@ -71,10 +71,10 @@ Each step is meant to be done in a fresh chat with no memory of earlier ones. Th
 | # | Step | Parity refs | Pri | Status |
 |---|---|---|---|---|
 | 1 | Statement ↔ note matching: difference per line, red / green, Go to note (F7), statement Difference footer | §11.6, §12.2, §12.9 | P0 | ✅ |
-| 2 | Statement tree: E / L / T markers, mandatory red, tagged green, expand / collapse all; tagged marks in the Taxonomy panel | §4, §11.6, §12.2 | P0 | ⬜ |
+| 2 | Statement tree: E / L / T markers, mandatory red, tagged green, expand / collapse all; tagged marks in the Taxonomy panel | §4, §11.6, §12.2 | P0 | ✅ |
 | 3 | Add / Replace on a tagged line + View details (cells that aren't next to each other summed into one fact) | §11.6, §12.9 | P0 | ⬜ |
 | 4 | Manual Tag dialog fixes (AI for untagged rows, scoped to the statement, used elements marked, text-aware ranking, range kept, description column, Next untagged, single open) | §8 | P0 | ⬜ |
-| 5 | Mandatory text / date / Yes-No dialog + conditional mandatory (CSR, auditor qualification) + Generate confirmation of key answers | §2, §12.5, §13.4 | P0 | ⬜ |
+| 5 | Mandatory text / date / Yes-No dialog + conditional mandatory (CSR, auditor qualification) + Generate confirmation of key answers | §2, §12.5, §13.4 | P0 | ✅ |
 | 6 | Note editor (F2): MCA-subset rich text, paste from Word / Excel, Auto format tables, open a `.docx` as a document; parent-text-block warning | §3, §4, §13.1–13.4 | P0 | ⬜ |
 | 7 | Preview tab (MCA-like render) + PDF with MCA-style format settings | §7, §12.1 | P0 | ⬜ |
 | 8 | Right-click menus + footnotes UI (CY / PY, table cells, one on many) + change sign + properties | §3, §4, §12.2 | P1 | ⬜ |
@@ -83,6 +83,22 @@ Each step is meant to be done in a fresh chat with no memory of earlier ones. Th
 | 11 | Import hygiene + error flow: merged-cell warning, rounding check, side Problems panel, one-click MCA-tool import, notes checklist | §6, §12.9, §13.4 | P1 | ⬜ |
 | 12 | AI quality review: deterministic checks for the §12.7 list + AI proposals the user accepts | §12.7 | P1 | ⬜ |
 | 13 | P2 batch: export the mapping to Excel, versioned backups, applicability check, narration snippets, duplicate PAN / DIN, Ind AS 3-year, open last year's `.axbrl`, cash-flow "not applicable" | §0, §5, §11.6, §12.8 | P2 | ⬜ |
+
+**Chat grouping.** Steps that share files and engine pieces run in one chat, so the context is loaded once. Big or risky steps stay alone. Inside a chat, finish and test the first step before starting the second. If context runs short, mark the second step 🟨 and stop at a clean point.
+
+| Chat | Steps | Why together |
+|---|---|---|
+| — | 1 | Done |
+| A | 2 + 5 | Both use `mandatory-marks.js` and the Form's red markers |
+| B | 3 | `.axbrl` format change (ADR + migration): alone |
+| C | 4 | Eight dialog fixes + an AI call: alone |
+| D | 6 | New editor UI: alone |
+| E | 7 + 10 | Both wire engine helpers that already exist (`buildPreviewHtml`, `carryForward`, `fillTotals`) |
+| F | 8 + 9 | Right-click "Fill from master" and footnotes touch the same Form and panel code |
+| G | 11 + 12 | Quality-review findings go into the Problems panel that Step 11 wires up |
+| H | 13 | P2 batch |
+
+For a combined chat, use the template with "Steps N and M (in that order)".
 
 ---
 
@@ -161,7 +177,7 @@ Each step is meant to be done in a fresh chat with no memory of earlier ones. Th
 **Already in the code:**
 - `core/mandatory-marks.js` handles conditional mandatory ("if Yes");
 - `core/applicability.js` handles which ELRs, concepts and tables apply;
-- the Generate dialog already blocks on errors ("Fix first");
+- ~~the Generate dialog already blocks on errors ("Fix first")~~ — it did not exist; Step 5 built it (the export gate blocks on errors);
 - `fillMandatoryZeros` covers the numbers.
 
 So this step is wiring plus the dialog, not new rule logic.

@@ -84,6 +84,16 @@ On the right, the XBRL Form shows the reverse: the source cell ref shows as a ch
   The label's tooltip shows each year as "CY: statement 1,23,456 · note 1,20,000 · difference 3,456 (differs from the note)".
   - **Go to note:** the ⇥ button after the label, or **F7** on the selected line (selected in the Form or through its Excel cell). It opens the note and scrolls to its table, or to the element's row for a note total.
   - **Difference footer:** under a main statement, "Difference CY 0 · PY 0" is the gap of the statement's own totals (Σ |reported − computed|). It is green at 0 and red with "(n totals don't add up)" otherwise. Clicking it opens Problems filtered to that statement ("Only [100100] Balance sheet ✕"), validating first if needed. The model is `FormRow.note` / `FormView.difference`, filled by `EditorQueryService.form()` through `note-tie-view.ts`.
+- **Statement tree marks (XBRL Form, [14 Step 2](14-parity-build-plan.md#step-2--statement-tree-markers-and-tagged-status)):**
+  - **Markers** before the label, from taxonomy data (engine `form-marks.ts`): **E** = a text block shown in this ELR only; **L** = a linked text block, the same element presented in other ELRs (the tooltip names them); **T** = a dimensional table. Double-click **T** (badge or row) opens that table's grid and scrolls to it; double-click **E / L** opens Manual Tag preset to the element, for the selected Excel text.
+  - **Colours** (one shared `rowTone`, also used for the note ties): **red** when a year is empty and the MCA rules require it now (engine `mandatoryCell`, conditional rules included, applicability respected) or when the note differs / is empty; **green** when the line is tagged from Excel or its note ties. The tooltip lists the empty years and the rule ids.
+  - **Expand / collapse:** a ▸ / ▾ on every head with lines below it and on every table grid. **Ctrl+E** (while the Form has focus) opens everything if anything is closed, else closes every head and table. Selecting a cell, Go to note and T reopen whatever hides their target.
+  - **Tagged elements in search results:** the Taxonomy panel and the Manual Tag dialog show ✓ "tagged at Balance Sheet!C14 (CY)" (+ n more; the tooltip lists all) on elements already used by an approved tag or an "also reported as" fact (`conceptUses`, from the store's mappings).
+  - Model: `FormRow.marker` / `linkedElrs` / `tableId` / `mandatory` / `tagged`, filled by `EditorQueryService.form()` through `form-marks-view.ts`.
+- **Mandatory items and Generate ([14 Step 5](14-parity-build-plan.md#step-5--mandatory-non-numeric--conditional-mandatory--generate-confirmation)):**
+  - **Mandatory items** (Form toolbar): the text, date, Yes/No and list items the MCA rules require now and that are still empty, per year, grouped by statement (engine `mandatoryInputs` = `mandatoryGap` per non-numeric line, applicability respected). Inputs by data type: Yes / No buttons, a date picker, a list, a text field (Enter), a text area for text blocks (Ctrl+Enter). Values go through the engine fact patch (`setText`, source user), so a wrong value is refused with the reason. Tables an answer makes mandatory (C&I "auditor's report qualified = Yes" → the remarks table) are listed with **Open table**. Double-click an item → the Form at its row. Amounts stay with "Empty mandatory → 0".
+  - **Conditional items:** CSR applicable = No drops the CSR items (C&I also closes them); auditor's report qualified = Yes adds the remarks. Items required by another answer say so; the Form's red markers follow the same rules.
+  - **Generate XML** (Ctrl+G / menu): confirm the key Yes/No answers (holding company, subsidiaries, CSR applicable, auditor qualified; curated in `src/services/engine_rules/curation/<kb>/key_answers.json`, served in the rule bundle as `keyAnswers`). The tooltip shows what each answer requires. Then the count of mandatory items still empty (**Review…**) and validation errors. **Generate** needs every key answer given and confirmed and no error; with errors, **Fix first** opens Problems. Main also refuses (`GenerateService`: the export gate's `GateError`). The instance goes to the project's `output/NNN.xml`.
 - **A failing Excel view** shows "The Excel view stopped working" with Try again (`ErrorBoundary`), never a white window. Reveal requests wait until Univer has rendered the sheet (2026-11-11: a reveal right after a sheet change threw and blanked the app).
 - **Hovering a cell** → tooltip: concept label + qname, period, dimensions, confidence, rule status.
 - **Drag** a taxonomy concept onto a cell → creates a manual mapping, `origin: manual`.
@@ -130,10 +140,11 @@ On the right, the XBRL Form shows the reverse: the source cell ref shows as a ch
 |---|---|
 | Ctrl+N / Ctrl+O / Ctrl+S / Ctrl+Shift+S | New / Open / Save / Save as |
 | Ctrl+Shift+V | Validate |
-| Ctrl+G | Generate XML |
+| Ctrl+G | Generate XML (key answers → mandatory items → errors → write) |
 | Ctrl+P | Quick-switch ELR / sheet |
 | Ctrl+Shift+F | Search taxonomy |
 | F7 | Go to note (the selected statement line's note, at its table or row) |
+| Ctrl+E (Form) | Expand / collapse the whole statement tree and its tables |
 | F8 / Shift+F8 | Next / previous problem |
 | Ctrl+. | Quick fix for the selected problem |
 | Enter / Delete (on suggestion) | Approve / reject mapping |

@@ -97,6 +97,12 @@ const api: XapApi = {
     launchMca: () => invoke(IPC.toolsLaunchMca),
     onChanged: (cb) => subscribe<ValidationView>(IPC.validationChanged, cb),
   },
+  mandatory: {
+    list: () => invoke(IPC.mandatoryList),
+    set: (input) => invoke(IPC.mandatorySet, input),
+    keyAnswers: () => invoke(IPC.mandatoryKeyAnswers),
+    generate: () => invoke(IPC.filingGenerate),
+  },
   ai: {
     get: () => invoke(IPC.aiGet),
     propose: (id) => invoke(IPC.aiPropose, id),

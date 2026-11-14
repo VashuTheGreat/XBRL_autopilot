@@ -52,6 +52,21 @@ def load_curation(spec: RuleSpec) -> tuple[dict, list[dict], list[dict]]:
     return divergences, limitations, sources
 
 
+def load_key_answers(spec: RuleSpec, model: dict) -> tuple[list[str], list[dict]]:
+    """The curated key Yes/No answers (``curation/<kb>/key_answers.json``, optional) and their source entry. Every
+    concept must be a boolean dependency parent of the compiled rules: a key answer decides other mandatory items."""
+    path = spec.curation_dir / "key_answers.json"
+    if not path.exists():
+        return [], []
+    entries = json.loads(path.read_text(encoding="utf-8")).get("keyAnswers") or []
+    parents = {d["parentConcept"] for d in model.get("booleanDependencies") or []}
+    concepts = [e["concept"] for e in entries]
+    unknown = [q for q in concepts if q not in parents]
+    if unknown:
+        raise ValueError(f"key_answers.json: not a Yes/No dependency parent of this taxonomy: {', '.join(unknown)}")
+    return concepts, [{"file": _rel(path), "kind": "product-curation", "sha256": _sha(path)}]
+
+
 def apply_curation(model: dict, coverage: dict, divergences: dict, limitations: list[dict]) -> None:
     by_id = {r["id"]: r for r in model["rules"]}
     cov_by_id = {c["ruleId"]: c for c in coverage["rules"]}
@@ -125,6 +140,8 @@ def build(spec: RuleSpec) -> tuple[dict, dict]:
     model, coverage = strip_undef(model), strip_undef(coverage)
     divergences, limitations, curation_sources = load_curation(spec)
     apply_curation(model, coverage, divergences, limitations)
+    model["keyAnswers"], key_sources = load_key_answers(spec, model)
+    curation_sources = [*curation_sources, *key_sources]
     coverage["measure"] = measure(coverage)
 
     sources = [{"file": _rel(spec.workbook), "kind": "authority-document", "sha256": _sha(spec.workbook)}, *curation_sources]

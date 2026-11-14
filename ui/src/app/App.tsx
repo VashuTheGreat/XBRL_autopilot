@@ -6,6 +6,9 @@ import { ImportReportDialog } from '@/features/import-xbrl/ImportReportDialog'
 import { ImportXbrlDialog } from '@/features/import-xbrl/ImportXbrlDialog'
 import { TableDialogs } from '@/features/tables/TableDialogs'
 import { ManualTagDialog } from '@/features/excel/ManualTagDialog'
+import { GenerateDialog } from '@/features/mandatory/GenerateDialog'
+import { MandatoryDialog } from '@/features/mandatory/MandatoryDialog'
+import { useMandatory } from '@/stores/mandatory'
 import { useEditor } from '@/stores/editor'
 import { useProject } from '@/stores/project'
 import { useSettings } from '@/stores/settings'
@@ -45,10 +48,12 @@ function runCommand(cmd: MenuCommand): void {
     case 'filing:validate':
       ui.setBottomTab('problems')
       return void (project.summary ? useValidation.getState().run() : undefined)
+    case 'filing:generate-xml':
+      return project.summary ? useMandatory.getState().openGenerate() : toast.info('Open a filing first.')
     case 'tools:open-mca-validator':
       return void (project.summary ? useValidation.getState().launchMca() : toast.info('Open a filing first.'))
     default:
-      // view:quick-switch, filing:generate-xml arrive with later phases
+      // view:quick-switch arrives with a later phase
       return toast.info('Coming in a later phase of the build.')
   }
 }
@@ -80,6 +85,8 @@ export function App() {
       <ImportReportDialog />
       <TableDialogs />
       <ManualTagDialog />
+      <GenerateDialog />
+      <MandatoryDialog />
       <Toasts />
     </div>
   )
