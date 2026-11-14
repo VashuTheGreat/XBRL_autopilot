@@ -122,3 +122,11 @@ export function overlaps(a: CellRef, b: CellRef): boolean {
   const q = rangeOf(b.ref)
   return !!p && !!q && p.r1 <= q.r2 && q.r1 <= p.r2 && p.c1 <= q.c2 && q.c1 <= p.c2
 }
+
+/** The value of one cell of the loaded workbooks (null when the cell is empty or not loaded). */
+export function cellValueAt(workbooks: WorkbookModel[], ref: CellRef): CellValue {
+  const at = fromA1(ref.ref)
+  const sheet = workbooks.find((w) => w.source === ref.workbook)?.sheets.find((s) => s.name === ref.sheet)
+  if (!at || !sheet) return null
+  return sheet.cells.find((c) => c.r === at.r && c.c === at.c)?.v ?? null
+}

@@ -6,7 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api.app import app
-from src.services.engine_rules.builder import apply_curation, build, load_key_answers, measure
+from src.services.engine_rules.builder import apply_curation, build, load_key_answers, load_masters, measure
 from src.services.engine_rules.jsre import ji, trim
 from src.services.engine_rules.sheet_origin import sheet_origins
 from src.services.engine_rules.specific import split_clauses
@@ -32,8 +32,8 @@ def test_ci_rules_equal_the_frozen_typescript_output(built):
     """The Python port builds exactly the rule model the retired TS compiler built (same keys, same order)."""
     rules, coverage = built["ci_taxonomy"]
     golden = load(FIXTURES / "ci_rules.ts-golden.json")
-    # keyAnswers (docs/14 Step 5) is product curation added after the TS compiler was retired
-    model = {k: v for k, v in rules["businessRules"].items() if k != "keyAnswers"}
+    # keyAnswers (docs/14 Step 5) and masters (Step 9) are product curation added after the TS compiler was retired
+    model = {k: v for k, v in rules["businessRules"].items() if k not in ("keyAnswers", "masters")}
     assert json.dumps(model) == json.dumps(golden["businessRules"])
     for k in ("taxonomyId", "taxonomyHash", "acceptedSchemaRefs"):
         assert rules["meta"][k] == golden["meta"][k], k
@@ -260,3 +260,40 @@ def test_key_answers_reject_an_element_that_decides_nothing(tmp_path):
 
     with pytest.raises(ValueError, match="not a Yes/No dependency parent"):
         load_key_answers(Spec(), {"booleanDependencies": [{"parentConcept": "in-ca:WhetherCompanyIsSubsidiaryCompany"}]})
+
+
+# ------------------------------------------------------------------------------------------------- masters
+@pytest.mark.parametrize("tid", list(RULE_SPECS))
+def test_masters_curation_is_built_against_the_taxonomy(built, tid):
+    """The Masters panel (docs/14 Step 9): sections by ELR title, the designation list, the membership format."""
+    rules, _ = built[tid]
+    masters = rules["businessRules"]["masters"]
+    assert [s["id"] for s in masters["sections"]] == ["company", "auditor", "signatories"]
+    assert masters["vocabularies"] == {"in-ca:DesignationOfDirector": "in-ca-types:TypeOfKeyManagerialPersonnel"}
+    assert masters["formats"] == {"in-ca:MembershipNumberOfAuditor": "ICAI_MEMBERSHIP"}
+    assert masters["panNames"][0]["byCategory"]["Auditors firm"]["holder"] == "F"
+    assert any(s["file"].endswith("masters.json") for s in rules["meta"]["sources"])
+
+
+def test_masters_curation_rejects_references_the_taxonomy_does_not_have(tmp_path):
+    taxonomy = {
+        "elrs": [{"title": "General"}],
+        "concepts": {"x:Free": {"type": "xbrli:stringItemType"}, "x:Listed": {"type": "t:List"}},
+        "types": {"t:List": {"base": "xbrli:tokenItemType", "enumerations": ["A"]}, "t:Plain": {"base": "xbrli:stringItemType"}},
+    }
+
+    class Spec:
+        curation_dir = tmp_path
+
+    cases = [
+        ({"sections": [{"id": "company", "elrTitle": "Missing", "items": True, "tables": False}]}, "no statement titled"),
+        ({"vocabularies": {"x:Listed": "t:List"}}, "not a free-text element"),
+        ({"vocabularies": {"x:Free": "t:Plain"}}, "not an enumeration type"),
+        ({"formats": {"x:Free": "NOPE"}}, "unknown format"),
+        ({"formats": {"x:Gone": "PAN"}}, "not an element"),
+        ({"panNames": [{"pan": "x:Free", "category": "x:Listed", "byCategory": {"B": {"name": "x:Free", "holder": "P"}}}]}, "is not a value of"),
+    ]
+    for content, message in cases:
+        (tmp_path / "masters.json").write_text(json.dumps(content), encoding="utf-8")
+        with pytest.raises(ValueError, match=message):
+            load_masters(Spec(), taxonomy)

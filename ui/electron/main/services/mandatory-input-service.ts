@@ -6,7 +6,7 @@
  */
 import { applyFactPatch, keyAnswers, mandatoryInputs, requiredTables, type Session } from '@xap/engine'
 import type { KeyAnswerView, MandatoryView, SetMandatoryInput } from '@shared/mandatory'
-import { ValidationError } from './errors'
+import { engineProblems, ValidationError } from './errors'
 import type { ProjectAccess } from './ports'
 
 type Elrs = { elr(uri: string): { code: string; title: string } | null }
@@ -38,7 +38,7 @@ export class MandatoryInputService {
     try {
       applyFactPatch(p.session as Session, { op: 'setText', fact: { concept: input.concept, scope: input.scope }, value, source: { kind: 'user' } })
     } catch (err) {
-      throw new ValidationError(problemsOf(err))
+      throw new ValidationError(engineProblems(err))
     }
     p.touch()
   }
@@ -47,10 +47,4 @@ export class MandatoryInputService {
 const statementOf = (A: Elrs) => (uri: string) => {
   const e = A.elr(uri)
   return { elrCode: e?.code.slice(0, 6) ?? '', elrTitle: e?.title ?? '' }
-}
-
-function problemsOf(err: unknown): string[] {
-  const problems = (err as { problems?: unknown }).problems
-  if (Array.isArray(problems) && problems.length) return problems.map(String)
-  return [err instanceof Error ? err.message : String(err)]
 }

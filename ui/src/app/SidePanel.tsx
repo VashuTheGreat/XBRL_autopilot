@@ -1,7 +1,8 @@
-import { Building2, Sparkles, TriangleAlert } from 'lucide-react'
+import { Sparkles, TriangleAlert } from 'lucide-react'
 import { EmptyState } from '@/components/EmptyState'
 import { AiChatPanel } from '@/features/ai-chat/AiChatPanel'
 import { FilingExplorer } from '@/features/explorer/FilingExplorer'
+import { MastersPanel } from '@/features/masters/MastersPanel'
 import { SettingsPanel } from '@/features/settings/SettingsPanel'
 import { TaxonomyPanel } from '@/features/taxonomy/TaxonomyPanel'
 import { cn } from '@/lib/cn'
@@ -32,11 +33,7 @@ export function SidePanel() {
           </EmptyState>
         )}
         {activity === 'ai' && <AiChatPanel />}
-        {activity === 'masters' && (
-          <EmptyState icon={Building2} title="Company masters" phase="Phase 4">
-            Company, directors and auditor details (General Information, ELR 400100) — edited in the XBRL Form.
-          </EmptyState>
-        )}
+        {activity === 'masters' && <MastersPanel />}
         {activity === 'settings' && <SettingsPanel />}
       </div>
     </aside>

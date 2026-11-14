@@ -67,6 +67,64 @@ def load_key_answers(spec: RuleSpec, model: dict) -> tuple[list[str], list[dict]
     return concepts, [{"file": _rel(path), "kind": "product-curation", "sha256": _sha(path)}]
 
 
+def _enumerations(taxonomy: dict, type_name: str | None) -> list[str] | None:
+    """The enumeration of a taxonomy type, following its base types (the engine's ``Authority.enumerations``)."""
+    types, seen = taxonomy["types"], set()
+    while type_name and type_name in types and type_name not in seen:
+        seen.add(type_name)
+        if types[type_name].get("enumerations"):
+            return types[type_name]["enumerations"]
+        type_name = types[type_name].get("base")
+    return None
+
+
+# format names the engine knows (engine/src/core/expr.js FORMATS; an engine test keeps the two in step)
+MASTER_FORMATS = {"CIN", "PAN", "DIN", "ICAI_MEMBERSHIP"}
+
+
+def load_masters(spec: RuleSpec, taxonomy: dict) -> tuple[dict | None, list[dict]]:
+    """The Masters panel's curation (``curation/<kb>/masters.json``, optional; docs/14 Step 9): the statements it
+    edits (by ELR title), value lists of free-text elements, extra format checks and the PAN ↔ name pairs. Every
+    reference is checked against the taxonomy."""
+    path = spec.curation_dir / "masters.json"
+    if not path.exists():
+        return None, []
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    concepts, titles = taxonomy["concepts"], {e["title"] for e in taxonomy["elrs"]}
+
+    def need(q: str, what: str) -> str:
+        if q not in concepts:
+            raise ValueError(f"masters.json: {q} ({what}) is not an element of this taxonomy")
+        return q
+
+    sections = raw.get("sections") or []
+    for sec in sections:
+        if sec["elrTitle"] not in titles:
+            raise ValueError(f"masters.json: no statement titled {sec['elrTitle']!r} in this taxonomy")
+    vocabularies = {}
+    for q, type_name in (raw.get("vocabularies") or {}).items():
+        if _enumerations(taxonomy, concepts[need(q, "vocabulary")].get("type")):
+            raise ValueError(f"masters.json: {q} is not a free-text element of this taxonomy")
+        if not _enumerations(taxonomy, type_name):
+            raise ValueError(f"masters.json: {type_name} is not an enumeration type of this taxonomy")
+        vocabularies[q] = type_name
+    formats = {}
+    for q, name in (raw.get("formats") or {}).items():
+        if name not in MASTER_FORMATS:
+            raise ValueError(f"masters.json: unknown format {name}")
+        formats[need(q, "format")] = name
+    pan_names = raw.get("panNames") or []
+    for pair in pan_names:
+        need(pair["pan"], "PAN")
+        allowed = _enumerations(taxonomy, concepts[need(pair["category"], "category")].get("type")) or []
+        for category, target in pair["byCategory"].items():
+            if category not in allowed:
+                raise ValueError(f"masters.json: {category!r} is not a value of {pair['category']}")
+            need(target["name"], "name")
+    model = {"sections": sections, "vocabularies": vocabularies, "formats": formats, "panNames": pan_names}
+    return model, [{"file": _rel(path), "kind": "product-curation", "sha256": _sha(path)}]
+
+
 def apply_curation(model: dict, coverage: dict, divergences: dict, limitations: list[dict]) -> None:
     by_id = {r["id"]: r for r in model["rules"]}
     cov_by_id = {c["ruleId"]: c for c in coverage["rules"]}
@@ -141,7 +199,10 @@ def build(spec: RuleSpec) -> tuple[dict, dict]:
     divergences, limitations, curation_sources = load_curation(spec)
     apply_curation(model, coverage, divergences, limitations)
     model["keyAnswers"], key_sources = load_key_answers(spec, model)
-    curation_sources = [*curation_sources, *key_sources]
+    masters, masters_sources = load_masters(spec, taxonomy)
+    if masters:
+        model["masters"] = masters
+    curation_sources = [*curation_sources, *key_sources, *masters_sources]
     coverage["measure"] = measure(coverage)
 
     sources = [{"file": _rel(spec.workbook), "kind": "authority-document", "sha256": _sha(spec.workbook)}, *curation_sources]

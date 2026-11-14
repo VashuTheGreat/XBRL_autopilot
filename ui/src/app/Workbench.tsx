@@ -1,8 +1,10 @@
 import { Group, Panel, Separator } from 'react-resizable-panels'
 import { BottomPanel } from '@/features/bottom/BottomPanel'
 import { ExcelPane } from '@/features/excel/ExcelPane'
+import { DocumentPane } from '@/features/notes/DocumentPane'
 import { WelcomeScreen } from '@/features/welcome/WelcomeScreen'
 import { XbrlPane } from '@/features/xbrl/XbrlPane'
+import { useNotes } from '@/stores/notes'
 import { useProject } from '@/stores/project'
 import { useUi } from '@/stores/ui'
 import { SidePanel } from './SidePanel'
@@ -20,6 +22,7 @@ function VSep() {
 export function Workbench() {
   const { sidebarOpen, bottomOpen } = useUi()
   const hasProject = useProject((s) => s.summary !== null)
+  const showingDocument = useNotes((s) => s.activeDoc !== null)
   return (
     <Group orientation="horizontal" className="min-w-0 flex-1">
       {sidebarOpen && (
@@ -36,7 +39,7 @@ export function Workbench() {
             {hasProject ? (
               <Group orientation="horizontal">
                 <Panel id="excel" defaultSize="50%" minSize="20%">
-                  <ExcelPane />
+                  {showingDocument ? <DocumentPane /> : <ExcelPane />}
                 </Panel>
                 <HSep />
                 <Panel id="xbrl" defaultSize="50%" minSize="20%">

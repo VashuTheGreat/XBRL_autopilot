@@ -265,3 +265,69 @@ export function parseCellDate(raw: unknown): string | null {
 
   return null
 }
+
+// ---------------------------------------------------------------------------------------------
+// Masters: live format and PAN checks (docs/14 Step 9). The patterns come from the engine (taxonomy type facets,
+// rule formats, curated formats); these helpers only apply them, so the renderer can check as the user types.
+// ---------------------------------------------------------------------------------------------
+
+/** A field's required format: a FORMATS name (PAN, DIN, ICAI_MEMBERSHIP …) or a taxonomy type name, and its pattern. */
+export interface FormatSpec {
+  name: string
+  pattern: string
+}
+
+const FORMAT_HINTS: Record<string, string> = {
+  PAN: '5 letters, 4 digits and a letter, in capitals (e.g. AAKFJ6101B)',
+  DIN: '8 digits',
+  CIN: '21 characters (e.g. U72200KA2010PTC123456)',
+  SRN: 'a letter and 8 digits (e.g. F12345678)',
+  ICAI_MEMBERSHIP: '6 digits, leading zeros kept (e.g. 022973)',
+}
+
+/** "in-ca-types:PANNumber" → "PAN"; FORMATS names stay as they are. */
+const formatKey = (name: string) => name.replace(/^.*:/, '').replace(/Number$/, '')
+
+/** Why a value does not have its field's format; null when it does, when it is empty, or when there is no format. */
+export function formatProblem(format: FormatSpec | null, value: string): string | null {
+  const v = value.trim()
+  if (!format || !v || new RegExp(format.pattern).test(v)) return null
+  const hint = FORMAT_HINTS[formatKey(format.name)]
+  return hint ? `Expected ${hint}.` : 'Not in the format the taxonomy requires.'
+}
+
+/** Income-tax PAN holder types (the PAN's 4th character). */
+export const PAN_HOLDER_TYPES: Record<string, string> = {
+  P: 'an individual',
+  F: 'a firm / LLP',
+  C: 'a company',
+  H: 'a HUF',
+  A: 'an association of persons',
+  T: 'a trust',
+  B: 'a body of individuals',
+  L: 'a local authority',
+  J: 'an artificial juridical person',
+  G: 'a government body',
+}
+
+/**
+ * What the PAN's own structure says against a name (MCA pre-scrutiny: "the auditor's name doesn't match the PAN"):
+ * the 4th character is the holder type, the 5th the first letter of the surname (an individual) or of the name.
+ * `holder` is the type the name should have (P, F …). A clean result is not proof: the name must still be entered
+ * exactly as on the PAN.
+ */
+export function panNameProblems(pan: string, name: string, holder: string): string[] {
+  const p = pan.trim().toUpperCase()
+  if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(p)) return []
+  const problems: string[] = []
+  if (p[3] !== holder) {
+    problems.push(`This PAN belongs to ${PAN_HOLDER_TYPES[p[3]!] ?? `holder type ${p[3]}`}, not ${PAN_HOLDER_TYPES[holder] ?? holder}.`)
+  }
+  const words = name.trim().split(/\s+/).filter((w) => /[A-Za-z]/.test(w))
+  const word = holder === 'P' ? words[words.length - 1] : words[0]
+  const initial = word?.match(/[A-Za-z]/)?.[0]?.toUpperCase()
+  if (initial && initial !== p[4]) {
+    problems.push(`The PAN's 5th character is ${p[4]}, but ${holder === 'P' ? 'the surname' : 'the name'} starts with ${initial}.`)
+  }
+  return problems
+}

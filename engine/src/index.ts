@@ -76,6 +76,42 @@ export {
 } from './form-marks'
 export { mandatoryInputs, requiredTables, keyAnswers, type MandatoryInput, type RequiredTable, type KeyAnswer } from './mandatory-inputs'
 export {
+  masterSections,
+  masterItemValues,
+  masterTableRows,
+  nextMasterMember,
+  setMasterCell,
+  setMasterItem,
+  removeMasterRow,
+  fillTargets,
+  fillTableFromRecords,
+  fieldFormat,
+  fieldOptions,
+  panPairs,
+  type MasterSection,
+  type MasterField,
+  type MasterTable,
+  type MasterRow,
+  type FieldFormat,
+  type FillTarget,
+  type FillResult,
+  type PanPair,
+} from './masters'
+export {
+  checkNote,
+  autoFormatNote,
+  documentBlocks,
+  noteForEditor,
+  noteValue,
+  noteStructureIssues,
+  parentTextBlock,
+  NOTE_TYPES,
+  type NoteCheck,
+  type NoteLayout,
+  type NoteIssue,
+  type AutoFormatResult,
+} from './notes'
+export {
   planTableBlock,
   tableOfFact,
   UnknownTableError,

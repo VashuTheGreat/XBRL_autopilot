@@ -17,6 +17,10 @@ import { DetachedLauncher, FileOutputWriter, findMcaTool } from './infra/mca-too
 import { McaToolService } from './services/mca-tool-service'
 import { GenerateService } from './services/generate-service'
 import { MandatoryInputService } from './services/mandatory-input-service'
+import { KeyValueMasterLibrary } from './services/master-library'
+import { MastersService } from './services/masters-service'
+import { NoteEditorService } from './services/note-editor-service'
+import { MammothDocxConverter } from './infra/mammoth-docx-converter'
 import { ValidationService } from './services/validation-service'
 import { AiHistory } from './services/ai-history'
 import { ContextBundleBuilder } from './services/context-bundle-builder'
@@ -122,6 +126,10 @@ const mcaTool = new McaToolService(
 // docs/14 Step 5: mandatory text / date / Yes-No items and Generate (only a clean filing is written)
 const mandatory = new MandatoryInputService(projects)
 const generate = new GenerateService(projects, new FileOutputWriter(join(userData, 'output')))
+// docs/14 Step 9: the Masters panel (filing facts) and the master library (app.db, this machine only)
+const masters = new MastersService(projects, new KeyValueMasterLibrary(db))
+// docs/14 Step 6: the F2 note editor and Word documents
+const notes = new NoteEditorService(projects, new MammothDocxConverter())
 
 // Phase 10: AI fix agent. Proposals only; every patch is checked by the engine and applied by the user. The fixture
 // guard reads data/ in development (client files never go to an AI service); the packaged app has no data/.
@@ -282,6 +290,8 @@ if (!app.requestSingleInstanceLock()) {
       mcaTool,
       mandatory,
       generate,
+      masters,
+      notes,
       fixAgent,
       getWindow,
     })

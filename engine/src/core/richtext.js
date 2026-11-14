@@ -311,6 +311,9 @@ let OPTS = {};
 export function toMca(html, opts = {}) { OPTS = opts; try { return blocksHtml(model(html ?? ''), 'mca'); } finally { OPTS = {}; } }
 /** MCA markup (or plain text) from a fact -> editor HTML */
 export function fromMca(value) { OPTS = {}; return blocksHtml(model(value ?? ''), 'editor'); }
+/** editor HTML (or any pasted / converted HTML) -> its top-level blocks (paragraph, heading, list, table), each as
+ *  editor HTML: the units a document view lets the user select (docs/14 Step 6) */
+export function blocks(html) { OPTS = {}; return model(html ?? '').map((b) => blocksHtml([b], 'editor')); }
 /** visible text, for comparisons */
 export function plainText(html) {
   // a block element starts and ends a line ("31<div>st</div> March" renders on three lines)

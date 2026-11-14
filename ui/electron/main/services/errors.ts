@@ -29,3 +29,10 @@ export class ReadOnlyProjectError extends Error {
     this.name = 'ReadOnlyProjectError'
   }
 }
+
+/** The problems an engine edit refused with (its `problems` list, else its message), ready for a ValidationError. */
+export function engineProblems(err: unknown): string[] {
+  const problems = (err as { problems?: unknown }).problems
+  if (Array.isArray(problems) && problems.length) return problems.map(String)
+  return [err instanceof Error ? err.message : String(err)]
+}

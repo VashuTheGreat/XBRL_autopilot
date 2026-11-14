@@ -6,6 +6,7 @@ import { TaggedMark } from '@/components/TaggedMark'
 import { unwrap } from '@/lib/result'
 import { cn } from '@/lib/cn'
 import { useEditor } from '@/stores/editor'
+import { useNotes } from '@/stores/notes'
 
 /**
  * Taxonomy browser. webXBRL-style tagging: select an Excel cell, then double-click an element.
@@ -35,7 +36,8 @@ export function TaxonomyPanel() {
     return () => clearTimeout(t)
   }, [query])
 
-  const tag = (h: ConceptHit, scope?: Scope) => void tagSelected(h.qname, scope)
+  // with blocks of a Word document selected (notes view, docs/14 Step 6) the element tags them; else the selected cell
+  const tag = (h: ConceptHit, scope?: Scope) => void (useNotes.getState().selectedHtml() ? useNotes.getState().tagSelected(h.qname) : tagSelected(h.qname, scope))
 
   return (
     <div className="flex h-full flex-col">

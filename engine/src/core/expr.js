@@ -12,6 +12,8 @@ export const FORMATS = {
   // in-ca-types:PANNumber pattern from the taxonomy.
   PAN: /^[A-Z]{5}[0-9]{4}[A-Z]$/,
   DIN: /^\d{8}$/,
+  // ICAI membership number: 6 digits, leading zeros kept (curated for the Masters panel, docs/14 Step 9).
+  ICAI_MEMBERSHIP: /^\d{6}$/,
 };
 
 function typed(A, concept, raw) {

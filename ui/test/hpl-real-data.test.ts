@@ -19,6 +19,8 @@ import { readXlsx } from '../electron/main/infra/xlsx-reader'
 import { ColumnPeriodService } from '../electron/main/services/column-period-service'
 import { EditorQueryService } from '../electron/main/services/editor-query-service'
 import { MappingService } from '../electron/main/services/mapping-service'
+import { KeyValueMasterLibrary } from '../electron/main/services/master-library'
+import { MastersService } from '../electron/main/services/masters-service'
 import { ProjectService } from '../electron/main/services/project-service'
 import { SourceService } from '../electron/main/services/source-service'
 import { StatementService } from '../electron/main/services/statement-service'
@@ -249,6 +251,17 @@ describe.skipIf(!existsSync(HPL) || !existsSync(AUTHORITY))('HPL (C&I) hand-tagg
     S.setValue('in-gaap:WhetherProvisionsOfCorporateSocialResponsibilityAreApplicableOnCompany', 'CY', 'false')
     expect(listed('in-gaap:WhetherCompanyHasWrittenCSRPolicy')).toBe(false)
     S.setValue('in-gaap:WhetherProvisionsOfCorporateSocialResponsibilityAreApplicableOnCompany', 'CY', '')
+  })
+
+  it('masters (Step 9): the company card shows HPL as entered, and a director typed in the grid is a signatory fact', () => {
+    const masters = new MastersService(projects, new KeyValueMasterLibrary(new AppDatabase(':memory:')))
+    const card = masters.view().sections.find((s) => s.id === 'company')!
+    expect(card.values).toMatchObject({ 'in-ca:NameOfCompany': 'Helmier Private Limited', 'in-ca:CorporateIdentityNumber': 'U85100MH2021PTC366828' })
+    const grid = masters.view().sections.find((s) => s.id === 'signatories')!.grids[0]!
+    const member = masters.newRow(grid.tableId)
+    masters.setCell({ tableId: grid.tableId, member, concept: 'in-ca:FirstNameOfDirector', value: 'Synthetic' })
+    expect(projects.session().getValue('in-ca:FirstNameOfDirector', 'CY', [{ axis: grid.axis, typed: member }])?.value).toBe('Synthetic')
+    masters.removeRow({ tableId: grid.tableId, member })
   })
 
   it('generates the XML with every tagged fact', () => {
