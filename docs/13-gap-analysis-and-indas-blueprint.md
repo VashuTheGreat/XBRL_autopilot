@@ -287,7 +287,7 @@ Auto-tags a batch of row particulars from an active sheet using Hybrid Search (B
   }
   ```
 * **Response**:
-  ```json
+  ```JSON
   {
     "status": "success",
     "data": {

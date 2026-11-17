@@ -1,12 +1,282 @@
-# XBRL Autopilot · FastAPI Sidecar Complete Architecture & Route Workflow
+# XBRL Autopilot · Master Workflow, UI Blueprints & FastAPI Specs
 
-> **Scope**: This document defines the **FastAPI Sidecar** backend architecture, internal mechanics, and every single HTTP endpoint. It explains how each service is constructed internally (Hybrid Retrieval, BM25 + Qdrant, FlashRank Reranker, Python-Calamine, LangGraph RAG, XML Serialization) with complete realistic request and response payloads, and how the Frontend (Electron/React Desktop App) consumes them.
+> **Scope**: This is the single authoritative specification document for XBRL Autopilot. It bridges the real-world Chartered Accountant workflows (observed from Webtel webXBRL video analysis) with the **FastAPI Sidecar** backend architecture, internal mechanics, and API endpoints.
 
 ---
 
-## 1. Architectural Big Picture: Frontend vs. FastAPI Sidecar
+## 1. Real-World Analysis: Webtel WebXBRL Top Navigation & Screens
 
-The XBRL Autopilot architecture follows a **Hybrid Separation of Concerns**:
+From deep frame-by-frame extraction of the official 1080p Webtel webXBRL video (`https://youtu.be/2MmlPon1NhY`), the system is structured into **7 top-level tabs**:
+
+```
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Master  │  Financial Tagging  │  Notes Tagging  │  Fixed Assets  │  Generate Tuples  │  Validation Tool  │ Utilities│
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Complete Video Screenshot Reference Directory (`docs/ui/`)
+
+| Screenshot Name                                                 | Video Timestamp | Screen Function & What It Proves                                                                                                             |
+| :-------------------------------------------------------------- | :-------------: | :------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`01-financial-tagging-balance-sheet.png`**            |      05:00      | Financial Tagging: Balance sheet imported Excel sheet and cell grid                                                                          |
+| **`02-both-statements-and-notes-tree.png`**             |      06:20      | Combined Statement and Notes presentation linkbase tree                                                                                      |
+| **`03-process-flow-dashboard.png`**                     |      00:40      | Overall process flow: Master Setup $\rightarrow$ Financial Tagging $\rightarrow$ Notes $\rightarrow$ Tables $\rightarrow$ Validation |
+| **`04-company-master-cin-prefill.png`**                 |      01:20      | **Master Tab**: Company Master setup with CIN, Name, Roc, and "Prefill from MCA" button                                                |
+| **`05-director-master-setup.png`**                      |      02:20      | **Master Tab**: Director Master list — DIN, Name, Designation, Date of Appointment                                                    |
+| **`06-document-master-upload.png`**                     |      04:20      | **Master Tab**: Document Master for uploading Financial Statements & Board Report attachments                                          |
+| **`07-f9-column-gap-setting.png`**                      |      05:40      | Financial Tagging: F9 column mapping dialog (`Particulars`, `CY`, `PY`)                                                                |
+| **`08-cell-options-context-menu.png`**                  |      07:40      | Right-click context menu on cell: Link `[L]`, Pick number from string, Tag Member                                                          |
+| **`09-notes-tagging-text-blocks.png`**                  |      09:20      | Notes Tagging: Narrative text blocks (`[E]`) and note disclosures                                                                          |
+| **`10-table-tagging-dedicated-window.png`**             |      11:20      | Dedicated Table Modal (`[T]`) for multi-dimensional schedule tagging                                                                       |
+| **`11-table-show-hide-members-modal.png`**              |      12:00      | Show/Hide Members dialog to filter out unused taxonomy members                                                                               |
+| **`12-table-difference-reconciliation.png`**            |      14:00      | Live bottom reconciliation bar showing Balance Sheet Target vs Schedule Total                                                                |
+| **`13-mca-validation-colored-errors.png`**              |      17:00      | Final Validation Report: Red = Mandatory/Schema Error, Blue/Green = Accepted                                                                 |
+| **`14-auditor-master-setup.png`**                       |      03:50      | **Master Tab**: Auditor Master setup — Firm Registration No (FRN), Auditor Name, PAN, Membership No                                   |
+| **`15-directors-master-detail.png`**                    |      03:00      | **Master Tab**: Detailed Director Master form — DIN, Category (Executive/Independent), Designation                                    |
+| **`16-taxonomy-presentation-and-calculation-tree.png`** |      06:20      | Dual tabs: Presentation Tree vs Calculation Math equations                                                                                   |
+| **`17-fixed-assets-schedule-grid.png`**                 |      11:20      | Fixed Assets schedule breakdown grid (Gross Block, Depr, Net Block)                                                                          |
+| **`18-difference-reconciliation-red-error.png`**        |      15:20      | Red alert when Schedule Total $\neq$ Balance Sheet line item                                                                               |
+| **`19-mca-validation-pass-screen.png`**                 |      17:30      | In-built validation clean pass before launching official MCA validator                                                                       |
+
+---
+
+## 2. Fundamental Workflow Clarifications (Addressing Real-World CAs)
+
+### A. Master Setup Tab vs. Notes Tagging (Why They Are Completely Separate)
+
+> [!IMPORTANT]
+> **Director details, Company profile, and Auditors are NOT tagged from Excel notes!**
+> In real-world filings, they are entered in the **Master Setup** tab:
+
+1. **Company Master** (`04-company-master-cin-prefill.png`):
+   - The CA enters the CIN (Corporate Identity Number) and clicks **"Prefill from MCA"**.
+   - MCA web service fetches Company Name, Registered Office Address, Category, Sub-Category, and ROC Code.
+2. **Director Master** (`05-director-master-setup.png`, `15-directors-master-detail.png`):
+   - Table of all Directors: DIN, Full Name, Designation (Managing Director, Whole-time Director, Independent Director), Date of Appointment, Cessation Date, and Category.
+   - Entered manually or prefilled once from MCA / last year's `.axbrl` project.
+3. **Auditor Master** (`14-auditor-master-setup.png`):
+   - Statutory Auditor Firm Name, Firm Registration Number (FRN), Individual Auditor Name, Membership Number, PAN, Address, and Auditor Type.
+4. **Document Master** (`06-document-master-upload.png`):
+   - Uploading required MCA attachments (Signed Balance Sheet, Director's Report, Auditor's Report, Notice of AGM).
+
+**Where does Notes Tagging come in?**
+
+* **Notes Tagging (`[E]`)** is reserved for **narrative disclosures** and financial notes:
+  - Narrative **Board's Report / Director's Report Text** (`in-ca:BoardsReportExplanatory`).
+  - Narrative **Auditor's Report Comments / Emphasis of Matter** (`in-ca:AuditorsReportExplanatory`).
+  - **Accounting Policies** (`ind-as:DescriptionOfAccountingPolicy...Explanatory`).
+
+---
+
+### B. Balance Sheet Auto-Tagging & The Breadcrumb Trace Flow
+
+#### The Upward Row Trace (How Parent Headings Are Detected)
+
+When an accountant imports a Balance Sheet sheet into Univer, row particulars are organized hierarchically:
+
+```
+Row 1: EQUITY AND LIABILITIES            | CY: [EMPTY]    | PY: [EMPTY]   <-- Parent Level 1
+Row 2:   Shareholders' funds             | CY: [EMPTY]    | PY: [EMPTY]   <-- Parent Level 2
+Row 3:     Share Capital                 | CY: 4,17,83,000| PY: 4,17,83,000 <-- Value Row
+Row 4:     Reserves and Surplus          | CY: 9,50,00,000| PY: 8,20,00,000 <-- Value Row
+```
+
+1. **Detection Heuristic**:
+   - For any value row $N$ (where CY or PY contains an amount), the detector traces upwards ($N-1, N-2, \dots$):
+   - If a row above has **EMPTY CY and EMPTY PY amounts** and non-empty text, it is classified as a **Section Heading**.
+   - Tracing stops when the parent hierarchy boundary is reached.
+2. **Breadcrumb Trail Created**:
+   - For Row 3 ("Share Capital"), the breadcrumb is:
+     `["EQUITY AND LIABILITIES", "Shareholders' funds"]`.
+3. **Execution Sequence**:
+   - CA opens the Balance Sheet sheet and clicks **"Auto Tag Sheet"**.
+   - Frontend sends the rows + breadcrumbs to `POST /api/v1/mapping/suggest_column`.
+   - FastAPI queries Qdrant with `"EQUITY AND LIABILITIES > Shareholders' funds > Share Capital"`.
+   - Result: 98.5% match with `ind-as:EquityShareCapital`.
+   - Frontend highlights the row green, fills cell coordinates, and lets the CA review.
+   - CA clicks **"Next Sheet (P&L)"** and repeats the process.
+
+---
+
+### C. Notes Tagging (`[E]`): Text vs. Discrete Values & How LLM is Used
+
+Notes Tagging contains **two distinct types of disclosures**:
+
+```
+                     ┌───────────────────────────────────┐
+                     │          NOTES TAGGING            │
+                     └─────────────────┬─────────────────┘
+                                       │
+                ┌──────────────────────┴──────────────────────┐
+                ▼                                             ▼
+     1. Text Blocks ([E])                         2. Discrete Note Values
+  (Entire narrative paragraphs)                (Specific numbers inside note)
+  • Significant Accounting Policies            • Statutory Audit Fee: ₹5,00,000
+  • Contingent Liabilities note                • Tax Audit Fee: ₹1,00,000
+  • CSR Policy & Activities                    • Number of Shares Issued: 41,78,300
+```
+
+#### How the LLM (Large Language Model) is Used in Notes Tagging:
+
+1. **Semantic Text-to-Tag Classification**:
+   - Client narrative text varies widely between companies.
+   - LLM analyzes paragraph semantics and identifies which of the **405 Ind AS `[Text Block]` concepts** is the exact statutory match.
+2. **MCA-Compliant XHTML Sanitization**:
+   - The official MCA Validation Tool rejects invalid HTML, unclosed tags, JavaScript, and custom styling.
+   - The LLM parses the copied text/Word document and formats it into clean, strict MCA-compatible XHTML (`<p>`, `<table>`, `<tr>`, `<td>`, `<b>`, `<ol>`).
+3. **Mandatory Missing Disclosure Auditor**:
+   - The LLM cross-examines tagged financial figures against statutory rules.
+   - *Example*: If P&L shows `CorporateSocialResponsibilityExpense = ₹45,00,000`, the LLM alerts the CA:
+     > *"You have reported CSR expenditure of ₹45 Lakhs, but `in-ca:CorporateSocialResponsibilityExplanatory` text block is missing. Tag this note to prevent MCA validation failure."*
+     >
+
+---
+
+### D. Table Schedule Tagging (`[T]`): Concrete End-to-End Real Example
+
+#### 1. Actual Client Excel Schedule (Note 4: Property, Plant & Equipment)
+
+Suppose the client has the following schedule in their Excel workbook:
+
+|     Row     | Line Item Particulars |  Gross Block Opening  | Additions During Year | Deductions |  Gross Block Closing  |   Acc. Depreciation   |  Net Carrying Amount  |
+| :---------: | :-------------------- | :--------------------: | :-------------------: | :---------: | :--------------------: | :-------------------: | :--------------------: |
+| **5** | Freehold Land         |      1,20,00,000      |           0           |      0      |      1,20,00,000      |           0           |      1,20,00,000      |
+| **6** | Factory Buildings     |      4,00,00,000      |       50,00,000       |      0      |      4,50,00,000      |       45,00,000       |      4,05,00,000      |
+| **7** | Plant & Machinery     |      7,50,00,000      |       80,00,000       |      0      |      8,30,00,000      |      1,20,00,000      |      7,10,00,000      |
+| **8** | Office Equipment      |       50,00,000       |       10,00,000       |      0      |       60,00,000       |       15,00,000       |       45,00,000       |
+| **9** | **Total PPE**   | **13,20,00,000** | **1,40,00,000** | **0** | **14,60,00,000** | **1,80,00,000** | **12,80,00,000** |
+
+*Target on Balance Sheet*: Balance sheet Row 14 (`Property, Plant and Equipment at end of period`) = **₹12,80,00,000**.
+
+#### 2. Request Sent from Frontend to FastAPI Sidecar
+
+The CA clicks on the `[T]` indicator next to PPE on the Balance Sheet. Frontend sends:
+
+```json
+POST /api/v1/mapping/tables/suggest
+Content-Type: application/json
+
+{
+  "taxonomy": "ind_as_taxonomy",
+  "tableQname": "ind-as:PropertyPlantAndEquipmentTable",
+  "scheduleName": "Note 4: Property, Plant and Equipment",
+  "rows": [
+    { "rowIdx": 5, "label": "Freehold Land", "amount": 12000000 },
+    { "rowIdx": 6, "label": "Factory Buildings", "amount": 40500000 },
+    { "rowIdx": 7, "label": "Plant & Machinery", "amount": 71000000 },
+    { "rowIdx": 8, "label": "Office Equipment", "amount": 4500000 },
+    { "rowIdx": 9, "label": "Total PPE", "amount": 128000000 }
+  ],
+  "balanceSheetAmount": 128000000
+}
+```
+
+#### 3. Response Returned by FastAPI
+
+```json
+{
+  "data": {
+    "table": "ind-as:PropertyPlantAndEquipmentTable",
+    "axis": "ind-as:ClassesOfPropertyPlantAndEquipmentAxis",
+    "domain": "ind-as:PropertyPlantAndEquipmentMember",
+    "rowMappings": [
+      {
+        "rowIdx": 5,
+        "rowText": "Freehold Land",
+        "member": "ind-as:LandMember",
+        "memberLabel": "Land [Member]",
+        "isStandard": true,
+        "isTotalRow": false
+      },
+      {
+        "rowIdx": 6,
+        "rowText": "Factory Buildings",
+        "member": "ind-as:BuildingsMember",
+        "memberLabel": "Buildings [Member]",
+        "isStandard": true,
+        "isTotalRow": false
+      },
+      {
+        "rowIdx": 7,
+        "rowText": "Plant & Machinery",
+        "member": "ind-as:PlantAndEquipmentMember",
+        "memberLabel": "Plant and equipment [Member]",
+        "isStandard": true,
+        "isTotalRow": false
+      },
+      {
+        "rowIdx": 8,
+        "rowText": "Office Equipment",
+        "member": "ind-as:FurnitureAndFixturesMember",
+        "memberLabel": "Furniture and fixtures [Member]",
+        "isStandard": true,
+        "isTotalRow": false
+      },
+      {
+        "rowIdx": 9,
+        "rowText": "Total PPE",
+        "member": "ind-as:PropertyPlantAndEquipmentMember",
+        "memberLabel": "Property, plant and equipment [Member]",
+        "isStandard": true,
+        "isTotalRow": true
+      }
+    ],
+    "reconciliation": {
+      "scheduleTotal": 128000000,
+      "balanceSheetAmount": 128000000,
+      "difference": 0,
+      "isBalanced": true
+    }
+  },
+  "message": "Suggested dimensional mappings for table",
+  "success": true,
+  "errors": null
+}
+```
+
+#### 4. How the Dedicated Table Modal (`10-table-tagging-dedicated-window.png`) Renders It:
+
+1. Maps each row to its taxonomy member.
+2. Total PPE (Row 9) is flagged `isTotalRow: true` (so it represents the parent domain rollup).
+3. The bottom bar displays:
+   `Schedule Total: ₹12,80,00,000 | BS Target: ₹12,80,00,000 | Difference: ₹0.00 (Balanced in Green)`
+4. If a CA accidentally missed Office Equipment (₹45,00,000), the difference would show `-₹45,00,000 in Red` (`18-difference-reconciliation-red-error.png`), preventing erroneous MCA filing.
+
+---
+
+### E. Statutory & Historical Nomenclature: "Schedule" vs. "Note No." Column
+
+Why do some financial statement spreadsheets (such as `17-fixed-assets-schedule-grid.png`) display the column heading as **"Schedule"** while others display **"Note No."**?
+
+> [!NOTE]
+> **"Schedule" and "Note No." are 100% functionally identical in Indian corporate accounting.**
+> The variation is purely historical based on the governing Companies Act regime:
+
+1. **Companies Act, 1956 (Old Schedule VI Regime)**:
+
+   * Financial statements previously grouped itemized breakdowns under numbered **"Schedules"**:
+     * Share Capital $\rightarrow$ **Schedule 1**
+     * Reserves & Surplus $\rightarrow$ **Schedule 2**
+     * Secured Loans $\rightarrow$ **Schedule 3**
+     * Fixed Assets $\rightarrow$ **Schedule 5**
+     * Investments $\rightarrow$ **Schedule 6**
+   * Spreadsheets following this convention or software templates (such as the Webtel demo file from FY 2009-10) name the reference column **"Schedule"** or **"Sch No."**.
+2. **Companies Act, 2013 & Ind AS (Schedule III Regime)**:
+
+   * Modern MCA standards modernized the terminology from "Schedules" to **"Note No."** or **"Notes to Accounts"**:
+     * Share Capital $\rightarrow$ **Note 3**
+     * Property, Plant and Equipment (PPE) $\rightarrow$ **Note 4**
+     * Borrowings $\rightarrow$ **Note 12**
+3. **How XBRL Autopilot Handles Both Universally**:
+
+   * Client Excel workbooks may use any of the following column headers:
+     `Note No.`, `Note`, `Notes`, `Schedule`, `Sch No.`, `Sch`, or `Ref`.
+   * The **Workbook Schema & Column Mapper (`POST /api/v1/workbooks/inspect`)** uses regex and fuzzy matching across all these variations and normalizes them into a single unified key: **`noteCol`**.
+   * Whether called "Schedule" or "Note", the system treats it identically as the cross-link reference connecting the primary statement row to its underlying detailed breakdown schedule or note block!
+
+---
+
+## 3. Global Architecture: Desktop UI vs. FastAPI Sidecar
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -34,51 +304,18 @@ The XBRL Autopilot architecture follows a **Hybrid Separation of Concerns**:
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Why not do everything in the Frontend?
-1. **Machine Learning & Neural Rerankers**: The hybrid search pipeline uses Sentence-Transformers (`all-mpnet-base-v2`, 768-dim embeddings) and FlashRank cross-encoder (`ms-marco-TinyBERT-L-2-v2`). These require Python ML runtimes and cannot run inside Node.js or a browser renderer without huge binary bloat and memory thrashing.
-2. **High-Performance Excel Parsing**: The Rust-backed `python-calamine` parser extracts multi-sheet Excel files (including legacy `.xls` BIFF binary formats) in milliseconds without loading heavy GUI dependencies.
-3. **Statutory Knowledge Graph**: The MCA rules, definitions, calculation weights, and vector databases reside in the backend sidecar.
-
-### Why not do everything in FastAPI (Server-Side UI)?
-1. **Sub-millisecond UI Responsiveness**: If every click on a Balance Sheet tree node or every cell edit made a REST request to FastAPI, the CA would experience UI stutter. The Frontend pulls the compiled taxonomy authority JSON once and runs tree expansion and live arithmetic difference counters locally in 0ms.
-
 ---
 
-## 2. Global Standards & Envelope Conventions
-
-Every response from FastAPI adheres to the standard XAP envelope format:
-
-```json
-{
-  "data": { ... },
-  "message": "Human-readable status description",
-  "success": true,
-  "errors": null
-}
-```
-
-In case of error (`success: false`):
-```json
-{
-  "data": null,
-  "message": "Entity not found or validation failed",
-  "success": false,
-  "errors": ["Specific field error or rule violation"]
-}
-```
-
----
-
-## 3. Detailed Route Specifications
+## 4. Complete FastAPI Route Specifications
 
 ---
 
 ### GROUP A: System & Taxonomy Authority Endpoints
 
 #### 1. `GET /health`
-* **Purpose**: Health check and capability negotiation called by Electron on app launch. Electron waits for this endpoint to return `status: "ok"` before rendering the main dashboard.
+
+* **Purpose**: Health check and capability negotiation called by Electron on app launch.
 * **Internal Mechanics**: Checks active vector collections in Qdrant, verifies loaded taxonomies, and detects Groq LLM API key status.
-* **Frontend Context**: Electron polls this during initial startup splash screen ("Starting XBRL Sidecar...").
 * **Request**: None (`GET /health`)
 * **Response**:
   ```json
@@ -97,9 +334,8 @@ In case of error (`success: false`):
 ---
 
 #### 2. `GET /api/v1/taxonomies`
+
 * **Purpose**: Lists all officially supported MCA taxonomies.
-* **Internal Mechanics**: Reads supported taxonomies metadata registry.
-* **Frontend Context**: Displayed in the "New Filing Wizard" dropdown where the CA selects whether they are filing under **Ind AS 2017**, **C&I 2016**, or **Costing**.
 * **Request**: None (`GET /api/v1/taxonomies`)
 * **Response**:
   ```json
@@ -135,9 +371,8 @@ In case of error (`success: false`):
 ---
 
 #### 3. `GET /api/v1/taxonomies/{id}/authority`
-* **Purpose**: Serves the complete compiled Engine Authority JSON (~5-10 MB) as raw bytes.
-* **Internal Mechanics**: Reads `knowledge_base/<id>_engine_authority.json`. Contains DTS entry points, namespaces, dimensional hypercube models, type facets, and calculation linkbases. Served without runtime JSON re-serialization for lightning speed.
-* **Frontend Context**: Electron fetches this once per project session and stores it in memory. This enables the Desktop App to render trees, show/hide members, and validate rollups offline without network lag.
+
+* **Purpose**: Serves the complete compiled Engine Authority JSON (~5-10 MB) as raw bytes for Electron client caching.
 * **Request**: `GET /api/v1/taxonomies/ind_as_taxonomy/authority`
 * **Response**:
   ```json
@@ -168,9 +403,8 @@ In case of error (`success: false`):
 ---
 
 #### 4. `GET /api/v1/taxonomies/{id}/engine-rules`
-* **Purpose**: Serves the precompiled Executable MCA Business Rules AST bundle.
-* **Internal Mechanics**: Built from the official MCA Business Rules Excel sheet. Contains Abstract Syntax Trees (`when: { op: "==", fact: TagA, const: true }, type: "mandatory", concept: TagB`). Tied to the authority via `meta.taxonomyHash`.
-* **Frontend Context**: Loaded into `@xap/engine` in Electron. Every time the CA types or changes a cell, these AST rules evaluate in memory to immediately flag problems (e.g., if Paid-up capital > 0 but Share Capital note is empty).
+
+* **Purpose**: Serves the precompiled Executable MCA Business Rules AST bundle (1,351 rules).
 * **Request**: `GET /api/v1/taxonomies/ind_as_taxonomy/engine-rules`
 * **Response**:
   ```json
@@ -204,9 +438,8 @@ In case of error (`success: false`):
 ---
 
 #### 5. `GET /api/v1/taxonomies/{id}/elrs`
+
 * **Purpose**: Returns the list of all Extended Link Roles (statements, schedules, disclosures) with their code, title, and group.
-* **Internal Mechanics**: Extracts presentation roles, sorts by statement code (e.g., `110000` = Balance sheet, `210000` = P&L, `400600` = PPE Schedule), and categorizes into `Balance Sheet`, `Profit & Loss`, `Cash Flow`, `Corporate Info`, and `Notes`.
-* **Frontend Context**: Populates the left navigation sidebar ("Statements & Disclosures"). Clicking any ELR opens its tagging sheet.
 * **Request**: `GET /api/v1/taxonomies/ind_as_taxonomy/elrs`
 * **Response**:
   ```json
@@ -240,9 +473,8 @@ In case of error (`success: false`):
 ---
 
 #### 6. `GET /api/v1/taxonomies/{id}/elrs/{key}/tree`
-* **Purpose**: Retrieves the hierarchical presentation tree for a specific statement or note.
-* **Internal Mechanics**: Traverses `presentationArc` relationships starting from root abstract elements, ordering siblings by `arc.order`, and attaching concept metadata (periodType, balance, dataType, indicator flags like `[T]` for Table or `[E]` for Explanatory Text Block).
-* **Frontend Context**: Renders the XBRL Statement Tree View where line items are presented in formal MCA hierarchy with indents.
+
+* **Purpose**: Retrieves the hierarchical presentation tree for a specific statement or note with `[T]` and `[E]` indicator flags.
 * **Request**: `GET /api/v1/taxonomies/ind_as_taxonomy/elrs/110000/tree`
 * **Response**:
   ```json
@@ -288,12 +520,8 @@ In case of error (`success: false`):
 ### GROUP B: Workbook Reading & Schema Detection Endpoints
 
 #### 7. `POST /api/v1/workbooks/inspect`
-* **Purpose**: Inspects an uploaded client Excel workbook (`.xlsx`, `.xlsm`, or binary `.xls`), classifies the accounting role of each sheet (Balance Sheet, P&L, Notes, or Ignored), and detects key columns (Particulars label column, Note reference column, Current Year amount column, Previous Year amount column).
-* **Internal Mechanics**:
-  - Uses `python-calamine` to extract sheet headers without Excel dependencies.
-  - Scores sheet names against accounting heuristics (`bs`, `balance sheet`, `p&l`, `notes`, `tb`).
-  - Scans rows 0-10 for date headers (`31-03-2026`, `2025-26`, `FY 25`) to identify CY vs. PY columns.
-* **Frontend Context**: Powering the **Workbook Schema & Column Mapper Wizard**. When the CA drops an Excel file, this endpoint previews the detected sheets and preselects column assignments before mapping starts.
+
+* **Purpose**: Inspects an uploaded client Excel workbook (`.xlsx`, `.xlsm`, `.xls`), classifies the role of each sheet (Balance Sheet, P&L, Notes, or Ignored), and detects key columns (`labelCol`, `noteCol`, `cyCol`, `pyCol`).
 * **Request**:
   ```json
   {
@@ -353,9 +581,8 @@ In case of error (`success: false`):
 ---
 
 #### 8. `POST /api/v1/workbooks/read`
-* **Purpose**: Converts binary Excel files into a normalized JSON grid structure (`WorkbookModel`) that can be rendered directly into the Univer spreadsheet component.
-* **Internal Mechanics**: Parses cell values, merged regions, formula values, and numeric rounding via Rust Calamine engine.
-* **Frontend Context**: Called when the user views the interactive spreadsheet editor in the left pane of the application.
+
+* **Purpose**: Converts binary `.xls`/`.xlsx` Excel files into a normalized JSON grid structure (`WorkbookModel`) for the Univer component.
 * **Request**:
   ```json
   {
@@ -392,15 +619,8 @@ In case of error (`success: false`):
 ### GROUP C: Intelligent AI Auto-Tagging Endpoints
 
 #### 9. `POST /api/v1/mapping/suggest_column`
-* **Purpose**: Auto-tags a batch of financial statement line items from client Excel sheets with 98%+ accuracy. Resolves hierarchical ambiguity using **Breadcrumb Context Enrichment**.
-* **Internal Mechanics**:
-  1. Combines `breadcrumb_path` + row `label` (e.g. `"Equity & Liabilities > Shareholders Funds > Share Capital"`).
-  2. Runs **Ensemble Hybrid Retrieval**:
-     - Dense vector embedding (`sentence-transformers/all-mpnet-base-v2`, 768-dim) against Qdrant Cloud.
-     - BM25 keyword matching across taxonomy concept labels.
-  3. Evaluates with **FlashRank Cross-Encoder** neural reranker (`ms-marco-TinyBERT-L-2-v2`).
-  4. Returns the top best match with confidence score and alternative candidates.
-* **Frontend Context**: Triggered when the CA clicks "Auto Tag Sheet" in the Balance Sheet or P&L tab. Tagged items turn green (confident) or yellow (review needed).
+
+* **Purpose**: Auto-tags financial statement line items using **Breadcrumb Context Enrichment + Hybrid Search + FlashRank Neural Reranker**.
 * **Request**:
   ```json
   {
@@ -411,13 +631,13 @@ In case of error (`success: false`):
         "row": 9,
         "label": "Share Capital",
         "noteRef": "3",
-        "breadcrumb_path": ["Equity & Liabilities", "Shareholders' Funds"]
+        "breadcrumb_path": ["EQUITY AND LIABILITIES", "Shareholders' funds"]
       },
       {
         "row": 15,
         "label": "Trade Receivables",
         "noteRef": "7",
-        "breadcrumb_path": ["Financial Assets", "Current Assets"]
+        "breadcrumb_path": ["ASSETS", "Financial Assets", "Current Assets"]
       }
     ],
     "context": {
@@ -471,12 +691,8 @@ In case of error (`success: false`):
 ---
 
 #### 10. `POST /api/v1/mapping/notes/suggest`
-* **Purpose**: Auto-tags narrative text documents (Director's Report, Auditor's Report, Accounting Policies). Chunks raw text by section headings and matches paragraphs to Ind AS `[Text Block]` elements.
-* **Internal Mechanics**:
-  1. `notes_chunker.py` parses text using regex heading detection (`1.1`, All-Caps headings, markdown hashes) and records exact character offsets `[startOffset, endOffset]`.
-  2. `notes_suggest.py` filters candidates strictly to `type="textBlockItemType"` or `type="nonnum:textBlockItemType"`.
-  3. Matches the combined heading and body against the vector database and reranks candidates.
-* **Frontend Context**: Used in the **Notes & Disclosures Tagging View** (Section `[E]`). Chunks are highlighted in blue in the document viewer, and clicking a chunk opens the suggested tag card with 1-click approval.
+
+* **Purpose**: Auto-tags narrative text documents. Chunks raw text by section headings with character offsets `[startOffset, endOffset]` and matches paragraphs to Ind AS `[Text Block]` elements.
 * **Request**:
   ```json
   {
@@ -541,13 +757,8 @@ In case of error (`success: false`):
 ---
 
 #### 11. `POST /api/v1/mapping/tables/suggest`
-* **Purpose**: Auto-tags dimensional schedules (e.g. Property, Plant & Equipment schedule, Borrowings schedule). Maps client schedule rows to standard taxonomy members (`*Member`), handles total rows, creates custom member placeholders, and provides live Balance Sheet difference reconciliation.
-* **Internal Mechanics**:
-  1. Inspects `ind_as_engine_authority.json` to find the exact Hypercube Table (`*Table`) and Dimension Axis (`*Axis`).
-  2. Compares row labels against standard members under `dimension-domain` and `domain-member` relationships.
-  3. Detects total rows (`"Total Property, Plant and Equipment"`) and marks them with `isTotalRow: true`.
-  4. Calculates live reconciliation between Schedule Total and Balance Sheet parent line item (`scheduleTotal - balanceSheetAmount = diff`).
-* **Frontend Context**: Powering the **Dedicated Table Modal (`[T]`)**. Displays row mappings, member pickers, and the real-time bottom reconciliation bar (`BS Diff = 0`).
+
+* **Purpose**: Auto-tags dimensional schedules (e.g. PPE Schedule 400600). Maps schedule rows to standard taxonomy members (`*Member`), handles total rows, creates custom member placeholders, and provides live Balance Sheet difference reconciliation.
 * **Request**:
   ```json
   {
@@ -556,11 +767,12 @@ In case of error (`success: false`):
     "scheduleName": "Note 4: Property, Plant and Equipment",
     "rows": [
       { "rowIdx": 5, "label": "Freehold Land", "amount": 12000000 },
-      { "rowIdx": 6, "label": "Factory Buildings", "amount": 45000000 },
-      { "rowIdx": 7, "label": "Plant and Machinery", "amount": 83000000 },
-      { "rowIdx": 8, "label": "Total PPE", "amount": 140000000 }
+      { "rowIdx": 6, "label": "Factory Buildings", "amount": 40500000 },
+      { "rowIdx": 7, "label": "Plant & Machinery", "amount": 71000000 },
+      { "rowIdx": 8, "label": "Office Equipment", "amount": 4500000 },
+      { "rowIdx": 9, "label": "Total PPE", "amount": 128000000 }
     ],
-    "balanceSheetAmount": 140000000
+    "balanceSheetAmount": 128000000
   }
   ```
 * **Response**:
@@ -589,7 +801,7 @@ In case of error (`success: false`):
         },
         {
           "rowIdx": 7,
-          "rowText": "Plant and Machinery",
+          "rowText": "Plant & Machinery",
           "member": "ind-as:PlantAndEquipmentMember",
           "memberLabel": "Plant and equipment [Member]",
           "isStandard": true,
@@ -597,6 +809,14 @@ In case of error (`success: false`):
         },
         {
           "rowIdx": 8,
+          "rowText": "Office Equipment",
+          "member": "ind-as:FurnitureAndFixturesMember",
+          "memberLabel": "Furniture and fixtures [Member]",
+          "isStandard": true,
+          "isTotalRow": false
+        },
+        {
+          "rowIdx": 9,
           "rowText": "Total PPE",
           "member": "ind-as:PropertyPlantAndEquipmentMember",
           "memberLabel": "Property, plant and equipment [Member]",
@@ -605,8 +825,8 @@ In case of error (`success: false`):
         }
       ],
       "reconciliation": {
-        "scheduleTotal": 140000000,
-        "balanceSheetAmount": 140000000,
+        "scheduleTotal": 128000000,
+        "balanceSheetAmount": 128000000,
         "difference": 0,
         "isBalanced": true
       }
@@ -622,14 +842,8 @@ In case of error (`success: false`):
 ### GROUP D: Instance Generation Endpoint
 
 #### 12. `POST /api/v1/instances/generate`
+
 * **Purpose**: Generates the final, production-grade MCA AOC-4 XBRL XML instance document.
-* **Internal Mechanics**:
-  1. Serializes root element `<xbrli:xbrl>` with prescribed schemaRef and namespaces.
-  2. Constructs sorted, deterministic contexts (`CY`, `PY`, `PYO`) with entity CIN scheme.
-  3. Injects dimensional `<xbrli:scenario>` blocks with `<xbrldi:explicitMember>` elements for schedules.
-  4. Formats monetary units (`iso4217:INR`), pure shares (`xbrli:shares`), and decimal rounding.
-  5. Deterministically emits facts ordered by primary presentation ELR position.
-* **Frontend Context**: Triggered on the **"Export & Generate XBRL"** button or Monaco XML editor tab.
 * **Request**:
   ```json
   {
@@ -693,9 +907,8 @@ In case of error (`success: false`):
 ### GROUP E: In-Memory AI Copilot Chatbot Endpoints
 
 #### 13. `POST /api/v1/conversations`
+
 * **Purpose**: Initializes a new isolated in-memory conversational thread.
-* **Internal Mechanics**: Creates a LangGraph thread checkpoint in `InMemorySaver`. Zero database footprint.
-* **Frontend Context**: Called when the CA clicks "+ New Chat" in the left `AI ASSISTANT` panel.
 * **Request**:
   ```json
   {
@@ -719,11 +932,8 @@ In case of error (`success: false`):
 ---
 
 #### 14. `POST /api/v1/conversations/{id}/messages` (or `POST /api/v1/chat`)
+
 * **Purpose**: Sends a question to the in-memory XBRL Copilot. Supports direct JSON response and Server-Sent Events (SSE) streaming.
-* **Internal Mechanics**:
-  - LangGraph StateGraph executes: Guardrail $\rightarrow$ Planner $\rightarrow$ Retriever (Qdrant `xbrl_agent` + TinyBERT reranker) $\rightarrow$ Responder (Groq Llama 3.3).
-  - Streams tokens with RAG citations pointing to MCA Statutory Manuals and Taxonomy rules.
-* **Frontend Context**: Chat input box in the `AI ASSISTANT` panel.
 * **Request**:
   ```json
   {
@@ -752,7 +962,7 @@ In case of error (`success: false`):
 
 ---
 
-## 4. End-to-End Filing Execution Flow
+## 5. End-to-End Filing Execution Sequence
 
 ```mermaid
 sequenceDiagram
@@ -762,33 +972,33 @@ sequenceDiagram
     participant FS as FastAPI Sidecar (Localhost)
     participant QD as Qdrant Vector DB
 
-    Note over CA, FS: Step 1: Launch & Initialize
-    UI->>FS: GET /api/v1/taxonomies/ind_as_taxonomy/authority
-    FS-->>UI: Cache Engine Authority JSON (DTS, ELRs, Tables)
+    Note over CA, UI: Step 1: Company Profile & Master Setup (04, 05, 14, 15)
+    CA->>UI: Enters CIN, clicks "Prefill from MCA"
+    UI->>UI: Fills Company Name, Registered Office, Roc
+    CA->>UI: Enters Director DINs, Designations & Auditor FRN
 
-    Note over CA, FS: Step 2: Excel Upload & Inspection
-    CA->>UI: Uploads Client Financials.xlsx
+    Note over CA, FS: Step 2: Excel Import & Schema Detection (01, 07)
+    CA->>UI: Uploads Financials.xlsx
     UI->>FS: POST /api/v1/workbooks/inspect
-    FS-->>UI: Sheet roles & Detected CY/PY Columns
+    FS-->>UI: Pre-classifies Sheets (BS, PL, Notes) & Detects Columns
 
-    Note over CA, FS: Step 3: Primary Statements Auto-Tagging
-    UI->>FS: POST /api/v1/mapping/suggest_column (with Breadcrumbs)
-    FS->>QD: Dense Vector Search
-    FS-->>UI: Tag Suggestions with Confidence Scores (Green/Yellow)
+    Note over CA, FS: Step 3: Financial Tagging & Breadcrumbs (01, 08, 16)
+    UI->>FS: POST /api/v1/mapping/suggest_column (Row particulars + Upward Header Breadcrumbs)
+    FS->>QD: Dense Vector Search + BM25 + FlashRank Rerank
+    FS-->>UI: Suggested tags (Green/Yellow) + Confidence
 
-    Note over CA, FS: Step 4: Notes & Tables Tagging
-    CA->>UI: Selects Note 4 (PPE Schedule)
+    Note over CA, FS: Step 4: Dedicated Table Tagging [T] (10, 11, 12, 17, 18)
+    CA->>UI: Opens Note 4 (PPE Schedule)
     UI->>FS: POST /api/v1/mapping/tables/suggest
-    FS-->>UI: Member Mappings & Live Difference = 0
+    FS-->>UI: Maps Land, Buildings members & Computes Live Difference = 0
 
-    CA->>UI: Pastes Auditor's Report Narrative
+    Note over CA, FS: Step 5: Notes Tagging [E] (09)
+    CA->>UI: Pastes Auditor's Report / Accounting Policy text
     UI->>FS: POST /api/v1/mapping/notes/suggest
-    FS-->>UI: Chunk Offsets & Text Block Tags
+    FS-->>UI: Heading chunks [startOffset, endOffset] & Text Block tags
 
-    Note over CA, FS: Step 5: Final XBRL Export
+    Note over CA, FS: Step 6: Final XBRL Export & Validation (13, 19)
     CA->>UI: Clicks "Generate MCA XBRL"
     UI->>FS: POST /api/v1/instances/generate
     FS-->>UI: Validated AOC-4 XBRL XML Document
 ```
-
-This document establishes the single source of truth for the FastAPI sidecar API contract.
