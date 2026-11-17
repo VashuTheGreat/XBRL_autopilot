@@ -18,6 +18,9 @@ Read the doc that matches the task. Keep docs short, factual and current. When c
 | 10 | [Packaging & release](10-packaging-release.md) | Building the installer, PyInstaller, electron-builder |
 | 11 | [Security & privacy](11-security-privacy.md) | Keys, financial data, Electron hardening |
 | 12 | [Reference data](12-reference-data.md) | The real client files in `data/`, what they teach us, and the tests built on them |
+| 13 | [Gap analysis & Ind AS blueprint](13-gap-analysis-and-indas-blueprint.md) | Webtel deconstruction, schema mapper innovation, Ind AS focus, and FastAPI route specs |
+| 14 | [FastAPI Sidecar Workflow](workflow.md) | Complete sidecar endpoint specs, data payloads, hybrid retrieval logic, and frontend integration hooks |
+| 15 | [Phased Roadmap & Implementation Guide](roadmap.md) | Chronological phases from Backend XML generator to Frontend React wizards with deep code specifications |
 | — | [decisions/](decisions/) | Why a big choice was made (ADRs; e.g. [ADR-0014](decisions/ADR-0014-qdrant-vector-db-and-inmemory-chat-integration.md) for Qdrant, in-memory chat, & hybrid reranking) |
 
 ## Glossary
