@@ -20,6 +20,7 @@ Read the doc that matches the task. Keep docs short, factual and current. When c
 | 12 | [Reference data](12-reference-data.md) | The real client files in `data/`, what they teach us, and the tests built on them |
 | 13 | [webXBRL parity](13-webxbrl-parity.md) | Picking the next feature: every webXBRL feature, our status, gaps and priority; manual-tagging fixes |
 | 14 | [Parity build plan](14-parity-build-plan.md) | The 13 build steps toward webXBRL parity, one chat each, with the context a new chat needs and a prompt template |
+| 16 | [XBRL pipeline architecture](16-target-architecture.md) | **Start here for the design**: the planned pipeline stage by stage (has / wrong / add), our pipeline (Ingest → Normalize → Tag → Assure → File), contracts, routes and build order ([ADR-0016](decisions/ADR-0016-canonical-financial-package.md)) |
 | — | [decisions/](decisions/) | Why a big choice was made (ADRs; e.g. [ADR-0014](decisions/ADR-0014-qdrant-vector-db-and-inmemory-chat-integration.md) for Qdrant, in-memory chat, & hybrid reranking) |
 
 **Discussion docs (2026-11-17).** Where they disagree with doc 16 or an ADR, the ADR wins.
