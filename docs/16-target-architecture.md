@@ -321,9 +321,11 @@ Each phase is merged only when its measurement passes on the answer keys: DGPL �
 | **P6 · AI gateway** | Redaction profiles, consent, audit; optional LLM normalize proposer and rerank; live LLM evaluation on synthetic workbooks | LLM adds measurable gain or stays off |
 | **P7 · Offline + ship** | Local ONNX dense retrieval, installer with index, auto-update, taxonomy / rule data packages | offline = online within 1 point |
 
-## 6. Open questions for the team
-1. **Masters prefill:** is there a lawful MCA data source, or do we rely on last year's XML + the master library?
-2. **Normalize screen:** always shown, or only when a check fails?
-3. **Cloud vector DB** in the shipped app at all, or local only?
-4. **LLM consent default:** off per project until enabled, or on with redaction?
-5. **Answer keys:** which further client pairs (workbook + accepted XML) can we get, beyond Dixon / DGPL and HPL?
+## 6. Product decisions (recommended; confirm with the team)
+| # | Question | Recommendation | Why |
+|---|---|---|---|
+| 1 | **Masters prefill**: where does company / director / auditor data come from? | Last year's XBRL instance (any vendor's, already importable) + a firm-wide master library + "paste MCA master data" (the CA copies the company's master-data page and we parse it). No scraping of the MCA portal | MCA has no public API; scraping fights captchas and the portal's terms, and breaks when the portal changes |
+| 2 | **Normalize screen**: when is it shown? | Only when a check fails or the layout is new for this client. Otherwise a banner: "Normalized ✓ 14/14 checks · Review". The client's layout is remembered for next year | Full review every time slows the CA; never showing it hides mistakes. The checks tell us when the CA needs to look |
+| 3 | **Vector DB** in the shipped app? | Local only: BM25 + ONNX embeddings shipped (~10–17 MB). Qdrant only for development and the optional chat assistant | The taxonomy is a fixed ~5.6k concepts; the cloud adds latency, outages, cost and a key to distribute, and breaks offline filing |
+| 4 | **LLM consent** | Everything works without an LLM. LLM help is one firm-level switch, asked once at first run; redaction is always on; amounts never leave the machine; every call is logged locally | CAs are bound by client confidentiality; a clear, single choice is easier to trust than per-feature prompts |
+| 5 | **Answer keys** beyond DGPL ↔ Dixon and HPL | Target 10 pairs (5 Ind AS, 5 C&I) of workbook + MCA-accepted XML: past filings from CAs we know; MCA "View Public Documents" (paid, per company) for filed XBRL + financial-statement PDF, to be verified | Two pairs can't tell a real improvement from overfitting; every phase in §5 is gated on these numbers |
