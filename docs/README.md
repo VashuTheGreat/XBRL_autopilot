@@ -22,6 +22,17 @@ Read the doc that matches the task. Keep docs short, factual and current. When c
 | 14 | [Parity build plan](14-parity-build-plan.md) | The 13 build steps toward webXBRL parity, one chat each, with the context a new chat needs and a prompt template |
 | — | [decisions/](decisions/) | Why a big choice was made (ADRs; e.g. [ADR-0014](decisions/ADR-0014-qdrant-vector-db-and-inmemory-chat-integration.md) for Qdrant, in-memory chat, & hybrid reranking) |
 
+**Discussion docs (2026-11-17).** Where they disagree with doc 16 or an ADR, the ADR wins.
+
+| Doc | Read it when… |
+|---|---|
+| [Gap analysis & Ind AS blueprint](13-gap-analysis-and-indas-blueprint.md) | Webtel deconstruction (`[E]` / `[L]` / `[T]` indicators), schema-mapper idea, proposed FastAPI routes |
+| [Canonical pipeline & tagging](14-canonical-pipeline-and-tagging-architecture.md) | Canonical-files design: file schemas, partitioned retrieval, table and notes tagging |
+| [Master architecture & KB blueprint](15-master-architecture-and-knowledge-base-blueprint.md) | Tour of `ind_as_knowledge_base.json`, the face-vs-notes scoping question, the normalizer prompt |
+| [Sidecar workflow](workflow.md) | Proposed sidecar route specs and payloads |
+| [Phased roadmap](roadmap.md) | Phase order from the discussion |
+| [ui/](ui/) | Webtel webXBRL reference screenshots |
+
 ## Glossary
 - **MCA:** Ministry of Corporate Affairs (India). **AOC-4 XBRL** is the e-form for filing financial statements in XBRL. **CRA-4** is the cost audit report.
 - **Taxonomy:** the dictionary of reportable concepts (elements), plus linkbases. v1 covers **C&I 2016** (Commercial & Industrial, non-Ind AS) and **Ind AS 2017**; **Costing 2019** comes later.

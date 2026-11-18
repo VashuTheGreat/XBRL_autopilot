@@ -1,0 +1,476 @@
+{
+  "file_name": "BS DGPL Mar-2026-V1.xls",
+  "metadata": {
+    "company_name": "DIXON GLOBAL PRIVATE LIMITED",
+    "cin": "U51900UP2010PTC042400",
+    "unit": "INR Lakhs"
+  },
+  "sheets_summary": {
+    "total_sheets": 27,
+    "statements_count": 4,
+    "schedules_count": 1,
+    "notes_sheets_count": 5,
+    "ignored_scratchpads_count": 17,
+    "ignored_sheets": [
+      "Working Cash ",
+      "Sheet5",
+      "A",
+      "L",
+      "I",
+      "E",
+      "TB",
+      "COMPUTATION",
+      "Dep Chart",
+      "DEP IT",
+      "Sheet1",
+      "Debtors",
+      "Creditors",
+      "Sheet2",
+      "Employee",
+      "Sheet3",
+      "Sheet4"
+    ]
+  },
+  "canonical_statements": {
+    "CANONICAL_BS": {
+      "statement_type": "CANONICAL_BS",
+      "source_sheet": "IND AS BS ",
+      "detected_columns": {
+        "header_row": 5,
+        "particulars_col": 0,
+        "note_col": 3,
+        "cy_col": 7,
+        "py_col": 10
+      },
+      "metadata": {
+        "company_name": "DIXON GLOBAL PRIVATE LIMITED",
+        "cin": "U51900UP2010PTC042400",
+        "unit": "INR Lakhs"
+      },
+      "total_rows_extracted": 15,
+      "line_items": [
+        {
+          "row_index": 11,
+          "label": "Property, Plant & Equipment",
+          "breadcrumb_path": "NON-CURRENT ASSETS > Property, Plant & Equipment",
+          "note_no": "5",
+          "cy_value": 0.0002,
+          "py_value": 0.0002
+        },
+        {
+          "row_index": 16,
+          "label": "Other Financial Assets",
+          "breadcrumb_path": "Intangible assets > Other Financial Assets",
+          "note_no": "6",
+          "cy_value": 0.1,
+          "py_value": 4.19
+        },
+        {
+          "row_index": 17,
+          "label": "Other Non Current Assets",
+          "breadcrumb_path": "Intangible assets > Other Non Current Assets",
+          "note_no": "7",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 21,
+          "label": "Inventories",
+          "breadcrumb_path": "CURRENT ASSETS > Inventories",
+          "note_no": "8",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 29,
+          "label": "Other Current Assets",
+          "breadcrumb_path": "Financial Assets > Other Current Assets",
+          "note_no": "14",
+          "cy_value": 62.03714,
+          "py_value": 123.84
+        },
+        {
+          "row_index": 30,
+          "label": "Current Tax Assets (Net)",
+          "breadcrumb_path": "Financial Assets > Current Tax Assets (Net)",
+          "note_no": "15",
+          "cy_value": 6.08675,
+          "py_value": 7.9
+        },
+        {
+          "row_index": 38,
+          "label": "Equity Share Capital",
+          "breadcrumb_path": "EQUITY AND LIABILITIES > Equity Share Capital",
+          "note_no": "16",
+          "cy_value": 100.0,
+          "py_value": 100.0
+        },
+        {
+          "row_index": 39,
+          "label": "Other Equity",
+          "breadcrumb_path": "EQUITY AND LIABILITIES > Other Equity",
+          "note_no": "17",
+          "cy_value": 1696.763690000001,
+          "py_value": 1396.7800000000002
+        },
+        {
+          "row_index": 51,
+          "label": "Other Current Liabilities",
+          "breadcrumb_path": "EQUITY AND LIABILITIES > Financial Liabilities: > Other Current Liabilities",
+          "note_no": "20",
+          "cy_value": 6.24192,
+          "py_value": 28.04
+        },
+        {
+          "row_index": 52,
+          "label": "Current Tax Liabilities (Net)",
+          "breadcrumb_path": "EQUITY AND LIABILITIES > Financial Liabilities: > Current Tax Liabilities (Net)",
+          "note_no": "21",
+          "cy_value": 10.87221,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 58,
+          "label": "Corporate and General Information",
+          "breadcrumb_path": "EQUITY AND LIABILITIES > Financial Liabilities: > Corporate and General Information",
+          "note_no": "1",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 59,
+          "label": "Basis of Accounting",
+          "breadcrumb_path": "EQUITY AND LIABILITIES > Financial Liabilities: > Basis of Accounting",
+          "note_no": "2",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 60,
+          "label": "Material Accounting Policies",
+          "breadcrumb_path": "EQUITY AND LIABILITIES > Financial Liabilities: > Material Accounting Policies",
+          "note_no": "3",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 61,
+          "label": "Significant Judgements and Key Estimates",
+          "breadcrumb_path": "EQUITY AND LIABILITIES > Financial Liabilities: > Significant Judgements and Key Estimates",
+          "note_no": "4",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 62,
+          "label": "Other notes on accounts",
+          "breadcrumb_path": "EQUITY AND LIABILITIES > Financial Liabilities: > Other notes on accounts",
+          "note_no": "29",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        }
+      ]
+    },
+    "CANONICAL_PL": {
+      "statement_type": "CANONICAL_PL",
+      "source_sheet": "IND AS P&L ",
+      "detected_columns": {
+        "header_row": 5,
+        "particulars_col": 2,
+        "note_col": 4,
+        "cy_col": 7,
+        "py_col": 9
+      },
+      "metadata": {
+        "company_name": "DIXON GLOBAL PRIVATE LIMITED",
+        "cin": "U51900UP2010PTC042400",
+        "unit": "INR Lakhs"
+      },
+      "total_rows_extracted": 29,
+      "line_items": [
+        {
+          "row_index": 7,
+          "label": "Revenue from Operations",
+          "breadcrumb_path": "Income > Revenue from Operations",
+          "note_no": "22",
+          "cy_value": 6459.64,
+          "py_value": 2647.53
+        },
+        {
+          "row_index": 8,
+          "label": "Other income",
+          "breadcrumb_path": "Income > Other income",
+          "note_no": "23",
+          "cy_value": 92.3,
+          "py_value": 100.47
+        },
+        {
+          "row_index": 9,
+          "label": "Total Income",
+          "breadcrumb_path": "Income > Total Income",
+          "note_no": null,
+          "cy_value": 6551.9400000000005,
+          "py_value": 2748.0
+        },
+        {
+          "row_index": 11,
+          "label": "Purchases of Stock-in-Trade",
+          "breadcrumb_path": "Expenses > Purchases of Stock-in-Trade",
+          "note_no": "24",
+          "cy_value": 6114.42,
+          "py_value": 2538.72
+        },
+        {
+          "row_index": 12,
+          "label": "Changes in Inventories of Stock-in-Trade",
+          "breadcrumb_path": "Expenses > Changes in Inventories of Stock-in-Trade",
+          "note_no": "25",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 13,
+          "label": "Employee benefits expense",
+          "breadcrumb_path": "Expenses > Employee benefits expense",
+          "note_no": "26",
+          "cy_value": 29.04,
+          "py_value": 35.56
+        },
+        {
+          "row_index": 14,
+          "label": "Finance costs",
+          "breadcrumb_path": "Expenses > Finance costs",
+          "note_no": "27",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 15,
+          "label": "Depreciation and Amortisation expense",
+          "breadcrumb_path": "Expenses > Depreciation and Amortisation expense",
+          "note_no": "28",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 16,
+          "label": "Other expenses",
+          "breadcrumb_path": "Expenses > Other expenses",
+          "note_no": "27",
+          "cy_value": 7.91,
+          "py_value": 8.02
+        },
+        {
+          "row_index": 17,
+          "label": "Total expenses",
+          "breadcrumb_path": "Expenses > Total expenses",
+          "note_no": null,
+          "cy_value": 6151.37,
+          "py_value": 2582.2999999999997
+        },
+        {
+          "row_index": 18,
+          "label": "Profit/(loss) before Exceptional Items & Tax",
+          "breadcrumb_path": "Expenses > Profit/(loss) before Exceptional Items & Tax",
+          "note_no": null,
+          "cy_value": 400.5700000000006,
+          "py_value": 165.70000000000027
+        },
+        {
+          "row_index": 20,
+          "label": "Profit/(loss) before Tax",
+          "breadcrumb_path": "Expenses > Profit/(loss) before Tax",
+          "note_no": null,
+          "cy_value": 400.5700000000006,
+          "py_value": 165.70000000000027
+        },
+        {
+          "row_index": 21,
+          "label": "Tax expense:",
+          "breadcrumb_path": "Expenses > Tax expense:",
+          "note_no": "28",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 22,
+          "label": "(i) Income tax",
+          "breadcrumb_path": "Expenses > (i) Income tax",
+          "note_no": null,
+          "cy_value": 100.83,
+          "py_value": 41.7
+        },
+        {
+          "row_index": 23,
+          "label": "(ii) Income tax for earlier years",
+          "breadcrumb_path": "Expenses > (ii) Income tax for earlier years",
+          "note_no": null,
+          "cy_value": -0.24369,
+          "py_value": 5.17
+        },
+        {
+          "row_index": 25,
+          "label": "Profit/(loss) for the Year",
+          "breadcrumb_path": "(iii) Deferred tax expenses / (income) > Profit/(loss) for the Year",
+          "note_no": null,
+          "cy_value": 299.98369000000065,
+          "py_value": 118.83000000000027
+        },
+        {
+          "row_index": 35,
+          "label": "Total Comprehensive Income for the Year",
+          "breadcrumb_path": "Other Comprehensive Income for the Year (Net of Tax) > Total Comprehensive Income for the Year",
+          "note_no": null,
+          "cy_value": 299.98369000000065,
+          "py_value": 118.83000000000027
+        },
+        {
+          "row_index": 37,
+          "label": "Earning per Share",
+          "breadcrumb_path": "Other Comprehensive Income for the Year (Net of Tax) > Earning per Share",
+          "note_no": "29(4)",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 38,
+          "label": "Basic (Rs.)",
+          "breadcrumb_path": "Other Comprehensive Income for the Year (Net of Tax) > Basic (Rs.)",
+          "note_no": null,
+          "cy_value": 29.996604,
+          "py_value": 11.88
+        },
+        {
+          "row_index": 39,
+          "label": "Diluted (Rs.)",
+          "breadcrumb_path": "Other Comprehensive Income for the Year (Net of Tax) > Diluted (Rs.)",
+          "note_no": null,
+          "cy_value": 29.996604,
+          "py_value": 11.88
+        },
+        {
+          "row_index": 41,
+          "label": "Corporate and General Information",
+          "breadcrumb_path": "Other Comprehensive Income for the Year (Net of Tax) > Corporate and General Information",
+          "note_no": "1",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 42,
+          "label": "Basis of Accounting",
+          "breadcrumb_path": "Other Comprehensive Income for the Year (Net of Tax) > Basis of Accounting",
+          "note_no": "2",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 43,
+          "label": "Material Accounting Policies",
+          "breadcrumb_path": "Other Comprehensive Income for the Year (Net of Tax) > Material Accounting Policies",
+          "note_no": "3",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 44,
+          "label": "Significant Judgements and Key Estimates",
+          "breadcrumb_path": "Other Comprehensive Income for the Year (Net of Tax) > Significant Judgements and Key Estimates",
+          "note_no": "4",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 45,
+          "label": "Other notes on accounts",
+          "breadcrumb_path": "Other Comprehensive Income for the Year (Net of Tax) > Other notes on accounts",
+          "note_no": "29",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 48,
+          "label": "The Notes are an integral part of the Financial Statements",
+          "breadcrumb_path": "Other Comprehensive Income for the Year (Net of Tax) > The Notes are an integral part of the Financial Statements",
+          "note_no": "For and on behalf of the Board of Directors",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 51,
+          "label": "For JKVS & Co.",
+          "breadcrumb_path": "Other Comprehensive Income for the Year (Net of Tax) > For JKVS & Co.",
+          "note_no": "Dixon Global Private Limited",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 59,
+          "label": "Partner",
+          "breadcrumb_path": "Other Comprehensive Income for the Year (Net of Tax) > Partner",
+          "note_no": "Place: New Delhi",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 60,
+          "label": "Membership No. 022973",
+          "breadcrumb_path": "Other Comprehensive Income for the Year (Net of Tax) > Membership No. 022973",
+          "note_no": "Date: 11 May 2026",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        }
+      ]
+    },
+    "CANONICAL_CF": {
+      "statement_type": "CANONICAL_CF",
+      "source_sheet": "Cash Flow Ind AS",
+      "detected_columns": {
+        "header_row": 5,
+        "particulars_col": 1,
+        "note_col": null,
+        "cy_col": null,
+        "py_col": null
+      },
+      "metadata": {
+        "company_name": "DIXON GLOBAL PRIVATE LIMITED",
+        "cin": "U51900UP2010PTC042400",
+        "unit": "INR Lakhs"
+      },
+      "total_rows_extracted": 0,
+      "line_items": []
+    },
+    "CANONICAL_SOCIE": {
+      "error": "Header row not found in Change in Equity",
+      "line_items": []
+    }
+  },
+  "canonical_schedules": [
+    {
+      "sheet_name": "FA",
+      "type": "CANONICAL_PPE_SCHEDULE"
+    }
+  ],
+  "canonical_notes": [
+    {
+      "sheet_name": "Policies",
+      "type": "CANONICAL_NOTES"
+    },
+    {
+      "sheet_name": "Notes of IND AS BS",
+      "type": "CANONICAL_NOTES"
+    },
+    {
+      "sheet_name": "Notes of IND AS P&L ",
+      "type": "CANONICAL_NOTES"
+    },
+    {
+      "sheet_name": "Notes to accounts",
+      "type": "CANONICAL_NOTES"
+    },
+    {
+      "sheet_name": "RPT",
+      "type": "CANONICAL_NOTES"
+    }
+  ]
+}
