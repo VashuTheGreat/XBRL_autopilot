@@ -1,0 +1,925 @@
+{
+  "file_name": "HPL -M26 - Financials_final cross checked with print_8th sep (3).xlsx",
+  "metadata": {
+    "company_name": "HELMIER PRIVATE LIMITED",
+    "cin": "U85100MH2021PTC366828",
+    "unit": "INR Lakhs"
+  },
+  "sheets_summary": {
+    "total_sheets": 17,
+    "statements_count": 3,
+    "schedules_count": 0,
+    "notes_sheets_count": 8,
+    "ignored_scratchpads_count": 6,
+    "ignored_sheets": [
+      "TB 24-25",
+      "TB 25-26",
+      "adv tax",
+      "cogs disc- 25",
+      "cogs-26",
+      "payables- mar 26"
+    ]
+  },
+  "canonical_statements": {
+    "CANONICAL_BS": {
+      "statement_type": "CANONICAL_BS",
+      "source_sheet": "Balance Sheet",
+      "detected_columns": {
+        "header_row": 6,
+        "particulars_col": 0,
+        "note_col": 2,
+        "cy_col": 3,
+        "py_col": 4
+      },
+      "metadata": {
+        "company_name": "HELMIER PRIVATE LIMITED",
+        "cin": "U85100MH2021PTC366828",
+        "unit": "INR Lakhs"
+      },
+      "total_rows_extracted": 29,
+      "line_items": [
+        {
+          "row_index": 11,
+          "label": "Share capital",
+          "breadcrumb_path": "EQUITY AND LIABILITIES > Shareholder\u2019s funds > Share capital",
+          "note_no": "3",
+          "cy_value": 4.1783,
+          "py_value": 3.9021999999999997
+        },
+        {
+          "row_index": 12,
+          "label": "Reserves and surplus",
+          "breadcrumb_path": "EQUITY AND LIABILITIES > Shareholder\u2019s funds > Reserves and surplus",
+          "note_no": "4",
+          "cy_value": 5443.466337358575,
+          "py_value": 3068.4832804310745
+        },
+        {
+          "row_index": 15,
+          "label": "Other long term liabilities",
+          "breadcrumb_path": "EQUITY AND LIABILITIES > Non-current liabilities > Other long term liabilities",
+          "note_no": "5",
+          "cy_value": 16.096,
+          "py_value": 19.35425
+        },
+        {
+          "row_index": 16,
+          "label": "Long-term provisions",
+          "breadcrumb_path": "EQUITY AND LIABILITIES > Non-current liabilities > Long-term provisions",
+          "note_no": "6",
+          "cy_value": 148.09367,
+          "py_value": 89.27299
+        },
+        {
+          "row_index": 19,
+          "label": "Short-term borrowings",
+          "breadcrumb_path": "EQUITY AND LIABILITIES > Current liabilities > Short-term borrowings",
+          "note_no": "7",
+          "cy_value": 678.0927148,
+          "py_value": 613.6213863
+        },
+        {
+          "row_index": 20,
+          "label": "Trade payables",
+          "breadcrumb_path": "EQUITY AND LIABILITIES > Current liabilities > Trade payables",
+          "note_no": "8",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 21,
+          "label": "Total outstanding dues of micro enterprises and small enterprises;",
+          "breadcrumb_path": "EQUITY AND LIABILITIES > Current liabilities > Total outstanding dues of micro enterprises and small enterprises;",
+          "note_no": null,
+          "cy_value": 2.9794457,
+          "py_value": 0.06710239999999999
+        },
+        {
+          "row_index": 22,
+          "label": "Total outstanding dues of creditors other than micro enterprises and small enterprises",
+          "breadcrumb_path": "EQUITY AND LIABILITIES > Current liabilities > Total outstanding dues of creditors other than micro enterprises and small enterprises",
+          "note_no": null,
+          "cy_value": 3492.0010578000006,
+          "py_value": 2597.0233939
+        },
+        {
+          "row_index": 23,
+          "label": "Other current liabilities",
+          "breadcrumb_path": "EQUITY AND LIABILITIES > Current liabilities > Other current liabilities",
+          "note_no": "9",
+          "cy_value": 1004.5228575,
+          "py_value": 674.784315
+        },
+        {
+          "row_index": 24,
+          "label": "Short-term provisions",
+          "breadcrumb_path": "EQUITY AND LIABILITIES > Current liabilities > Short-term provisions",
+          "note_no": "10",
+          "cy_value": 115.2517444,
+          "py_value": 105.1830941
+        },
+        {
+          "row_index": 27,
+          "label": "Total",
+          "breadcrumb_path": "EQUITY AND LIABILITIES > Current liabilities > Total",
+          "note_no": null,
+          "cy_value": 10904.682127558575,
+          "py_value": 7171.672012131074
+        },
+        {
+          "row_index": 32,
+          "label": "Property, plant and equipment",
+          "breadcrumb_path": "Non-current assets > Property, plant and equipment",
+          "note_no": "11",
+          "cy_value": 370.7954509999999,
+          "py_value": 325.9624650999999
+        },
+        {
+          "row_index": 33,
+          "label": "Capital work-in-progress",
+          "breadcrumb_path": "Non-current assets > Capital work-in-progress",
+          "note_no": "12",
+          "cy_value": 487.13582,
+          "py_value": 17.037
+        },
+        {
+          "row_index": 34,
+          "label": "Deferred tax assets (net)",
+          "breadcrumb_path": "Non-current assets > Deferred tax assets (net)",
+          "note_no": "13",
+          "cy_value": 54.594265200011215,
+          "py_value": 37.495459586
+        },
+        {
+          "row_index": 35,
+          "label": "Long-term loans and advances",
+          "breadcrumb_path": "Non-current assets > Long-term loans and advances",
+          "note_no": "14",
+          "cy_value": 132.77621189999985,
+          "py_value": 85.46450830000012
+        },
+        {
+          "row_index": 36,
+          "label": "Other non-current assets",
+          "breadcrumb_path": "Non-current assets > Other non-current assets",
+          "note_no": "15",
+          "cy_value": 1995.0606822999998,
+          "py_value": 243.63005
+        },
+        {
+          "row_index": 39,
+          "label": "Inventories",
+          "breadcrumb_path": "Current assets > Inventories",
+          "note_no": "16",
+          "cy_value": 4879.744540600001,
+          "py_value": 3314.2379235723
+        },
+        {
+          "row_index": 40,
+          "label": "Trade receivables",
+          "breadcrumb_path": "Current assets > Trade receivables",
+          "note_no": "17",
+          "cy_value": 162.0839693,
+          "py_value": 250.8524651
+        },
+        {
+          "row_index": 41,
+          "label": "Cash and bank balances",
+          "breadcrumb_path": "Current assets > Cash and bank balances",
+          "note_no": "18",
+          "cy_value": 1959.5752837000002,
+          "py_value": 2269.2595643
+        },
+        {
+          "row_index": 42,
+          "label": "Short-term loans and advances",
+          "breadcrumb_path": "Current assets > Short-term loans and advances",
+          "note_no": "19",
+          "cy_value": 68.1294652,
+          "py_value": 60.0339353
+        },
+        {
+          "row_index": 43,
+          "label": "Other current assets",
+          "breadcrumb_path": "Current assets > Other current assets",
+          "note_no": "20",
+          "cy_value": 794.7754920000002,
+          "py_value": 567.7004569000001
+        },
+        {
+          "row_index": 46,
+          "label": "Total",
+          "breadcrumb_path": "Current assets > Total",
+          "note_no": null,
+          "cy_value": 10904.681181200012,
+          "py_value": 7171.673828158299
+        },
+        {
+          "row_index": 48,
+          "label": "Summary of significant accounting policies and other explanatory information.",
+          "breadcrumb_path": "Current assets > Summary of significant accounting policies and other explanatory information.",
+          "note_no": "1- 43",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 53,
+          "label": "For Walker Chandiok & Co LLP",
+          "breadcrumb_path": "Current assets > The accompanying notes are an integral part of these financial statements. > For Walker Chandiok & Co LLP",
+          "note_no": "For and on behalf of the Board of Directors",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 60,
+          "label": "Vijay D. Jain",
+          "breadcrumb_path": "Current assets > The accompanying notes are an integral part of these financial statements. > Vijay D. Jain",
+          "note_no": "Yash Kaul",
+          "cy_value": 0.0,
+          "py_value": null
+        },
+        {
+          "row_index": 61,
+          "label": "Partner",
+          "breadcrumb_path": "Current assets > The accompanying notes are an integral part of these financial statements. > Partner",
+          "note_no": "Managing Director",
+          "cy_value": 0.0,
+          "py_value": null
+        },
+        {
+          "row_index": 62,
+          "label": "Membership No.:117961",
+          "breadcrumb_path": "Current assets > The accompanying notes are an integral part of these financial statements. > Membership No.:117961",
+          "note_no": "DIN:03526413",
+          "cy_value": 0.0,
+          "py_value": null
+        },
+        {
+          "row_index": 71,
+          "label": "Place: Mumbai",
+          "breadcrumb_path": "Current assets > The accompanying notes are an integral part of these financial statements. > Place: Mumbai",
+          "note_no": "Place: Mumbai",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 72,
+          "label": "Date: 31 August 2026",
+          "breadcrumb_path": "Current assets > The accompanying notes are an integral part of these financial statements. > Date: 31 August 2026",
+          "note_no": "Date: 31 August 2026",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        }
+      ]
+    },
+    "CANONICAL_PL": {
+      "statement_type": "CANONICAL_PL",
+      "source_sheet": "P&L Statement",
+      "detected_columns": {
+        "header_row": 5,
+        "particulars_col": 0,
+        "note_col": 2,
+        "cy_col": 3,
+        "py_col": 4
+      },
+      "metadata": {
+        "company_name": "HELMIER PRIVATE LIMITED",
+        "cin": "U85100MH2021PTC366828",
+        "unit": "INR Lakhs"
+      },
+      "total_rows_extracted": 26,
+      "line_items": [
+        {
+          "row_index": 7,
+          "label": "Revenue from operations",
+          "breadcrumb_path": "Income > Revenue from operations",
+          "note_no": "21",
+          "cy_value": 16295.101112999999,
+          "py_value": 14054.8662614
+        },
+        {
+          "row_index": 8,
+          "label": "Other income",
+          "breadcrumb_path": "Income > Other income",
+          "note_no": "22",
+          "cy_value": 112.87911380000001,
+          "py_value": 133.69133639999998
+        },
+        {
+          "row_index": 9,
+          "label": "Total income",
+          "breadcrumb_path": "Income > Total income",
+          "note_no": null,
+          "cy_value": 16407.9802268,
+          "py_value": 14188.5575978
+        },
+        {
+          "row_index": 12,
+          "label": "Cost of materials consumed",
+          "breadcrumb_path": "Expenses > Cost of materials consumed",
+          "note_no": "23",
+          "cy_value": 1359.589957,
+          "py_value": 259.192594
+        },
+        {
+          "row_index": 13,
+          "label": "Purchases of stock-in-trade",
+          "breadcrumb_path": "Expenses > Purchases of stock-in-trade",
+          "note_no": "24",
+          "cy_value": 10867.257207200199,
+          "py_value": 10097.885919699876
+        },
+        {
+          "row_index": 14,
+          "label": "Change in inventories of finished goods and stock-in-trade",
+          "breadcrumb_path": "Expenses > Change in inventories of finished goods and stock-in-trade",
+          "note_no": "25",
+          "cy_value": -1626.4382398277007,
+          "py_value": -1007.7826487722998
+        },
+        {
+          "row_index": 15,
+          "label": "Employee benefits expense",
+          "breadcrumb_path": "Expenses > Employee benefits expense",
+          "note_no": "26",
+          "cy_value": 2497.4502958,
+          "py_value": 1955.7112747
+        },
+        {
+          "row_index": 16,
+          "label": "Finance costs",
+          "breadcrumb_path": "Expenses > Finance costs",
+          "note_no": "27",
+          "cy_value": 51.70856,
+          "py_value": 21.12097
+        },
+        {
+          "row_index": 17,
+          "label": "Depreciation expense",
+          "breadcrumb_path": "Expenses > Depreciation expense",
+          "note_no": "11b",
+          "cy_value": 41.982051,
+          "py_value": 33.139822800000005
+        },
+        {
+          "row_index": 18,
+          "label": "Other expenses",
+          "breadcrumb_path": "Expenses > Other expenses",
+          "note_no": "28",
+          "cy_value": 1780.0539462000002,
+          "py_value": 1462.286851
+        },
+        {
+          "row_index": 19,
+          "label": "Total expenses",
+          "breadcrumb_path": "Expenses > Total expenses",
+          "note_no": null,
+          "cy_value": 14971.603777372497,
+          "py_value": 12821.564783427579
+        },
+        {
+          "row_index": 21,
+          "label": "Profit before tax",
+          "breadcrumb_path": "Expenses > Profit before tax",
+          "note_no": null,
+          "cy_value": 1436.376449427502,
+          "py_value": 1367.002814372421
+        },
+        {
+          "row_index": 24,
+          "label": "Current tax",
+          "breadcrumb_path": "Expenses > Tax expense: > Current tax",
+          "note_no": null,
+          "cy_value": 387.1891,
+          "py_value": 351.11708
+        },
+        {
+          "row_index": 25,
+          "label": "Deferred tax",
+          "breadcrumb_path": "Expenses > Tax expense: > Deferred tax",
+          "note_no": "13",
+          "cy_value": -17.087600000000002,
+          "py_value": 7.2
+        },
+        {
+          "row_index": 26,
+          "label": "Total tax expense (net)",
+          "breadcrumb_path": "Expenses > Tax expense: > Total tax expense (net)",
+          "note_no": null,
+          "cy_value": 370.1015,
+          "py_value": 358.31708
+        },
+        {
+          "row_index": 28,
+          "label": "Profit for the year",
+          "breadcrumb_path": "Expenses > Tax expense: > Profit for the year",
+          "note_no": null,
+          "cy_value": 1066.284949427502,
+          "py_value": 1008.675734372421
+        },
+        {
+          "row_index": 30,
+          "label": "Earnings per equity share (face value \u20b9 10 each)",
+          "breadcrumb_path": "Expenses > Tax expense: > Earnings per equity share (face value \u20b9 10 each)",
+          "note_no": "29",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 31,
+          "label": "Basic earnings per share - \u20b9",
+          "breadcrumb_path": "Expenses > Tax expense: > Basic earnings per share - \u20b9",
+          "note_no": null,
+          "cy_value": 3385.021585484133,
+          "py_value": 3202.1551884838764
+        },
+        {
+          "row_index": 32,
+          "label": "Diluted earnings per share - \u20b9",
+          "breadcrumb_path": "Expenses > Tax expense: > Diluted earnings per share - \u20b9",
+          "note_no": null,
+          "cy_value": 2551.948809629519,
+          "py_value": 2584.899893835326
+        },
+        {
+          "row_index": 34,
+          "label": "Summary of significant accounting policies and other explanatory information.",
+          "breadcrumb_path": "Expenses > Tax expense: > Summary of significant accounting policies and other explanatory information.",
+          "note_no": "1- 43",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 40,
+          "label": "For Walker Chandiok & Co LLP",
+          "breadcrumb_path": "Expenses > The accompanying notes are an integral part of these financial statements. > For Walker Chandiok & Co LLP",
+          "note_no": "For and on behalf of the Board of Directors",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 47,
+          "label": "Vijay D. Jain",
+          "breadcrumb_path": "Expenses > The accompanying notes are an integral part of these financial statements. > Vijay D. Jain",
+          "note_no": "Yash Kaul",
+          "cy_value": 0.0,
+          "py_value": null
+        },
+        {
+          "row_index": 48,
+          "label": "Partner",
+          "breadcrumb_path": "Expenses > The accompanying notes are an integral part of these financial statements. > Partner",
+          "note_no": "Managing Director",
+          "cy_value": 0.0,
+          "py_value": null
+        },
+        {
+          "row_index": 49,
+          "label": "Membership No.:117961",
+          "breadcrumb_path": "Expenses > The accompanying notes are an integral part of these financial statements. > Membership No.:117961",
+          "note_no": "DIN:03526413",
+          "cy_value": 0.0,
+          "py_value": null
+        },
+        {
+          "row_index": 58,
+          "label": "Place: Mumbai",
+          "breadcrumb_path": "Expenses > The accompanying notes are an integral part of these financial statements. > Place: Mumbai",
+          "note_no": "Place: Mumbai",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 59,
+          "label": "Date: 31 August 2026",
+          "breadcrumb_path": "Expenses > The accompanying notes are an integral part of these financial statements. > Date: 31 August 2026",
+          "note_no": "Date: 31 August 2026",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        }
+      ]
+    },
+    "CANONICAL_CF": {
+      "statement_type": "CANONICAL_CF",
+      "source_sheet": "Cashflow",
+      "detected_columns": {
+        "header_row": 5,
+        "particulars_col": 0,
+        "note_col": 2,
+        "cy_col": 3,
+        "py_col": 4
+      },
+      "metadata": {
+        "company_name": "HELMIER PRIVATE LIMITED",
+        "cin": "U85100MH2021PTC366828",
+        "unit": "INR Lakhs"
+      },
+      "total_rows_extracted": 46,
+      "line_items": [
+        {
+          "row_index": 8,
+          "label": "Profit before tax",
+          "breadcrumb_path": "Profit before tax",
+          "note_no": null,
+          "cy_value": 1436.376449427502,
+          "py_value": 1367.002814372421
+        },
+        {
+          "row_index": 11,
+          "label": "Depreciation expense",
+          "breadcrumb_path": "Depreciation expense",
+          "note_no": "11b",
+          "cy_value": 41.982051,
+          "py_value": 33.139822800000005
+        },
+        {
+          "row_index": 12,
+          "label": "Provision for doubtful receivables",
+          "breadcrumb_path": "Provision for doubtful receivables",
+          "note_no": "28",
+          "cy_value": 0.49407,
+          "py_value": 2.53386
+        },
+        {
+          "row_index": 13,
+          "label": "Finance costs",
+          "breadcrumb_path": "Finance costs",
+          "note_no": "27",
+          "cy_value": 51.70856,
+          "py_value": 21.12097
+        },
+        {
+          "row_index": 14,
+          "label": "Expense on employee stock option scheme",
+          "breadcrumb_path": "Expense on employee stock option scheme",
+          "note_no": "26",
+          "cy_value": 68.7706175,
+          "py_value": 103.1418934
+        },
+        {
+          "row_index": 15,
+          "label": "Lease equalisation liability",
+          "breadcrumb_path": "Lease equalisation liability",
+          "note_no": null,
+          "cy_value": -3.2482500000000005,
+          "py_value": 2.718980000000002
+        },
+        {
+          "row_index": 16,
+          "label": "Unrealised foreign exchange (gain)/loss",
+          "breadcrumb_path": "Unrealised foreign exchange (gain)/loss",
+          "note_no": null,
+          "cy_value": -8.28,
+          "py_value": 16.61
+        },
+        {
+          "row_index": 17,
+          "label": "Bad debts written off",
+          "breadcrumb_path": "Bad debts written off",
+          "note_no": "28",
+          "cy_value": 4.1954310999999995,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 19,
+          "label": "Interest income on fixed deposits",
+          "breadcrumb_path": "Interest income on fixed deposits",
+          "note_no": "22",
+          "cy_value": -100.8005842,
+          "py_value": -114.056857
+        },
+        {
+          "row_index": 20,
+          "label": "Profit on sale of property, plant and equipment",
+          "breadcrumb_path": "Profit on sale of property, plant and equipment",
+          "note_no": "22",
+          "cy_value": -0.6855853,
+          "py_value": -14.6165294
+        },
+        {
+          "row_index": 21,
+          "label": "Operating profit before working capital changes",
+          "breadcrumb_path": "Operating profit before working capital changes",
+          "note_no": null,
+          "cy_value": 1490.5127595275019,
+          "py_value": 1417.584954172421
+        },
+        {
+          "row_index": 24,
+          "label": "Increase in inventories",
+          "breadcrumb_path": "Increase in inventories",
+          "note_no": null,
+          "cy_value": -1565.4966170277005,
+          "py_value": -1174.6138088723
+        },
+        {
+          "row_index": 25,
+          "label": "Increase in long-term loans and advances",
+          "breadcrumb_path": "Increase in long-term loans and advances",
+          "note_no": null,
+          "cy_value": -13.197419999999985,
+          "py_value": -46.991369999999996
+        },
+        {
+          "row_index": 26,
+          "label": "Decrease/(Increase) in trade receivables",
+          "breadcrumb_path": "Decrease/(Increase) in trade receivables",
+          "note_no": null,
+          "cy_value": 84.0789947,
+          "py_value": -151.348843
+        },
+        {
+          "row_index": 27,
+          "label": "Increase in other current assets",
+          "breadcrumb_path": "Increase in other current assets",
+          "note_no": null,
+          "cy_value": -228.39468210000013,
+          "py_value": -155.57031880000008
+        },
+        {
+          "row_index": 28,
+          "label": "Increase in short-term loans and advances",
+          "breadcrumb_path": "Increase in short-term loans and advances",
+          "note_no": null,
+          "cy_value": -8.095529899999995,
+          "py_value": -7.861844800000007
+        },
+        {
+          "row_index": 29,
+          "label": "Increase in long-term provisions",
+          "breadcrumb_path": "Increase in long-term provisions",
+          "note_no": null,
+          "cy_value": 58.82068000000001,
+          "py_value": 6.372989999999987
+        },
+        {
+          "row_index": 30,
+          "label": "Increase in trade payables",
+          "breadcrumb_path": "Increase in trade payables",
+          "note_no": null,
+          "cy_value": 897.8900072000006,
+          "py_value": 1491.8793939
+        },
+        {
+          "row_index": 31,
+          "label": "Increase in other non current assets",
+          "breadcrumb_path": "Increase in other non current assets",
+          "note_no": null,
+          "cy_value": -32.99839999999995,
+          "py_value": -10.940000000000008
+        },
+        {
+          "row_index": 32,
+          "label": "Increase/(Decrease) in other current liabilities",
+          "breadcrumb_path": "Increase/(Decrease) in other current liabilities",
+          "note_no": null,
+          "cy_value": 329.7385425,
+          "py_value": -198.9094268
+        },
+        {
+          "row_index": 33,
+          "label": "Increase in short-term provisions",
+          "breadcrumb_path": "Increase in short-term provisions",
+          "note_no": null,
+          "cy_value": 10.068650300000002,
+          "py_value": 23.60247410000001
+        },
+        {
+          "row_index": 34,
+          "label": "Increase in short-term borrowings",
+          "breadcrumb_path": "Increase in short-term borrowings",
+          "note_no": null,
+          "cy_value": 64.47132849999991,
+          "py_value": 215.15045550000002
+        },
+        {
+          "row_index": 35,
+          "label": "Cash generated from operating activities",
+          "breadcrumb_path": "Cash generated from operating activities",
+          "note_no": null,
+          "cy_value": 1087.388313699802,
+          "py_value": 1408.3546554001211
+        },
+        {
+          "row_index": 36,
+          "label": "Income tax (net of refund)",
+          "breadcrumb_path": "Income tax (net of refund)",
+          "note_no": null,
+          "cy_value": -421.29723891000003,
+          "py_value": -314.9541724
+        },
+        {
+          "row_index": 37,
+          "label": "Net cash generated from operating activities",
+          "breadcrumb_path": "Net cash generated from operating activities",
+          "note_no": null,
+          "cy_value": 666.091074789802,
+          "py_value": 1093.400483000121
+        },
+        {
+          "row_index": 40,
+          "label": "Purchase of property, plant and equipments and capital work-in-progress",
+          "breadcrumb_path": "Purchase of property, plant and equipments and capital work-in-progress",
+          "note_no": null,
+          "cy_value": -557.3910397,
+          "py_value": -270.3697367
+        },
+        {
+          "row_index": 41,
+          "label": "Proceeds from sale of property, plant and equipments",
+          "breadcrumb_path": "Proceeds from sale of property, plant and equipments",
+          "note_no": null,
+          "cy_value": 1.1627680999999999,
+          "py_value": 21.2022715
+        },
+        {
+          "row_index": 42,
+          "label": "Interest received",
+          "breadcrumb_path": "Interest received",
+          "note_no": null,
+          "cy_value": 110.39023119999999,
+          "py_value": 114.05732709999998
+        },
+        {
+          "row_index": 43,
+          "label": "Investment in deposits during the year",
+          "breadcrumb_path": "Investment in deposits during the year",
+          "note_no": null,
+          "cy_value": -1921.4322323,
+          "py_value": -203.0
+        },
+        {
+          "row_index": 44,
+          "label": "Proceeds from deposits during the year",
+          "breadcrumb_path": "Proceeds from deposits during the year",
+          "note_no": null,
+          "cy_value": 203.0,
+          "py_value": 153.0
+        },
+        {
+          "row_index": 45,
+          "label": "Net cash used in investing activities",
+          "breadcrumb_path": "Net cash used in investing activities",
+          "note_no": null,
+          "cy_value": -2164.2702726999996,
+          "py_value": -185.11013809999997
+        },
+        {
+          "row_index": 50,
+          "label": "Proceeds from issue of preference shares",
+          "breadcrumb_path": "Interest in income tax refund > Interest on taxes > Proceeds from issue of preference shares",
+          "note_no": null,
+          "cy_value": 1240.21,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 51,
+          "label": "Finance costs paid",
+          "breadcrumb_path": "Interest in income tax refund > Interest on taxes > Finance costs paid",
+          "note_no": "27",
+          "cy_value": -51.70856,
+          "py_value": -21.12097
+        },
+        {
+          "row_index": 52,
+          "label": "Net cash from financing activities",
+          "breadcrumb_path": "Interest in income tax refund > Interest on taxes > Net cash from financing activities",
+          "note_no": null,
+          "cy_value": 1188.50144,
+          "py_value": -21.12097
+        },
+        {
+          "row_index": 54,
+          "label": "Net (decrease)/increase in cash and bank balances",
+          "breadcrumb_path": "Interest in income tax refund > Interest on taxes > Net (decrease)/increase in cash and bank balances",
+          "note_no": null,
+          "cy_value": -309.67775791019767,
+          "py_value": 887.169374900121
+        },
+        {
+          "row_index": 55,
+          "label": "Cash and bank balances at beginning of the year",
+          "breadcrumb_path": "Interest in income tax refund > Interest on taxes > Cash and bank balances at beginning of the year",
+          "note_no": null,
+          "cy_value": 2269.2593749001207,
+          "py_value": 1382.09
+        },
+        {
+          "row_index": 56,
+          "label": "Cash and bank balances at end of the year",
+          "breadcrumb_path": "Interest in income tax refund > Interest on taxes > Cash and bank balances at end of the year",
+          "note_no": null,
+          "cy_value": 1959.581616989923,
+          "py_value": 2269.2593749001207
+        },
+        {
+          "row_index": 61,
+          "label": "Cash and cash equivalents",
+          "breadcrumb_path": "Interest in income tax refund > Interest on taxes > Cash and cash equivalents",
+          "note_no": null,
+          "cy_value": 433.685577,
+          "py_value": 357.386445
+        },
+        {
+          "row_index": 62,
+          "label": "Other bank balances",
+          "breadcrumb_path": "Interest in income tax refund > Interest on taxes > Other bank balances",
+          "note_no": null,
+          "cy_value": 1525.8897067,
+          "py_value": 1911.8731192999999
+        },
+        {
+          "row_index": 63,
+          "label": "Total cash and bank balances at end of the year",
+          "breadcrumb_path": "Interest in income tax refund > Interest on taxes > Total cash and bank balances at end of the year",
+          "note_no": null,
+          "cy_value": 1959.5752837,
+          "py_value": 2269.2595643
+        },
+        {
+          "row_index": 72,
+          "label": "For Walker Chandiok & Co LLP",
+          "breadcrumb_path": "Interest in income tax refund > The accompanying notes are integral part of the financial statements > For Walker Chandiok & Co LLP",
+          "note_no": "For and on behalf of the Board of Directors",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 79,
+          "label": "Vijay D. Jain",
+          "breadcrumb_path": "Interest in income tax refund > The accompanying notes are integral part of the financial statements > Vijay D. Jain",
+          "note_no": "Yash Kaul",
+          "cy_value": 0.0,
+          "py_value": null
+        },
+        {
+          "row_index": 80,
+          "label": "Partner",
+          "breadcrumb_path": "Interest in income tax refund > The accompanying notes are integral part of the financial statements > Partner",
+          "note_no": "Managing Director",
+          "cy_value": 0.0,
+          "py_value": null
+        },
+        {
+          "row_index": 81,
+          "label": "Membership No.:117961",
+          "breadcrumb_path": "Interest in income tax refund > The accompanying notes are integral part of the financial statements > Membership No.:117961",
+          "note_no": "DIN:03526413",
+          "cy_value": 0.0,
+          "py_value": null
+        },
+        {
+          "row_index": 90,
+          "label": "Place: Mumbai",
+          "breadcrumb_path": "Interest in income tax refund > The accompanying notes are integral part of the financial statements > Place: Mumbai",
+          "note_no": "Place: Mumbai",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        },
+        {
+          "row_index": 91,
+          "label": "Date: 31 August 2026",
+          "breadcrumb_path": "Interest in income tax refund > The accompanying notes are integral part of the financial statements > Date: 31 August 2026",
+          "note_no": "Date: 31 August 2026",
+          "cy_value": 0.0,
+          "py_value": 0.0
+        }
+      ]
+    }
+  },
+  "canonical_schedules": [],
+  "canonical_notes": [
+    {
+      "sheet_name": "Note 1-2",
+      "type": "CANONICAL_NOTES"
+    },
+    {
+      "sheet_name": "Note 3-20",
+      "type": "CANONICAL_NOTES"
+    },
+    {
+      "sheet_name": "Note 11a & 11b",
+      "type": "CANONICAL_NOTES"
+    },
+    {
+      "sheet_name": "Note 21-28",
+      "type": "CANONICAL_NOTES"
+    },
+    {
+      "sheet_name": "Note 29-30",
+      "type": "CANONICAL_NOTES"
+    },
+    {
+      "sheet_name": "Note 31",
+      "type": "CANONICAL_NOTES"
+    },
+    {
+      "sheet_name": "Note 32-39",
+      "type": "CANONICAL_NOTES"
+    },
+    {
+      "sheet_name": "Note 40-43",
+      "type": "CANONICAL_NOTES"
+    }
+  ]
+}

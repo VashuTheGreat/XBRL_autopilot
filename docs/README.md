@@ -21,7 +21,8 @@ Read the doc that matches the task. Keep docs short, factual and current. When c
 | 13 | [Gap analysis & Ind AS blueprint](13-gap-analysis-and-indas-blueprint.md) | Webtel deconstruction, schema mapper innovation, Ind AS focus, and FastAPI route specs |
 | 14 | [FastAPI Sidecar Workflow](workflow.md) | Complete sidecar endpoint specs, data payloads, hybrid retrieval logic, and frontend integration hooks |
 | 15 | [Phased Roadmap & Implementation Guide](roadmap.md) | Chronological phases from Backend XML generator to Frontend React wizards with deep code specifications |
-| 16 | [Canonical Pipeline & Tagging Architecture](14-canonical-pipeline-and-tagging-architecture.md) | Complete end-to-end specification: 7 Standard Canonical file schemas, samples, ChromaDB clustering, Table [T], Notes [E], Validation, Zero-fill, and XML generation |
+| 16 | [Canonical Pipeline & Tagging Architecture](14-canonical-pipeline-and-tagging-architecture.md) | End-to-end specification: 7 Standard Canonical file schemas, ChromaDB clustering, Table [T], Notes [E] |
+| 17 | [Master Architecture & Knowledge Base Blueprint](15-master-architecture-and-knowledge-base-blueprint.md) | **MASTER SINGLE SOURCE OF TRUTH**: Full analysis of `ind_as_knowledge_base.json`, Face vs Notes scoping rule, UI & Backend integration, 6 pure Excel files, and production Normalizer Prompt |
 | — | [decisions/](decisions/) | Why a big choice was made (ADRs; e.g. [ADR-0014](decisions/ADR-0014-qdrant-vector-db-and-inmemory-chat-integration.md) for Qdrant, in-memory chat, & hybrid reranking) |
 
 ## Glossary
