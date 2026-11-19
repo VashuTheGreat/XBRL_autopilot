@@ -2,13 +2,12 @@
 
 An **`.axbrl`** ("AutoPilot XBRL") file is one filing: one company, one financial year, standalone or consolidated. It's a **zip archive**, the same idea as `.docx`, so it's portable, inspectable and can be emailed between colleagues. The extension is registered with Windows at install, so double-clicking a file opens the app exactly where the user left off.
 
-## Layout (format version 2)
+## Layout (format version 1)
 ```
 my-company_FY2025-26_standalone.axbrl
 ├─ manifest.json          # required, read first
 ├─ filing.json            # engine Filing.toJSON() — facts, footnotes, meta (source of truth for XML)
 ├─ mapping.json           # Excel cell ↔ fact linkage + AI provenance
-├─ preview.json           # Preview / PDF format settings: { borders, boldHeadings, spacing } (optional, docs/14 Step 7)
 ├─ source/
 │  ├─ workbook-1.xlsx     # original imported workbook(s), byte-identical
 │  └─ edits.json          # cell edits made inside the app (sheet!A1 → value), applied over the xlsx
@@ -46,7 +45,7 @@ my-company_FY2025-26_standalone.axbrl
 ### `mapping.json`
 ```json
 {
-  "version": 2,
+  "version": 1,
   "entries": [
     {
       "id": "m_01H…",
@@ -64,15 +63,6 @@ my-company_FY2025-26_standalone.axbrl
 }
 ```
 `cell.ref` is a single cell (`"C5"`) or a one-column range (`"D22:D23"`) whose cells are summed ([ADR-0009](decisions/ADR-0009-amounts-from-excel.md)). Sources keep their real extension (`source/workbook-2.xls`).
-
-**Several sources per fact (format 2, [ADR-0015](decisions/ADR-0015-multi-source-mapping.md)).** `mapping.json` `version` is 2. Every entry has `sources`, the list of cells (or one-column ranges) whose amounts add up to the fact, each with its sign. `cell` / `sign` always equal `sources[0]`:
-```jsonc
-{ "id": "…", "cell": { "workbook": "workbook-1.xlsx", "sheet": "BS", "ref": "C14" }, "sign": 1,
-  "sources": [ { "cell": { "workbook": "workbook-1.xlsx", "sheet": "BS", "ref": "C14" }, "sign": 1 },
-               { "cell": { "workbook": "workbook-1.xlsx", "sheet": "Notes", "ref": "D20" }, "sign": -1 } ],
-  "fact": { "concept": "in-gaap:OtherCurrentLiabilities", "scope": "CY", "dims": [] }, "status": "approved", … }
-```
-Only approved amount tags have more than one source. **Migration 1 → 2:** on open, a format 1 entry gets `sources: [{ cell, sign }]` (`ui/electron/main/project/migrations.ts`). It is written as format 2 on the next save.
 
 **Table tagging (Phase 11, [ADR-0013](decisions/ADR-0013-table-tagging.md)):**
 ```jsonc
