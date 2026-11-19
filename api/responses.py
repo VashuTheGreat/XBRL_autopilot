@@ -19,6 +19,22 @@ class ApiResponse(BaseModel, Generic[T]):
     errors: Optional[List[ErrorDetail]] = None
 
 
+def _sanitize_payload(obj: Any) -> Any:
+    if obj is None:
+        return None
+    if hasattr(obj, "item"):
+        return obj.item()
+    if hasattr(obj, "dict") and callable(obj.dict):
+        return _sanitize_payload(obj.dict())
+    if hasattr(obj, "model_dump") and callable(obj.model_dump):
+        return _sanitize_payload(obj.model_dump())
+    if isinstance(obj, dict):
+        return {str(k): _sanitize_payload(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple, set)):
+        return [_sanitize_payload(v) for v in obj]
+    return obj
+
+
 def success_response(
     data: Any = None,
     message: str = "Operation completed successfully",
@@ -30,7 +46,7 @@ def success_response(
         success=True,
         errors=None,
     ).model_dump(by_alias=True)
-    return JSONResponse(content=payload, status_code=status_code)
+    return JSONResponse(content=_sanitize_payload(payload), status_code=status_code)
 
 
 def error_response(
@@ -51,4 +67,4 @@ def error_response(
         success=False,
         errors=formatted_errors,
     ).model_dump(by_alias=True)
-    return JSONResponse(content=payload, status_code=status_code)
+    return JSONResponse(content=_sanitize_payload(payload), status_code=status_code)

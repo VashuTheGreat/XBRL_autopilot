@@ -11,35 +11,30 @@ from langchain_community.retrievers import BM25Retriever
 from langchain_core.documents import Document
 
 from src.constants import (
-    CI_OUTPUT_JSON,
-    CI_TAXONOMY_VDB,
-    COST_OUTPUT_JSON,
-    COST_TAXONOMY_VDB,
-    COSTING_TAXONOMY_VDB,
-    INDAS_OUTPUT_JSON,
+    INDAS_OUTPUT_JSON_PATH,
     IND_AS_TAXONOMY_VDB,
+    HYBRID_SEARCH_K,
+    VECTOR_DB_WEIGHT,
+    BM25_WEIGHT,
+    BM25_DIR_PATH
 )
+import asyncio
+from src.utils.main_utils import load_json, load_object
 from src.core.logger import logger
 from src.services.embeddings.huggingface import HuggingFaceEmbedding
 from src.services.vectordb.qdrant import QdrantVectorStore, get_qdrant_service
+from src.services.vectordb.bm25 import get_bm25_service
 
 TaxonomyCollection = Literal["ind_as_taxonomy", "ci_taxonomy", "cost_taxonomy", "costing_taxonomy"]
 
 TAXONOMY_JSON_PATHS = {
-    IND_AS_TAXONOMY_VDB: INDAS_OUTPUT_JSON,
-    CI_TAXONOMY_VDB: CI_OUTPUT_JSON,
-    COST_TAXONOMY_VDB: COST_OUTPUT_JSON,
-    COSTING_TAXONOMY_VDB: COST_OUTPUT_JSON,
+    IND_AS_TAXONOMY_VDB: INDAS_OUTPUT_JSON_PATH
 }
 
 
 def normalize_collection_name(collection: str) -> str:
     """Normalize input collection name to the canonical Qdrant collection name."""
-    col = (collection or "").strip().lower()
-    if col in {"costing_taxonomy", "cost_taxonomy", "cost"}:
-        return COST_TAXONOMY_VDB
-    if col in {"ci_taxonomy", "ci"}:
-        return CI_TAXONOMY_VDB
+    # col = (collection or "").strip().lower()
     return IND_AS_TAXONOMY_VDB
 
 
@@ -70,49 +65,12 @@ class HybridSearchService:
         return get_qdrant_service(collection_name=canon, embedding_service=self._get_embedding())
 
     def _get_bm25_retriever(self, collection: str) -> BM25Retriever:
-        """Load concepts from knowledge base JSON and initialize LangChain BM25Retriever."""
+        """Load concepts and return LangChain BM25Retriever."""
         canon = normalize_collection_name(collection)
-        if canon in self._bm25_retrievers:
-            return self._bm25_retrievers[canon]
+        return get_bm25_service(collection_name=canon).as_retriever(k=HYBRID_SEARCH_K)
 
-        json_path = TAXONOMY_JSON_PATHS.get(canon)
-        if not json_path or not Path(json_path).exists():
-            logger.warning("hybrid.taxonomy_json_missing", collection=canon, path=str(json_path))
-            retriever = BM25Retriever.from_documents([])
-            self._bm25_retrievers[canon] = retriever
-            return retriever
 
-        with open(json_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
-        concepts: dict[str, dict] = data.get("concepts", {})
-        docs: list[Document] = []
-        for qname, c in concepts.items():
-            # Exclude abstract elements, members, axes, tables (not reportable cell facts)
-            if (
-                c.get("abstract") in (True, "true")
-                or qname.endswith("Member")
-                or qname.endswith("Axis")
-                or qname.endswith("Table")
-                or qname.endswith("Abstract")
-            ):
-                continue
-
-            label = (c.get("labels", {}) or {}).get("label", "") or ""
-            name = c.get("name", "") or ""
-            docs.append(
-                Document(
-                    page_content=f"{label} | {qname} | {name}",
-                    metadata={"qname": qname, "label": label, **c},
-                )
-            )
-
-        retriever = BM25Retriever.from_documents(docs)
-        self._bm25_retrievers[canon] = retriever
-        logger.info("hybrid.bm25_retriever_initialized", collection=canon, count=len(docs))
-        return retriever
-
-    def _get_ensemble_retriever(self, collection: str, k: int = 10) -> EnsembleRetriever:
+    def _get_ensemble_retriever(self, collection: str, k: int = HYBRID_SEARCH_K) -> EnsembleRetriever:
         """Build a LangChain EnsembleRetriever combining Qdrant vector search and BM25."""
         canon = normalize_collection_name(collection)
         bm25 = self._get_bm25_retriever(canon)
@@ -123,7 +81,7 @@ class HybridSearchService:
 
         ensemble = EnsembleRetriever(
             retrievers=[vector_retriever, bm25],
-            weights=[0.5, 0.5],
+            weights=[VECTOR_DB_WEIGHT, BM25_WEIGHT],
         )
         return ensemble
 
@@ -131,7 +89,8 @@ class HybridSearchService:
         self,
         query: str,
         collection: TaxonomyCollection = IND_AS_TAXONOMY_VDB,
-        k: int = 10,
+        k: int = HYBRID_SEARCH_K,
+        filter: Optional[dict]=None
     ) -> list[Document]:
         """Run EnsembleRetriever over Qdrant Vector DB + BM25 and return reportable Documents."""
         clean_query = query.strip()
@@ -142,7 +101,7 @@ class HybridSearchService:
         with logger.span("hybrid.asearch", query=clean_query, collection=canon, k=k):
             try:
                 ensemble = self._get_ensemble_retriever(canon, k=k)
-                docs = await ensemble.ainvoke(clean_query)
+                docs = await ensemble.ainvoke(clean_query,filter=filter)
             except Exception as e:
                 logger.warning("hybrid.ensemble_fallback_to_bm25", error=str(e), collection=canon)
                 bm25 = self._get_bm25_retriever(canon)
@@ -152,11 +111,7 @@ class HybridSearchService:
                 d
                 for d in docs
                 if d.metadata.get("abstract") not in (True, "true")
-                and not d.metadata.get("qname", "").endswith("Member")
-                and not d.metadata.get("qname", "").endswith("Axis")
-                and not d.metadata.get("qname", "").endswith("Table")
-                and not d.metadata.get("qname", "").endswith("Abstract")
-            ]
+                ]
             logger.info("hybrid.asearch_completed", collection=canon, count=len(reportable[:k]))
             return reportable[:k]
 

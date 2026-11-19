@@ -1,5 +1,5 @@
 import json
-
+import pickle
 
 async def load_json(path:str):
     with open(path,"r",encoding='utf-8') as f:
@@ -43,3 +43,22 @@ def restore_metadata(meta: dict) -> dict:
         else:
             restored[k] = v
     return restored
+
+
+
+
+from pathlib import Path
+
+
+async def load_object(file_path: str | Path):
+    with open(file_path, "rb") as f:
+        return pickle.load(f)
+
+
+async def save_object(file_path: str | Path, object: object):
+    path = Path(file_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "wb") as f:
+        pickle.dump(object, f)
+
+    

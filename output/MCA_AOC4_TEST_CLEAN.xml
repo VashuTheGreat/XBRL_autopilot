@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xbrli:xbrl
+  xmlns:in-ca="http://www.mca.gov.in/in-ca/2016-03-31"
+  xmlns:ind-as="http://www.mca.gov.in/ind-as/2016-03-31"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+  xmlns:iso4217="http://www.xbrl.org/2003/iso4217">
+  <link:schemaRef xlink:href="http://www.mca.gov.in/ind-as/2016-03-31/ind-as-2016-03-31.xsd" xlink:type="simple"/>
+
+  <!-- 1. STANDARD CONTEXTS -->
+  <xbrli:context id="CY_Instant">
+    <xbrli:entity><xbrli:identifier scheme="http://www.mca.gov.in/CIN">U72200DL2018PTC123456</xbrli:identifier></xbrli:entity>
+    <xbrli:period><xbrli:instant>2026-03-31</xbrli:instant></xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="PY_Instant">
+    <xbrli:entity><xbrli:identifier scheme="http://www.mca.gov.in/CIN">U72200DL2018PTC123456</xbrli:identifier></xbrli:entity>
+    <xbrli:period><xbrli:instant>2025-03-31</xbrli:instant></xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="CY_Duration">
+    <xbrli:entity><xbrli:identifier scheme="http://www.mca.gov.in/CIN">U72200DL2018PTC123456</xbrli:identifier></xbrli:entity>
+    <xbrli:period><xbrli:startDate>2025-04-01</xbrli:startDate><xbrli:endDate>2026-03-31</xbrli:endDate></xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="PY_Duration">
+    <xbrli:entity><xbrli:identifier scheme="http://www.mca.gov.in/CIN">U72200DL2018PTC123456</xbrli:identifier></xbrli:entity>
+    <xbrli:period><xbrli:startDate>2024-04-01</xbrli:startDate><xbrli:endDate>2025-03-31</xbrli:endDate></xbrli:period>
+  </xbrli:context>
+
+  <!-- 2. PPE DIMENSIONAL CONTEXTS -->
+  <xbrli:context id="CY_Duration_PlantAndEquipmentMember">
+    <xbrli:entity><xbrli:identifier scheme="http://www.mca.gov.in/CIN">U72200DL2018PTC123456</xbrli:identifier>
+      <xbrli:segment><xbrldi:explicitMember dimension="ind-as:ClassesOfPropertyPlantAndEquipmentAxis">ind-as:PlantAndEquipmentMember</xbrldi:explicitMember></xbrli:segment>
+    </xbrli:entity>
+    <xbrli:period><xbrli:startDate>2025-04-01</xbrli:startDate><xbrli:endDate>2026-03-31</xbrli:endDate></xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="CY_Instant_PlantAndEquipmentMember">
+    <xbrli:entity><xbrli:identifier scheme="http://www.mca.gov.in/CIN">U72200DL2018PTC123456</xbrli:identifier>
+      <xbrli:segment><xbrldi:explicitMember dimension="ind-as:ClassesOfPropertyPlantAndEquipmentAxis">ind-as:PlantAndEquipmentMember</xbrldi:explicitMember></xbrli:segment>
+    </xbrli:entity>
+    <xbrli:period><xbrli:instant>2026-03-31</xbrli:instant></xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="CY_Duration_FurnitureAndFixturesMember">
+    <xbrli:entity><xbrli:identifier scheme="http://www.mca.gov.in/CIN">U72200DL2018PTC123456</xbrli:identifier>
+      <xbrli:segment><xbrldi:explicitMember dimension="ind-as:ClassesOfPropertyPlantAndEquipmentAxis">ind-as:FurnitureAndFixturesMember</xbrldi:explicitMember></xbrli:segment>
+    </xbrli:entity>
+    <xbrli:period><xbrli:startDate>2025-04-01</xbrli:startDate><xbrli:endDate>2026-03-31</xbrli:endDate></xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="CY_Instant_FurnitureAndFixturesMember">
+    <xbrli:entity><xbrli:identifier scheme="http://www.mca.gov.in/CIN">U72200DL2018PTC123456</xbrli:identifier>
+      <xbrli:segment><xbrldi:explicitMember dimension="ind-as:ClassesOfPropertyPlantAndEquipmentAxis">ind-as:FurnitureAndFixturesMember</xbrldi:explicitMember></xbrli:segment>
+    </xbrli:entity>
+    <xbrli:period><xbrli:instant>2026-03-31</xbrli:instant></xbrli:period>
+  </xbrli:context>
+
+  <!-- 3. DIRECTOR SIGNATORIES CONTEXTS -->
+  <xbrli:context id="Director_01234567">
+    <xbrli:entity><xbrli:identifier scheme="http://www.mca.gov.in/CIN">U72200DL2018PTC123456</xbrli:identifier>
+      <xbrli:segment>
+        <xbrldi:typedMember dimension="in-ca:DirectorsSigningFinancialStatementsAxis">
+          <in-ca:DirectorIdentificationNumberOfDirector>01234567</in-ca:DirectorIdentificationNumberOfDirector>
+        </xbrldi:typedMember>
+      </xbrli:segment>
+    </xbrli:entity>
+    <xbrli:period><xbrli:startDate>2025-04-01</xbrli:startDate><xbrli:endDate>2026-03-31</xbrli:endDate></xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="Director_07654321">
+    <xbrli:entity><xbrli:identifier scheme="http://www.mca.gov.in/CIN">U72200DL2018PTC123456</xbrli:identifier>
+      <xbrli:segment>
+        <xbrldi:typedMember dimension="in-ca:DirectorsSigningFinancialStatementsAxis">
+          <in-ca:DirectorIdentificationNumberOfDirector>07654321</in-ca:DirectorIdentificationNumberOfDirector>
+        </xbrldi:typedMember>
+      </xbrli:segment>
+    </xbrli:entity>
+    <xbrli:period><xbrli:startDate>2025-04-01</xbrli:startDate><xbrli:endDate>2026-03-31</xbrli:endDate></xbrli:period>
+  </xbrli:context>
+
+  <!-- 4. UNITS -->
+  <xbrli:unit id="INR"><xbrli:measure>iso4217:INR</xbrli:measure></xbrli:unit>
+  <xbrli:unit id="shares"><xbrli:measure>xbrli:shares</xbrli:measure></xbrli:unit>
+  <xbrli:unit id="pure"><xbrli:measure>xbrli:pure</xbrli:measure></xbrli:unit>
+
+  <!-- 5. MASTER FACTS -->
+  <in-ca:CorporateIdentityNumber contextRef="CY_Duration">U72200DL2018PTC123456</in-ca:CorporateIdentityNumber>
+  <in-ca:NameOfCompany contextRef="CY_Duration">Helmier Technologies Private Limited</in-ca:NameOfCompany>
+  <in-ca:PermanentAccountNumberOfEntity contextRef="CY_Duration">AAACH1234K</in-ca:PermanentAccountNumberOfEntity>
+  <in-ca:AddressOfRegisteredOfficeOfCompany contextRef="CY_Duration">Connaught Place, New Delhi</in-ca:AddressOfRegisteredOfficeOfCompany>
+  <in-ca:TypeOfIndustry contextRef="CY_Duration">Commercial and Industrial</in-ca:TypeOfIndustry>
+  <in-ca:DateOfBoardMeetingWhenFinalAccountsWereApproved contextRef="CY_Duration">2026-09-05</in-ca:DateOfBoardMeetingWhenFinalAccountsWereApproved>
+  <in-ca:DateOfStartOfReportingPeriod contextRef="CY_Duration">2025-04-01</in-ca:DateOfStartOfReportingPeriod>
+  <in-ca:DateOfEndOfReportingPeriod contextRef="CY_Duration">2026-03-31</in-ca:DateOfEndOfReportingPeriod>
+  <in-ca:NatureOfReportStandaloneConsolidated contextRef="CY_Duration">Standalone</in-ca:NatureOfReportStandaloneConsolidated>
+  <in-ca:ContentOfReport contextRef="CY_Duration">Financial Statements</in-ca:ContentOfReport>
+  <in-ca:DescriptionOfPresentationCurrency contextRef="CY_Duration">INR</in-ca:DescriptionOfPresentationCurrency>
+  <in-ca:LevelOfRoundingUsedInFinancialStatements contextRef="CY_Duration">Exact</in-ca:LevelOfRoundingUsedInFinancialStatements>
+  <in-ca:WhetherCompanyIsMaintainingBooksOfAccountAndOtherRelevantBooksAndPapersInElectronicForm contextRef="CY_Duration">No</in-ca:WhetherCompanyIsMaintainingBooksOfAccountAndOtherRelevantBooksAndPapersInElectronicForm>
+  <ind-as:DescriptionOfNatureOfFinancialStatements contextRef="CY_Duration">Standalone</ind-as:DescriptionOfNatureOfFinancialStatements>
+  <in-ca:CategoryOfAuditor contextRef="CY_Duration">Auditor&#x27;s firm</in-ca:CategoryOfAuditor>
+  <in-ca:NameOfAuditFirm contextRef="CY_Duration">R. K. Sharma &amp; Associates</in-ca:NameOfAuditFirm>
+  <in-ca:NameOfAuditorSigningReport contextRef="CY_Duration">CA Rajesh Sharma</in-ca:NameOfAuditorSigningReport>
+  <in-ca:MembershipNumberOfAuditor contextRef="CY_Duration">087654</in-ca:MembershipNumberOfAuditor>
+  <in-ca:AddressOfAuditors contextRef="CY_Duration">Connaught Place, New Delhi - 110001</in-ca:AddressOfAuditors>
+  <in-ca:PermanentAccountNumberOfAuditorOrAuditorsFirm contextRef="CY_Duration">AAAFR1234K</in-ca:PermanentAccountNumberOfAuditorOrAuditorsFirm>
+  <in-ca:DateOfSigningAuditReportByAuditors contextRef="CY_Duration">2026-09-05</in-ca:DateOfSigningAuditReportByAuditors>
+  <in-ca:DateOfSigningOfBalanceSheetByAuditors contextRef="CY_Duration">2026-09-05</in-ca:DateOfSigningOfBalanceSheetByAuditors>
+  <in-ca:DirectorIdentificationNumberOfDirector contextRef="Director_01234567">01234567</in-ca:DirectorIdentificationNumberOfDirector>
+  <in-ca:FirstNameOfDirector contextRef="Director_01234567">John</in-ca:FirstNameOfDirector>
+  <in-ca:LastNameOfDirector contextRef="Director_01234567">Doe</in-ca:LastNameOfDirector>
+  <in-ca:DesignationOfDirector contextRef="Director_01234567">Managing Director</in-ca:DesignationOfDirector>
+  <in-ca:DateOfSigningOfFinancialStatementsByDirector contextRef="Director_01234567">2026-09-05</in-ca:DateOfSigningOfFinancialStatementsByDirector>
+  <in-ca:DirectorIdentificationNumberOfDirector contextRef="Director_07654321">07654321</in-ca:DirectorIdentificationNumberOfDirector>
+  <in-ca:FirstNameOfDirector contextRef="Director_07654321">Jane</in-ca:FirstNameOfDirector>
+  <in-ca:LastNameOfDirector contextRef="Director_07654321">Doe</in-ca:LastNameOfDirector>
+  <in-ca:DesignationOfDirector contextRef="Director_07654321">Director</in-ca:DesignationOfDirector>
+  <in-ca:DateOfSigningOfFinancialStatementsByDirector contextRef="Director_07654321">2026-09-05</in-ca:DateOfSigningOfFinancialStatementsByDirector>
+
+  <!-- 6. BALANCE SHEET FACTS -->
+  <ind-as:PropertyPlantAndEquipment contextRef="CY_Instant" unitRef="INR" decimals="0">14500000</ind-as:PropertyPlantAndEquipment>
+  <ind-as:PropertyPlantAndEquipment contextRef="PY_Instant" unitRef="INR" decimals="0">12000000</ind-as:PropertyPlantAndEquipment>
+  <ind-as:CapitalWorkInProgress contextRef="CY_Instant" unitRef="INR" decimals="0">1200000</ind-as:CapitalWorkInProgress>
+  <ind-as:CapitalWorkInProgress contextRef="PY_Instant" unitRef="INR" decimals="0">800000</ind-as:CapitalWorkInProgress>
+  <ind-as:NoncurrentAssets contextRef="CY_Instant" unitRef="INR" decimals="0">15700000</ind-as:NoncurrentAssets>
+  <ind-as:NoncurrentAssets contextRef="PY_Instant" unitRef="INR" decimals="0">12800000</ind-as:NoncurrentAssets>
+  <ind-as:Inventories contextRef="CY_Instant" unitRef="INR" decimals="0">4500000</ind-as:Inventories>
+  <ind-as:Inventories contextRef="PY_Instant" unitRef="INR" decimals="0">3800000</ind-as:Inventories>
+  <ind-as:TradeReceivablesCurrent contextRef="CY_Instant" unitRef="INR" decimals="0">7800000</ind-as:TradeReceivablesCurrent>
+  <ind-as:TradeReceivablesCurrent contextRef="PY_Instant" unitRef="INR" decimals="0">6200000</ind-as:TradeReceivablesCurrent>
+  <ind-as:CashAndCashEquivalents contextRef="CY_Instant" unitRef="INR" decimals="0">3200000</ind-as:CashAndCashEquivalents>
+  <ind-as:CashAndCashEquivalents contextRef="PY_Instant" unitRef="INR" decimals="0">2100000</ind-as:CashAndCashEquivalents>
+  <ind-as:CurrentFinancialAssets contextRef="CY_Instant" unitRef="INR" decimals="0">11000000</ind-as:CurrentFinancialAssets>
+  <ind-as:CurrentFinancialAssets contextRef="PY_Instant" unitRef="INR" decimals="0">8300000</ind-as:CurrentFinancialAssets>
+  <ind-as:CurrentAssets contextRef="CY_Instant" unitRef="INR" decimals="0">15500000</ind-as:CurrentAssets>
+  <ind-as:CurrentAssets contextRef="PY_Instant" unitRef="INR" decimals="0">12100000</ind-as:CurrentAssets>
+  <ind-as:Assets contextRef="CY_Instant" unitRef="INR" decimals="0">31200000</ind-as:Assets>
+  <ind-as:Assets contextRef="PY_Instant" unitRef="INR" decimals="0">24900000</ind-as:Assets>
+  <ind-as:EquityShareCapital contextRef="CY_Instant" unitRef="INR" decimals="0">10000000</ind-as:EquityShareCapital>
+  <ind-as:EquityShareCapital contextRef="PY_Instant" unitRef="INR" decimals="0">10000000</ind-as:EquityShareCapital>
+  <ind-as:OtherEquity contextRef="CY_Instant" unitRef="INR" decimals="0">15400000</ind-as:OtherEquity>
+  <ind-as:OtherEquity contextRef="PY_Instant" unitRef="INR" decimals="0">10000000</ind-as:OtherEquity>
+  <ind-as:Equity contextRef="CY_Instant" unitRef="INR" decimals="0">25400000</ind-as:Equity>
+  <ind-as:Equity contextRef="PY_Instant" unitRef="INR" decimals="0">20000000</ind-as:Equity>
+  <ind-as:TradePayablesCurrent contextRef="CY_Instant" unitRef="INR" decimals="0">5800000</ind-as:TradePayablesCurrent>
+  <ind-as:TradePayablesCurrent contextRef="PY_Instant" unitRef="INR" decimals="0">4900000</ind-as:TradePayablesCurrent>
+  <ind-as:CurrentLiabilities contextRef="CY_Instant" unitRef="INR" decimals="0">5800000</ind-as:CurrentLiabilities>
+  <ind-as:CurrentLiabilities contextRef="PY_Instant" unitRef="INR" decimals="0">4900000</ind-as:CurrentLiabilities>
+  <ind-as:Liabilities contextRef="CY_Instant" unitRef="INR" decimals="0">5800000</ind-as:Liabilities>
+  <ind-as:Liabilities contextRef="PY_Instant" unitRef="INR" decimals="0">4900000</ind-as:Liabilities>
+  <ind-as:EquityAndLiabilities contextRef="CY_Instant" unitRef="INR" decimals="0">31200000</ind-as:EquityAndLiabilities>
+  <ind-as:EquityAndLiabilities contextRef="PY_Instant" unitRef="INR" decimals="0">24900000</ind-as:EquityAndLiabilities>
+
+  <!-- 7. PROFIT & LOSS FACTS -->
+  <ind-as:RevenueFromOperations contextRef="CY_Duration" unitRef="INR" decimals="0">52000000</ind-as:RevenueFromOperations>
+  <ind-as:RevenueFromOperations contextRef="PY_Duration" unitRef="INR" decimals="0">41000000</ind-as:RevenueFromOperations>
+  <ind-as:OtherIncome contextRef="CY_Duration" unitRef="INR" decimals="0">1200000</ind-as:OtherIncome>
+  <ind-as:OtherIncome contextRef="PY_Duration" unitRef="INR" decimals="0">850000</ind-as:OtherIncome>
+  <ind-as:Income contextRef="CY_Duration" unitRef="INR" decimals="0">53200000</ind-as:Income>
+  <ind-as:Income contextRef="PY_Duration" unitRef="INR" decimals="0">41850000</ind-as:Income>
+  <ind-as:CostOfMaterialsConsumed contextRef="CY_Duration" unitRef="INR" decimals="0">24000000</ind-as:CostOfMaterialsConsumed>
+  <ind-as:CostOfMaterialsConsumed contextRef="PY_Duration" unitRef="INR" decimals="0">19500000</ind-as:CostOfMaterialsConsumed>
+  <ind-as:ChangesInInventoriesOfFinishedGoodsWorkInProgressAndStockInTrade contextRef="CY_Duration" unitRef="INR" decimals="0">-1500000</ind-as:ChangesInInventoriesOfFinishedGoodsWorkInProgressAndStockInTrade>
+  <ind-as:ChangesInInventoriesOfFinishedGoodsWorkInProgressAndStockInTrade contextRef="PY_Duration" unitRef="INR" decimals="0">-800000</ind-as:ChangesInInventoriesOfFinishedGoodsWorkInProgressAndStockInTrade>
+  <ind-as:EmployeeBenefitExpense contextRef="CY_Duration" unitRef="INR" decimals="0">8500000</ind-as:EmployeeBenefitExpense>
+  <ind-as:EmployeeBenefitExpense contextRef="PY_Duration" unitRef="INR" decimals="0">6800000</ind-as:EmployeeBenefitExpense>
+  <ind-as:FinanceCosts contextRef="CY_Duration" unitRef="INR" decimals="0">950000</ind-as:FinanceCosts>
+  <ind-as:FinanceCosts contextRef="PY_Duration" unitRef="INR" decimals="0">820000</ind-as:FinanceCosts>
+  <ind-as:DepreciationDepletionAndAmortisationExpense contextRef="CY_Duration" unitRef="INR" decimals="0">2100000</ind-as:DepreciationDepletionAndAmortisationExpense>
+  <ind-as:DepreciationDepletionAndAmortisationExpense contextRef="PY_Duration" unitRef="INR" decimals="0">1800000</ind-as:DepreciationDepletionAndAmortisationExpense>
+  <ind-as:OtherExpenses contextRef="CY_Duration" unitRef="INR" decimals="0">11450000</ind-as:OtherExpenses>
+  <ind-as:OtherExpenses contextRef="PY_Duration" unitRef="INR" decimals="0">9200000</ind-as:OtherExpenses>
+  <ind-as:Expenses contextRef="CY_Duration" unitRef="INR" decimals="0">45500000</ind-as:Expenses>
+  <ind-as:Expenses contextRef="PY_Duration" unitRef="INR" decimals="0">37320000</ind-as:Expenses>
+  <ind-as:ProfitBeforeTax contextRef="CY_Duration" unitRef="INR" decimals="0">7700000</ind-as:ProfitBeforeTax>
+  <ind-as:ProfitBeforeTax contextRef="PY_Duration" unitRef="INR" decimals="0">4530000</ind-as:ProfitBeforeTax>
+  <ind-as:CurrentTax contextRef="CY_Duration" unitRef="INR" decimals="0">1950000</ind-as:CurrentTax>
+  <ind-as:CurrentTax contextRef="PY_Duration" unitRef="INR" decimals="0">1150000</ind-as:CurrentTax>
+  <ind-as:DeferredTax contextRef="CY_Duration" unitRef="INR" decimals="0">520000</ind-as:DeferredTax>
+  <ind-as:DeferredTax contextRef="PY_Duration" unitRef="INR" decimals="0">380000</ind-as:DeferredTax>
+  <ind-as:ProfitLossForPeriod contextRef="CY_Duration" unitRef="INR" decimals="0">5230000</ind-as:ProfitLossForPeriod>
+  <ind-as:ProfitLossForPeriod contextRef="PY_Duration" unitRef="INR" decimals="0">3000000</ind-as:ProfitLossForPeriod>
+
+  <!-- 8. PPE SCHEDULE FACTS -->
+  <ind-as:PropertyPlantAndEquipment contextRef="CY_Instant_PlantAndEquipmentMember" unitRef="INR" decimals="0">12500000</ind-as:PropertyPlantAndEquipment>
+  <ind-as:AdditionsOtherThanThroughBusinessCombinationsPropertyPlantAndEquipment contextRef="CY_Duration_PlantAndEquipmentMember" unitRef="INR" decimals="0">2500000</ind-as:AdditionsOtherThanThroughBusinessCombinationsPropertyPlantAndEquipment>
+  <ind-as:DisposalsPropertyPlantAndEquipment contextRef="CY_Duration_PlantAndEquipmentMember" unitRef="INR" decimals="0">0</ind-as:DisposalsPropertyPlantAndEquipment>
+  <ind-as:DepreciationPropertyPlantAndEquipment contextRef="CY_Duration_PlantAndEquipmentMember" unitRef="INR" decimals="0">1000000</ind-as:DepreciationPropertyPlantAndEquipment>
+  <ind-as:PropertyPlantAndEquipment contextRef="CY_Instant_FurnitureAndFixturesMember" unitRef="INR" decimals="0">2500000</ind-as:PropertyPlantAndEquipment>
+  <ind-as:AdditionsOtherThanThroughBusinessCombinationsPropertyPlantAndEquipment contextRef="CY_Duration_FurnitureAndFixturesMember" unitRef="INR" decimals="0">500000</ind-as:AdditionsOtherThanThroughBusinessCombinationsPropertyPlantAndEquipment>
+  <ind-as:DisposalsPropertyPlantAndEquipment contextRef="CY_Duration_FurnitureAndFixturesMember" unitRef="INR" decimals="0">0</ind-as:DisposalsPropertyPlantAndEquipment>
+  <ind-as:DepreciationPropertyPlantAndEquipment contextRef="CY_Duration_FurnitureAndFixturesMember" unitRef="INR" decimals="0">250000</ind-as:DepreciationPropertyPlantAndEquipment>
+
+  <!-- 9. NARRATIVE NOTES EXPLANATORY FACTS -->
+  <ind-as:DisclosureOfCorporateInformationNotesAndOtherExplanatoryInformation contextRef="CY_Duration"><![CDATA[<p style="text-align:justify; font-family:Arial,sans-serif; font-size:10pt;">Helmier Technologies Private Limited is domiciled in India and incorporated under the Companies Act 2013.</p>]]></ind-as:DisclosureOfCorporateInformationNotesAndOtherExplanatoryInformation>
+  <ind-as:DisclosureOfSummaryOfSignificantAccountingPoliciesExplanatory contextRef="CY_Duration"><![CDATA[<p style="text-align:justify; font-family:Arial,sans-serif; font-size:10pt;">Financial statements are prepared under Ind AS notified under Section 133 of the Companies Act 2013.</p>]]></ind-as:DisclosureOfSummaryOfSignificantAccountingPoliciesExplanatory>
+
+</xbrli:xbrl>

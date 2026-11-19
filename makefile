@@ -1,35 +1,25 @@
-.PHONY: dev start test rebuild rebuild-fast rebuild-skip-chroma engine-authority engine-rules clean build-sidecar build-ui build-win build-linux build_app build-app app run dev-app
-
-# Support passing arguments like:
-# make rebuild ARGS="--skip-chroma"
-# make rebuild-fast
-# make rebuild-skip-chroma
-# make rebuild skip-chroma
-# make -- rebuild --skip-chroma
-
-EXTRA_ARGS := $(ARGS)
-ifneq (,$(filter skip-chroma --skip-chroma,$(MAKECMDGOALS)))
-  EXTRA_ARGS := --skip-chroma
-endif
 
 # --- Launch Desktop Application ---
 app:
 	pnpm --filter ui dev
 
 
+# ============= Backend ===================
+dev-backend:
+	uv run uvicorn api.app:app --host 0.0.0.0 --port 7860 --reload
 
-dev:
-	with reload run python + ui serviers --reload
+start-backend:
+	uv run uvicorn api.app:app --host 0.0.0.0 --port 7860
 
-start:
-	pnpm --filter ui dev
-test:
-	uv run --extra dev pytest -v && run ui test
+test-backend:
+	uv run pytest $0
 
-rebuild:
-	uv run python -m src.pipeline.rebuild_knowledge_base_pipeline $(EXTRA_ARGS)
+rebuild-knowlege-base:
+	uv run python -m src.pipeline.rebuild_knowledge_base_pipeline $(ARGS)
 
 
+
+# ================= Common ================
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	rm -rf .pytest_cache .ruff_cache build dist sidecar-dist ui/out ui/release

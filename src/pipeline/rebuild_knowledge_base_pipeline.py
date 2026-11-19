@@ -4,16 +4,11 @@ import sys
 
 from src.constants import (
     ALL_QDRANT_COLLECTIONS,
-    CI_TAXONOMY_VDB,
-    COST_TAXONOMY_VDB,
-    IND_AS_TAXONOMY_VDB,
-    XBRL_AGENT_VDB,
 )
 from src.core.logger import logger
-from src.ingestion import build_engine_authorities, build_engine_rules
 from src.pipeline.base import Pipeline
 from src.pipeline.ingestion_pipeline import IngestionPipeline
-from src.services.extractors import ci, cost, ind_as
+from src.services.extractors import ind_as
 from src.services.vectordb.qdrant import get_qdrant_service
 
 
@@ -26,14 +21,12 @@ class RebuildKnowledgeBasePipeline(Pipeline):
         with logger.span("rebuild.create_json_files"):
             logger.info("rebuild.extractors_starting")
             await asyncio.gather(
-                ci.main(),
-                cost.main(),
                 ind_as.main(),
             )
             logger.info("rebuild.extractors_completed")
 
     async def _reset_qdrant_collections(self) -> None:
-        """Initialize Qdrant connection, delete existing 4 target collections, and recreate them fresh."""
+        """Initialize Qdrant connection, delete existing target collections, and recreate them fresh."""
         with logger.span("rebuild.reset_qdrant_collections"):
             logger.info("rebuild.resetting_collections", collections=ALL_QDRANT_COLLECTIONS)
             for collection_name in ALL_QDRANT_COLLECTIONS:
@@ -43,7 +36,7 @@ class RebuildKnowledgeBasePipeline(Pipeline):
             logger.info("rebuild.all_collections_recreated")
 
     async def initiate(self) -> None:
-        """Execute complete rebuild workflow: extractors -> authorities -> rules -> vector DB."""
+        """Execute complete rebuild workflow: extractors -> vector DB."""
         parser = argparse.ArgumentParser(
             description="Rebuild XBRL Knowledge Base and Qdrant Vector Database from data/"
         )
@@ -64,19 +57,7 @@ class RebuildKnowledgeBasePipeline(Pipeline):
                 # Step 1: Extract taxonomy JSON files
                 await self._create_json_files()
 
-                # Step 2: Build engine authorities (ADR-0010)
-                with logger.span("rebuild.build_engine_authorities"):
-                    logger.info("rebuild.building_authorities")
-                    build_engine_authorities.main()
-                    logger.info("rebuild.authorities_complete")
-
-                # Step 3: Build engine rules (ADR-0011)
-                with logger.span("rebuild.build_engine_rules"):
-                    logger.info("rebuild.building_rules")
-                    build_engine_rules.main()
-                    logger.info("rebuild.rules_complete")
-
-                # Step 4 & 5: Reset Qdrant collections and populate via IngestionPipeline
+                # Step 2: Reset Qdrant collections and populate via IngestionPipeline
                 if not args.skip_vector_db:
                     await self._reset_qdrant_collections()
                     ingestion = IngestionPipeline()
