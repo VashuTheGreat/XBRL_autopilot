@@ -1,10 +1,12 @@
 import os
 import shutil
+import uuid
 from typing import List
 from fastapi import File, HTTPException, Request, UploadFile
 
 from src.constants import BASE_DIR
 from src.core.logger import logger
+from src.utils.main_utils import save_file
 
 PUBLIC_DIRECTOR_NAME = str(BASE_DIR / "static")
 INGESTION_FOLDER_NAME = "ingestion"
@@ -24,14 +26,14 @@ async def multer_middleware(
                 yield []
                 return
 
-            thread_id = getattr(request.state, "thread_id", "default")
+            thread_id = getattr(request.state, "thread_id", None) or str(uuid.uuid4())[:8]
             dest_dir = os.path.join(PUBLIC_TEMP_DIR, str(thread_id))
             os.makedirs(dest_dir, exist_ok=True)
             file_path = os.path.join(dest_dir, file.filename)
 
             logger.info("middleware.upload_storing", file_name=file.filename, destination=file_path)
-            with open(file_path, "wb") as f:
-                shutil.copyfileobj(file.file, f)
+            content = await file.read()
+            await save_file(file_path=file_path, content=content)
             saved_paths.append(file_path)
             logger.info("middleware.upload_stored", file_path=file_path)
 

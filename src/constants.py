@@ -43,3 +43,8 @@ AGENT_KNOWLEDGE_DATA_DIR = BASE_DIR / "data" / "agent"
 
 # ================== XML Generation =================
 OUTPUT_DIR:str = "output"
+
+
+
+
+DELETE_FILE_AFTER:float = 60.0

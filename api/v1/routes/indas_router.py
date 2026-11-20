@@ -1,18 +1,21 @@
 import asyncio
+import os
 import uuid
-from typing import Optional
-from fastapi import APIRouter
+from pathlib import Path
+from typing import List, Optional
+from fastapi import APIRouter, Depends, Form
 from fastapi.responses import FileResponse
 
 from ...responses import error_response, success_response
-from src.constants import BASE_DIR, INDAS_OUTPUT_JSON_PATH, IND_AS_TAXONOMY_VDB, OUTPUT_DIR
+from src.constants import BASE_DIR, INDAS_OUTPUT_JSON_PATH, IND_AS_TAXONOMY_VDB, OUTPUT_DIR, DELETE_FILE_AFTER
 from src.core.logger import logger
-from src.utils.main_utils import load_json
+from src.utils.main_utils import load_file, load_json, save_file
 from src.pipeline.recom_taxonomies_pipeline import RecommendationPipeline
 from api.v1.schemas.indas_schema import RecommendSchema, GenerateXML
 from src.pipeline.xml_generation_pipeline import XMLGenerationPipeline
-from api.helper.delete_file import delete_file_after, delete_folder
-
+from api.helper.delete_file import delete_file_after
+from src.pipeline.indas_transformation import IndasTransformationPipeline
+from api.middlewares.multi_middleware import multer_middleware
 recomm_pipeline = RecommendationPipeline()
 router = APIRouter()
 
@@ -66,7 +69,7 @@ async def generate_xml(payload: GenerateXML):
                 download_url = f"/api/v1/indas/download/{unique_id}/{file_name}"
 
                 # Auto cleanup directory after 15 minutes (non-blocking)
-                asyncio.create_task(delete_file_after(file_path=file_path, after=900.0))
+                asyncio.create_task(delete_file_after(file_path=file_path, after=DELETE_FILE_AFTER))
 
                 logger.info(
                     "indas.xml_generated_successfully",
@@ -107,8 +110,8 @@ async def generate_xml(payload: GenerateXML):
 
 
 @router.get("/download/{unique_id}/{file_name}")
-async def download_xml(unique_id: str, file_name: str):
-    with logger.span("indas.download_xml", unique_id=unique_id, file_name=file_name):
+async def download_file(unique_id: str, file_name: str):
+    with logger.span("indas.download_file", unique_id=unique_id, file_name=file_name):
         out_dir = BASE_DIR / OUTPUT_DIR / unique_id
         if not out_dir.exists():
             logger.warning("indas.download_dir_not_found", unique_id=unique_id, path=str(out_dir))
@@ -117,25 +120,103 @@ async def download_xml(unique_id: str, file_name: str):
         target_file = out_dir / file_name
         if not target_file.exists():
             logger.warning("indas.download_file_not_found", unique_id=unique_id, file_name=file_name)
-            return error_response(message="XML file not found or expired", status_code=404)
+            return error_response(message="File not found or expired", status_code=404)
+
+        lower_name = file_name.lower()
+        if lower_name.endswith(".xlsx"):
+            media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        elif lower_name.endswith(".xls"):
+            media_type = "application/vnd.ms-excel"
+        elif lower_name.endswith(".xml"):
+            media_type = "application/xml"
+        elif lower_name.endswith(".json"):
+            media_type = "application/json"
+        else:
+            media_type = "application/octet-stream"
 
         logger.info("indas.file_served_for_download", unique_id=unique_id, file_path=str(target_file))
         return FileResponse(
             path=str(target_file),
             filename=target_file.name,
-            media_type="application/xml",
+            media_type=media_type,
         )
 
 
-@router.delete("/output/{unique_id}")
-async def delete_output_folder(unique_id: str):
-    with logger.span("indas.delete_output_folder", unique_id=unique_id):
-        out_dir = BASE_DIR / OUTPUT_DIR / unique_id
-        if not out_dir.exists():
-            logger.warning("indas.delete_output_not_found", unique_id=unique_id)
-            return error_response(message="Folder not found or already deleted", status_code=404)
-        success = delete_folder(out_dir)
-        if success:
-            logger.info("indas.delete_output_success", unique_id=unique_id)
-            return success_response(message=f"Output directory for '{unique_id}' successfully deleted", data={"uniqueId": unique_id})
-        return error_response(message="Failed to delete output directory", status_code=500)
+
+@router.post("/transform")
+async def transform_file(
+    saved_paths: List[str] = Depends(multer_middleware),
+    unique_id: Optional[str] = Form(None),
+):
+    unique_id = unique_id or str(uuid.uuid4())[:8]
+    with logger.span("indas.transform_file", unique_id=unique_id):
+        try:
+            if not saved_paths or not saved_paths[0]:
+                logger.warning("indas.transform_no_file_uploaded")
+                return error_response(
+                    message="No file uploaded. Please upload a valid .xls or .xlsx file under field 'file'.",
+                    status_code=400,
+                )
+
+            input_file_path = saved_paths[0]
+            filename = Path(input_file_path).name
+            lower_name = filename.lower()
+            if not (lower_name.endswith(".xlsx") or lower_name.endswith(".xls")):
+                logger.warning("indas.transform_invalid_file_type", filename=filename)
+                return error_response(
+                    message="Invalid file format. Only Excel files (.xls, .xlsx) are supported.",
+                    status_code=400,
+                )
+
+            work_dir = BASE_DIR / OUTPUT_DIR / unique_id
+            work_dir.mkdir(parents=True, exist_ok=True)
+
+            output_file_name = f"CANONICAL_MASTER_{Path(filename).stem}.xlsx"
+            output_file_path = work_dir / output_file_name
+
+            # Initiate transformation pipeline
+            pipeline = IndasTransformationPipeline()
+            data = await pipeline.initiate(
+                input_file_path=str(input_file_path),
+                output_file_path=str(output_file_path),
+            )
+
+            if data.get("success"):
+                file_size_kb = round(os.path.getsize(output_file_path) / 1024, 2)
+                download_url = f"/api/v1/indas/download/{unique_id}/{output_file_name}"
+
+                # Auto cleanup output directory after 15 minutes (non-blocking)
+                asyncio.create_task(delete_file_after(file_path=output_file_path, after=DELETE_FILE_AFTER))
+
+                logger.info(
+                    "indas.workbook_transformed_successfully",
+                    unique_id=unique_id,
+                    file_name=output_file_name,
+                    file_size_kb=file_size_kb,
+                    download_url=download_url,
+                )
+
+                return success_response(
+                    data={
+                        "status": "SUCCESS",
+                        "canExport": True,
+                        "uniqueId": unique_id,
+                        "fileName": output_file_name,
+                        "filePath": str(output_file_path),
+                        "fileSizeKb": file_size_kb,
+                        "downloadUrl": download_url,
+                        "summary": data.get("summary", {}),
+                    },
+                    message="Workbook transformed successfully. Download URL is valid for 15 minutes.",
+                    status_code=200,
+                )
+
+            logger.error("indas.transform_failed", unique_id=unique_id, error=data.get("err"))
+            return error_response(
+                message=f"Transformation failed: {data.get('err', 'Unknown error')}",
+                status_code=500,
+            )
+        except Exception as e:
+            logger.error("indas.transform_exception", unique_id=unique_id, error=str(e))
+            return error_response(message=f"Workbook transformation failed: {str(e)}", status_code=500)
+

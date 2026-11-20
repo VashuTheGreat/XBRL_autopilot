@@ -82,3 +82,20 @@ async def load_xml(file_path: str | Path) -> str:
         data = f.read()
     logger.debug("utils.xml_loaded", file_path=str(file_path))
     return data
+
+
+async def save_file(file_path: str | Path, content: bytes):
+    path = Path(file_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "wb") as f:
+        f.write(content)
+    logger.debug("utils.file_saved", file_path=str(file_path))
+
+
+async def load_file(file_path: str | Path) -> bytes:
+    path = Path(file_path)
+    with open(path, "rb") as f:
+        data = f.read()
+    logger.debug("utils.file_loaded", file_path=str(file_path))
+    return data
+
