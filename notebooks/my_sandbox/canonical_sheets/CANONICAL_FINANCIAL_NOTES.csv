@@ -1,0 +1,42 @@
+Row_Index,Note_No,Line_Item,Breadcrumb_Hierarchy,Current_Year_Amount,Previous_Year_Amount
+1,6,Security deposits,Non-current assets > Financial Assets > Other financial assets > Security deposits,10000.0,0.0
+2,6,Amount paid under protest to Government Department,Non-current assets > Financial Assets > Other financial assets > Protest payments,0.0,419000.0
+3,6,Total Other Non-Current Financial Assets,Non-current assets > Financial Assets > Other financial assets > Total,10000.0,419000.0
+4,7,Advances to suppliers,Non-current assets > Other non-current assets > Advances to suppliers,964769.0,1063346.0
+5,7,Less: Allowance for credit impaired advances,Non-current assets > Other non-current assets > Credit impaired deduction,-964769.0,-1063346.0
+6,7,Capital advances,Non-current assets > Other non-current assets > Capital advances,450000.0,320000.0
+7,7,Total Other Non-Current Assets,Non-current assets > Other non-current assets > Total,450000.0,320000.0
+8,8,Stock-in-trade (goods acquired for trading),Current assets > Inventories > Stock-in-trade,7500000.0,5800000.0
+9,8,Packing materials and consumables,Current assets > Inventories > Packing materials,700000.0,700000.0
+10,8,Total Inventories,Current assets > Inventories > Total,8200000.0,6500000.0
+11,9,Undisputed trade receivables - considered good,Current assets > Financial Assets > Trade receivables > Undisputed considered good,12400000.0,9800000.0
+12,9,Undisputed trade receivables - credit impaired,Current assets > Financial Assets > Trade receivables > Credit impaired,150000.0,120000.0
+13,9,Less: Allowance for expected credit losses,Current assets > Financial Assets > Trade receivables > ECL Allowance,-150000.0,-120000.0
+14,9,Total Trade Receivables,Current assets > Financial Assets > Trade receivables > Total,12400000.0,9800000.0
+15,10,Balances with banks in current accounts,Current assets > Financial Assets > Cash and cash equivalents > Bank balances,3850000.0,2150000.0
+16,10,Cash on hand,Current assets > Financial Assets > Cash and cash equivalents > Cash on hand,250000.0,150000.0
+17,10,Total Cash and Cash Equivalents,Current assets > Financial Assets > Cash and cash equivalents > Total,4100000.0,2300000.0
+18,18,Total outstanding dues of micro and small enterprises (MSME),Current liabilities > Financial Liabilities > Trade payables > MSME dues,500000.0,400000.0
+19,18,Total outstanding dues of creditors other than MSME,Current liabilities > Financial Liabilities > Trade payables > Other creditors,5000000.0,3600000.0
+20,18,Total Trade Payables,Current liabilities > Financial Liabilities > Trade payables > Total,5500000.0,4000000.0
+21,22,Sale of traded products,Income > Revenue from operations > Sale of products,643964000.0,264753000.0
+22,22,Sale of services,Income > Revenue from operations > Sale of services,2000000.0,0.0
+23,22,Total Revenue from Operations,Income > Revenue from operations > Total,645964000.0,264753000.0
+24,23,Interest income on bank deposits,Income > Other income > Interest income,350000.0,280000.0
+25,23,Net gain on foreign currency transactions,Income > Other income > Foreign exchange gain,5728917.0,570000.0
+26,23,Total Other Income,Income > Other income > Total,6078917.0,850000.0
+27,24,Domestic purchases of electronic trading goods,Expenses > Purchase of stock-in-trade > Domestic purchases,611442048.0,245000000.0
+28,24,Total Purchase of Stock-in-Trade,Expenses > Purchase of stock-in-trade > Total,611442048.0,245000000.0
+29,26,"Salaries, wages and bonus",Expenses > Employee benefits expense > Salaries and wages,7200000.0,5800000.0
+30,26,Contribution to provident and other funds,Expenses > Employee benefits expense > Provident fund contribution,651897.0,500000.0
+31,26,Staff welfare expenses,Expenses > Employee benefits expense > Staff welfare,648103.0,500000.0
+32,26,Total Employee Benefits Expense,Expenses > Employee benefits expense > Total,8500000.0,6800000.0
+33,27,Interest expense on borrowings,Expenses > Finance costs > Interest expense,800000.0,700000.0
+34,27,Other borrowing costs and bank charges,Expenses > Finance costs > Bank charges,150000.0,120000.0
+35,27,Total Finance Costs,Expenses > Finance costs > Total,950000.0,820000.0
+36,29,Rent and amenities,Expenses > Other expenses > Rent,2400000.0,2000000.0
+37,29,Payment to statutory auditors,Expenses > Other expenses > Auditor remuneration,300000.0,250000.0
+38,29,Legal and professional charges,Expenses > Other expenses > Legal and professional,1850000.0,1450000.0
+39,29,Freight and forwarding charges,Expenses > Other expenses > Freight charges,3900000.0,3100000.0
+40,29,Miscellaneous operational expenses,Expenses > Other expenses > Miscellaneous expenses,3000000.0,2400000.0
+41,29,Total Other Expenses,Expenses > Other expenses > Total,11450000.0,9200000.0

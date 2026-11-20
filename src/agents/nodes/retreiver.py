@@ -4,7 +4,7 @@ from langchain_core.documents import Document
 from langsmith import traceable
 
 from src.app_config import get_app_config
-from src.constants import XBRL_AGENT_VDB
+from src.constants import AGENT_COLLECTION_NAME
 from src.core.exception import MyException
 from src.core.logger import logger
 from src.services.embeddings.huggingface import HuggingFaceEmbedding
@@ -17,7 +17,7 @@ observe = traceable
 
 def _get_vector_store():
     embedder = HuggingFaceEmbedding()
-    return get_qdrant_service(collection_name=XBRL_AGENT_VDB, embedding_service=embedder)
+    return get_qdrant_service(collection_name=AGENT_COLLECTION_NAME, embedding_service=embedder)
 
 
 async def reranker_documents(query: str, documents: List[Document]):
@@ -31,7 +31,7 @@ async def retreived_node(state: AgentState):
     queries = state.get("queries") or state.get("user_message") or ""
     with logger.span("retriever.execution", query=queries):
         try:
-            logger.info("retriever.querying_vector_store", collection=XBRL_AGENT_VDB, query=queries)
+            logger.info("retriever.querying_vector_store", collection=AGENT_COLLECTION_NAME, query=queries)
             vector_store = _get_vector_store()
             documents = await vector_store.similarity_search(query=queries, k=15)
             doc_count = len(documents) if documents else 0

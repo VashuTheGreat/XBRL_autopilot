@@ -166,6 +166,34 @@ Defines how multidimensional tables are constructed:
 
 ---
 
+### 2.7 Client-Side Live Validation vs. Server Validation (Agent & Developer Architecture Note)
+
+> [!IMPORTANT]
+> **Single Source of Truth for Validation:**
+> `knowledge_base/ind_as_knowledge_base.json` (generated dynamically by `IndASTaxonomyEngine`) is **100% sufficient** for all live form validations, arithmetic summation checks, and UI mandatory alerts. Future developers and AI agents must NOT force live cell edits or UI validation to call backend engine routes!
+
+#### The 2-Tier Validation Model:
+
+```
+                            USER INTERACTION (UI / Electron)
+                                           │
+             ┌─────────────────────────────┴─────────────────────────────┐
+             ▼                                                           ▼
+    [TIER 1: Client-Side Live Validation]                       [TIER 2: Server-Side Final Check]
+    • Runs in JavaScript (0.1ms latency)                        • Runs only once on "Export XML"
+    • ZERO API requests on cell edits                           • Single API call: verifies & signs
+    • Math: Calculation Tree (parent = sum of children)         • Generates official MCA AOC-4 XML
+    • Reconciliation: Gross - Dep = Net (Diff == 0.00)
+    • Mandatory alerts: 220 `mandatoryConcepts` red border
+    • Format Regex: PAN, CIN, DIN client-side checks
+```
+
+#### Why `ind_as_engine_rules.json` is NOT required for Frontend Validation:
+1. **Zero Network Latency:** On every cell edit or keystroke, sending HTTP requests to a Python backend causes severe UI lag. The frontend evaluates calculation trees (`calculation` in `ind_as_knowledge_base.json`) and mandatory items (`businessRules.mandatoryConcepts`) directly in JS in under 0.1ms.
+2. **No Brittle Hardcoding:** The backend `src/services/engine_rules/` compiler was originally created to parse English text into ASTs for external MCA Tool compatibility, which required curation files (`divergences.json`, `masters.json`). For in-app live validation, `ind_as_knowledge_base.json` provides a clean, 100% dynamic, unhardcoded foundation directly extracted from the official MCA taxonomy XML/XSD linkbases.
+
+---
+
 ## 3. The Core Dilemma: Face of Statement vs Notes Breakdown
 
 ### The Question:
