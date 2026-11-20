@@ -38,3 +38,8 @@ VECTOR_DB_WEIGHT:float = 1-BM25_WEIGHT
 
 # knowledge base for agent
 AGENT_KNOWLEDGE_DATA_DIR = BASE_DIR / "data" / "agent"
+
+
+
+# ================== XML Generation =================
+OUTPUT_DIR:str = "output"

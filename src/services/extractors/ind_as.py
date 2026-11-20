@@ -37,7 +37,7 @@ class IndASTaxonomyEngine:
 
     def parse_schemas(self):
         """Step 1: Parse Concepts from all .xsd files"""
-        logger.info("  1/6 Parsing XSD Schemas (Concepts)...")
+        logger.info("indas_engine.parsing_schemas")
         for xsd in sorted(self.tax_dir.rglob("*.xsd")):
             prefix = "in-ca" if "in-ca" in xsd.name else ("ind-as" if "ind-as" in xsd.name else None)
             if not prefix:
@@ -63,10 +63,11 @@ class IndASTaxonomyEngine:
                     if elem_id:
                         self.id_to_qname[elem_id] = qname
                         self.id_to_qname[f"{xsd.name}#{elem_id}"] = qname
+        logger.info("indas_engine.schemas_parsed", total_concepts=len(self.concepts))
 
     def parse_labels(self):
         """Step 2: Merge English and Hindi labels from *lab*.xml"""
-        logger.info("  2/6 Merging Labels Linkbases...")
+        logger.info("indas_engine.parsing_labels")
         for lab in sorted(self.tax_dir.rglob("*lab*.xml")):
             tree = ET.parse(lab)
             root = tree.getroot()
@@ -97,7 +98,7 @@ class IndASTaxonomyEngine:
 
     def parse_presentation(self):
         """Step 3: Parse Presentation Trees from *pre*.xml"""
-        logger.info("  3/6 Parsing Presentation Trees (ELRs)...")
+        logger.info("indas_engine.parsing_presentation")
         for pre in sorted(self.tax_dir.rglob("*pre*.xml")):
             tree = ET.parse(pre)
             root = tree.getroot()
@@ -125,10 +126,11 @@ class IndASTaxonomyEngine:
                                 "to": t,
                                 "order": int(order) if order.is_integer() else order,
                             })
+        logger.info("indas_engine.presentation_parsed", elrs_count=len(self.presentation))
 
     def parse_calculation(self):
         """Step 4: Parse Calculation Equations from *cal*.xml"""
-        logger.info("  4/6 Parsing Calculation Math Equations...")
+        logger.info("indas_engine.parsing_calculation")
         for cal in sorted(self.tax_dir.rglob("*cal*.xml")):
             tree = ET.parse(cal)
             root = tree.getroot()
@@ -158,10 +160,11 @@ class IndASTaxonomyEngine:
                                 "weight": int(w) if w.is_integer() else w,
                                 "order": int(order) if order.is_integer() else order,
                             })
+        logger.info("indas_engine.calculation_parsed", elrs_count=len(self.calculation))
 
     def parse_definition(self):
         """Step 5: Parse Definition/Dimensional Linkbases from *def*.xml"""
-        logger.info("  5/6 Parsing Definition Dimensional Tables...")
+        logger.info("indas_engine.parsing_definition")
         for def_file in sorted(self.tax_dir.rglob("*def*.xml")):
             tree = ET.parse(def_file)
             root = tree.getroot()
@@ -191,10 +194,11 @@ class IndASTaxonomyEngine:
                                 "to": to_concept,
                                 "order": int(order) if order.is_integer() else order,
                             })
+        logger.info("indas_engine.definition_parsed", elrs_count=len(self.definition))
 
     def parse_business_rules(self):
         """Step 6: Parse MCA Business Rules from Excel (Mandatory, Non-Negative, ELR groupings)"""
-        logger.info("  6/6 Parsing Business Rules from Excel...")
+        logger.info("indas_engine.parsing_business_rules")
         wb = CalamineWorkbook.from_path(self.rules_path)
         sheet = next(s for s in wb.sheet_names if "specific" in s.lower())
         rows = wb.get_sheet_by_name(sheet).to_python()
@@ -257,10 +261,17 @@ class IndASTaxonomyEngine:
             "conditionalMandatory": conditional,
             "mandatoryConsolidated": consolidated,
         }
+        logger.info(
+            "indas_engine.business_rules_parsed",
+            mandatory_count=len(mandatory),
+            non_negative_count=len(non_negative),
+            conditional_count=len(conditional),
+            consolidated_count=len(consolidated),
+        )
 
     def build(self) -> dict:
         """Master builder executing all steps in sequence."""
-        with logger.span("Starting Ind AS Taxonomy Engine Build..."):
+        with logger.span("indas_engine.build"):
             self.parse_schemas()
             self.parse_labels()
             self.parse_presentation()
@@ -286,17 +297,16 @@ class IndASTaxonomyEngine:
                 "definition": self.definition,
                 "businessRules": self.rules,
             }
-            logger.info("✓ All 6 Steps Completed Successfully!")
+            logger.info("indas_engine.build_completed", meta=final_kb["meta"])
             return final_kb
 
 
 async def main():
-    engine = IndASTaxonomyEngine(taxonomy_dir=INDAS_TAXONOMY_DIR_PATH, rules_excel_path=INDAS_RULES_EXCEL_PATH)
-    complete_kb_json = engine.build()
-    # Save to disk
-    logger.info(f"\nSaving Knowledge Base JSON to: {INDAS_OUTPUT_JSON_PATH}")
-    await save_json(path=INDAS_OUTPUT_JSON_PATH,data=complete_kb_json)
-    logger.info("✓ Knowledge Base successfully saved to disk!")
-    logger.info("\n--- Final Generated JSON Summary ---")
-    logger.info("Summary: {meta}", meta=json.dumps(complete_kb_json["meta"], indent=2))
+    with logger.span("indas_extractor.main"):
+        engine = IndASTaxonomyEngine(taxonomy_dir=INDAS_TAXONOMY_DIR_PATH, rules_excel_path=INDAS_RULES_EXCEL_PATH)
+        complete_kb_json = engine.build()
+        # Save to disk
+        logger.info("indas_extractor.saving_knowledge_base", path=str(INDAS_OUTPUT_JSON_PATH))
+        await save_json(path=INDAS_OUTPUT_JSON_PATH, data=complete_kb_json)
+        logger.info("indas_extractor.saved_successfully", path=str(INDAS_OUTPUT_JSON_PATH), summary=complete_kb_json["meta"])
 

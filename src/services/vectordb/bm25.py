@@ -8,6 +8,7 @@ from langchain_community.retrievers import BM25Retriever
 from langchain_core.documents import Document
 
 from src.constants import BM25_DIR_PATH, IND_AS_TAXONOMY_VDB
+from src.core.logger import logger
 from src.utils.main_utils import load_object, save_object
 
 from .base import BaseVectorDB
@@ -43,6 +44,7 @@ class BM25(BaseVectorDB):
     def save(self) -> None:
         self.pickle_path.parent.mkdir(parents=True, exist_ok=True)
         _run_sync(save_object(file_path=self.pickle_path, object=self))
+        logger.debug("bm25.saved", path=str(self.pickle_path), doc_count=len(self.documents))
 
     @classmethod
     def load(cls, pickle_path: str | Path = BM25_DIR_PATH) -> "BM25":
@@ -51,23 +53,26 @@ class BM25(BaseVectorDB):
         obj.pickle_path = target
         if obj.documents and obj.retriever is None:
             obj._build_retriever()
+        logger.debug("bm25.loaded", path=str(target), doc_count=len(obj.documents))
         return obj
 
     def add(self, documents: list[Document]) -> list[str]:
         if not documents:
             return []
 
-        ids: list[str] = []
-        for doc in documents:
-            doc_id = doc.id or str(uuid.uuid4())
-            self.documents.append(
-                Document(id=doc_id, page_content=doc.page_content, metadata=doc.metadata or {})
-            )
-            ids.append(doc_id)
+        with logger.span("bm25.add", count=len(documents)):
+            ids: list[str] = []
+            for doc in documents:
+                doc_id = doc.id or str(uuid.uuid4())
+                self.documents.append(
+                    Document(id=doc_id, page_content=doc.page_content, metadata=doc.metadata or {})
+                )
+                ids.append(doc_id)
 
-        self._build_retriever()
-        self.save()
-        return ids
+            self._build_retriever()
+            self.save()
+            logger.info("bm25.documents_indexed", count=len(ids), total_documents=len(self.documents))
+            return ids
 
     async def aadd(self, documents: list[Document]) -> list[str]:
         if not documents:
@@ -94,18 +99,23 @@ class BM25(BaseVectorDB):
         else:
             self.retriever.k = k
 
-        return self.retriever.invoke(query)
+        results = self.retriever.invoke(query)
+        logger.debug("bm25.search_completed", query_preview=query[:50], count=len(results))
+        return results
 
     async def asearch(self, query: str, k: int = 4) -> list[Document]:
         if k <= 0 or not self.documents:
             return []
 
-        if self.retriever is None:
-            self._build_retriever(k=k)
-        else:
-            self.retriever.k = k
+        with logger.span("bm25.asearch", query=query[:50], k=k):
+            if self.retriever is None:
+                self._build_retriever(k=k)
+            else:
+                self.retriever.k = k
 
-        return await self.retriever.ainvoke(query)
+            docs = await self.retriever.ainvoke(query)
+            logger.debug("bm25.asearch_completed", query_preview=query[:50], count=len(docs))
+            return docs
 
 
 def get_bm25_service(collection_name: str = IND_AS_TAXONOMY_VDB) -> BM25:

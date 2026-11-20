@@ -41,14 +41,16 @@ except Exception:
 
 @app.get("/health")
 async def health():
-    cfg = get_app_config()
-    return {
-        "status": "ok",
-        "version": SIDECAR_VERSION,
-        "taxonomies": [IND_AS_TAXONOMY_VDB],
-        "collections": [IND_AS_TAXONOMY_VDB, AGENT_COLLECTION_NAME],
-        "ai": {"enabled": bool(cfg.groq_api_key), "model": cfg.groq_model if cfg.groq_api_key else None},
-    }
+    with logger.span("app.health"):
+        cfg = get_app_config()
+        logger.debug("app.health_checked", version=SIDECAR_VERSION)
+        return {
+            "status": "ok",
+            "version": SIDECAR_VERSION,
+            "taxonomies": [IND_AS_TAXONOMY_VDB],
+            "collections": [IND_AS_TAXONOMY_VDB, AGENT_COLLECTION_NAME],
+            "ai": {"enabled": bool(cfg.groq_api_key), "model": cfg.groq_model if cfg.groq_api_key else None},
+        }
 
 
 # Sidecar core routes

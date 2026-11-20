@@ -1,20 +1,28 @@
 import json
 import pickle
-
-async def load_json(path:str):
-    with open(path,"r",encoding='utf-8') as f:
-        return json.load(f)
+from pathlib import Path
+from src.core.logger import logger
 
 
-async def save_json(path:str,data):
-    with open(path,"w", encoding='utf-8') as f:
-        json.dump(data,f)
+async def load_json(path: str | Path):
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    logger.debug("utils.json_loaded", path=str(path))
+    return data
+
+
+async def save_json(path: str | Path, data):
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    with open(p, "w", encoding="utf-8") as f:
+        json.dump(data, f)
+    logger.debug("utils.json_saved", path=str(path))
 
 
 def to_chroma_metadata(concept: dict) -> dict:
     """
-    ChromaDB only accepts primitive metadata (str, int, float, bool).
-    Serializes nested dicts/lists to JSON strings for ChromaDB storage.
+    ChromaDB / Vector store only accepts primitive metadata (str, int, float, bool).
+    Serializes nested dicts/lists to JSON strings for vector DB storage.
     """
     meta = {}
     for k, v in concept.items():
@@ -35,7 +43,7 @@ def restore_metadata(meta: dict) -> dict:
         return {}
     restored = {}
     for k, v in meta.items():
-        if isinstance(v, str) and (v.startswith('{') or v.startswith('[')):
+        if isinstance(v, str) and (v.startswith("{") or v.startswith("[")):
             try:
                 restored[k] = json.loads(v)
             except Exception:
@@ -45,14 +53,11 @@ def restore_metadata(meta: dict) -> dict:
     return restored
 
 
-
-
-from pathlib import Path
-
-
 async def load_object(file_path: str | Path):
     with open(file_path, "rb") as f:
-        return pickle.load(f)
+        obj = pickle.load(f)
+    logger.debug("utils.object_loaded", file_path=str(file_path))
+    return obj
 
 
 async def save_object(file_path: str | Path, object: object):
@@ -60,5 +65,20 @@ async def save_object(file_path: str | Path, object: object):
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "wb") as f:
         pickle.dump(object, f)
+    logger.debug("utils.object_saved", file_path=str(file_path))
 
-    
+
+async def save_xml(file_path: str | Path, content: str):
+    path = Path(file_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(content)
+    logger.debug("utils.xml_saved", file_path=str(file_path))
+
+
+async def load_xml(file_path: str | Path) -> str:
+    path = Path(file_path)
+    with open(path, "r", encoding="utf-8") as f:
+        data = f.read()
+    logger.debug("utils.xml_loaded", file_path=str(file_path))
+    return data

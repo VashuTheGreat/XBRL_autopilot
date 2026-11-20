@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Any, Generic, List, Optional, TypeVar
 from pydantic import BaseModel
 from fastapi.responses import JSONResponse
+from src.core.logger import logger
 
 T = TypeVar("T")
 
@@ -55,6 +56,7 @@ def error_response(
     errors: Optional[List[dict]] = None,
     data: Any = None,
 ) -> JSONResponse:
+    logger.warning("api.error_response", status_code=status_code, message=message, error_count=len(errors) if errors else 0)
     formatted_errors: Optional[List[ErrorDetail]] = None
     if errors:
         formatted_errors = [
