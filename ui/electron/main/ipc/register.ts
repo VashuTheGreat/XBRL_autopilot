@@ -7,6 +7,9 @@ import { IPC, type AppInfo, type HttpMethod } from '@shared/ipc'
 import type { AppSettings, NewFilingInput } from '@shared/project'
 import { PREVIEW_SPACINGS, type PreviewFormat } from '@xap/engine/basics'
 import type { ProjectController } from '../project/project-controller'
+import type { IndasController } from '../indas/indas-controller'
+import type { GenerateXmlInput } from '@shared/indas'
+import type { SavedProjectsService } from '../services/saved-projects-service'
 import type { AutoTagService } from '../services/auto-tag-service'
 import type { ColumnPeriodService } from '../services/column-period-service'
 import type { EditorQueryService } from '../services/editor-query-service'
@@ -41,6 +44,9 @@ export interface IpcDeps {
   sidecar: SidecarManager
   projects: ProjectService
   projectController: ProjectController
+  savedProjects: SavedProjectsService
+  /** opens the projects folder in the OS file manager */
+  openProjectsFolder: () => Promise<void>
   settings: SettingsService
   sources: SourceService
   mapping: MappingService
@@ -62,6 +68,7 @@ export interface IpcDeps {
   masters: MastersService
   notes: NoteEditorService
   fixAgent: FixAgentService
+  indas: IndasController
   getWindow: () => BrowserWindow | null
 }
 
@@ -78,6 +85,7 @@ export function registerIpc(d: IpcDeps): void {
   registerMastersIpc(d)
   registerNotesIpc(d)
   registerAiIpc(d)
+  registerIndasIpc(d)
 }
 
 function registerAppIpc(d: IpcDeps): void {
@@ -95,7 +103,9 @@ function registerSidecarIpc({ sidecar }: IpcDeps): void {
   })
 }
 
-function registerProjectIpc({ projects, projectController: pc, taxonomy, filing }: IpcDeps): void {
+function registerProjectIpc({ projects, projectController: pc, taxonomy, filing, savedProjects, openProjectsFolder }: IpcDeps): void {
+  handleQuery(IPC.projectSaved, () => savedProjects.list())
+  handleQuery(IPC.projectOpenFolder, () => openProjectsFolder())
   handleQuery(IPC.projectCurrent, () => projects.summary())
   handleQuery(IPC.projectRecent, () => projects.recentProjects())
   handleQuery(IPC.projectForgetRecent, (_e, path: unknown) => projects.forgetRecent(requireString(path, 'path')))
@@ -349,4 +359,36 @@ function requireSetSheetColumnsInput(v: unknown): SetSheetColumnsInput {
   const gap = typeof o.gap === 'number' ? o.gap : undefined
   const applyToAllSheets = o.applyToAllSheets === true
   return { workbook, sheet, cyColumn, pyColumn, gap, applyToAllSheets }
+}
+
+/** docs/17: Vashu's Ind AS pipeline over the sidecar's /indas routes. */
+function registerIndasIpc({ indas }: IpcDeps): void {
+  handleResult(IPC.indasSaveTemplate, () => indas.saveTemplate())
+  handleResult(IPC.indasTransform, (_e, path?: unknown) => indas.transform(path === undefined ? undefined : requireString(path, 'path')))
+  handleResult(IPC.indasRecommend, (_e, keys: unknown) => {
+    if (!Array.isArray(keys) || keys.length > 2000 || !keys.every((k) => typeof k === 'string')) throw new Error('Invalid keys')
+    return indas.recommend(keys as string[])
+  })
+  handleResult(IPC.indasMasterFields, () => indas.masterFields())
+  handleResult(IPC.indasGenerate, (_e, input: unknown) => indas.generate(requireGenerateInput(input)))
+  handleQuery(IPC.indasShowGenerated, () => indas.showGenerated())
+}
+
+function requireGenerateInput(v: unknown): GenerateXmlInput {
+  const i = v as GenerateXmlInput
+  const ok =
+    !!i &&
+    typeof i === 'object' &&
+    typeof i.companyName === 'string' &&
+    !!i.meta &&
+    typeof i.meta.startDate === 'string' &&
+    typeof i.meta.endDate === 'string' &&
+    (i.meta.nature === 'Standalone' || i.meta.nature === 'Consolidated') &&
+    !!i.master &&
+    Array.isArray(i.master.signatories) &&
+    !!i.statements &&
+    Array.isArray(i.statements.balanceSheet) &&
+    Array.isArray(i.statements.profitLoss)
+  if (!ok) throw new Error('Invalid filing data')
+  return i
 }

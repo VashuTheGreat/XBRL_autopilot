@@ -2,8 +2,10 @@ import { Group, Panel, Separator } from 'react-resizable-panels'
 import { BottomPanel } from '@/features/bottom/BottomPanel'
 import { ExcelPane } from '@/features/excel/ExcelPane'
 import { DocumentPane } from '@/features/notes/DocumentPane'
+import { IndasPipeline } from '@/features/indas/IndasPipeline'
 import { WelcomeScreen } from '@/features/welcome/WelcomeScreen'
 import { XbrlPane } from '@/features/xbrl/XbrlPane'
+import { useIndas } from '@/stores/indas'
 import { useNotes } from '@/stores/notes'
 import { useProject } from '@/stores/project'
 import { useUi } from '@/stores/ui'
@@ -23,6 +25,7 @@ export function Workbench() {
   const { sidebarOpen, bottomOpen } = useUi()
   const hasProject = useProject((s) => s.summary !== null)
   const showingDocument = useNotes((s) => s.activeDoc !== null)
+  const indasOpen = useIndas((s) => s.open)
   return (
     <Group orientation="horizontal" className="min-w-0 flex-1">
       {sidebarOpen && (
@@ -46,6 +49,8 @@ export function Workbench() {
                   <XbrlPane />
                 </Panel>
               </Group>
+            ) : indasOpen ? (
+              <IndasPipeline />
             ) : (
               <WelcomeScreen />
             )}

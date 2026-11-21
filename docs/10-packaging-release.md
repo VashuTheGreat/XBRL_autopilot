@@ -37,7 +37,7 @@ Platform-specific targets are also available:
   - `../sidecar-dist/xap-sidecar` → `resources/sidecar`
   - `../knowledge_base` → `resources/knowledge_base`
 - `fileAssociations`: `{ ext: "axbrl", name: "XBRL Autopilot Project", role: "Editor", icon: build/axbrl.ico }`.
-- NSIS: per-user install by default (no admin needed), with an option to change the directory, plus desktop and Start-menu shortcuts.
+- NSIS: **per-machine install** (asks for admin once; docs/17), with an option to change the directory, plus desktop and Start-menu shortcuts. `ui/build/installer.nsh` (`customInstall`) creates `<Program Files>\XBRL_Autopilot\Projects` and grants BUILTIN\Users modify rights (`icacls *S-1-5-32-545:(OI)(CI)M`), so the app saves filings there without admin. The uninstaller leaves that folder (it holds the user's filings).
 - `asar: true`. Native modules (better-sqlite3) are unpacked with `asarUnpack` and rebuilt for Electron through `electron-builder install-app-deps`.
 - **pnpm:** if packaging trips over symlinked `node_modules`, set `node-linker=hoisted` in `.npmrc`.
 

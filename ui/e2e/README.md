@@ -10,6 +10,8 @@ XAP_USER_DATA="$TEMP/xap-e2e-$RANDOM" env -u ELECTRON_RUN_AS_NODE \
 node e2e/phase4-editor.mjs 9350 <screenshotDir> "../data/sample_financials.xlsx"
 ```
 
+`indas-pipeline.mjs` (dev app, real sidecar; docs/17): start screen → Start Ind AS filing → upload (path argument, no dialog) → `/indas/transform` → Suggest tags (`/indas/recommend`; nothing tagged until accepted) → Accept top → master fields from the KB, synthetic company and 2 signatories → Generate: the XML or the MCA problems; screenshots `01`–`06`. Usage: `node e2e/indas-pipeline.mjs <port> <screenshotDir> <workbook.xls|xlsx>`.
+
 `phase11-tables.mjs` (dev app, Ind AS + DGPL `.xls`, no AI): the steps are
 1. Map as table on FA!B10:F29: real selects for the table, 9 rows (line item, role, year, gross / accumulated member) and 4 class columns; Preview reports 36 ready; Map tags 36 cells.
 2. FA!E18 = PPE closing, computers, gross, CY, 0.73.

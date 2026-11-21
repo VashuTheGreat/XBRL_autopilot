@@ -13,6 +13,9 @@ class AppConfig(BaseSettings):
     # AI (Groq). Dev: from .env. Packaged app: injected by Electron main from safeStorage.
     groq_api_key: Optional[str] = Field(None, validation_alias="GROQ_API_KEY")
     groq_model: str = Field(DEFAULT_GROQ_MODEL, validation_alias="GROQ_MODEL")
+    # Models tried in order when the current one hits Groq's rate limit (429), comma-separated.
+    # Groq limits are per model, so the next model usually still has quota (docs/17).
+    groq_fallback_models: Optional[str] = Field(None, validation_alias="GROQ_FALLBACK_MODELS")
     # Tests / E2E point this at a local mock LLM (src/services/llm/groq.py accepts https or loopback http only).
     groq_url: Optional[str] = Field(None, validation_alias="GROQ_URL")
 

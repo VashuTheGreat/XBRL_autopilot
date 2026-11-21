@@ -62,6 +62,12 @@ export interface SidecarClient {
   request<T>(method: HttpMethod, path: string, body?: unknown, timeoutMs?: number): Promise<SidecarResponse<T>>
 }
 
+/** File transfer with the sidecar: multipart upload (JSON answer) and binary download. */
+export interface SidecarFileClient {
+  upload<T>(path: string, file: { field: string; fileName: string; bytes: Uint8Array }, timeoutMs?: number): Promise<SidecarResponse<T>>
+  download(path: string, timeoutMs?: number): Promise<{ status: number; bytes: Uint8Array }>
+}
+
 /** Supplies the engine authority of a taxonomy (loaded once per taxonomy, cached by the implementation). */
 export interface AuthorityProvider {
   load(taxonomy: TaxonomyId): Promise<LoadedAuthority>
@@ -338,4 +344,16 @@ export interface MasterLibraryStore {
 /** Converts a Word document (.docx bytes) to HTML; what it could not keep comes back as messages. */
 export interface DocxConverter {
   toHtml(bytes: Uint8Array): Promise<{ html: string; messages: string[] }>
+}
+
+// ------------------------------------------------------------------ projects folder (docs/17)
+
+/** Creates a directory if needed and tells whether this process can write files in it. */
+export interface WritableDirProbe {
+  ensureWritable(dir: string): boolean
+}
+
+/** Lists the .axbrl files directly in a folder with their manifests (null = unreadable / not a project). */
+export interface ProjectFileLister {
+  list(dir: string): Promise<{ path: string; manifest: AxbrlManifest | null }[]>
 }

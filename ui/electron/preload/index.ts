@@ -37,6 +37,8 @@ const api: XapApi = {
     close: () => invoke(IPC.projectClose),
     recent: () => invoke(IPC.projectRecent),
     forgetRecent: (path) => invoke(IPC.projectForgetRecent, path),
+    saved: () => invoke(IPC.projectSaved),
+    openFolder: () => invoke(IPC.projectOpenFolder),
     recovery: () => invoke(IPC.projectRecovery),
     recover: (id) => invoke(IPC.projectRecover, id),
     discardRecovery: (id) => invoke(IPC.projectDiscardRecovery, id),
@@ -141,6 +143,15 @@ const api: XapApi = {
     clear: () => invoke(IPC.aiClear),
     history: () => invoke(IPC.aiHistory),
     onChanged: (cb) => subscribe<AiView>(IPC.aiChanged, cb),
+  },
+  indas: {
+    saveTemplate: () => invoke(IPC.indasSaveTemplate),
+    transform: (path) => invoke(IPC.indasTransform, path),
+    recommend: (keys) => invoke(IPC.indasRecommend, keys),
+    masterFields: () => invoke(IPC.indasMasterFields),
+    generate: (input) => invoke(IPC.indasGenerate, input),
+    showGenerated: () => invoke(IPC.indasShowGenerated),
+    onProgress: (cb) => subscribe<{ done: number; total: number }>(IPC.indasProgress, cb),
   },
 }
 

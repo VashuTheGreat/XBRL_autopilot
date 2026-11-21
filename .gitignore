@@ -2,6 +2,8 @@
 __pycache__/
 *.py[oc]
 build/
+# electron-builder resources (installer script) are source, not output
+!ui/build/
 dist/
 wheels/
 *.egg-info
@@ -36,3 +38,7 @@ engine/authority/*.json
 
 # electron-vite temp bundles of its config
 *.vite.config.ts.*.mjs
+
+# Sidecar working files (/indas/transform, /indas/generateXML outputs; deleted after DELETE_FILE_AFTER)
+/output/
+/static/

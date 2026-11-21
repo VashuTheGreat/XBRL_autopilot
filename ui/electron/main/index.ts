@@ -55,6 +55,12 @@ import { SourceService } from './services/source-service'
 import { StatementService } from './services/statement-service'
 import { TaxonomyService } from './services/taxonomy-service'
 import { ProjectService } from './services/project-service'
+import { ProjectsFolder, projectsFolderCandidates } from './services/projects-folder'
+import { FsWritableDirProbe } from './infra/fs-writable-dir-probe'
+import { SavedProjectsService } from './services/saved-projects-service'
+import { DirProjectLister } from './infra/dir-project-lister'
+import { IndasPipelineService } from './services/indas-pipeline-service'
+import { IndasController } from './indas/indas-controller'
 import { SettingsService } from './services/settings-service'
 import { SidecarManager } from './sidecar'
 import { findProjectArg, parseDotEnv, windowTitle } from './util/launch'
@@ -96,7 +102,13 @@ const projects = new ProjectService({
   autosave: new DirAutosaveStore(join(userData, 'autosave')),
   appVersion: app.getVersion(),
 })
-const projectController = new ProjectController(projects, getWindow, new InstanceImportService(authorities, projects))
+// Default save / open folder: <Program Files>\XBRL_Autopilot\Projects (made writable by the installer), else Documents
+const projectsFolder = new ProjectsFolder(
+  projectsFolderCandidates({ programFiles: process.env.ProgramFiles, documents: app.getPath('documents'), userData }, join),
+  new FsWritableDirProbe(),
+)
+const savedProjects = new SavedProjectsService(() => projectsFolder.dir(), new DirProjectLister())
+const projectController = new ProjectController(projects, getWindow, new InstanceImportService(authorities, projects), () => projectsFolder.dir())
 const autosave = new AutosaveScheduler(projects, () => settings.get().autosaveSeconds)
 
 // .xlsx in process (exceljs); old .xls through the sidecar's python-calamine route
@@ -132,6 +144,13 @@ const mcaTool = new McaToolService(
 // docs/14 Step 5: mandatory text / date / Yes-No items and Generate (only a clean filing is written)
 const mandatory = new MandatoryInputService(projects)
 const generate = new GenerateService(projects, new FileOutputWriter(join(userData, 'output')))
+// docs/17: Vashu's Ind AS pipeline (/indas routes); generated XML goes to the projects folder
+const indas = new IndasController(
+  new IndasPipelineService(sidecar, { write: (_p, name, text) => new FileOutputWriter(projectsFolder.dir()).write(null, name, text) }),
+  getWindow,
+  () => projectsFolder.dir(),
+  (done, total) => mainWindow?.webContents.send(IPC.indasProgress, { done, total }),
+)
 const preview = new PreviewService(projects, app.getVersion())
 const pdfExport = new PdfExportService(preview, new ElectronPdfRenderer(), (path, data) => writeFile(path, data))
 // docs/14 Step 9: the Masters panel (filing facts) and the master library (app.db, this machine only)
@@ -283,6 +302,9 @@ if (!app.requestSingleInstanceLock()) {
       sidecar,
       projects,
       projectController,
+      savedProjects,
+      indas,
+      openProjectsFolder: () => shell.openPath(projectsFolder.dir()).then(() => undefined),
       settings,
       sources,
       mapping,

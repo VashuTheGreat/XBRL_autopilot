@@ -4,7 +4,7 @@ import uuid
 from pathlib import Path
 from typing import List, Optional
 from fastapi import APIRouter, Depends, Form
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 
 from ...responses import error_response, success_response
 from src.constants import BASE_DIR, INDAS_OUTPUT_JSON_PATH, IND_AS_TAXONOMY_VDB, OUTPUT_DIR, DELETE_FILE_AFTER
@@ -16,6 +16,8 @@ from src.pipeline.xml_generation_pipeline import XMLGenerationPipeline
 from api.helper.delete_file import delete_file_after
 from src.pipeline.indas_transformation import IndasTransformationPipeline
 from api.middlewares.multi_middleware import multer_middleware
+from src.transformation.template import TEMPLATE_FILE_NAME, build_standard_template
+from src.services.master_fields import master_fields
 recomm_pipeline = RecommendationPipeline()
 router = APIRouter()
 
@@ -33,6 +35,30 @@ async def get_autherity():
         except Exception as e:
             logger.error("indas.authority_error", error=str(e))
             return error_response(message=f"Failed to load authority: {str(e)}", status_code=500)
+
+
+@router.get("/master-fields")
+async def get_master_fields():
+    """Mandatory company and auditor fields (qname, label, type) for the master-data form."""
+    with logger.span("indas.master_fields"):
+        try:
+            kb = await load_json(path=INDAS_OUTPUT_JSON_PATH)
+            return success_response(data=master_fields(kb), message="master fields", status_code=200)
+        except Exception as e:
+            logger.error("indas.master_fields_failed", error=str(e))
+            return error_response(message=f"Failed to load master fields: {str(e)}", status_code=500)
+
+
+@router.get("/template")
+async def download_template():
+    """The standard template (docs/17, input path 1): README + the six canonical sheets, from the canonical columns."""
+    with logger.span("indas.download_template"):
+        content = await asyncio.to_thread(build_standard_template)
+        return Response(
+            content=content,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f'attachment; filename="{TEMPLATE_FILE_NAME}"'},
+        )
 
 
 @router.post("/recommend/")
@@ -205,7 +231,9 @@ async def transform_file(
                         "filePath": str(output_file_path),
                         "fileSizeKb": file_size_kb,
                         "downloadUrl": download_url,
-                        "summary": data.get("summary", {}),
+                        "summary": {k: v for k, v in data.get("summary", {}).items() if k != "sheets"},
+                        # canonical rows as JSON (sheet -> rows), so the app needn't read the xlsx back
+                        "sheets": data.get("summary", {}).get("sheets", {}),
                     },
                     message="Workbook transformed successfully. Download URL is valid for 15 minutes.",
                     status_code=200,
