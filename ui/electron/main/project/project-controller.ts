@@ -3,7 +3,7 @@
  * "save changes?" prompt. All project rules stay in ProjectService (tested without Electron).
  */
 import { readFile } from 'node:fs/promises'
-import { basename } from 'node:path'
+import { basename, join } from 'node:path'
 import { dialog, type BrowserWindow } from 'electron'
 import type { ImportReportView, InstanceImportMode, NewFilingInput, ProjectSummary } from '@shared/project'
 import type { InstanceImportService } from '../services/instance-import-service'
@@ -20,6 +20,8 @@ export class ProjectController {
     private readonly service: ProjectService,
     private readonly getWindow: () => BrowserWindow | null,
     private readonly importer: InstanceImportService,
+    /** Default folder for Save / Open (ProjectsFolder, docs/17). */
+    private readonly projectsDir: () => string,
   ) {}
 
   async create(input: NewFilingInput): Promise<ProjectSummary | null> {
@@ -60,7 +62,7 @@ export class ProjectController {
     const s = this.service.summary()
     if (!s) return null
     const win = this.getWindow()
-    const opts = { title: 'Save filing', defaultPath: s.path ?? suggestedFileName(s), filters: FILTERS }
+    const opts = { title: 'Save filing', defaultPath: s.path ?? join(this.projectsDir(), suggestedFileName(s)), filters: FILTERS }
     const { canceled, filePath } = win ? await dialog.showSaveDialog(win, opts) : await dialog.showSaveDialog(opts)
     return canceled || !filePath ? null : this.service.saveAs(filePath)
   }
@@ -97,12 +99,12 @@ export class ProjectController {
   }
 
   private pickOpenPath(): Promise<string | null> {
-    return this.pickPath('Open filing', FILTERS)
+    return this.pickPath('Open filing', FILTERS, this.projectsDir())
   }
 
-  private async pickPath(title: string, filters: { name: string; extensions: string[] }[]): Promise<string | null> {
+  private async pickPath(title: string, filters: { name: string; extensions: string[] }[], defaultPath?: string): Promise<string | null> {
     const win = this.getWindow()
-    const opts = { title, properties: ['openFile' as const], filters }
+    const opts = { title, properties: ['openFile' as const], filters, defaultPath }
     const { canceled, filePaths } = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
     return canceled ? null : (filePaths[0] ?? null)
   }

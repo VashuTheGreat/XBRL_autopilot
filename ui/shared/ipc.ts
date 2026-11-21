@@ -7,6 +7,7 @@ import type {
   NewFilingInput,
   ProjectSummary,
   RecentProject,
+  SavedProjectsListing,
   RecoveryItem,
   SettingsState,
 } from './project'
@@ -121,6 +122,8 @@ export const IPC = {
   projectClose: 'project:close',
   projectRecent: 'project:recent',
   projectForgetRecent: 'project:forget-recent',
+  projectSaved: 'project:saved',
+  projectOpenFolder: 'project:open-folder',
   projectRecovery: 'project:recovery',
   projectRecover: 'project:recover',
   projectDiscardRecovery: 'project:discard-recovery',
@@ -237,6 +240,10 @@ export interface XapApi {
     close(): Promise<Result<boolean>>
     recent(): Promise<RecentProject[]>
     forgetRecent(path: string): Promise<void>
+    /** filings in the projects folder, newest first */
+    saved(): Promise<SavedProjectsListing>
+    /** opens the projects folder in Explorer */
+    openFolder(): Promise<void>
     recovery(): Promise<RecoveryItem[]>
     recover(id: string): Promise<Result<ProjectSummary | null>>
     discardRecovery(id: string): Promise<void>

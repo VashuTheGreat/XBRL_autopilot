@@ -7,6 +7,7 @@ import { IPC, type AppInfo, type HttpMethod } from '@shared/ipc'
 import type { AppSettings, NewFilingInput } from '@shared/project'
 import { PREVIEW_SPACINGS, type PreviewFormat } from '@xap/engine/basics'
 import type { ProjectController } from '../project/project-controller'
+import type { SavedProjectsService } from '../services/saved-projects-service'
 import type { AutoTagService } from '../services/auto-tag-service'
 import type { ColumnPeriodService } from '../services/column-period-service'
 import type { EditorQueryService } from '../services/editor-query-service'
@@ -41,6 +42,9 @@ export interface IpcDeps {
   sidecar: SidecarManager
   projects: ProjectService
   projectController: ProjectController
+  savedProjects: SavedProjectsService
+  /** opens the projects folder in the OS file manager */
+  openProjectsFolder: () => Promise<void>
   settings: SettingsService
   sources: SourceService
   mapping: MappingService
@@ -95,7 +99,9 @@ function registerSidecarIpc({ sidecar }: IpcDeps): void {
   })
 }
 
-function registerProjectIpc({ projects, projectController: pc, taxonomy, filing }: IpcDeps): void {
+function registerProjectIpc({ projects, projectController: pc, taxonomy, filing, savedProjects, openProjectsFolder }: IpcDeps): void {
+  handleQuery(IPC.projectSaved, () => savedProjects.list())
+  handleQuery(IPC.projectOpenFolder, () => openProjectsFolder())
   handleQuery(IPC.projectCurrent, () => projects.summary())
   handleQuery(IPC.projectRecent, () => projects.recentProjects())
   handleQuery(IPC.projectForgetRecent, (_e, path: unknown) => projects.forgetRecent(requireString(path, 'path')))

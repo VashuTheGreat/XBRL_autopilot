@@ -339,3 +339,15 @@ export interface MasterLibraryStore {
 export interface DocxConverter {
   toHtml(bytes: Uint8Array): Promise<{ html: string; messages: string[] }>
 }
+
+// ------------------------------------------------------------------ projects folder (docs/17)
+
+/** Creates a directory if needed and tells whether this process can write files in it. */
+export interface WritableDirProbe {
+  ensureWritable(dir: string): boolean
+}
+
+/** Lists the .axbrl files directly in a folder with their manifests (null = unreadable / not a project). */
+export interface ProjectFileLister {
+  list(dir: string): Promise<{ path: string; manifest: AxbrlManifest | null }[]>
+}

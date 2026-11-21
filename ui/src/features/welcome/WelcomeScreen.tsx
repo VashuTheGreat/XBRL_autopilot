@@ -1,4 +1,4 @@
-import { FileCode2, FilePlus2, FolderOpen, History, LifeBuoy, Trash2, X } from 'lucide-react'
+import { FileCode2, FilePlus2, FolderOpen, FolderTree, History, LifeBuoy, Trash2, X } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/primitives'
 import { cn } from '@/lib/cn'
@@ -18,9 +18,9 @@ function Card(props: { title: string; icon: ReactNode; children: ReactNode; clas
   )
 }
 
-/** Shown when no filing is open: start, open, recent, recover. */
+/** Shown when no filing is open: start, open, recent, saved in the projects folder, recover. */
 export function WelcomeScreen() {
-  const { recent, recovery, openNewFiling, openImportXbrl, open, recover, discardRecovery, forgetRecent } = useProject()
+  const { recent, recovery, saved, openNewFiling, openImportXbrl, open, recover, discardRecovery, forgetRecent, openProjectsFolder } = useProject()
   return (
     <div className="h-full overflow-auto bg-bg">
       <div className="mx-auto flex max-w-3xl flex-col gap-6 px-6 py-12">
@@ -92,6 +92,37 @@ export function WelcomeScreen() {
                     onClick={() => void forgetRecent(r.path)}
                   >
                     <X size={13} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+        <Card title="Saved projects" icon={<FolderTree size={14} className="text-muted" />}>
+          <div className="flex items-center gap-2 px-2 pb-2 text-[11px] text-muted">
+            <span className="min-w-0 flex-1 truncate" title={saved.dir}>
+              {saved.dir || 'Projects folder'}
+            </span>
+            <Button variant="ghost" onClick={() => void openProjectsFolder()} data-testid="welcome-open-projects-folder">
+              <FolderOpen size={13} /> Show folder
+            </Button>
+          </div>
+          {saved.projects.length === 0 ? (
+            <p className="px-2 py-4 text-center text-xs text-muted">No projects saved here yet. New filings are saved to this folder by default.</p>
+          ) : (
+            <ul data-testid="welcome-saved-projects">
+              {saved.projects.map((p) => (
+                <li key={p.path}>
+                  <button className="flex w-full items-center gap-3 rounded px-2 py-1.5 text-left hover:bg-panel-2" title={p.path} onClick={() => void open(p.path)}>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-[13px]">
+                        {p.company} <span className="text-muted">· {p.fy}</span>
+                      </div>
+                      <div className="truncate text-[11px] text-muted">
+                        {p.fileName} · saved {when(p.updatedAt)}
+                      </div>
+                    </div>
+                    <span className="shrink-0 font-mono text-[11px] text-muted">{p.cin}</span>
                   </button>
                 </li>
               ))}

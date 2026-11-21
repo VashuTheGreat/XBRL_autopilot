@@ -103,6 +103,22 @@ export interface RecentProject {
   exists: boolean
 }
 
+/** A filing found in the projects folder (docs/17), shown on the start screen. */
+export interface SavedProject {
+  path: string
+  fileName: string
+  company: string
+  cin: string
+  fy: string
+  updatedAt: string
+}
+
+export interface SavedProjectsListing {
+  /** the projects folder the list was read from */
+  dir: string
+  projects: SavedProject[]
+}
+
 export interface RecoveryItem {
   id: string
   company: string
