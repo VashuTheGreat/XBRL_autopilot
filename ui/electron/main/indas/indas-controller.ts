@@ -31,13 +31,18 @@ export class IndasController {
     return filePath
   }
 
-  /** Asks for the financial statements workbook and converts it. `null` = cancelled. */
-  async transform(): Promise<TransformResult | null> {
+  /** Converts the workbook at `path`, or asks for one. `null` = cancelled. */
+  async transform(path?: string): Promise<TransformResult | null> {
+    if (path) return this.convert(path)
     const opts = { title: 'Open financial statements', properties: ['openFile' as const], filters: EXCEL_FILTERS, defaultPath: this.projectsDir() }
     const win = this.getWindow()
     const { canceled, filePaths } = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts)
     const file = canceled ? undefined : filePaths[0]
-    if (!file) return null
+    return file ? this.convert(file) : null
+  }
+
+  private async convert(file: string): Promise<TransformResult> {
+    if (!/\.xlsx?$/i.test(file)) throw new Error('Choose an Excel workbook (.xls or .xlsx)')
     return this.service.transform(basename(file), new Uint8Array(await readFile(file)))
   }
 

@@ -408,8 +408,8 @@ export interface XapApi {
   indas: {
     /** asks where to save the standard template; the saved path, or null when cancelled */
     saveTemplate(): Promise<Result<string | null>>
-    /** asks for the workbook and converts it; null when cancelled */
-    transform(): Promise<Result<TransformResult | null>>
+    /** converts the workbook at `path` (no path → file dialog); null when cancelled */
+    transform(path?: string): Promise<Result<TransformResult | null>>
     /** tag suggestions per key, in key order (progress arrives through onProgress) */
     recommend(keys: string[]): Promise<Result<ConceptSuggestion[][]>>
     masterFields(): Promise<Result<MasterFields>>

@@ -5,6 +5,7 @@ import { registerTestHook } from './lib/test-hooks'
 import { useEditor } from './stores/editor'
 import { useValidation } from '@/stores/validation'
 import { useAi } from '@/stores/ai'
+import { useIndas } from './stores/indas'
 import { useProject } from './stores/project'
 import { useTables } from './stores/tables'
 import './styles.css'
@@ -19,4 +20,5 @@ registerTestHook('editor', useEditor)
 registerTestHook('project', useProject)
 registerTestHook('validation', useValidation)
 registerTestHook('ai', useAi)
+registerTestHook('indas', useIndas)
 registerTestHook('tables', useTables)

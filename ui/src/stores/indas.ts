@@ -26,7 +26,8 @@ interface IndasState {
   closePipeline(): void
   setStep(step: IndasStep): void
   saveTemplate(): Promise<void>
-  upload(): Promise<void>
+  /** no path → file dialog */
+  upload(path?: string): Promise<void>
   suggest(): Promise<void>
   acceptTop(): void
   setConcept(id: string, concept: string): void
@@ -90,9 +91,9 @@ export const useIndas = create<IndasState>((set, get) => {
         if (path) toast.success(`Template saved: ${path}`)
       }),
 
-    upload: () =>
+    upload: (path) =>
       run('Converting the workbook…', async () => {
-        const t = await unwrap(api().transform())
+        const t = await unwrap(api().transform(path))
         if (!t) return
         set({ transform: t, rows: rowsFromTransform(t), result: null })
         toast.success(t.source === 'standard_template' ? `Read ${t.fileName} (standard template)` : `Converted ${t.fileName}: review the rows`)

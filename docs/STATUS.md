@@ -54,6 +54,7 @@ Re-planned on 2026-11-10 from the real client data ([12-reference-data](12-refer
 - **Ask the team** for Helmier's instance XML (an exact C&I golden; today only the PDF) and the Rebel workbook (a second Ind AS before/after pair).
 
 ## Log
+- **2026-11-21, Ind AS screen run in the real app ([17](17-team-direction.md)):** `ui/e2e/indas-pipeline.mjs` on HPL, all checks pass: 6 canonical sheets (BS 21, PL 18, CF 41, SOCIE 9, PPE 4, notes 276) → 39 BS + PL lines → suggestions for 39/39 in 185 s (nothing tagged until accepted; Share capital → `ind-as:EquityShareCapital`) → 13 company fields from the KB, period prefilled → Generate returned 5 MCA problems, because accepting every top suggestion leaves the Assets / EquityAndLiabilities / ProfitLossForPeriod roots untagged and two totals wrong. Suggestion quality needs work (e.g. Reserves and surplus → FinancialLiabilitiesReclassifiedIntoEquity). In dev the projects folder falls back to Documents (Program Files needs the installer). `pnpm build` passes after freeing C:. `uv cache clean` couldn't run: a running `uvx mcp-proxy-for-aws` holds the cache lock.
 - **2026-11-21, Vashu's pipeline in the app ([17](17-team-direction.md)):** branch `integrate/vashu-main`.
   - **Groq model switch on 429** (`src/services/llm_provider/groq.py`, `GROQ_FALLBACK_MODELS`); `tests/test_groq_fallback.py` (6).
   - **Standard template** `GET /indas/template`; `/transform` reads a filled template as-is and returns the rows as JSON; `/recommend` grouped per key; `GET /indas/master-fields`; `tests/test_standard_template.py` (7).

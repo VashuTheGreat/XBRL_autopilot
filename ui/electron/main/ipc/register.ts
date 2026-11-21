@@ -364,7 +364,7 @@ function requireSetSheetColumnsInput(v: unknown): SetSheetColumnsInput {
 /** docs/17: Vashu's Ind AS pipeline over the sidecar's /indas routes. */
 function registerIndasIpc({ indas }: IpcDeps): void {
   handleResult(IPC.indasSaveTemplate, () => indas.saveTemplate())
-  handleResult(IPC.indasTransform, () => indas.transform())
+  handleResult(IPC.indasTransform, (_e, path?: unknown) => indas.transform(path === undefined ? undefined : requireString(path, 'path')))
   handleResult(IPC.indasRecommend, (_e, keys: unknown) => {
     if (!Array.isArray(keys) || keys.length > 2000 || !keys.every((k) => typeof k === 'string')) throw new Error('Invalid keys')
     return indas.recommend(keys as string[])
