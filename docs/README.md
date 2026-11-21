@@ -25,6 +25,7 @@ Read the doc that matches the task. Keep docs short, factual and current. When c
 | 17 | [Master Architecture & Knowledge Base Blueprint](15-master-architecture-and-knowledge-base-blueprint.md) | **MASTER SINGLE SOURCE OF TRUTH**: Full analysis of `ind_as_knowledge_base.json`, Face vs Notes scoping rule, UI & Backend integration, 6 pure Excel files, and production Normalizer Prompt |
 | 18 | [Validation Architecture & XML Generation API Contract](16-validation-and-xml-generation-api-contract.md) | **2-Tier Validation & Generation**: Gatekeeper Specs, Clean JSON Request/Response (No noteNo), and `t.py` runner |
 | 19 | [XBRL pipeline architecture](16-target-architecture.md) | **Start here for the design**: the planned pipeline stage by stage (has / wrong / add), our pipeline (Ingest → Normalize → Tag → Assure → File), contracts, routes and build order ([ADR-0016](decisions/ADR-0016-canonical-financial-package.md)) |
+| 17 | [Team direction](17-team-direction.md) | **Priority:** Vashu's current decisions (input paths, `/indas/*` routes, what overrides doc 16 / ADRs) and open items |
 | — | [decisions/](decisions/) | Why a big choice was made (ADRs; e.g. [ADR-0014](decisions/ADR-0014-qdrant-vector-db-and-inmemory-chat-integration.md) for Qdrant, in-memory chat, & hybrid reranking) |
 
 **Discussion docs (2026-11-17).** Where they disagree with doc 16 or an ADR, the ADR wins.
