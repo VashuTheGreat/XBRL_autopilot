@@ -53,9 +53,22 @@ def restore_metadata(meta: dict) -> dict:
     return restored
 
 
+class _PortablePathUnpickler(pickle.Unpickler):
+    """Loads pickles made on another OS: a pickled PosixPath / WindowsPath becomes this OS's Path.
+
+    The committed BM25 index (db/*.pkl) is built on Linux; without this Windows fails with
+    "cannot instantiate 'PosixPath' on your system".
+    """
+
+    def find_class(self, module: str, name: str):
+        if module.startswith("pathlib") and name in ("PosixPath", "WindowsPath"):
+            return Path
+        return super().find_class(module, name)
+
+
 async def load_object(file_path: str | Path):
     with open(file_path, "rb") as f:
-        obj = pickle.load(f)
+        obj = _PortablePathUnpickler(f).load()
     logger.debug("utils.object_loaded", file_path=str(file_path))
     return obj
 
