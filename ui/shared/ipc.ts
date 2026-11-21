@@ -1,4 +1,5 @@
 /** Shared IPC contract between main, preload and renderer. See docs/09-ipc-and-sidecar-api.md. */
+import type { ConceptSuggestion, GenerateXmlInput, GenerateXmlResult, MasterFields, TransformResult } from './indas'
 import type {
   AppSettings,
   ElrInfo,
@@ -212,6 +213,13 @@ export const IPC = {
   aiClear: 'ai:clear',
   aiHistory: 'ai:history',
   aiChanged: 'ai:changed',
+  indasSaveTemplate: 'indas:save-template',
+  indasTransform: 'indas:transform',
+  indasRecommend: 'indas:recommend',
+  indasMasterFields: 'indas:master-fields',
+  indasGenerate: 'indas:generate',
+  indasShowGenerated: 'indas:show-generated',
+  indasProgress: 'indas:progress',
 } as const
 
 /** The API exposed on window.xap by the preload script. */
@@ -395,5 +403,19 @@ export interface XapApi {
     /** the newest ai/history.jsonl entries (what was sent, what came back, decisions) */
     history(): Promise<Result<AiHistoryEntry[]>>
     onChanged(cb: (v: AiView) => void): () => void
+  }
+  /** Vashu's Ind AS pipeline (docs/17): Excel → canonical sheets → tags → masters → XML */
+  indas: {
+    /** asks where to save the standard template; the saved path, or null when cancelled */
+    saveTemplate(): Promise<Result<string | null>>
+    /** asks for the workbook and converts it; null when cancelled */
+    transform(): Promise<Result<TransformResult | null>>
+    /** tag suggestions per key, in key order (progress arrives through onProgress) */
+    recommend(keys: string[]): Promise<Result<ConceptSuggestion[][]>>
+    masterFields(): Promise<Result<MasterFields>>
+    generate(input: GenerateXmlInput): Promise<Result<GenerateXmlResult>>
+    /** shows the last generated XML in Explorer */
+    showGenerated(): Promise<void>
+    onProgress(cb: (p: { done: number; total: number }) => void): () => void
   }
 }

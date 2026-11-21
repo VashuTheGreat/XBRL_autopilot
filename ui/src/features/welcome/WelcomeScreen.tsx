@@ -1,7 +1,8 @@
-import { FileCode2, FilePlus2, FolderOpen, FolderTree, History, LifeBuoy, Trash2, X } from 'lucide-react'
+import { Download, FileCode2, FilePlus2, FileSpreadsheet, FolderOpen, FolderTree, History, LifeBuoy, Trash2, X } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/primitives'
 import { cn } from '@/lib/cn'
+import { useIndas } from '@/stores/indas'
 import { useProject } from '@/stores/project'
 
 const when = (iso: string) => new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
@@ -20,6 +21,7 @@ function Card(props: { title: string; icon: ReactNode; children: ReactNode; clas
 
 /** Shown when no filing is open: start, open, recent, saved in the projects folder, recover. */
 export function WelcomeScreen() {
+  const { openPipeline, saveTemplate } = useIndas()
   const { recent, recovery, saved, openNewFiling, openImportXbrl, open, recover, discardRecovery, forgetRecent, openProjectsFolder } = useProject()
   return (
     <div className="h-full overflow-auto bg-bg">
@@ -29,8 +31,25 @@ export function WelcomeScreen() {
           <p className="mt-1 text-sm text-muted">Prepare MCA AOC-4 XBRL filings from Excel — AI-assisted tagging, validation and fixes.</p>
         </div>
 
+        <section className="rounded-md border border-accent/40 bg-panel p-4" data-testid="welcome-indas">
+          <h2 className="flex items-center gap-2 text-sm font-semibold">
+            <FileSpreadsheet size={15} className="text-accent" /> Ind AS filing from Excel
+          </h2>
+          <p className="mt-1 text-xs text-muted">
+            Upload the client's financial statements (or our filled standard template), review the tags the AI suggests, fill the company details and generate the AOC-4 XML.
+          </p>
+          <div className="mt-3 flex gap-2">
+            <Button variant="primary" onClick={openPipeline} data-testid="welcome-indas-start">
+              <FileSpreadsheet size={15} /> Start Ind AS filing
+            </Button>
+            <Button onClick={() => void saveTemplate()} data-testid="welcome-indas-template">
+              <Download size={15} /> Download standard template
+            </Button>
+          </div>
+        </section>
+
         <div className="flex gap-2">
-          <Button variant="primary" onClick={openNewFiling}>
+          <Button onClick={openNewFiling}>
             <FilePlus2 size={15} /> New filing
           </Button>
           <Button onClick={() => void open()}>

@@ -174,6 +174,38 @@ export class SidecarManager extends EventEmitter {
     return { status: res.status, data: data as T }
   }
 
+  /** Multipart upload of one file (e.g. /indas/transform); the answer is parsed as JSON like `request`. */
+  async upload<T>(path: string, file: { field: string; fileName: string; bytes: Uint8Array }, timeoutMs = 120_000): Promise<SidecarResponse<T>> {
+    const form = new FormData()
+    form.append(file.field, new Blob([Uint8Array.from(file.bytes)]), file.fileName) // copy: Blob needs an ArrayBuffer-backed view
+    const res = await this.send(path, { method: 'POST', body: form }, timeoutMs)
+    const text = await res.text()
+    let data: unknown = text
+    try {
+      data = text ? JSON.parse(text) : null
+    } catch {
+      /* keep raw text */
+    }
+    return { status: res.status, data: data as T }
+  }
+
+  /** Binary GET (e.g. the standard template). */
+  async download(path: string, timeoutMs = 120_000): Promise<{ status: number; bytes: Uint8Array }> {
+    const res = await this.send(path, { method: 'GET' }, timeoutMs)
+    return { status: res.status, bytes: new Uint8Array(await res.arrayBuffer()) }
+  }
+
+  /** One authenticated request to an allowed path (the token never leaves the main process). */
+  private send(path: string, init: { method: string; body?: FormData }, timeoutMs: number): Promise<Response> {
+    if (!isAllowedSidecarPath(path)) throw new Error(`Sidecar path not allowed: ${path}`)
+    if (this.status.state !== 'ready') throw new Error('AI engine (sidecar) is not ready')
+    return fetch(`http://127.0.0.1:${this.port}${path}`, {
+      ...init,
+      headers: { Authorization: `Bearer ${this.token}` },
+      signal: AbortSignal.timeout(timeoutMs),
+    })
+  }
+
   private async waitForHealth(gen: number): Promise<void> {
     const deadline = Date.now() + HEALTH_TIMEOUT_MS
     while (Date.now() < deadline) {

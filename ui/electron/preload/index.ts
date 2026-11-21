@@ -144,6 +144,15 @@ const api: XapApi = {
     history: () => invoke(IPC.aiHistory),
     onChanged: (cb) => subscribe<AiView>(IPC.aiChanged, cb),
   },
+  indas: {
+    saveTemplate: () => invoke(IPC.indasSaveTemplate),
+    transform: () => invoke(IPC.indasTransform),
+    recommend: (keys) => invoke(IPC.indasRecommend, keys),
+    masterFields: () => invoke(IPC.indasMasterFields),
+    generate: (input) => invoke(IPC.indasGenerate, input),
+    showGenerated: () => invoke(IPC.indasShowGenerated),
+    onProgress: (cb) => subscribe<{ done: number; total: number }>(IPC.indasProgress, cb),
+  },
 }
 
 contextBridge.exposeInMainWorld('xap', api)

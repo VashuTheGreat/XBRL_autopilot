@@ -62,6 +62,12 @@ export interface SidecarClient {
   request<T>(method: HttpMethod, path: string, body?: unknown, timeoutMs?: number): Promise<SidecarResponse<T>>
 }
 
+/** File transfer with the sidecar: multipart upload (JSON answer) and binary download. */
+export interface SidecarFileClient {
+  upload<T>(path: string, file: { field: string; fileName: string; bytes: Uint8Array }, timeoutMs?: number): Promise<SidecarResponse<T>>
+  download(path: string, timeoutMs?: number): Promise<{ status: number; bytes: Uint8Array }>
+}
+
 /** Supplies the engine authority of a taxonomy (loaded once per taxonomy, cached by the implementation). */
 export interface AuthorityProvider {
   load(taxonomy: TaxonomyId): Promise<LoadedAuthority>

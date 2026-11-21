@@ -59,6 +59,8 @@ import { ProjectsFolder, projectsFolderCandidates } from './services/projects-fo
 import { FsWritableDirProbe } from './infra/fs-writable-dir-probe'
 import { SavedProjectsService } from './services/saved-projects-service'
 import { DirProjectLister } from './infra/dir-project-lister'
+import { IndasPipelineService } from './services/indas-pipeline-service'
+import { IndasController } from './indas/indas-controller'
 import { SettingsService } from './services/settings-service'
 import { SidecarManager } from './sidecar'
 import { findProjectArg, parseDotEnv, windowTitle } from './util/launch'
@@ -142,6 +144,13 @@ const mcaTool = new McaToolService(
 // docs/14 Step 5: mandatory text / date / Yes-No items and Generate (only a clean filing is written)
 const mandatory = new MandatoryInputService(projects)
 const generate = new GenerateService(projects, new FileOutputWriter(join(userData, 'output')))
+// docs/17: Vashu's Ind AS pipeline (/indas routes); generated XML goes to the projects folder
+const indas = new IndasController(
+  new IndasPipelineService(sidecar, { write: (_p, name, text) => new FileOutputWriter(projectsFolder.dir()).write(null, name, text) }),
+  getWindow,
+  () => projectsFolder.dir(),
+  (done, total) => mainWindow?.webContents.send(IPC.indasProgress, { done, total }),
+)
 const preview = new PreviewService(projects, app.getVersion())
 const pdfExport = new PdfExportService(preview, new ElectronPdfRenderer(), (path, data) => writeFile(path, data))
 // docs/14 Step 9: the Masters panel (filing facts) and the master library (app.db, this machine only)
@@ -294,6 +303,7 @@ if (!app.requestSingleInstanceLock()) {
       projects,
       projectController,
       savedProjects,
+      indas,
       openProjectsFolder: () => shell.openPath(projectsFolder.dir()).then(() => undefined),
       settings,
       sources,
