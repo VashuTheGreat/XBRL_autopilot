@@ -22,6 +22,8 @@
 | project | `project:import-xbrl` | invoke | `mode: 'both' \| 'next', path?` (dialog if empty) → `{summary, report: ImportReportView}` (Phase 7; `InstanceImportService`) |
 | project | `project:save` / `project:save-as` | invoke | → `{path}` |
 | project | `project:recent` | invoke | → `RecentProject[]` |
+| project | `project:saved` | invoke | → `SavedProjectsListing` (the `.axbrl` files in the projects folder, newest first; docs/17) |
+| project | `project:open-folder` | invoke | opens the projects folder in the file manager |
 | excel | `workbook:import` | invoke | `path?` → `WorkbookModel` (.xlsx/.xlsm in process; .xls through `POST /api/v1/workbooks/read`) |
 | mapping | `mapping:cell-info` | invoke | `CellRef` → `CellInfo` (amount at the statement's precision + column period) |
 | mapping | `mapping:set-column-period` | invoke | `CellRef, 'CY' \| 'PY' \| null` → `ColumnPeriod` (remembered per sheet column in `mapping.json`) |

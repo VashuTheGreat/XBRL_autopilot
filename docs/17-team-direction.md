@@ -33,12 +33,19 @@ All under `/api/v1/indas/`:
 - **Removed on Vashu's `main`:** `/taxonomies` and `/mapping` routes, the engine authority / engine rules builders and their `knowledge_base/*_engine_*.json` outputs, the Dixon and Rebel instances. The old UI and engine tests that use them will break; that is accepted during the rework (see CLAUDE.md → Branching).
 - **Client workbooks in `notebooks/`** are accepted by the team; don't flag them.
 
-### 4. Open items
+### 4. Projects folder (decided 2026-11-21) ✅
+- Filings are saved by default to **`<Program Files>\XBRL_Autopilot\Projects`**. The per-machine installer creates it and makes it writable for every user (`ui/build/installer.nsh`).
+- If it isn't writable (dev, no installer, Linux), the app uses `Documents\XBRL_Autopilot\Projects`, then `<userData>\Projects` (`ProjectsFolder`, `ui/electron/main/services/projects-folder.ts`).
+- Save / Save as / Open dialogs start in that folder.
+- **Start screen:** New filing, Open, Import XBRL, Recover, Recent filings (already there) + **Saved projects**: every `.axbrl` in the folder, newest first, with a Show folder button (`SavedProjectsService`, IPC `project:saved` / `project:open-folder`).
+
+### 5. Open items
 - [ ] **Groq model switch on rate limit** — Sarthak asked to switch to another model mid-run on a 429. Vashu said done (2026-11-20), but it isn't in the pushed code: `src/services/llm_provider/groq.py` still uses one model. Confirm with Vashu or implement.
 - [ ] **Template download** (path 1) — the template file and a route or UI button to download it.
 - [ ] **AI at decision points in `indas.py`** (path 2) — Vashu's, after he reviews more workbooks.
 - [ ] **UI wiring** to the `/indas/*` routes (the UI still calls the removed `/taxonomies` and `/mapping`).
 
 ## Log
+- **2026-11-21** — Vashu: make an `XBRL_Autopilot` folder in Program Files and save projects there; the start screen shows the saved projects and New filing. Done on `integrate/vashu-main`.
 - **2026-11-21** — Merged Vashu's `main` into branch `integrate/vashu-main` (`main` untouched). Sarthak: Vashu's calls take priority; record them here.
 - **2026-11-20** — Vashu (chat): input via (1) our standard template, (2) heuristic transformation, (3) the template becoming the CA standard; heuristics for now, AI added at decision points over time. Says the rate-limit model switch is done. PR #14 (`client-server`) merged into his `main`: transform, recommend, generateXML, download routes.
