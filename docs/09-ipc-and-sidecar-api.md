@@ -24,6 +24,13 @@
 | project | `project:recent` | invoke | → `RecentProject[]` |
 | project | `project:saved` | invoke | → `SavedProjectsListing` (the `.axbrl` files in the projects folder, newest first; docs/17) |
 | project | `project:open-folder` | invoke | opens the projects folder in the file manager |
+| indas | `indas:save-template` | invoke | Save dialog → writes `/indas/template` → `Result<path \| null>` (docs/17) |
+| indas | `indas:transform` | invoke | Open dialog → `/indas/transform` (multipart) → `Result<TransformResult \| null>` |
+| indas | `indas:recommend` | invoke | `keys[]` → `/indas/recommend` in batches of 8 → `Result<ConceptSuggestion[][]>` (progress on `indas:progress`) |
+| indas | `indas:master-fields` | invoke | → `Result<MasterFields>` |
+| indas | `indas:generate` | invoke | `GenerateXmlInput` → `/indas/generateXML` → `Result<GenerateXmlResult>` (XML saved to the projects folder) |
+| indas | `indas:show-generated` | invoke | shows the last generated XML in Explorer |
+| indas | `indas:progress` | main → renderer | `{ done, total }` while suggesting tags |
 | excel | `workbook:import` | invoke | `path?` → `WorkbookModel` (.xlsx/.xlsm in process; .xls through `POST /api/v1/workbooks/read`) |
 | mapping | `mapping:cell-info` | invoke | `CellRef` → `CellInfo` (amount at the statement's precision + column period) |
 | mapping | `mapping:set-column-period` | invoke | `CellRef, 'CY' \| 'PY' \| null` → `ColumnPeriod` (remembered per sheet column in `mapping.json`) |
