@@ -40,6 +40,12 @@ make rebuild                         # regenerate knowledge_base + Chroma index
 - **First sidecar start:** it takes ~60 s while Python compiles bytecode; later starts take ~6 s. The health timeout is 120 s.
 - **pnpm build scripts:** pnpm blocks dependency build scripts. Approved: `electron`. Denied: `electron-winstaller` (we use NSIS). See `pnpm-workspace.yaml`.
 
+## Branching
+- **`main` stays intact.** Never commit, merge or push directly to `main` (ours or `upstream`). It is the last known-good app.
+- **All work goes on a branch:** `feat/…`, `fix/…`, `arch/…`, `docs/…`; teammate code is merged on `integrate/<who>-<branch>` first.
+- **The architecture rework may break the old app** (routes, engine authority files, UI). That is allowed on branches; record what broke in `docs/STATUS.md`.
+- **Reaching `main`:** only through a reviewed PR, once the branch's tests pass.
+
 ## Non-negotiables
 1. **Secrets:** never commit `.env`, keys or customer data. The Groq key in dev comes from `.env`. In the packaged app it comes from Settings (safeStorage). Never hard-code or bundle a key.
 2. **Deterministic core:** XML generation and validation live in `engine/` and are pure and deterministic. **AI only proposes**: suggestions and patch lists that the user accepts. The AI never writes facts directly.

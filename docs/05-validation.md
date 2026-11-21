@@ -1,5 +1,11 @@
 # 05 · Validation
 
+> [!NOTE]
+> **Architecture Clarification for Developers & AI Agents (2-Tier Validation):**
+> 1. **Client-Side Live Validation (Tier 1):** For real-time in-app validation (cell edits, math check, Balance Sheet balancing, fixed assets roll-forward `Gross - Dep = Net`, red borders on 220 mandatory fields), the frontend uses `knowledge_base/ind_as_knowledge_base.json` directly in JavaScript (0.1ms latency, **0 API calls** on keystrokes/cell edits).
+> 2. **Final XML Export Check (Tier 2):** Backend server-side validation is invoked only once when the user clicks "Export MCA XML". Live editing does not poll or send validation requests to backend engine routes.
+> See [docs/15 Section 2.7](15-master-architecture-and-knowledge-base-blueprint.md#27-client-side-live-validation-vs-server-validation-agent--developer-architecture-note) for the master blueprint.
+
 Validation has **three layers**. The first two run in the app; the third is MCA's own tool. The goal is that by the time the user opens the MCA tool, it reports **zero errors**.
 
 ```

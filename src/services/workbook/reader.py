@@ -17,6 +17,7 @@ import math
 from typing import Any
 
 from python_calamine import CalamineWorkbook, SheetTypeEnum, SheetVisibleEnum
+from src.core.logger import logger
 
 
 class UnreadableWorkbookError(ValueError):
@@ -76,10 +77,12 @@ def _load_xls_formats(data: bytes) -> dict[str, dict[tuple[int, int], str]]:
 
 
 def read_workbook(data: bytes) -> dict:
-    try:
-        wb = CalamineWorkbook.from_filelike(io.BytesIO(data))
-    except Exception as exc:  # calamine raises several error types for unreadable input
-        raise UnreadableWorkbookError("The file could not be read as an Excel workbook.") from exc
+    with logger.span("workbook.read_workbook", bytes_size=len(data)):
+        try:
+            wb = CalamineWorkbook.from_filelike(io.BytesIO(data))
+        except Exception as exc:  # calamine raises several error types for unreadable input
+            logger.error("workbook.unreadable", error=str(exc))
+            raise UnreadableWorkbookError("The file could not be read as an Excel workbook.") from exc
 
     xls_formats = _load_xls_formats(data)
 
@@ -115,7 +118,9 @@ def read_workbook(data: bytes) -> dict:
                 "colWidths": {},
             }
         )
-    if not sheets:
-        raise UnreadableWorkbookError("The workbook has no visible worksheets.")
-    return {"sheets": sheets}
+        if not sheets:
+            logger.warning("workbook.no_visible_sheets")
+            raise UnreadableWorkbookError("The workbook has no visible worksheets.")
+        logger.info("workbook.read_completed", sheets_count=len(sheets))
+        return {"sheets": sheets}
 

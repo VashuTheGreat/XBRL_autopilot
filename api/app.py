@@ -7,17 +7,14 @@ from api.v1.routes import (
     chat_router,
     conversation_router,
     fix,
-    ingestion_router,
-    mapping,
-    taxonomies,
     workbooks,
+    indas_router
 )
 from src.app_config import get_app_config
 from src.constants import (
-    CI_TAXONOMY_VDB,
-    COST_TAXONOMY_VDB,
+    
     IND_AS_TAXONOMY_VDB,
-    XBRL_AGENT_VDB,
+    AGENT_COLLECTION_NAME,
 )
 from src.core.logger import initialise_logger, logger
 
@@ -40,42 +37,29 @@ except Exception:
     pass
 
 
-@app.middleware("http")
-async def require_token(request: Request, call_next):
-    """When launched by the desktop app, every route except /health needs the per-launch token.
-
-    `make dev` (no XAP_TOKEN) keeps the API open for local development.
-    """
-    expected = get_app_config().xap_token
-    if expected and request.url.path not in PUBLIC_PATHS:
-        supplied = request.headers.get("authorization", "")
-        if not hmac.compare_digest(supplied, f"Bearer {expected}"):
-            return JSONResponse(
-                status_code=401,
-                content={"data": None, "message": "Unauthorized", "success": False, "errors": None},
-            )
-    return await call_next(request)
 
 
 @app.get("/health")
 async def health():
-    cfg = get_app_config()
-    return {
-        "status": "ok",
-        "version": SIDECAR_VERSION,
-        "taxonomies": [CI_TAXONOMY_VDB, IND_AS_TAXONOMY_VDB, COST_TAXONOMY_VDB],
-        "collections": [CI_TAXONOMY_VDB, COST_TAXONOMY_VDB, IND_AS_TAXONOMY_VDB, XBRL_AGENT_VDB],
-        "ai": {"enabled": bool(cfg.groq_api_key), "model": cfg.groq_model if cfg.groq_api_key else None},
-    }
+    with logger.span("app.health"):
+        cfg = get_app_config()
+        logger.debug("app.health_checked", version=SIDECAR_VERSION)
+        return {
+            "status": "ok",
+            "version": SIDECAR_VERSION,
+            "taxonomies": [IND_AS_TAXONOMY_VDB],
+            "collections": [IND_AS_TAXONOMY_VDB, AGENT_COLLECTION_NAME],
+            "ai": {"enabled": bool(cfg.groq_api_key), "model": cfg.groq_model if cfg.groq_api_key else None},
+        }
 
 
 # Sidecar core routes
-app.include_router(router=taxonomies.router, prefix="/api/v1/taxonomies")
 app.include_router(router=workbooks.router, prefix="/api/v1/workbooks")
-app.include_router(router=mapping.router, prefix="/api/v1/mapping")
 app.include_router(router=fix.router, prefix="/api/v1/fix")
+app.include_router(router=indas_router.router,prefix="/api/v1/indas")
 
 # In-memory chatbot and ingestion routes
 app.include_router(router=conversation_router.router, prefix="/api/v1")
 app.include_router(router=chat_router.router, prefix="/api/v1")
-app.include_router(router=ingestion_router.router, prefix="/api/v1")
+
+

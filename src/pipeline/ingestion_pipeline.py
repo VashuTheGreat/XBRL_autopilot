@@ -1,19 +1,14 @@
 import os
 import sys
-from typing import List
 
 from langchain_core.documents import Document
 
 from src.constants import (
     AGENT_KNOWLEDGE_DATA_DIR,
     BATCH_SIZE,
-    CI_OUTPUT_JSON,
-    CI_TAXONOMY_VDB,
-    COST_OUTPUT_JSON,
-    COST_TAXONOMY_VDB,
-    INDAS_OUTPUT_JSON,
+    INDAS_OUTPUT_JSON_PATH,
     IND_AS_TAXONOMY_VDB,
-    XBRL_AGENT_VDB,
+    AGENT_COLLECTION_NAME,
 )
 from src.core.exception import MyException
 from src.core.logger import logger
@@ -60,20 +55,20 @@ class IngestionPipeline(Pipeline):
                     logger.warning("ingestion.no_chunks_generated", file_path=file_path)
                     return True
 
-                agent_store = get_qdrant_service(collection_name=XBRL_AGENT_VDB)
+                agent_store = get_qdrant_service(collection_name=AGENT_COLLECTION_NAME)
                 await agent_store.aadd(chunks)
                 logger.info(
                     "ingestion.file_upserted",
                     file_path=file_path,
                     chunks_count=len(chunks),
-                    collection=XBRL_AGENT_VDB,
+                    collection=AGENT_COLLECTION_NAME,
                 )
                 return True
             except Exception as e:
                 logger.error("ingestion.file_processing_failed", file_path=file_path, error=str(e))
                 raise MyException(e, sys)
 
-    async def _process_folder(self, folder_path: str = str(AGENT_KNOWLEDGE_DATA_DIR)) -> List[bool]:
+    async def _process_folder(self, folder_path: str = str(AGENT_KNOWLEDGE_DATA_DIR)) -> list[bool]:
         """Traverse folder and process all documentation files into the xbrl_agent collection."""
         with logger.span("ingestion.process_folder", folder_path=folder_path):
             try:
@@ -98,10 +93,10 @@ class IngestionPipeline(Pipeline):
                 logger.error("ingestion.folder_processing_failed", folder_path=folder_path, error=str(e))
                 raise MyException(e, sys)
 
-    async def _load_taxonomies(self, path: str) -> List[Document]:
+    async def _load_taxonomies(self, path: str) -> list[Document]:
         """Load extracted concepts from JSON and format into Documents with metadata."""
         data = await load_json(path=path)
-        taxonomies: List[Document] = []
+        taxonomies: list[Document] = []
         concepts = data.get("concepts", {})
         for qname, c in concepts.items():
             label = (c.get("labels", {}) or {}).get("label", "") or ""
@@ -113,7 +108,7 @@ class IngestionPipeline(Pipeline):
         logger.info("ingestion.taxonomies_loaded", path=str(path), count=len(taxonomies))
         return taxonomies
 
-    async def _ingest_collection(self, name: str, collection_key: str, items: List[Document]) -> None:
+    async def _ingest_collection(self, name: str, collection_key: str, items: list[Document]) -> None:
         """Ingest document list into the target Qdrant collection in batches."""
         logger.info("ingestion.starting_collection", taxonomy=name, collection=collection_key, total=len(items))
         for i in range(0, len(items), BATCH_SIZE):
@@ -132,19 +127,12 @@ class IngestionPipeline(Pipeline):
         with logger.span("ingestion_pipeline.initiate"):
             logger.info("ingestion_pipeline.started")
 
-            # 1. C&I Taxonomy
-            ci_items = await self._load_taxonomies(str(CI_OUTPUT_JSON))
-            await self._ingest_collection("C&I Taxonomy 2016", CI_TAXONOMY_VDB, ci_items)
-
-            # 2. IND-AS Taxonomy
-            ind_as_items = await self._load_taxonomies(str(INDAS_OUTPUT_JSON))
+            
+            # 1. IND-AS Taxonomy
+            ind_as_items = await self._load_taxonomies(str(INDAS_OUTPUT_JSON_PATH))
             await self._ingest_collection("IND-AS Taxonomy", IND_AS_TAXONOMY_VDB, ind_as_items)
 
-            # 3. Costing Taxonomy
-            costing_items = await self._load_taxonomies(str(COST_OUTPUT_JSON))
-            await self._ingest_collection("Costing Taxonomy", COST_TAXONOMY_VDB, costing_items)
-
-            # 4. Agent MCA/XBRL Documentation
+            # 2. Agent MCA/XBRL Documentation
             await self._process_folder(str(AGENT_KNOWLEDGE_DATA_DIR))
 
             logger.info("ingestion_pipeline.all_completed_successfully")

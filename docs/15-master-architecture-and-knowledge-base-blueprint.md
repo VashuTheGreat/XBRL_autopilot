@@ -1,4 +1,5 @@
 # XBRL Autopilot: Master Architecture & Knowledge Base Blueprint
+
 > **Single Source of Truth** for the entire Ind AS (MCA AOC-4 XBRL) filing automation pipeline.
 > This document provides 100% of the architectural, taxonomic, frontend, backend, and prompt specifications required to build and understand the system from scratch.
 
@@ -51,6 +52,7 @@ The knowledge base (`ind_as_knowledge_base.json`, 5.23 MB) is the single source 
 ---
 
 ### 2.1 `meta` (Taxonomy Identity)
+
 * **What it contains:** Taxonomy namespace (`http://www.mca.gov.in/XBRL/2017/04/ind-as`), schema version (`2017-04-01`), root entry-point schema location (`ind-as-2017-04-01.xsd`), and generation timestamp.
 * **Backend Use:** Used in the XML Generator root `<xbrli:xbrl>` tag for declaring namespaces and `<link:schemaRef>`.
 * **Frontend Use:** Displayed in the status bar (e.g. `Taxonomy: MCA Ind AS 2017 v1.0`).
@@ -58,7 +60,9 @@ The knowledge base (`ind_as_knowledge_base.json`, 5.23 MB) is the single source 
 ---
 
 ### 2.2 `concepts` (5,647 Reportable and Structural Elements)
+
 Every element in `concepts` has the following schema:
+
 ```json
 {
   "qname": "ind-as:PropertyPlantAndEquipment",
@@ -75,40 +79,46 @@ Every element in `concepts` has the following schema:
 ```
 
 #### A. Data Types (`type`) Breakdown & Real Counts:
-| `type` | Count | Meaning & Nature | Where Used in UI & Backend |
-| :--- | :---: | :--- | :--- |
-| `stringItemType` | **1,962** | Plain text, names, descriptions, PAN, CIN | Master forms, Company name, Director names, Auditor FRN. |
-| `monetaryItemType` | **1,912** | Financial currency values in INR | Balance Sheet, P&L, Cash Flow, Table Schedules. Strictly debit/credit balance. |
-| `domainItemType` | **778** | Dimension Members (end with `Member`) | Table Schedules `[T]` (e.g., `FurnitureAndFixturesMember`, `EquitySharesMember`). |
-| `textBlockItemType` | **405** | Narrative explanatory text blocks `[E]` | Notes Tagging tab (Accounting policies, Directors' report, Notes). |
-| `percentItemType` | **102** | Percentages (0 to 100) | Shareholding % (e.g. `PercentageOfShareholding`), tax rates, interest rates. |
-| `decimalItemType` | **84** | Raw decimals and ratios | Useful life of assets, debt-equity ratio, earnings ratios. |
-| `booleanItemType` | **77** | True/False flags | Master checkboxes: Is company subsidiary? Is audit report qualified? |
-| `sharesItemType` | **74** | Integer share counts | Number of shares authorized, issued, subscribed, promoter share count. |
-| `dateItemType` | **45** | ISO 8601 Dates (`YYYY-MM-DD`) | Period start/end dates, Audit report date, AGM date, appointment dates. |
-| `perShareItemType` | **32** | Per-share amounts in INR | Basic EPS, Diluted EPS, Dividend per share, Par value per share. |
-| `PANNumber` | **23** | 10-character Indian PAN string | Validates Income Tax PAN of company, directors, and signing auditors. |
-| `null` | **98** | Abstract containers | Grouping headings that hold no data. |
+
+| `type`              |      Count      | Meaning & Nature                          | Where Used in UI & Backend                                                              |
+| :-------------------- | :-------------: | :---------------------------------------- | :-------------------------------------------------------------------------------------- |
+| `stringItemType`    | **1,962** | Plain text, names, descriptions, PAN, CIN | Master forms, Company name, Director names, Auditor FRN.                                |
+| `monetaryItemType`  | **1,912** | Financial currency values in INR          | Balance Sheet, P&L, Cash Flow, Table Schedules. Strictly debit/credit balance.          |
+| `domainItemType`    |  **778**  | Dimension Members (end with `Member`)   | Table Schedules `[T]` (e.g., `FurnitureAndFixturesMember`, `EquitySharesMember`). |
+| `textBlockItemType` |  **405**  | Narrative explanatory text blocks `[E]` | Notes Tagging tab (Accounting policies, Directors' report, Notes).                      |
+| `percentItemType`   |  **102**  | Percentages (0 to 100)                    | Shareholding % (e.g. `PercentageOfShareholding`), tax rates, interest rates.          |
+| `decimalItemType`   |  **84**  | Raw decimals and ratios                   | Useful life of assets, debt-equity ratio, earnings ratios.                              |
+| `booleanItemType`   |  **77**  | True/False flags                          | Master checkboxes: Is company subsidiary? Is audit report qualified?                    |
+| `sharesItemType`    |  **74**  | Integer share counts                      | Number of shares authorized, issued, subscribed, promoter share count.                  |
+| `dateItemType`      |  **45**  | ISO 8601 Dates (`YYYY-MM-DD`)           | Period start/end dates, Audit report date, AGM date, appointment dates.                 |
+| `perShareItemType`  |  **32**  | Per-share amounts in INR                  | Basic EPS, Diluted EPS, Dividend per share, Par value per share.                        |
+| `PANNumber`         |  **23**  | 10-character Indian PAN string            | Validates Income Tax PAN of company, directors, and signing auditors.                   |
+| `null`              |  **98**  | Abstract containers                       | Grouping headings that hold no data.                                                    |
 
 #### B. Period Types (`periodType`):
+
 * **`instant` (706 concepts):** Balance Sheet point-in-time facts (e.g. `PropertyPlantAndEquipment`, `ShareCapital`, `CashAndCashEquivalents` as of `2026-03-31`).
 * **`duration` (4,843 concepts):** Period flow facts (e.g. `RevenueFromOperations`, `DepreciationExpense`, Text Blocks from `2025-04-01` to `2026-03-31`).
 * **Rule for XML Generator:** Instant concepts get context `<xbrli:instant>`, duration concepts get `<xbrli:startDate>` and `<xbrli:endDate>`.
 
 #### C. Balance Attribute (`balance`):
+
 * **`debit` (879 concepts):** Assets and Expenses.
 * **`credit` (852 concepts):** Liabilities, Equity, and Incomes/Revenues.
 * **`null` (3,916 concepts):** Strings, members, text blocks, booleans, dates, shares, and abstracts.
 * **Rule for Auto-Tagging:** When tagging Balance Sheet Liabilities, candidate concepts with `balance == "debit"` are automatically rejected.
 
 #### D. Abstract Flag (`abstract`):
+
 * **`abstract: true` (1,880 concepts):** Structural headers (e.g. `EquityAndLiabilitiesAbstract`, `NoncurrentAssetsAbstract`, `PropertyPlantAndEquipmentTable`). **They NEVER hold a value in XML.**
 * **`abstract: false` (3,767 concepts):** Reportable line items that hold actual values.
 
 ---
 
 ### 2.3 `presentation` (60 Extended Link Roles - ELRs)
+
 Represents the official presentation tree structure of MCA Ind AS:
+
 * `110000`: **Balance Sheet** (Face of statement)
 * `210000` / `210000a`: **Statement of Profit and Loss**
 * `310000` / `320000`: **Changes in Equity** & **Cash Flow Statement**
@@ -116,26 +126,30 @@ Represents the official presentation tree structure of MCA Ind AS:
 * `500100` to `500200`: **Accounting Policies**
 * `610100` to `613400`: **Specific Ind AS Disclosures** (Ind AS 1, 2, 7, 8, 12, 16, 24, etc.)
 * `700100` to `700700`: **Directors' Report, Auditor Master, Statutory Disclosures**
-
 * **Frontend Use:** Renders the expandable taxonomy tree in the right pane.
 * **Backend Use:** Used for **ELR Scoping** during vector search.
 
 ---
 
 ### 2.4 `calculation` (37 Summation & Mathematical Relationship ELRs)
+
 Contains parent-child calculation formulas with weights (`+1.0` or `-1.0`):
+
 ```
 TotalAssets (+1.0) = NonCurrentAssets (+1.0) + CurrentAssets (+1.0)
 TotalEquityAndLiabilities (+1.0) = TotalEquity (+1.0) + NonCurrentLiabilities (+1.0) + CurrentLiabilities (+1.0)
 ProfitBeforeTax (+1.0) = TotalIncome (+1.0) - TotalExpenses (-1.0)
 ```
+
 * **Backend Use:** The In-App Validation Engine executes these exact calculation graphs to ensure $0.00$ difference before permitting XML generation.
 * **Frontend Use:** Renders live green checkmarks or red warning banners if client numbers fail arithmetic summation.
 
 ---
 
 ### 2.5 `definition` (199 Dimensional Hypercubes / Tables)
+
 Defines how multidimensional tables are constructed:
+
 * **Axes (Dimensions):** e.g. `ind-as:PropertyPlantAndEquipmentAxis`
 * **Members (Domain Items):** e.g. `ind-as:FurnitureAndFixturesMember`, `ind-as:ComputerEquipmentMember`
 * **Line Items:** `GrossCarryingAmount`, `DepreciationPropertyPlantAndEquipment`, `PropertyPlantAndEquipment` (Net Block)
@@ -144,6 +158,7 @@ Defines how multidimensional tables are constructed:
 ---
 
 ### 2.6 `businessRules` (MCA Validation Authority)
+
 * `mandatoryConcepts` (**220 rules**): Concepts that MUST be reported in every AOC-4 filing (e.g. CIN, Company Name, Total Assets, Total Equity).
 * `conditionalMandatory` (**173 rules**): If X is reported, Y must also be reported (e.g., if Foreign Exchange Earnings are reported, details must exist).
 * `mandatoryConsolidated` (**1 rule**): Rules applicable when consolidated financial statements are selected.
@@ -151,14 +166,44 @@ Defines how multidimensional tables are constructed:
 
 ---
 
+### 2.7 Client-Side Live Validation vs. Server Validation (Agent & Developer Architecture Note)
+
+> [!IMPORTANT]
+> **Single Source of Truth for Validation:**
+> `knowledge_base/ind_as_knowledge_base.json` (generated dynamically by `IndASTaxonomyEngine`) is **100% sufficient** for all live form validations, arithmetic summation checks, and UI mandatory alerts. Future developers and AI agents must NOT force live cell edits or UI validation to call backend engine routes!
+
+#### The 2-Tier Validation Model:
+
+```
+                            USER INTERACTION (UI / Electron)
+                                           │
+             ┌─────────────────────────────┴─────────────────────────────┐
+             ▼                                                           ▼
+    [TIER 1: Client-Side Live Validation]                       [TIER 2: Server-Side Final Check]
+    • Runs in JavaScript (0.1ms latency)                        • Runs only once on "Export XML"
+    • ZERO API requests on cell edits                           • Single API call: verifies & signs
+    • Math: Calculation Tree (parent = sum of children)         • Generates official MCA AOC-4 XML
+    • Reconciliation: Gross - Dep = Net (Diff == 0.00)
+    • Mandatory alerts: 220 `mandatoryConcepts` red border
+    • Format Regex: PAN, CIN, DIN client-side checks
+```
+
+#### Why `ind_as_engine_rules.json` is NOT required for Frontend Validation:
+1. **Zero Network Latency:** On every cell edit or keystroke, sending HTTP requests to a Python backend causes severe UI lag. The frontend evaluates calculation trees (`calculation` in `ind_as_knowledge_base.json`) and mandatory items (`businessRules.mandatoryConcepts`) directly in JS in under 0.1ms.
+2. **No Brittle Hardcoding:** The backend `src/services/engine_rules/` compiler was originally created to parse English text into ASTs for external MCA Tool compatibility, which required curation files (`divergences.json`, `masters.json`). For in-app live validation, `ind_as_knowledge_base.json` provides a clean, 100% dynamic, unhardcoded foundation directly extracted from the official MCA taxonomy XML/XSD linkbases.
+
+---
+
 ## 3. The Core Dilemma: Face of Statement vs Notes Breakdown
 
 ### The Question:
+
 > *"Agar Balance Sheet me `Equity share capital` tag kiya, to kya Notes me bhi `Notes-equity-share-capital` tag karna padega? Dono ka Breadcrumb similarity same hoga to Vector DB me confusion kaise rokenge? Kya dono alag alag sheets me hain ya ek hi me?"*
 
 ### The Definitive Answer:
 
 #### 1. Real-World Reality in Financial Statements:
+
 * **In Balance Sheet (Face):** Client shows **ONE single aggregate line item**:
   ```
   Equity share capital | Note 13 | ₹1,00,00,000.00
@@ -172,6 +217,7 @@ Defines how multidimensional tables are constructed:
   - Reconciliation of number of shares
 
 #### 2. Taxonomy Representation in MCA:
+
 * On the Face of Balance Sheet (`ELR 110000`): The concept is `ind-as:EquityShareCapital`. It is reported with a **Default Context** (Instant date `2026-03-31`, **no dimensions**).
 * In Note 13 Breakdown (`ELR 400100`): It uses the **same concept `ind-as:EquityShareCapital`**, BUT inside a **Dimensional Context** qualifying that this fact belongs to `ClassesOfEquityShareCapitalAxis` = `EquitySharesMember`!
 * In addition, Note 13 uses specialized disclosure concepts:
@@ -181,7 +227,8 @@ Defines how multidimensional tables are constructed:
   - `ind-as:PercentageOfShareholding` (type: `percentItemType`)
 
 #### 3. How Vector DB Prevents Confusion (The ELR Scoping Filter):
-**Never search the entire 5,647 concepts at once!** 
+
+**Never search the entire 5,647 concepts at once!**
 Vector DB queries are strictly filtered by the **active UI tab's ELR**:
 
 ```python
@@ -217,13 +264,99 @@ results = vector_db.query(
 
 ---
 
+### 3.4 What is the Purpose of "Note No" Column in the UI? (Cross-Linking [L] & Reconciliation)
+
+In the Balance Sheet screenshot (`Screenshot From 2026-11-18 10-08-01.png`), every line item has a **`Note No`** column (e.g. `2.1`, `3`, `5`, `11`, `18`).
+Some assume this is just visual text with no computational use. **In reality, `Note No` serves 3 critical functions in MCA filing**:
+
+1. **Interactive Navigation & Cross-Linking (`[L]` Badge in Webtel):**
+   - When a CA clicks on `Note 11` beside `Property, plant and equipment` in the Balance Sheet grid, the software instantly opens the detailed Note 11 breakdown tab.
+   - It acts as an internal hyperlink mapping the primary line item to its underlying detailed schedule.
+
+2. **Automated Mathematical Reconciliation Check:**
+   - MCA rules strictly mandate that the face value in the Balance Sheet MUST match the sum of its underlying Note schedule:
+     $$\text{Balance Sheet Face Amount} - \sum(\text{Note Schedule Breakdown}) = \mathbf{0.00}$$
+   - **Real-World Example from Client Files:**
+     - In HPL Balance Sheet Row 32: `Property, plant and equipment` has `Note No: 11` and Amount `₹370.80 lakhs`.
+     - In HPL Sheet `Note 11a & 11b`: The Net Carrying Amount total of all assets (Land, Computers, Furniture, Office Equipment) equals `₹370.80 lakhs`.
+     - If the CA edits any asset in Note 11 and the total becomes `₹370.50`, the software detects a discrepancy of `₹0.30` and flags a red **"Reconciliation Difference Error"** that prevents filing.
+
+3. **Statutory Schedule III Compliance:**
+   - Under Section 129 of the Companies Act 2013, financial statements must comply with Schedule III, which legally mandates that every line item on the face of the financial statements must refer to the relevant Note number.
+
+---
+
+### 3.5 How Table Schedules [T] are Auto-Tagged & Which Sheets Contain Them
+
+#### A. Which Sheets in Client Workbooks Contain Tables?
+In client financial workbooks, table schedules are found in two forms:
+1. **Dedicated Table Sheets:**
+   - In DGPL (`BS DGPL Mar-2026-V1.xls`): Sheet **`FA`** (Fixed Assets) contains the full roll-forward grid.
+   - In HPL (`HPL -M26 - Financials.xlsx`): Sheet **`Note 11a & 11b`** contains the Property, Plant & Equipment and Intangibles roll-forward schedule.
+   - Common naming patterns: `FA`, `Fixed Assets`, `PPE`, `Depreciation`, `Schedule 5`, `Note 11`.
+2. **Embedded inside Consolidated Notes Sheets:**
+   - In HPL Sheet **`Note 3-20`**:
+     - `Note 3`: Share Capital Class & Promoter shareholding table (`ELR 400100`)
+     - `Note 10`: Trade Receivables Ageing Schedule (Undisputed, Disputed, ageing buckets)
+     - `Note 18`: Trade Payables Ageing Schedule (MSME dues, Others, <1 yr, 1-2 yrs, >3 yrs)
+
+#### B. The 2-Dimensional (2D) Table Auto-Tagging Mechanism
+Unlike 1D statement rows, a Table Schedule is **Two-Dimensional**:
+- **Rows (Dimension 1):** Domain Members (Asset Classes / Share Classes / Vendor Categories)
+- **Columns (Dimension 2):** Metric Line Items (Gross Opening, Additions, Disposals, Gross Closing, Depreciation, Net Block)
+
+```
+                            2D TABLE TAGGING FLOW (ELR 400600)
+
+                      [Gross Opening]    [Additions]      [Disposals]     [Gross Closing]
+    Row Assets         (Line Item)       (Line Item)      (Line Item)       (Line Item)
+    ───────────────────────────────────────────────────────────────────────────────────────
+    Plant & Equip  ──► 1,00,00,000       25,00,000            0           1,25,00,000
+    (ind-as:PlantAndEquipmentMember)
+    
+    Furniture      ──►  20,00,000         5,00,000            0             25,00,000
+    (ind-as:FurnitureAndFixturesMember)
+    
+    Computers      ──►  30,00,000        12,00,000       2,00,000           40,00,000
+    (ind-as:ComputerEquipmentMember)
+```
+
+#### C. Execution Steps for Auto-Tagging Tables:
+1. **Row Auto-Tagging (Axis Member Matching):**
+   - The row title (e.g. `"Furniture & Fixtures"`) is queried in Vector DB with filter:
+     `{"elr": "400600", "type": "domainItemType"}`.
+   - Vector DB returns: `ind-as:FurnitureAndFixturesMember`.
+2. **Column Header Auto-Tagging (Metric Matching):**
+   - Header `"Additions"` $\rightarrow$ `ind-as:AdditionsOtherThanThroughBusinessCombinationsPropertyPlantAndEquipment`.
+   - Header `"Disposals"` $\rightarrow$ `ind-as:DisposalsPropertyPlantAndEquipment`.
+   - Header `"Gross Closing"` $\rightarrow$ `ind-as:GrossCarryingAmount`.
+3. **Dimensional Fact Creation (XML Node):**
+   - The cell at (Row: `Furniture & Fixtures`, Column: `Additions`, Value: `500000.00`) creates:
+     ```xml
+     <ind-as:AdditionsOtherThanThroughBusinessCombinationsPropertyPlantAndEquipment 
+       contextRef="Duration_CY_FurnitureAndFixturesMember" 
+       unitRef="INR" decimals="2">500000.00</ind-as:AdditionsOtherThanThroughBusinessCombinationsPropertyPlantAndEquipment>
+     ```
+   - Notice the context `contextRef="Duration_CY_FurnitureAndFixturesMember"` contains `<xbrldi:explicitMember dimension="ind-as:PropertyPlantAndEquipmentAxis">ind-as:FurnitureAndFixturesMember</xbrldi:explicitMember>`.
+4. **Live Mathematical Formula Check (`Difference = 0.00`):**
+   - Before allowing the user to proceed, the engine runs:
+     $$\text{Gross Closing} = \text{Opening} + \text{Additions} - \text{Disposals}$$
+     $$\text{Depreciation Closing} = \text{Opening} + \text{For Year} - \text{Disposals}$$
+     $$\text{Net Block} = \text{Gross Closing} - \text{Depreciation Closing}$$
+     $$\text{Difference} = \text{Calculated Net} - \text{Client Reported Net} == \mathbf{0.00}$$
+   - And verifies that the Schedule's total Net Block equals the Balance Sheet Row (`₹370.80 lakhs == ₹370.80 lakhs`).
+
+---
+
 ## 4. The 6 Standard Canonical Excel Files (Schemas & Concrete Samples)
 
 All canonical files reside in `notebooks/canonical_sheets/` (pure financials, zero XBRL tags):
 
 ### 4.1 `CANONICAL_BS.xlsx` (Balance Sheet)
+
 * **Columns:** `Row_Index` (int), `Line_Item` (str), `Breadcrumb_Hierarchy` (str), `Note_No` (str), `Current_Year_Amount` (float), `Previous_Year_Amount` (float)
 * **Sample Content:**
+
 ```csv
 Row_Index,Line_Item,Breadcrumb_Hierarchy,Note_No,Current_Year_Amount,Previous_Year_Amount
 1,Property Plant & Equipment,ASSETS > Non-current assets > Property Plant & Equipment,5,14500000.0,12000000.0
@@ -242,8 +375,10 @@ Row_Index,Line_Item,Breadcrumb_Hierarchy,Note_No,Current_Year_Amount,Previous_Ye
 ---
 
 ### 4.2 `CANONICAL_PL.xlsx` (Statement of Profit & Loss)
+
 * **Columns:** `Row_Index`, `Line_Item`, `Breadcrumb_Hierarchy`, `Note_No`, `Current_Year_Amount`, `Previous_Year_Amount`
 * **Sample Content:**
+
 ```csv
 Row_Index,Line_Item,Breadcrumb_Hierarchy,Note_No,Current_Year_Amount,Previous_Year_Amount
 1,Revenue from operations,Income > Revenue from operations,21,52000000.0,41000000.0
@@ -262,8 +397,10 @@ Row_Index,Line_Item,Breadcrumb_Hierarchy,Note_No,Current_Year_Amount,Previous_Ye
 ---
 
 ### 4.3 `CANONICAL_CF.xlsx` (Cash Flow Statement - Ind AS)
+
 * **Columns:** `Row_Index`, `Line_Item`, `Breadcrumb_Hierarchy`, `Note_No`, `Current_Year_Amount`, `Previous_Year_Amount`
 * **Sample Content:**
+
 ```csv
 Row_Index,Line_Item,Breadcrumb_Hierarchy,Note_No,Current_Year_Amount,Previous_Year_Amount
 1,Profit before tax,Cash flow from operating activities > Profit before tax,,7700000.0,4530000.0
@@ -281,8 +418,10 @@ Row_Index,Line_Item,Breadcrumb_Hierarchy,Note_No,Current_Year_Amount,Previous_Ye
 ---
 
 ### 4.4 `CANONICAL_SOCIE.xlsx` (Statement of Changes in Equity)
+
 * **Columns:** `Row_Index`, `Equity_Component`, `Transaction_Description`, `Note_No`, `Current_Year_Amount`, `Previous_Year_Amount`
 * **Sample Content:**
+
 ```csv
 Row_Index,Equity_Component,Transaction_Description,Note_No,Current_Year_Amount,Previous_Year_Amount
 1,Equity Share Capital,Balance at beginning of the year,13,10000000.0,10000000.0
@@ -297,9 +436,11 @@ Row_Index,Equity_Component,Transaction_Description,Note_No,Current_Year_Amount,P
 ---
 
 ### 4.5 `CANONICAL_PPE_SCHEDULE.xlsx` (Fixed Assets Roll-Forward Grid `[T]`)
+
 * **Pure financial columns (NO XBRL Tags):**
   `Asset_Class`, `Gross_Opening`, `Gross_Additions`, `Gross_Disposals`, `Gross_Closing`, `Dep_Opening`, `Dep_For_Year`, `Dep_Disposals`, `Dep_Closing`, `Net_Current_Year`, `Net_Previous_Year`
 * **Sample Content:**
+
 ```csv
 Asset_Class,Gross_Opening,Gross_Additions,Gross_Disposals,Gross_Closing,Dep_Opening,Dep_For_Year,Dep_Disposals,Dep_Closing,Net_Current_Year,Net_Previous_Year
 Plant and Equipment,10000000.0,2500000.0,0.0,12500000.0,2000000.0,1000000.0,0.0,3000000.0,9500000.0,8000000.0
@@ -313,6 +454,7 @@ Total Property Plant & Equipment,17000000.0,4500000.0,500000.0,21000000.0,470000
 ---
 
 ### 4.6 `CANONICAL_NOTES.xlsx` (Narrative Notes & Text Blocks `[E]`)
+
 * **Columns:** `Note_No`, `Note_Title`, `Disclosure_Type`, `Narrative_Content`
 * **Sample Content:**
   * **Note 1:** `Corporate Information` $\rightarrow$ General Information text paragraph

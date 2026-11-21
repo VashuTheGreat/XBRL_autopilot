@@ -18,9 +18,13 @@ Read the doc that matches the task. Keep docs short, factual and current. When c
 | 10 | [Packaging & release](10-packaging-release.md) | Building the installer, PyInstaller, electron-builder |
 | 11 | [Security & privacy](11-security-privacy.md) | Keys, financial data, Electron hardening |
 | 12 | [Reference data](12-reference-data.md) | The real client files in `data/`, what they teach us, and the tests built on them |
-| 13 | [webXBRL parity](13-webxbrl-parity.md) | Picking the next feature: every webXBRL feature, our status, gaps and priority; manual-tagging fixes |
-| 14 | [Parity build plan](14-parity-build-plan.md) | The 13 build steps toward webXBRL parity, one chat each, with the context a new chat needs and a prompt template |
-| 16 | [XBRL pipeline architecture](16-target-architecture.md) | **Start here for the design**: the planned pipeline stage by stage (has / wrong / add), our pipeline (Ingest → Normalize → Tag → Assure → File), contracts, routes and build order ([ADR-0016](decisions/ADR-0016-canonical-financial-package.md)) |
+| 13 | [Gap analysis & Ind AS blueprint](13-gap-analysis-and-indas-blueprint.md) | Webtel deconstruction, schema mapper innovation, Ind AS focus, and FastAPI route specs |
+| 14 | [FastAPI Sidecar Workflow](workflow.md) | Complete sidecar endpoint specs, data payloads, hybrid retrieval logic, and frontend integration hooks |
+| 15 | [Phased Roadmap & Implementation Guide](roadmap.md) | Chronological phases from Backend XML generator to Frontend React wizards with deep code specifications |
+| 16 | [Canonical Pipeline & Tagging Architecture](14-canonical-pipeline-and-tagging-architecture.md) | End-to-end specification: 7 Standard Canonical file schemas, ChromaDB clustering, Table [T], Notes [E] |
+| 17 | [Master Architecture & Knowledge Base Blueprint](15-master-architecture-and-knowledge-base-blueprint.md) | **MASTER SINGLE SOURCE OF TRUTH**: Full analysis of `ind_as_knowledge_base.json`, Face vs Notes scoping rule, UI & Backend integration, 6 pure Excel files, and production Normalizer Prompt |
+| 18 | [Validation Architecture & XML Generation API Contract](16-validation-and-xml-generation-api-contract.md) | **2-Tier Validation & Generation**: Gatekeeper Specs, Clean JSON Request/Response (No noteNo), and `t.py` runner |
+| 19 | [XBRL pipeline architecture](16-target-architecture.md) | **Start here for the design**: the planned pipeline stage by stage (has / wrong / add), our pipeline (Ingest → Normalize → Tag → Assure → File), contracts, routes and build order ([ADR-0016](decisions/ADR-0016-canonical-financial-package.md)) |
 | — | [decisions/](decisions/) | Why a big choice was made (ADRs; e.g. [ADR-0014](decisions/ADR-0014-qdrant-vector-db-and-inmemory-chat-integration.md) for Qdrant, in-memory chat, & hybrid reranking) |
 
 **Discussion docs (2026-11-17).** Where they disagree with doc 16 or an ADR, the ADR wins.

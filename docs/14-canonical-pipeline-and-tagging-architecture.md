@@ -19,8 +19,9 @@ Messy Client Files (.xlsx, .xls, .pdf)
 │  3. CANONICAL_CF.xlsx / .csv      (Cash Flow Statement)                │
 │  4. CANONICAL_SOCIE.xlsx / .csv   (Statement of Changes in Equity)     │
 │  5. CANONICAL_PPE_SCHEDULE.xlsx   (Fixed Assets Table Schedule [T])    │
-│  6. CANONICAL_NOTES.json / .md    (Notes to Accounts [E])              │
-│  7. COMPANY_MASTER.json           (Master Tab Form Details)            │
+│  6. CANONICAL_FINANCIAL_NOTES.xlsx (Financial Notes Schedule Values)    │
+│  7. CANONICAL_NOTES.json / .md    (Narrative Disclosures from Docs [E])│
+│  8. COMPANY_MASTER.json           (Master Tab Form Details)            │
 └────────────────────────────────────────────────────────────────────────┘
             │
             ▼
